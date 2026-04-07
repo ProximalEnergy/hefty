@@ -9,6 +9,7 @@ import PlotlyPlot from './PlotlyPlot'
 const LOSS_WATERFALL_BAR_BUDGETED = 'Budgeted'
 const LOSS_WATERFALL_BAR_WEATHER_ADJ = 'Weather adjustment'
 const LOSS_WATERFALL_BAR_PV_EXPECTED = 'PV Expected'
+const LOSS_WATERFALL_BAR_CURTAILMENT = 'Curtailment'
 const LOSS_WATERFALL_BAR_PV_OUTPUT = 'PV Energy Output'
 
 const LossWaterfall = ({
@@ -60,6 +61,9 @@ const LossWaterfall = ({
         }
         if (barName === LOSS_WATERFALL_BAR_WEATHER_ADJ) {
           return theme.colors.cyan[6]
+        }
+        if (barName === LOSS_WATERFALL_BAR_CURTAILMENT) {
+          return theme.colors.orange[6]
         }
         const measure = measures?.[i]
         const y = values?.[i]

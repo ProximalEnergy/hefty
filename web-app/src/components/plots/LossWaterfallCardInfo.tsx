@@ -7,7 +7,9 @@ export function LossWaterfallCardInfo() {
         The waterfall walks from reference production down through known losses
         to metered output. Use Component to group by equipment type, or Failure
         Mode to group by event cause. Bars after expected are Proximal event
-        losses; remaining gap before the meter is unaccounted difference.
+        losses. <strong>Curtailment</strong> (from the same daily KPI as the
+        performance reports) appears right after <strong>PV Expected</strong>.
+        The remaining gap before the meter is unaccounted difference.
       </Text>
       <Text size="sm" component="div" fw={600}>
         Budgeted bridge (when PV budgeted data exists)
@@ -42,6 +44,14 @@ export function LossWaterfallCardInfo() {
             after that bridge. Series choice follows{' '}
             <strong>Degradation assumptions</strong>; downstream steps match the
             no-budgeted chart.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" component="span">
+            <strong>Curtailment</strong> — Energy between expected and actual
+            during PPC curtailment windows (daily PV_PROJECT_CURTAILMENT KPI,
+            summed over the chart range). It is shown before equipment event
+            losses.
           </Text>
         </List.Item>
       </List>

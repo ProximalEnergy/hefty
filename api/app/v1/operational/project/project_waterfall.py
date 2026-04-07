@@ -4,10 +4,11 @@ from typing import Annotated
 import pandas as pd
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
+from core.crud.operational.kpi_data import get_project_kpi_data_agg
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
-from core.enumerations import EventLossType, ProjectType, SensorType
+from core.enumerations import EventLossType, KPIType, ProjectType, SensorType
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,35 @@ from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expect
 from core import models
 
 DESCRIPTION_404 = "Tag not found"
+
+
+def _waterfall_kpi_date_range_exclusive_end(
+    *,
+    start_dt: datetime.datetime,
+    end_dt: datetime.datetime,
+    time_zone: str,
+) -> tuple[datetime.date, datetime.date]:
+    """Map waterfall window to KPI date bounds (end exclusive).
+
+    Args:
+        start_dt: Inclusive range start (timezone-aware or UTC).
+        end_dt: Inclusive range end (typically end-of-day).
+        time_zone: Project IANA timezone name.
+
+    Returns:
+        Pair ``(start_date, end_exclusive_date)`` for ``get_project_kpi_data_agg``.
+    """
+    ts_start = pd.Timestamp(start_dt)
+    ts_end = pd.Timestamp(end_dt)
+    if ts_start.tz is None:
+        ts_start = ts_start.tz_localize("UTC")
+    if ts_end.tz is None:
+        ts_end = ts_end.tz_localize("UTC")
+    local_start = ts_start.tz_convert(time_zone).date()
+    local_end_inclusive = ts_end.tz_convert(time_zone).date()
+    end_exclusive = local_end_inclusive + datetime.timedelta(days=1)
+    return local_start, end_exclusive
+
 
 router = APIRouter(
     prefix="/waterfall",
@@ -227,7 +257,8 @@ async def get_project_waterfall(
     grouped_losses = grouped_losses.rename(columns={"loss": "value"})
     grouped_losses["value"] = -grouped_losses["value"]
     grouped_losses = grouped_losses.reset_index(drop=True)
-    event_losses_sum = float(grouped_losses["value"].sum())
+    event_losses_df = grouped_losses
+    event_losses_sum = float(event_losses_df["value"].sum())
 
     # Convert power (W) to energy (MWh): sum of power × time interval / 1,000,000
     # For 5-minute intervals: 5/60 = 1/12 hours
@@ -249,6 +280,28 @@ async def get_project_waterfall(
             cod=project.cod,
             time_zone=project.time_zone,
         )
+
+    kpi_start, kpi_end_exclusive = _waterfall_kpi_date_range_exclusive_end(
+        start_dt=start_dt,
+        end_dt=end_dt,
+        time_zone=project.time_zone,
+    )
+    curtailment_agg = await get_project_kpi_data_agg(
+        project_id=project.project_id,
+        kpi_type_id=KPIType.PV_PROJECT_CURTAILMENT,
+        start=kpi_start,
+        end=kpi_end_exclusive,
+        aggregation_method="sum",
+    ).get_async(output_type=OutputType.SQLALCHEMY)
+    curtailment_mwh = float(curtailment_agg or 0.0)
+    curtailment_row = pd.DataFrame(
+        {
+            "value": [-curtailment_mwh],
+            "measure": ["relative"],
+            "name": ["Curtailment"],
+        }
+    )
+
     if budgeted_mwh is not None:
         prefix_frames = [
             pd.DataFrame(
@@ -273,9 +326,9 @@ async def get_project_waterfall(
                 }
             ),
         ]
-        grouped_losses = pd.concat([*prefix_frames, grouped_losses]).reset_index(
-            drop=True
-        )
+        grouped_losses = pd.concat(
+            [*prefix_frames, curtailment_row, event_losses_df]
+        ).reset_index(drop=True)
     else:
         new_row = pd.DataFrame(
             {
@@ -284,14 +337,18 @@ async def get_project_waterfall(
                 "name": ["PV Expected"],
             }
         )
-        grouped_losses = pd.concat([new_row, grouped_losses]).reset_index(drop=True)
+        grouped_losses = pd.concat(
+            [new_row, curtailment_row, event_losses_df]
+        ).reset_index(drop=True)
 
     # Convert meter power to energy: multiply sum by time interval (5/60 hours
     # for 5-min data)
     avg_meter_time_delta_hours = 5 / 60
     meter_energy_mwh = series_meter.sum() * avg_meter_time_delta_hours
     if budgeted_mwh is not None:
-        unaccounted_value = meter_energy_mwh - expected_energy_mwh - event_losses_sum
+        unaccounted_value = (
+            meter_energy_mwh - expected_energy_mwh - event_losses_sum + curtailment_mwh
+        )
     else:
         unaccounted_value = meter_energy_mwh - grouped_losses["value"].sum()
     new_row = pd.DataFrame(

@@ -1,20 +1,26 @@
 import {
   DeviceTypeEnum,
+  EventLossTypeEnum,
   KPITypeEnum,
   ProjectTypeEnum,
   ReportTypeEnum,
   SensorTypeEnum,
 } from '@/api/enumerations'
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
+import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import type { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
-import { useGetEventsSummary } from '@/api/v1/operational/project/events'
+import {
+  type EventLosses5Min,
+  type EventLosses5MinGroup,
+  useGetEventLosses5Min,
+  useGetEventsSummary,
+} from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useGetWaterfall } from '@/api/v1/operational/project/waterfall'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
-  useGetPVBudgetedData,
   useGetPVBudgetedDataBySeries,
   useGetPVBudgetedSeries,
   useGetPVBudgetedSeriesDailyData,
@@ -26,7 +32,7 @@ import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
-import { useValidateDateRange } from '@/components/datepicker/utils'
+import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import Attribution from '@/components/gis/Attribution'
 import LossWaterfall from '@/components/plots/LossWaterfall'
 import { LossWaterfallCardInfo } from '@/components/plots/LossWaterfallCardInfo'
@@ -35,15 +41,19 @@ import { AutoFitStatValue } from '@/components/stats/AutoFitStatValue'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import type { Device, EventSummary } from '@/hooks/types'
+import type { DataTimeSeries, Device, EventSummary } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
+import { alignLossSeries } from '@/utils/alignLossSeries'
+import { calculateMovingAverage } from '@/utils/movingAverage'
 import {
   ActionIcon,
   Box,
   Button,
   Card,
+  Center,
   Group,
   List,
+  Loader,
   Modal,
   NumberInput,
   Paper,
@@ -66,6 +76,7 @@ import {
   IconExclamationCircle,
   IconExternalLink,
   IconFileTypePdf,
+  IconPencil,
   IconSun,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
@@ -90,7 +101,7 @@ import React, {
 } from 'react'
 import type { MapMouseEvent } from 'react-map-gl/mapbox'
 import Map, { Layer, Source } from 'react-map-gl/mapbox'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { HoverInfo } from '../gis/utils'
 
@@ -101,19 +112,85 @@ dayjs.extend(timezone)
 const WATERFALL_NAME_PV_ENERGY_OUTPUT = 'PV Energy Output'
 const WATERFALL_NAME_PV_EXPECTED = 'PV Expected'
 
-// Daily Energy Comparison Component - Power Plot Style
-const DailyEnergyComparison = ({
-  selectedDate,
+type BudgetedRow = NonNullable<
+  ReturnType<typeof useGetPVBudgetedDataBySeries>['data']
+>[number]
+
+/** Hour-of-day (0–23) → average budgeted MW for overlay traces. */
+function buildHourlyBudgetedAverages(
+  anchorDay: dayjs.Dayjs,
+  comparisonMode: '15days' | 'dayof',
+  budgetRows: BudgetedRow[],
+  timeZone: string,
+  cod: string | null | undefined,
+  degradationRate: number,
+): Record<number, number> | null {
+  if (!budgetRows.length) {
+    return null
+  }
+  let filteredData = budgetRows
+  if (comparisonMode === 'dayof') {
+    const selectedMonthDay = anchorDay.format('MM-DD')
+    filteredData = budgetRows.filter((dataPoint) => {
+      const timestamp = dayjs.utc(dataPoint.time).tz(timeZone)
+      return timestamp.format('MM-DD') === selectedMonthDay
+    })
+  }
+  if (filteredData.length === 0) {
+    return null
+  }
+  const hourlyAverages: Record<number, number[]> = {}
+  filteredData.forEach((dataPoint) => {
+    const timestamp = dayjs.utc(dataPoint.time).tz(timeZone)
+    const hour = timestamp.hour()
+    if (!hourlyAverages[hour]) {
+      hourlyAverages[hour] = []
+    }
+    let degradedPower = dataPoint.poi_ac_power
+    if (cod) {
+      const codDate = dayjs(cod)
+      const yearsSinceCOD = anchorDay.diff(codDate, 'year', true)
+      const degradationFactor = 1 - (degradationRate / 100) * yearsSinceCOD
+      degradedPower = dataPoint.poi_ac_power * Math.max(0, degradationFactor)
+    }
+    hourlyAverages[hour].push(degradedPower)
+  })
+  const result: Record<number, number> = {}
+  Object.keys(hourlyAverages).forEach((hour) => {
+    const hourNum = parseInt(hour, 10)
+    const values = hourlyAverages[hourNum]
+    result[hourNum] = values.reduce((sum, val) => sum + val, 0) / values.length
+  })
+  return result
+}
+
+const isEventLossGroup = (
+  entry: EventLosses5Min,
+): entry is EventLosses5MinGroup =>
+  typeof entry === 'object' &&
+  entry !== null &&
+  'data' in entry &&
+  Array.isArray((entry as EventLosses5MinGroup).data)
+
+// Weekly meter power: full date range + repeated budgeted curve per day.
+const WeeklyEnergyComparison = ({
+  rangeStart,
+  rangeEnd,
   projectId,
   degradationRate,
   budgetedDataQuery,
   comparisonMode,
+  viewMode,
+  movingAverageWindow,
 }: {
-  selectedDate: dayjs.Dayjs | null
+  rangeStart: dayjs.Dayjs | null
+  rangeEnd: dayjs.Dayjs | null
   projectId: string | undefined
   degradationRate: number
-  budgetedDataQuery: ReturnType<typeof useGetPVBudgetedData>
+  budgetedDataQuery: ReturnType<typeof useGetPVBudgetedDataBySeries>
   comparisonMode: '15days' | 'dayof'
+  viewMode: 'standard' | 'delta'
+  movingAverageWindow: number
 }) => {
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme('light')
@@ -121,13 +198,34 @@ const DailyEnergyComparison = ({
   // Get project data
   const project = useSelectProject(projectId!)
 
-  // Calculate start and end times for the selected date (already in project timezone)
-  const startTime = selectedDate
-    ? selectedDate.startOf('day').toISOString()
-    : null
-  const endTime = selectedDate
-    ? selectedDate.startOf('day').endOf('day').toISOString()
-    : null
+  const startTime =
+    rangeStart && rangeEnd ? rangeStart.startOf('day').toISOString() : null
+  const endTime =
+    rangeStart && rangeEnd ? rangeEnd.endOf('day').toISOString() : null
+
+  const deviceTypes = useGetDeviceTypes({
+    queryOptions: {
+      enabled: viewMode === 'delta' && !!projectId,
+    },
+  })
+
+  const eventLosses5Min = useGetEventLosses5Min({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      start: startTime || '',
+      end: endTime || '',
+      event_loss_type_ids: [EventLossTypeEnum.PROXIMAL_ENERGY],
+      aggregation_column: 'device_type_id',
+    },
+    queryOptions: {
+      enabled: viewMode === 'delta' && !!projectId && !!startTime && !!endTime,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 60 * 1000,
+      gcTime: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
 
   // TODO: Remove this in favor of a new database table.
   const includeSoiling = !['sigurd'].includes(project.data?.name_short || '')
@@ -139,7 +237,7 @@ const DailyEnergyComparison = ({
     queryParams: {
       start: startTime || '',
       end: endTime || '',
-      interval: '15min', // 15-minute intervals for daily view
+      interval: '5min',
       include_storage: project.data?.project_type_id === ProjectTypeEnum.PVS,
       include_setpoint: true,
       include_soiling: includeSoiling,
@@ -170,73 +268,6 @@ const DailyEnergyComparison = ({
     }),
     [theme],
   )
-
-  // Calculate average hourly budgeted output from ±15 days or Day of
-  const averageBudgetedHourly = useMemo(() => {
-    if (
-      !budgetedDataQuery.data ||
-      budgetedDataQuery.data.length === 0 ||
-      !project.data?.time_zone ||
-      !selectedDate
-    ) {
-      return null
-    }
-
-    // Filter data based on comparison mode
-    let filteredData = budgetedDataQuery.data
-    if (comparisonMode === 'dayof') {
-      // Only use data from the selected date (ignoring year)
-      const selectedMonthDay = selectedDate.format('MM-DD')
-      filteredData = budgetedDataQuery.data.filter((dataPoint) => {
-        const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
-        return timestamp.format('MM-DD') === selectedMonthDay
-      })
-    }
-
-    if (filteredData.length === 0) {
-      return null
-    }
-
-    // Group by hour of day (0-23) and calculate average for each hour
-    const hourlyAverages: Record<number, number[]> = {}
-
-    filteredData.forEach((dataPoint) => {
-      const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
-      const hour = timestamp.hour()
-
-      if (!hourlyAverages[hour]) {
-        hourlyAverages[hour] = []
-      }
-
-      // Apply degradation if COD is available
-      // Degradation should be calculated from COD to the selected date, not the budgeted data timestamp
-      let degradedPower = dataPoint.poi_ac_power
-      if (project.data?.cod && selectedDate) {
-        const codDate = dayjs(project.data.cod)
-        const yearsSinceCOD = selectedDate.diff(codDate, 'year', true) // true for decimal years
-        const degradationFactor = 1 - (degradationRate / 100) * yearsSinceCOD
-        degradedPower = dataPoint.poi_ac_power * Math.max(0, degradationFactor) // Ensure non-negative
-      }
-
-      hourlyAverages[hour].push(degradedPower)
-    })
-
-    // Calculate average for each hour
-    const result: Record<number, number> = {}
-    Object.keys(hourlyAverages).forEach((hour) => {
-      const hourNum = parseInt(hour)
-      const values = hourlyAverages[hourNum]
-      result[hourNum] =
-        values.reduce((sum, val) => sum + val, 0) / values.length
-    })
-    return result
-  }, [
-    budgetedDataQuery.data,
-    project.data,
-    degradationRate,
-    comparisonMode,
-    selectedDate,
-  ])
 
   // Process plot data similar to PowerPlotPVZoom
   const plotData = useMemo(() => {
@@ -293,7 +324,7 @@ const DailyEnergyComparison = ({
           size: mode.includes('markers') ? 4 : 0,
           opacity: isSetpoint ? 0 : 1,
         },
-        visible: true,
+        visible: isSetpoint ? ('legendonly' as const) : true,
       }
     })
   }, [powerData.data, colorMap, theme, project.data?.time_zone])
@@ -341,56 +372,65 @@ const DailyEnergyComparison = ({
       })
     }
 
-    // Add budgeted series average if available
-    if (averageBudgetedHourly && powerData.data && powerData.data.length > 0) {
+    if (
+      budgetedDataQuery.data?.length &&
+      powerData.data &&
+      powerData.data.length > 0 &&
+      rangeStart &&
+      rangeEnd &&
+      project.data?.time_zone
+    ) {
       const budgetedTimestamps: string[] = []
       const budgetedY: number[] = []
-
-      // Create hourly data points (one per hour) in project timezone
-      // Budgeted data is hour ending, so shift by 30 minutes to center the data
-      if (!selectedDate) {
-        return finalData
+      const tz = project.data.time_zone
+      let day = rangeStart.startOf('day')
+      const endDay = rangeEnd.startOf('day')
+      while (!day.isAfter(endDay)) {
+        const hourlyMap = buildHourlyBudgetedAverages(
+          day,
+          comparisonMode,
+          budgetedDataQuery.data,
+          tz,
+          project.data.cod,
+          degradationRate,
+        )
+        if (hourlyMap) {
+          for (let hour = 0; hour < 24; hour++) {
+            budgetedTimestamps.push(
+              day.hour(hour).minute(30).second(0).utc().tz(tz).format(),
+            )
+            budgetedY.push(hourlyMap[hour] || 0)
+          }
+        }
+        day = day.add(1, 'day')
       }
-      const baseDate = selectedDate.startOf('day')
-      for (let hour = 0; hour < 24; hour++) {
-        const timestamp = baseDate
-          .hour(hour)
-          .minute(30)
-          .second(0)
-          .utc()
-          .tz(project.data?.time_zone || 'UTC')
-          .format()
-
-        budgetedTimestamps.push(timestamp)
-        // Use current hour's data directly (no shift)
-        budgetedY.push(averageBudgetedHourly[hour] || 0)
+      if (budgetedTimestamps.length > 0) {
+        finalData.push({
+          x: budgetedTimestamps,
+          y: budgetedY,
+          name:
+            comparisonMode === 'dayof'
+              ? 'Budgeted (Day of)'
+              : 'Budgeted Avg (±15 days)',
+          type: 'scatter' as const,
+          mode: 'lines' as const,
+          connectgaps: false,
+          fill: 'none' as const,
+          line: {
+            color: colorMap[-2],
+            width: 2,
+            dash: 'dot',
+          } as { color: string; width: number; dash: string },
+          marker: {
+            size: 0,
+            opacity: 1,
+          },
+          hoverlabel: {
+            namelength: -1,
+          },
+          visible: true,
+        })
       }
-
-      finalData.push({
-        x: budgetedTimestamps,
-        y: budgetedY,
-        name:
-          comparisonMode === 'dayof'
-            ? 'Budgeted (Day of)'
-            : 'Budgeted Avg (+-15 days)',
-        type: 'scatter' as const,
-        mode: 'lines' as const,
-        connectgaps: true,
-        fill: 'none' as const,
-        line: {
-          color: colorMap[-2],
-          width: 2,
-          dash: 'dot',
-        } as { color: string; width: number; dash: string },
-        marker: {
-          size: 0,
-          opacity: 1,
-        },
-        hoverlabel: {
-          namelength: -1,
-        },
-        visible: true,
-      })
     }
 
     return finalData
@@ -399,80 +439,346 @@ const DailyEnergyComparison = ({
     project.data,
     powerData.data,
     colorMap,
-    averageBudgetedHourly,
-    selectedDate,
+    budgetedDataQuery.data,
+    rangeStart,
+    rangeEnd,
     comparisonMode,
+    degradationRate,
   ])
+
+  const meterPowerPlotLayout = useMemo(
+    () => ({
+      yaxis: {
+        title: { text: 'Power (MW)' },
+        fixedrange: true,
+        range:
+          project.data?.project_type_id === ProjectTypeEnum.PVS
+            ? undefined
+            : [0, (project.data?.poi || 0) * 1.05],
+      },
+      xaxis: {
+        type: 'date' as const,
+        fixedrange: false,
+        tickangle: 0,
+        range:
+          rangeStart && rangeEnd
+            ? [
+                rangeStart.startOf('day').valueOf(),
+                rangeEnd.endOf('day').valueOf(),
+              ]
+            : undefined,
+      },
+      showlegend: true,
+      legend: {
+        xref: 'paper' as const,
+        yref: 'paper' as const,
+        x: 0.5,
+        y: -0.25,
+        xanchor: 'center' as const,
+        yanchor: 'top' as const,
+        orientation: 'h' as const,
+        bgcolor:
+          colorScheme === 'dark'
+            ? 'rgba(37,38,43,0.8)'
+            : 'rgba(255,255,255,0.8)',
+        bordercolor:
+          colorScheme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+        borderwidth: 1,
+        itemsizing: 'constant' as const,
+        tracegroupgap: 10,
+      },
+      margin: { l: 60, r: 30, t: 10, b: 20 },
+    }),
+    [
+      project.data?.project_type_id,
+      project.data?.poi,
+      colorScheme,
+      rangeStart,
+      rangeEnd,
+    ],
+  )
+
+  const meterPowerPlotConfig = useMemo(
+    () => ({ responsive: true, scrollZoom: false }),
+    [],
+  )
+
+  const deviceTypeNameById = useMemo(() => {
+    const m = new globalThis.Map<number, string>()
+    deviceTypes.data?.forEach((dt) => {
+      m.set(dt.device_type_id, dt.name_long)
+    })
+    return m
+  }, [deviceTypes.data])
+
+  const deltaPlotData = useMemo((): Partial<Plotly.Data>[] => {
+    if (viewMode !== 'delta' || !powerData.data || !project.data) {
+      return []
+    }
+    const tz = project.data.time_zone ?? 'UTC'
+    const meterSensorId =
+      project.data.project_type_id === ProjectTypeEnum.PVS
+        ? SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+        : SensorTypeEnum.METER_ACTIVE_POWER
+    const meterTrace = powerData.data.find(
+      (t) => t.sensor_type_id === meterSensorId,
+    ) as DataTimeSeries | undefined
+    const expectedTrace = powerData.data.find(
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER,
+    ) as DataTimeSeries | undefined
+    if (!meterTrace || !expectedTrace) {
+      return []
+    }
+    const xs = meterTrace.x as string[]
+    const convertedX = xs.map((timestamp: string) =>
+      dayjs.utc(timestamp).tz(tz).format(),
+    )
+    const deltaY = xs.map((_, i) => {
+      const mVal = meterTrace.y[i]
+      const eVal = expectedTrace.y[i]
+      if (mVal == null || eVal == null) return null
+      const mn = parseFloat(String(mVal))
+      const en = parseFloat(String(eVal))
+      if (!Number.isFinite(mn) || !Number.isFinite(en)) return null
+      return en - mn
+    })
+    const deltaSmoothed = calculateMovingAverage(deltaY, movingAverageWindow)
+    const traces: Partial<Plotly.Data>[] = [
+      {
+        x: convertedX,
+        y: deltaSmoothed,
+        name: 'Expected - Actual (smoothed)',
+        type: 'scatter',
+        mode: 'lines',
+        fill: 'tozeroy',
+        fillcolor:
+          colorScheme === 'dark'
+            ? 'rgba(255, 107, 107, 0.2)'
+            : 'rgba(250, 82, 82, 0.15)',
+        line: { color: theme.colors.red[6], width: 1 },
+        hoverlabel: { namelength: -1 },
+      },
+    ]
+    // Curtailment MW when actual is near PPC setpoint ceiling (same gate as
+    // PV_PROJECT_CURTAILMENT KPI / project_curtailed_energy_kwh_d).
+    const setpointTrace = powerData.data.find(
+      (t) => t.sensor_type_id === SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT,
+    ) as DataTimeSeries | undefined
+    const curtailmentMw = xs.map((_, i) => {
+      if (!setpointTrace) {
+        return null
+      }
+      const mVal = meterTrace.y[i]
+      const eVal = expectedTrace.y[i]
+      const sVal = setpointTrace.y[i]
+      if (mVal == null || eVal == null || sVal == null) {
+        return null
+      }
+      const actualMw = parseFloat(String(mVal))
+      const expectedMw = parseFloat(String(eVal))
+      const setpointMw = parseFloat(String(sVal))
+      if (
+        ![actualMw, expectedMw, setpointMw].every((v) => Number.isFinite(v))
+      ) {
+        return null
+      }
+      const deltaHours = 5 / 60
+      const actualMwh = actualMw * deltaHours
+      const setpointMwh = setpointMw * deltaHours
+      if (actualMwh <= 0.98 * setpointMwh) {
+        return 0
+      }
+      const diffMw = expectedMw - actualMw
+      return diffMw > 0 ? diffMw : 0
+    })
+    const hasCurtailmentLoss = curtailmentMw.some((v) => v != null && v > 0)
+    if (hasCurtailmentLoss) {
+      traces.push({
+        x: convertedX,
+        y: curtailmentMw,
+        name: 'Curtailment',
+        type: 'scatter',
+        mode: 'lines',
+        fill: 'tonexty',
+        stackgroup: 'losses',
+        fillcolor:
+          colorScheme === 'dark'
+            ? 'rgba(253, 126, 20, 0.25)'
+            : 'rgba(253, 126, 20, 0.15)',
+        line: { color: theme.colors.orange[6], width: 1 },
+        hoverlabel: { namelength: -1 },
+      })
+    }
+    const groups = (eventLosses5Min.data ?? []).filter(isEventLossGroup)
+    const sorted = [...groups].sort((a, b) => {
+      const idA = a.device_type_id ?? 0
+      const idB = b.device_type_id ?? 0
+      return idA - idB
+    })
+    sorted.forEach((group, index) => {
+      const series = group.data.find(
+        (s) => s.event_loss_type_id === EventLossTypeEnum.PROXIMAL_ENERGY,
+      )
+      if (!series?.losses.time.length) {
+        return
+      }
+      const dtId = group.device_type_id
+      const label =
+        (dtId != null ? deviceTypeNameById.get(dtId) : undefined) ??
+        (dtId != null ? `Device type ${dtId}` : 'Unknown type')
+      const aligned = alignLossSeries(
+        convertedX,
+        series.losses.time,
+        series.losses.loss,
+        5,
+        tz,
+      )
+      const hasAny = aligned.some((v) => v !== null && Number.isFinite(v))
+      if (!hasAny) {
+        return
+      }
+      traces.push({
+        x: convertedX,
+        y: aligned,
+        name: `Event losses — ${label}`,
+        type: 'scatter',
+        mode: 'lines',
+        fill: 'tonexty',
+        stackgroup: 'losses',
+        fillcolor: theme.colors.gray[2],
+        line: {
+          color: theme.colors.gray[Math.max(3, 6 - (index % 4))],
+        },
+        hoverlabel: { namelength: -1 },
+      })
+    })
+    return traces
+  }, [
+    viewMode,
+    powerData.data,
+    project.data,
+    eventLosses5Min.data,
+    deviceTypeNameById,
+    movingAverageWindow,
+    theme.colors.red,
+    theme.colors.orange,
+    theme.colors.gray,
+    colorScheme,
+  ])
+
+  const deltaPlotLayout = useMemo(
+    () => ({
+      yaxis: {
+        title: { text: 'Power difference & losses (MW)' },
+        fixedrange: true,
+        zeroline: true,
+        autorange: true,
+      },
+      xaxis: {
+        type: 'date' as const,
+        fixedrange: false,
+        tickangle: 0,
+        range:
+          rangeStart && rangeEnd
+            ? [
+                rangeStart.startOf('day').valueOf(),
+                rangeEnd.endOf('day').valueOf(),
+              ]
+            : undefined,
+      },
+      showlegend: true,
+      legend: {
+        xref: 'paper' as const,
+        yref: 'paper' as const,
+        x: 0.5,
+        y: -0.25,
+        xanchor: 'center' as const,
+        yanchor: 'top' as const,
+        orientation: 'h' as const,
+        bgcolor:
+          colorScheme === 'dark'
+            ? 'rgba(37,38,43,0.8)'
+            : 'rgba(255,255,255,0.8)',
+        bordercolor:
+          colorScheme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+        borderwidth: 1,
+        itemsizing: 'constant' as const,
+        tracegroupgap: 10,
+      },
+      margin: { l: 60, r: 30, t: 10, b: 20 },
+    }),
+    [colorScheme, rangeStart, rangeEnd],
+  )
 
   if (!project.data) return null
 
-  if (!selectedDate) {
+  if (!rangeStart || !rangeEnd) {
     return (
       <Text c="dimmed" ta="center" py="xl">
-        Please select a date to view daily power comparison
+        Please select a date range to view meter power
       </Text>
     )
   }
+
+  const meterSensorIdForDelta =
+    project.data.project_type_id === ProjectTypeEnum.PVS
+      ? SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+      : SensorTypeEnum.METER_ACTIVE_POWER
+  const deltaMissingTraces =
+    viewMode === 'delta' &&
+    !!powerData.data &&
+    (!powerData.data.some((t) => t.sensor_type_id === meterSensorIdForDelta) ||
+      !powerData.data.some(
+        (t) => t.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER,
+      ))
 
   // Only wait for required data - budgeted data is optional and can be added later
-  if (powerData.isLoading || project.isLoading) {
+  if (
+    powerData.isLoading ||
+    project.isLoading ||
+    (viewMode === 'delta' && eventLosses5Min.isLoading)
+  ) {
     return (
-      <Text ta="center" py="xl">
-        Loading...
+      <Center py="xl" style={{ minHeight: 'clamp(380px, 48vh, 640px)' }}>
+        <Loader />
+      </Center>
+    )
+  }
+
+  if (deltaMissingTraces) {
+    return (
+      <Text c="dimmed" ta="center" py="xl">
+        Model expected power is not available for delta view on this project.
       </Text>
     )
   }
 
-  const dailyMeterPowerYRange =
-    project.data.project_type_id === ProjectTypeEnum.PVS
-      ? undefined
-      : ([0, project.data.poi * 1.05] as [number, number])
-
-  const dailyMeterPowerPlotLayout = {
-    yaxis: {
-      title: { text: 'Power (MW)' },
-      fixedrange: true,
-      range: dailyMeterPowerYRange,
-    },
-    xaxis: {
-      type: 'date' as const,
-      fixedrange: false,
-      tickangle: 0,
-      range: selectedDate
-        ? [
-            selectedDate.startOf('day').valueOf(),
-            selectedDate.startOf('day').endOf('day').valueOf(),
-          ]
-        : undefined,
-    },
-    showlegend: true,
-    legend: {
-      xref: 'paper' as const,
-      yref: 'paper' as const,
-      x: 0.5,
-      y: -0.25,
-      xanchor: 'center' as const,
-      yanchor: 'top' as const,
-      orientation: 'h' as const,
-      bgcolor:
-        colorScheme === 'dark' ? 'rgba(37,38,43,0.8)' : 'rgba(255,255,255,0.8)',
-      bordercolor:
-        colorScheme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-      borderwidth: 1,
-      itemsizing: 'constant' as const,
-      tracegroupgap: 10,
-    },
-    margin: { l: 60, r: 30, t: 10, b: 20 },
-  }
+  const plotDataOut = viewMode === 'standard' ? finalPlotData : deltaPlotData
+  const layoutOut =
+    viewMode === 'standard' ? meterPowerPlotLayout : deltaPlotLayout
+  const plotError =
+    viewMode === 'standard'
+      ? powerData.error
+      : (powerData.error ?? eventLosses5Min.error)
 
   return (
-    <PlotlyPlot
-      data={finalPlotData}
-      layout={dailyMeterPowerPlotLayout}
-      isLoading={powerData.isLoading || project.isLoading}
-      error={powerData.error}
-      config={{ responsive: true, scrollZoom: false }}
-    />
+    <Box
+      w="100%"
+      miw={0}
+      style={{
+        flexShrink: 0,
+        height: 'clamp(380px, 48vh, 640px)',
+        minHeight: 'clamp(380px, 48vh, 640px)',
+      }}
+    >
+      <PlotlyPlot
+        data={plotDataOut}
+        layout={layoutOut}
+        isLoading={false}
+        error={plotError}
+        config={meterPowerPlotConfig}
+      />
+    </Box>
   )
 }
 
@@ -795,9 +1101,49 @@ function MapHoverCard({
   )
 }
 
+function sumKpiInDateRange(
+  kpi: OperationalKPIData | undefined,
+  lo: string,
+  hi: string,
+): number {
+  if (!kpi?.data?.dates || !kpi.data.project_data) {
+    return 0
+  }
+  let sum = 0
+  kpi.data.dates.forEach((d, i) => {
+    if (d >= lo && d <= hi) {
+      sum += kpi.data!.project_data![i] ?? 0
+    }
+  })
+  return sum
+}
+
+function avgKpiInDateRange(
+  kpi: OperationalKPIData | undefined,
+  lo: string,
+  hi: string,
+): number {
+  if (!kpi?.data?.dates || !kpi.data.project_data) {
+    return 0
+  }
+  const vals: number[] = []
+  kpi.data.dates.forEach((d, i) => {
+    if (d >= lo && d <= hi) {
+      const v = kpi.data!.project_data![i]
+      if (v != null && typeof v === 'number') {
+        vals.push(v)
+      }
+    }
+  })
+  if (vals.length === 0) {
+    return 0
+  }
+  return vals.reduce((a, b) => a + b, 0) / vals.length
+}
+
 const Page: React.FC = () => {
   useProjectFilter({
-    reportTypeId: ReportTypeEnum.PV_PERFORMANCE_DAILY,
+    reportTypeId: ReportTypeEnum.PV_PERFORMANCE_WEEKLY,
   })
 
   const { projectId } = useParams<{ projectId: string }>()
@@ -807,18 +1153,6 @@ const Page: React.FC = () => {
   const [pdfExportRequested, setPdfExportRequested] = useState(false)
   const [pendingThemeSwitch, setPendingThemeSwitch] = useState(false)
   const { setColorScheme } = useMantineColorScheme()
-
-  const handleExportPdf = () => {
-    if (!reportRef.current) return
-    setIsPdfLoading(true)
-    if (colorScheme === 'dark') {
-      setIsMapIdle(false)
-      setPendingThemeSwitch(true)
-      setColorScheme('light')
-      return
-    }
-    setPdfExportRequested(true)
-  }
 
   React.useEffect(() => {
     if (isMapIdle && pdfExportRequested) {
@@ -835,7 +1169,7 @@ const Page: React.FC = () => {
           format: [canvas.width, canvas.height],
         })
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
-        pdf.save('daily-performance-report.pdf')
+        pdf.save('weekly-performance-report.pdf')
         setIsPdfLoading(false)
         setPdfExportRequested(false)
         setIsMapIdle(false) // Reset for next export
@@ -855,16 +1189,27 @@ const Page: React.FC = () => {
     setPendingThemeSwitch(false)
   }, [pendingThemeSwitch, colorScheme])
 
-  // Get date from URL params via AdvancedDatePicker (already in project timezone)
-  const { start: selectedDate } = useValidateDateRange({
-    maxDays: 1,
-    timeZone: project.data?.time_zone,
-  })
+  const [searchParams] = useSearchParams()
+  const { start: rangeStart, end: rangeEnd } = useMemo(
+    () =>
+      getQueryParamDateRange({
+        searchParams,
+        timeZone: project.data?.time_zone,
+        maxDays: 7,
+        endExclusive: false,
+      }),
+    [searchParams, project.data?.time_zone],
+  )
 
   // Toggle for cumulative vs daily in the 30-day chart
   const [energyView, setEnergyView] = useState<'cumulative' | 'daily'>(
     'cumulative',
   )
+
+  const [meterPowerChartView, setMeterPowerChartView] = useState<
+    'standard' | 'delta'
+  >('standard')
+  const [meterPowerMaWindow, setMeterPowerMaWindow] = useState(20)
 
   // Toggle for budgeted comparison: '+/- 15 days' vs 'Day of'
   const [budgetedComparisonMode, setBudgetedComparisonMode] = useState<
@@ -915,18 +1260,30 @@ const Page: React.FC = () => {
       (option) => parseFloat(option.value) === degradationRate,
     )?.value ?? 'custom'
 
-  // selectedDate is already a dayjs object in project timezone, so just use it directly
-  const { startTime, endTime, selectedDateStr } = useMemo(() => {
-    if (!selectedDate) {
-      return { startTime: null, endTime: null, selectedDateStr: null }
+  const {
+    startTime,
+    endTime,
+    rangeStartStr,
+    rangeEndStr,
+    rangeEndExclusiveStr,
+  } = useMemo(() => {
+    if (!rangeStart || !rangeEnd) {
+      return {
+        startTime: null,
+        endTime: null,
+        rangeStartStr: null,
+        rangeEndStr: null,
+        rangeEndExclusiveStr: null,
+      }
     }
-    const startOfDay = selectedDate.startOf('day')
     return {
-      startTime: startOfDay.toISOString(),
-      endTime: startOfDay.endOf('day').toISOString(),
-      selectedDateStr: startOfDay.format('YYYY-MM-DD'),
+      startTime: rangeStart.startOf('day').toISOString(),
+      endTime: rangeEnd.endOf('day').toISOString(),
+      rangeStartStr: rangeStart.format('YYYY-MM-DD'),
+      rangeEndStr: rangeEnd.format('YYYY-MM-DD'),
+      rangeEndExclusiveStr: rangeEnd.add(1, 'day').format('YYYY-MM-DD'),
     }
-  }, [selectedDate])
+  }, [rangeStart, rangeEnd])
 
   // Waterfall uses same Actual/Expected as the loss chart (meter + pv_expected).
   // Use for PI and Project Generation when available so they match the chart.
@@ -943,6 +1300,56 @@ const Page: React.FC = () => {
       refetchOnMount: false,
       refetchOnReconnect: false,
       staleTime: 24 * 60 * 60 * 1000,
+      gcTime: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+
+  // Same queries as WeeklyEnergyComparison; TanStack Query dedupes — used to
+  // disable PDF export until the meter chart has finished loading.
+  const includeSoilingPdfGate = !['sigurd'].includes(
+    project.data?.name_short || '',
+  )
+  const includeDegradationPdfGate = ['sigurd'].includes(
+    project.data?.name_short || '',
+  )
+  const meterPowerPdfGate = useGetMeterPowerAndExpectedPowerV3({
+    pathParams: { project_id: projectId || '-1' },
+    queryParams: {
+      start: startTime || '',
+      end: endTime || '',
+      interval: '5min',
+      include_storage: project.data?.project_type_id === ProjectTypeEnum.PVS,
+      include_setpoint: true,
+      include_soiling: includeSoilingPdfGate,
+      include_degradation: includeDegradationPdfGate,
+    },
+    queryOptions: {
+      enabled: !!projectId && !!startTime && !!endTime,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 60 * 1000,
+      gcTime: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+  const eventLossesPdfGate = useGetEventLosses5Min({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      start: startTime || '',
+      end: endTime || '',
+      event_loss_type_ids: [EventLossTypeEnum.PROXIMAL_ENERGY],
+      aggregation_column: 'device_type_id',
+    },
+    queryOptions: {
+      enabled:
+        meterPowerChartView === 'delta' &&
+        !!projectId &&
+        !!startTime &&
+        !!endTime,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 60 * 1000,
       gcTime: 7 * 24 * 60 * 60 * 1000,
     },
   })
@@ -1000,27 +1407,24 @@ const Page: React.FC = () => {
     return selectedSeriesId
   }, [selectedSeriesId])
 
-  // Calculate trailing period range ending on selected date (selectedDate is already in project timezone)
+  // Trailing window ends on the last day of the selected range (rangeEnd).
   const trailingStart = useMemo(() => {
-    if (!selectedDate) return null
-    return selectedDate
-      .subtract(trailingPeriod - 1, 'days')
-      .format('YYYY-MM-DD')
-  }, [selectedDate, trailingPeriod])
+    if (!rangeEnd) return null
+    return rangeEnd.subtract(trailingPeriod - 1, 'days').format('YYYY-MM-DD')
+  }, [rangeEnd, trailingPeriod])
   const trailingEnd = useMemo(() => {
-    if (!selectedDate) return null
-    return selectedDate.add(1, 'day').format('YYYY-MM-DD')
-  }, [selectedDate])
+    if (!rangeEnd) return null
+    return rangeEnd.add(1, 'day').format('YYYY-MM-DD')
+  }, [rangeEnd])
 
-  // Calculate range for budgeted data (±15 days around selected date)
   const budgetedStartDate = useMemo(() => {
-    if (!selectedDate) return null
-    return selectedDate.subtract(15, 'days').format('YYYY-MM-DD')
-  }, [selectedDate])
+    if (!rangeEnd) return null
+    return rangeEnd.subtract(15, 'days').format('YYYY-MM-DD')
+  }, [rangeEnd])
   const budgetedEndDate = useMemo(() => {
-    if (!selectedDate) return null
-    return selectedDate.add(15, 'days').format('YYYY-MM-DD')
-  }, [selectedDate])
+    if (!rangeEnd) return null
+    return rangeEnd.add(15, 'days').format('YYYY-MM-DD')
+  }, [rangeEnd])
 
   // Fetch Met Station devices
   const metStationsQuery = useGetDevicesV2({
@@ -1066,33 +1470,51 @@ const Page: React.FC = () => {
     },
   })
 
-  // Calculate daily total irradiance from timeseries data
+  // Sum of daily kWh/m² (same daily heuristic as daily report, per calendar day).
   const calculatedIrradiance = useMemo(() => {
-    if (!poaTimeseriesQuery.data || poaTimeseriesQuery.data.length === 0) {
+    if (
+      !poaTimeseriesQuery.data ||
+      poaTimeseriesQuery.data.length === 0 ||
+      !project.data?.time_zone ||
+      !rangeStartStr ||
+      !rangeEndStr
+    ) {
       return null
     }
-
-    const allValues = poaTimeseriesQuery.data.flatMap(
-      (series) => series.y || [],
-    )
-    const validValues = allValues.filter(
-      (v) => typeof v === 'number' && !isNaN(v) && v !== null,
-    )
-
-    if (validValues.length === 0) {
-      return 0
+    const tz = project.data.time_zone
+    const byDay: Record<string, number[]> = {}
+    for (const series of poaTimeseriesQuery.data) {
+      const xs = series.x || []
+      const ys = series.y || []
+      xs.forEach((timestamp: string, i: number) => {
+        const dKey = dayjs.utc(timestamp).tz(tz).format('YYYY-MM-DD')
+        if (dKey < rangeStartStr || dKey > rangeEndStr) {
+          return
+        }
+        const y = ys[i]
+        if (typeof y !== 'number' || isNaN(y)) {
+          return
+        }
+        if (!byDay[dKey]) {
+          byDay[dKey] = []
+        }
+        byDay[dKey].push(y)
+      })
     }
+    let totalKwhM2 = 0
+    for (const arr of Object.values(byDay)) {
+      const avgWm2 = arr.reduce((s, v) => s + v, 0) / arr.length
+      totalKwhM2 += (avgWm2 * 24) / 1000
+    }
+    return totalKwhM2
+  }, [
+    poaTimeseriesQuery.data,
+    project.data?.time_zone,
+    rangeStartStr,
+    rangeEndStr,
+  ])
 
-    const averageW_m2 =
-      validValues.reduce((sum, v) => sum + v, 0) / validValues.length
-    const totalWh_m2 = averageW_m2 * 24
-    const totalkWh_m2 = totalWh_m2 / 1000
-
-    return totalkWh_m2
-  }, [poaTimeseriesQuery.data])
-
-  // Fetch daily KPI data for stats (single day).
-  // For PVS projects we also need PV-only generation (PV_INVERTER or PV_INVERTER_MODULE).
+  // KPI data for stats (entire selected range, one value per day).
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
@@ -1105,13 +1527,13 @@ const Page: React.FC = () => {
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
         KPITypeEnum.PV_PROJECT_CURTAILMENT,
       ],
-      start: selectedDateStr || '',
-      end: trailingEnd || '',
+      start: rangeStartStr || '',
+      end: rangeEndExclusiveStr || '',
       include_device_data: false,
-      include_all_dates: false,
+      include_all_dates: true,
     },
     queryOptions: {
-      enabled: !!projectId && !!selectedDateStr,
+      enabled: !!projectId && !!rangeStartStr && !!rangeEndExclusiveStr,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -1146,16 +1568,15 @@ const Page: React.FC = () => {
     },
   })
 
-  // Fetch events for the selected day (including both open and closed events)
   const eventsData = useGetEventsSummary({
     pathParams: { projectId: projectId || '' },
     queryParams: {
-      start: selectedDateStr ? `${selectedDateStr} 00:00:00` : undefined,
-      end: selectedDateStr ? `${selectedDateStr} 23:59:59` : undefined,
+      start: rangeStartStr ? `${rangeStartStr} 00:00:00` : undefined,
+      end: rangeEndStr ? `${rangeEndStr} 23:59:59` : undefined,
       open: false, // false means no filter, so returns both open and closed events
     },
     queryOptions: {
-      enabled: !!projectId && !!selectedDateStr,
+      enabled: !!projectId && !!rangeStartStr && !!rangeEndStr,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -1164,18 +1585,17 @@ const Page: React.FC = () => {
     },
   })
 
-  // Fetch DC Combiner Field Health (KPI type 8)
   const combinerHealthKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
       kpi_type_ids: [KPITypeEnum.PV_DC_COMBINER_FIELD_HEALTH],
-      start: selectedDateStr || '',
-      end: trailingEnd || '',
+      start: rangeStartStr || '',
+      end: rangeEndExclusiveStr || '',
       include_device_data: true,
-      include_all_dates: false,
+      include_all_dates: true,
     },
     queryOptions: {
-      enabled: !!projectId && !!selectedDateStr,
+      enabled: !!projectId && !!rangeStartStr && !!rangeEndExclusiveStr,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -1257,7 +1677,7 @@ const Page: React.FC = () => {
     queryParams: {
       project_id: projectId || '',
       start_date: trailingStart || '',
-      end_date: selectedDateStr || '', // API is inclusive, so this includes selectedDateStr
+      end_date: rangeEndStr || '',
       degradation_rate: degradationRate,
     },
     queryOptions: {
@@ -1265,7 +1685,7 @@ const Page: React.FC = () => {
         !!projectId &&
         !!stableSelectedSeriesId &&
         !!trailingStart &&
-        !!selectedDateStr,
+        !!rangeEndStr,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -1357,54 +1777,65 @@ const Page: React.FC = () => {
     return map
   }, [kpiTypesQuery.data])
 
-  // Calculate budgeted percentage for generation (energy)
   const generationBudgetInfo = useMemo(() => {
-    if (!processedBudgetedData || !selectedDateStr) return null
-
-    let budgetedMWh: number | null = null
-
-    if (budgetedComparisonMode === '15days') {
-      // Calculate average of +/- 15 days around selected date
-      const selectedDateIndex = processedBudgetedData.dates.findIndex(
-        (date: string) => date === selectedDateStr,
-      )
-      if (selectedDateIndex === -1) return null
-
-      // Get +/- 15 days around the selected date
-      const startIndex = Math.max(0, selectedDateIndex - 15)
-      const endIndex = Math.min(
-        processedBudgetedData.dates.length - 1,
-        selectedDateIndex + 15,
-      )
-
-      const budgetedValues = processedBudgetedData.budgetedData
-        .slice(startIndex, endIndex + 1)
-        .filter((val): val is number => val !== null && val !== undefined)
-
-      if (budgetedValues.length === 0) return null
-
-      budgetedMWh =
-        budgetedValues.reduce((sum, val) => sum + val, 0) /
-        budgetedValues.length
-    } else {
-      // Use Day of comparison
-      const selectedDateIndex = processedBudgetedData.dates.findIndex(
-        (date: string) => date === selectedDateStr,
-      )
-
-      if (selectedDateIndex === -1) return null
-
-      budgetedMWh = processedBudgetedData.budgetedData[selectedDateIndex]
+    if (
+      !processedBudgetedData ||
+      !rangeStartStr ||
+      !rangeEndStr ||
+      !dailyKpiData.data
+    ) {
+      return null
     }
 
-    if (!budgetedMWh || budgetedMWh === 0) return null
+    let budgetedMWh = 0
+    processedBudgetedData.dates.forEach((dateStr, i) => {
+      if (dateStr < rangeStartStr || dateStr > rangeEndStr) {
+        return
+      }
+      if (budgetedComparisonMode === '15days') {
+        const startIndex = Math.max(0, i - 15)
+        const endIndex = Math.min(
+          processedBudgetedData.dates.length - 1,
+          i + 15,
+        )
+        const budgetedValues = processedBudgetedData.budgetedData
+          .slice(startIndex, endIndex + 1)
+          .filter((val): val is number => val != null)
+        if (budgetedValues.length === 0) {
+          return
+        }
+        budgetedMWh +=
+          budgetedValues.reduce((sum, val) => sum + val, 0) /
+          budgetedValues.length
+      } else {
+        const v = processedBudgetedData.budgetedData[i]
+        if (v != null) {
+          budgetedMWh += v
+        }
+      }
+    })
 
-    // Get the actual generation for the selected day
-    const generationKpi = dailyKpiData.data?.find(
+    if (budgetedMWh === 0) {
+      return null
+    }
+
+    const poiKpi = dailyKpiData.data.find(
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
-    const generationMWh = generationKpi?.data?.project_data?.[0] || 0
+    const pvKpi = dailyKpiData.data.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_ENERGY_PRODUCTION,
+    )
+    const pvModuleKpi = dailyKpiData.data.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
+    )
+    const isPvsLocal = project.data?.project_type_id === ProjectTypeEnum.PVS
+    const generationMWh = isPvsLocal
+      ? sumKpiInDateRange(pvKpi, rangeStartStr, rangeEndStr) ||
+        sumKpiInDateRange(pvModuleKpi, rangeStartStr, rangeEndStr)
+      : sumKpiInDateRange(poiKpi, rangeStartStr, rangeEndStr)
 
     return {
       percentage: (generationMWh / budgetedMWh) * 100,
@@ -1412,80 +1843,72 @@ const Page: React.FC = () => {
     }
   }, [
     processedBudgetedData,
-    selectedDateStr,
+    rangeStartStr,
+    rangeEndStr,
     dailyKpiData.data,
     budgetedComparisonMode,
+    project.data?.project_type_id,
   ])
 
-  // Calculate budgeted percentage for irradiance (POA)
   const irradianceBudgetInfo = useMemo(() => {
-    if (!budgetedDataQuery.data || !selectedDate || !project.data?.time_zone) {
+    if (
+      !budgetedDataQuery.data ||
+      !rangeStart ||
+      !rangeEnd ||
+      !rangeStartStr ||
+      !rangeEndStr ||
+      !project.data?.time_zone
+    ) {
       return null
     }
-
-    let budgetedPOASumkWh: number
-
-    if (budgetedComparisonMode === '15days') {
-      // Calculate average daily irradiation for +/- 15 days around selected date
-      // Note: budgeted data may be from a different year, so we match by MM-DD
-      // Create array of MM-DD dates within +/- 15 days
-      const targetMMDDs = new Set<string>()
-      for (let i = -15; i <= 15; i++) {
-        const date = selectedDate.add(i, 'days')
-        targetMMDDs.add(date.format('MM-DD'))
+    const tz = project.data.time_zone
+    let budgetedPOASumkWh = 0
+    for (
+      let d = rangeStart.startOf('day');
+      !d.isAfter(rangeEnd.startOf('day'));
+      d = d.add(1, 'day')
+    ) {
+      if (budgetedComparisonMode === '15days') {
+        const targetMMDDs = new Set<string>()
+        for (let i = -15; i <= 15; i++) {
+          targetMMDDs.add(d.add(i, 'days').format('MM-DD'))
+        }
+        const filteredData = budgetedDataQuery.data.filter((item) => {
+          const itemDate = dayjs.utc(item.time).tz(tz)
+          return targetMMDDs.has(itemDate.format('MM-DD'))
+        })
+        if (filteredData.length === 0) {
+          continue
+        }
+        const poaValues = filteredData
+          .map((item) => item.poa as number | null)
+          .filter((val): val is number => val != null && val !== undefined)
+        if (poaValues.length === 0) {
+          continue
+        }
+        const averageHourlyPOAWh =
+          poaValues.reduce((sum, val) => sum + val, 0) / poaValues.length
+        budgetedPOASumkWh += (averageHourlyPOAWh * 24) / 1000
+      } else {
+        const selectedDateData = budgetedDataQuery.data.filter(
+          (item) =>
+            dayjs.utc(item.time).tz(tz).format('MM-DD') === d.format('MM-DD'),
+        )
+        if (selectedDateData.length === 0) {
+          continue
+        }
+        const budgetedPOASumWh = selectedDateData.reduce((sum, item) => {
+          const originalPOA = item.poa as number | null
+          return sum + (originalPOA || 0)
+        }, 0)
+        budgetedPOASumkWh += budgetedPOASumWh / 1000
       }
-
-      const filteredData = budgetedDataQuery.data.filter((item) => {
-        const itemDate = dayjs.utc(item.time).tz(project.data?.time_zone)
-        const itemMMDD = itemDate.format('MM-DD')
-        return targetMMDDs.has(itemMMDD)
-      })
-
-      if (filteredData.length === 0) {
-        return null
-      }
-
-      // Get all hourly POA values and calculate average
-      const poaValues = filteredData
-        .map((item) => item.poa as number | null)
-        .filter((val): val is number => val !== null && val !== undefined)
-
-      if (poaValues.length === 0) {
-        return null
-      }
-
-      // Calculate average hourly POA, then multiply by 24 to get daily average
-      const averageHourlyPOAWh =
-        poaValues.reduce((sum, val) => sum + val, 0) / poaValues.length
-      const averageDailyPOAWh = averageHourlyPOAWh * 24
-
-      budgetedPOASumkWh = averageDailyPOAWh / 1000
-    } else {
-      // Use Day of comparison - filter budgeted data for the selected date, ignoring the year
-      const selectedDateData = budgetedDataQuery.data.filter(
-        (item) =>
-          dayjs.utc(item.time).tz(project.data?.time_zone).format('MM-DD') ===
-          selectedDate.format('MM-DD'),
-      )
-
-      if (selectedDateData.length === 0) {
-        return null
-      }
-
-      // Sum all hourly POA irradiance for the selected date
-      const budgetedPOASumWh = selectedDateData.reduce((sum, item) => {
-        const originalPOA = item.poa as number | null
-        return sum + (originalPOA || 0)
-      }, 0)
-
-      budgetedPOASumkWh = budgetedPOASumWh / 1000
     }
 
     if (budgetedPOASumkWh === 0) {
       return null
     }
 
-    // Get the actual irradiance for the selected day from our new calculation
     const actualIrradiance = calculatedIrradiance ?? 0
 
     return {
@@ -1494,7 +1917,10 @@ const Page: React.FC = () => {
     }
   }, [
     budgetedDataQuery.data,
-    selectedDate,
+    rangeStart,
+    rangeEnd,
+    rangeStartStr,
+    rangeEndStr,
     calculatedIrradiance,
     project.data?.time_zone,
     budgetedComparisonMode,
@@ -1503,8 +1929,9 @@ const Page: React.FC = () => {
   // For PV+Storage projects use PV-only generation (circuit/inverters), not POI.
   const isPvs = project.data?.project_type_id === ProjectTypeEnum.PVS
 
-  // Shared daily actual/expected (used by stats and aiStats).
   const dailyActualExpected = useMemo(() => {
+    const lo = rangeStartStr
+    const hi = rangeEndStr
     const poiKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
@@ -1526,18 +1953,26 @@ const Page: React.FC = () => {
         kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_CURTAILMENT,
     )
     const fromWaterfall = waterfallActualExpected
+    if (!lo || !hi) {
+      return {
+        actualMWh: 0,
+        expectedMWh: 0,
+        curtailmentMWh: 0,
+        poiMWh: 0,
+        fromWaterfall,
+      }
+    }
     const actualMWh = fromWaterfall
       ? fromWaterfall.actualMWh
       : isPvs
-        ? (pvPcsKpi?.data?.project_data?.[0] ??
-          pvPcsModuleKpi?.data?.project_data?.[0] ??
-          0)
-        : poiKpi?.data?.project_data?.[0] || 0
+        ? sumKpiInDateRange(pvPcsKpi, lo, hi) ||
+          sumKpiInDateRange(pvPcsModuleKpi, lo, hi)
+        : sumKpiInDateRange(poiKpi, lo, hi)
     const expectedMWh = fromWaterfall
       ? fromWaterfall.expectedMWh
-      : expectedKpi?.data?.project_data?.[0] || 0
-    const curtailmentMWh = curtailmentKpi?.data?.project_data?.[0] || 0
-    const poiMWh = poiKpi?.data?.project_data?.[0] || 0
+      : sumKpiInDateRange(expectedKpi, lo, hi)
+    const curtailmentMWh = sumKpiInDateRange(curtailmentKpi, lo, hi)
+    const poiMWh = sumKpiInDateRange(poiKpi, lo, hi)
     return {
       actualMWh,
       expectedMWh,
@@ -1545,7 +1980,13 @@ const Page: React.FC = () => {
       poiMWh,
       fromWaterfall,
     }
-  }, [dailyKpiData.data, isPvs, waterfallActualExpected])
+  }, [
+    dailyKpiData.data,
+    isPvs,
+    waterfallActualExpected,
+    rangeStartStr,
+    rangeEndStr,
+  ])
 
   // Calculate stats for StatsGrid
   const stats = useMemo(() => {
@@ -1563,24 +2004,17 @@ const Page: React.FC = () => {
     const ppaRate = project.data?.ppa?.rate || 0
     const revenue = poiMWh * ppaRate
 
-    // Calculate MTD revenue
-    const mtdGenerationKpi = mtdKpiData.data?.find(
-      (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
-    )
-    const mtdGenerationMWh =
-      mtdGenerationKpi?.data?.project_data?.reduce(
-        (sum: number, value: number | null) => sum + (value || 0),
-        0,
-      ) || 0
-    const mtdRevenue = mtdGenerationMWh * ppaRate
-
     // Calculate Performance Index = (actual / expected) * 100
     const performanceIndex =
       expectedMWh > 0 ? (generationMWh / expectedMWh) * 100 : 0
     const irradianceKWhM2 = calculatedIrradiance ?? 0
 
-    const availability = availabilityKpi?.data?.project_data?.[0] || 0
+    const lo = rangeStartStr ?? ''
+    const hi = rangeEndStr ?? ''
+    const availability =
+      lo && hi
+        ? avgKpiInDateRange(availabilityKpi, lo, hi)
+        : availabilityKpi?.data?.project_data?.[0] || 0
 
     const totalEvents = eventsData.data?.length || 0
     const openEvents =
@@ -1606,7 +2040,9 @@ const Page: React.FC = () => {
     return [
       {
         title: 'Project Generation',
-        value: `${generationMWh.toFixed(1)} MWh${curtailmentMWh !== 0 ? '*' : ''}`,
+        value: `${Math.round(generationMWh).toLocaleString('en-US')} MWh${
+          curtailmentMWh !== 0 ? '*' : ''
+        }`,
         subtitle: generationBudgetInfo
           ? `${generationBudgetInfo.percentage.toFixed(0)}% of Budgeted`
           : undefined,
@@ -1624,20 +2060,22 @@ const Page: React.FC = () => {
           ? `${irradianceBudgetInfo.percentage.toFixed(0)}% of Budgeted`
           : undefined,
         icon: IconSun,
-        description: 'Total irradiation that day',
+        description: 'Total irradiation over the selected period',
       },
       {
         title: 'Revenue',
         value:
           revenue > 0
-            ? `$${revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            ? `$${revenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
             : 'N/A',
         subtitle:
-          mtdRevenue > 0
-            ? `MTD: $${mtdRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ppaRate > 0 ? `PPA Price: $${ppaRate.toFixed(2)}/MWh` : undefined,
+        subtitleEditHref:
+          ppaRate > 0
+            ? `/projects/${projectId}/settings?tab=project-info`
             : undefined,
         icon: IconCurrencyDollar,
-        description: 'Estimated revenue for that day',
+        description: 'Estimated revenue for the selected period (POI)',
       },
       {
         title: 'Performance Index',
@@ -1650,7 +2088,7 @@ const Page: React.FC = () => {
                 ? ` Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
                 : ''
             }`
-          : `Performance Index: ratio of actual generation to expected generation for the selected day. Note: Expected energy does not take curtailment into account.${
+          : `Performance Index: ratio of actual generation to expected generation for the selected period. Note: Expected energy does not take curtailment into account.${
               curtailmentMWh !== 0
                 ? ` Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
                 : ''
@@ -1658,20 +2096,22 @@ const Page: React.FC = () => {
       },
       {
         title: 'Events',
-        value: totalEvents.toString(),
-        subtitle: `${openEvents} open, ${closedEvents} closed`,
+        value: totalEvents.toLocaleString('en-US'),
+        subtitle: `${openEvents.toLocaleString('en-US')} open, ${closedEvents.toLocaleString(
+          'en-US',
+        )} closed`,
         icon: IconExclamationCircle,
-        description: 'Total events for the selected day (open and closed)',
+        description: 'Total events in the selected period (open and closed)',
         link: `/projects/${projectId}/events`,
       },
       {
         title: 'PCS Mech. Availability',
         value: `${(availability * 100).toFixed(2)}%${curtailmentMWh !== 0 ? '*' : ''}`,
-        subtitle: 'Daily mechanical availability',
+        subtitle: 'Avg. mechanical availability',
         icon: IconCash,
         description: `${
           kpiTypeDescriptions[1] ||
-          'PCS mechanical availability for the selected day'
+          'PCS mechanical availability averaged over the selected period'
         }${curtailmentMWh !== 0 ? `. Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh` : ''}`,
         kpiTypeId: KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
         link: `/projects/${projectId}/kpis/type/1`,
@@ -1685,16 +2125,17 @@ const Page: React.FC = () => {
     irradianceBudgetInfo,
     calculatedIrradiance,
     isPvs,
-    mtdKpiData.data,
     project.data?.ppa?.rate,
     projectId,
     kpiTypeDescriptions,
+    rangeStartStr,
+    rangeEndStr,
   ])
 
   // Create 30-day energy chart data
   const energyChartData = useMemo(() => {
     // Early return if we don't have essential data yet
-    if (!selectedDate || !trailingPeriod) {
+    if (!rangeEnd || !trailingPeriod) {
       return []
     }
 
@@ -2050,12 +2491,33 @@ const Page: React.FC = () => {
     trailingKpiData.data,
     energyView,
     processedBudgetedData,
-    selectedDate,
+    rangeEnd,
     trailingPeriod,
     theme.colors.orange,
     theme.colors.violet,
     theme.colors.green,
   ])
+
+  const energyChartHighlightShapes = useMemo(
+    () =>
+      rangeStartStr && rangeEndStr
+        ? [
+            {
+              fillcolor: 'rgba(34, 197, 94, 0.22)',
+              layer: 'below' as const,
+              line: { width: 0 },
+              type: 'rect' as const,
+              xref: 'x' as const,
+              x0: rangeStartStr,
+              x1: rangeEndStr,
+              y0: 0,
+              y1: 1,
+              yref: 'paper' as const,
+            },
+          ]
+        : [],
+    [rangeStartStr, rangeEndStr],
+  )
 
   // Calculate performance summary for the trailing period
   const performanceSummary = useMemo(() => {
@@ -2107,13 +2569,13 @@ const Page: React.FC = () => {
     }
   }, [energyChartData, energyView])
 
-  const dailyTrailingEnergyChartLayout = useMemo(() => {
-    const yAxisTitle =
-      energyView === 'cumulative'
-        ? 'Cumulative Energy (MWh)'
-        : 'Daily Energy (MWh)'
+  const weeklyTrailingEnergyChartLayout = useMemo(() => {
+    const legendBg =
+      colorScheme === 'dark' ? 'rgba(37,38,43,0.8)' : 'rgba(255,255,255,0.8)'
+    const legendBorder =
+      colorScheme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
 
-    const annotations: NonNullable<Plotly.Layout['annotations']> =
+    const annotations =
       performanceSummary && energyView === 'cumulative'
         ? (() => {
             const firstTrace = energyChartData[0] as { x?: unknown[] }
@@ -2122,23 +2584,15 @@ const Page: React.FC = () => {
               Array.isArray(firstTraceX) && firstTraceX.length > 0
                 ? (firstTraceX[firstTraceX.length - 1] as string | number)
                 : undefined
-            const annotationY =
-              (performanceSummary.actual + performanceSummary.budgeted) / 2
-            const signChar = performanceSummary.isExceeded ? '+' : '-'
-            const pctText = `${signChar}${performanceSummary.percent.toFixed(
-              1,
-            )}%`
-            const fontColor = performanceSummary.isExceeded
-              ? '#00C853'
-              : '#FF5722'
             return [
               {
                 x: xValue,
-                y: annotationY,
-                text: pctText,
+                y:
+                  (performanceSummary.actual + performanceSummary.budgeted) / 2,
+                text: `${performanceSummary.isExceeded ? '+' : '-'}${performanceSummary.percent.toFixed(1)}%`,
                 showarrow: false,
                 font: {
-                  color: fontColor,
+                  color: performanceSummary.isExceeded ? '#00C853' : '#FF5722',
                   size: 40,
                   family: 'Arial, sans-serif',
                   weight: 900,
@@ -2149,40 +2603,47 @@ const Page: React.FC = () => {
         : []
 
     return {
-      height: 300,
+      autosize: true,
       xaxis: {
         title: { text: 'Date' },
         type: 'category' as const,
       },
       yaxis: {
-        title: { text: yAxisTitle },
+        title: {
+          text:
+            energyView === 'cumulative'
+              ? 'Cumulative Energy (MWh)'
+              : 'Daily Energy (MWh)',
+        },
       },
       showlegend: true,
       legend: {
-        xref: 'paper',
-        yref: 'paper',
+        xref: 'paper' as const,
+        yref: 'paper' as const,
         x: 0.01,
         y: 0.99,
-        xanchor: 'left',
-        yanchor: 'top',
-        orientation: 'h',
-        bgcolor:
-          colorScheme === 'dark'
-            ? 'rgba(37,38,43,0.8)'
-            : 'rgba(255,255,255,0.8)',
-        bordercolor:
-          colorScheme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+        xanchor: 'left' as const,
+        yanchor: 'top' as const,
+        orientation: 'h' as const,
+        bgcolor: legendBg,
+        bordercolor: legendBorder,
         borderwidth: 1,
-        itemsizing: 'constant',
+        itemsizing: 'constant' as const,
       },
-      hovermode: (energyView === 'daily' ? 'closest' : 'x unified') as
-        | 'closest'
-        | 'x unified',
+      hovermode:
+        energyView === 'daily' ? ('closest' as const) : ('x unified' as const),
       barmode: energyView === 'daily' ? ('overlay' as const) : undefined,
       margin: { l: 60, r: 30, t: 30, b: 60 },
+      shapes: energyChartHighlightShapes,
       annotations,
-    } satisfies Partial<Plotly.Layout>
-  }, [colorScheme, energyChartData, energyView, performanceSummary])
+    }
+  }, [
+    colorScheme,
+    energyView,
+    energyChartHighlightShapes,
+    performanceSummary,
+    energyChartData,
+  ])
 
   const navigate = useNavigate()
   const [navigateType, setNavigateType] = useState<'newTab' | 'navigate'>(
@@ -2352,10 +2813,12 @@ const Page: React.FC = () => {
     }),
   })
 
-  // Calculate AI statistics for daily performance summary
   const aiStats = useMemo((): DailyPerformanceStats | null => {
     if (
-      !selectedDate ||
+      !rangeStart ||
+      !rangeEnd ||
+      !rangeStartStr ||
+      !rangeEndStr ||
       !project.data ||
       !dailyKpiData.data ||
       !trailingKpiData.data
@@ -2484,10 +2947,10 @@ const Page: React.FC = () => {
     return {
       project_name:
         project.data.name_long || project.data.name_short || 'Unknown Project',
-      date: selectedDateStr || '',
+      date: `${rangeStartStr} – ${rangeEndStr}`,
       project_id: projectId,
-      cmms_period_start: startTime ?? undefined,
-      cmms_period_end: endTime ?? undefined,
+      cmms_period_start: startTime || undefined,
+      cmms_period_end: endTime || undefined,
       actual_energy_mwh: actualEnergyMWh,
       expected_energy_mwh: expectedMWh,
       budgeted_energy_mwh: budgetedEnergyMWh,
@@ -2514,8 +2977,10 @@ const Page: React.FC = () => {
     projectId,
     startTime,
     endTime,
-    selectedDate,
-    selectedDateStr,
+    rangeStart,
+    rangeEnd,
+    rangeStartStr,
+    rangeEndStr,
     project.data,
     dailyKpiData.data,
     trailingKpiData.data,
@@ -2537,6 +3002,29 @@ const Page: React.FC = () => {
 
   // AICard needs trailingKpiData in addition to stats data
   const isAICardLoading = isStatsLoading || trailingKpiData.isLoading
+
+  const isReportPageLoading =
+    isAICardLoading ||
+    dailyBudgetedDataQuery.isLoading ||
+    combinerHealthKpiData.isLoading ||
+    combinerDevices.isLoading ||
+    budgetedDataQuery.isLoading ||
+    waterfallQuery.isLoading ||
+    meterPowerPdfGate.isLoading ||
+    (meterPowerChartView === 'delta' && eventLossesPdfGate.isLoading)
+
+  const handleExportPdf = () => {
+    if (isReportPageLoading) return
+    if (!reportRef.current) return
+    setIsPdfLoading(true)
+    if (colorScheme === 'dark') {
+      setIsMapIdle(false)
+      setPendingThemeSwitch(true)
+      setColorScheme('light')
+      return
+    }
+    setPdfExportRequested(true)
+  }
 
   // Prepare series options for dropdown (must be before early return)
   const seriesOptions = useMemo(() => {
@@ -2676,7 +3164,7 @@ const Page: React.FC = () => {
                         <Text component="span" fw={500}>
                           Meter Power Chart:
                         </Text>{' '}
-                        Displays hourly actual vs. budgeted power, optionally
+                        Displays 5-minute actual vs. budgeted power, optionally
                         including PPC Active Power Setpoint. Budgeted line
                         reflects the selected comparison mode and degradation
                         rate.
@@ -2698,16 +3186,16 @@ const Page: React.FC = () => {
                           Events Table:
                         </Text>{' '}
                         Lists all events (open and closed) for the selected
-                        date, grouped by device type with financial and energy
+                        period, grouped by device type with financial and energy
                         loss details.
                       </Text>
                     </List.Item>
                     <List.Item>
                       <Text size="sm">
                         <Text component="span" fw={500}>
-                          Daily Loss Waterfall:
+                          Loss Waterfall:
                         </Text>{' '}
-                        Visualizes energy losses for the selected day in a
+                        Visualizes energy losses for the selected period in a
                         waterfall format.
                       </Text>
                     </List.Item>
@@ -2715,17 +3203,17 @@ const Page: React.FC = () => {
                 </Stack>
               }
             >
-              PV Performance Daily Report
+              PV Performance Weekly Report
             </PageTitle>
             <Tooltip
-              label="Select a date to view daily performance metrics and power generation data"
+              label="Select up to 7 days (defaults to the past week ending yesterday)"
               withArrow
               multiline
               w={300}
             >
               <AdvancedDatePicker
-                maxDays={1}
-                defaultRange="yesterday"
+                maxDays={7}
+                defaultRange="past-week"
                 includeClearButton={false}
                 includeTodayInDateRange={false}
               />
@@ -2801,6 +3289,7 @@ const Page: React.FC = () => {
               size="lg"
               onClick={handleExportPdf}
               loading={isPdfLoading}
+              disabled={isReportPageLoading}
             >
               <IconFileTypePdf />
             </ActionIcon>
@@ -2850,11 +3339,36 @@ const Page: React.FC = () => {
                         <AutoFitStatValue>{stat.value}</AutoFitStatValue>
                       </Box>
                     </Group>
-                    {'subtitle' in stat && stat.subtitle && (
-                      <Text size="sm" c="dimmed" mt={5}>
-                        {stat.subtitle}
-                      </Text>
-                    )}
+                    {'subtitle' in stat &&
+                      stat.subtitle &&
+                      ('subtitleEditHref' in stat && stat.subtitleEditHref ? (
+                        <Group gap={4} mt={5} wrap="nowrap" align="center">
+                          <Text
+                            size="sm"
+                            c="dimmed"
+                            style={{ flex: 1, minWidth: 0 }}
+                          >
+                            {stat.subtitle}
+                          </Text>
+                          <Tooltip label="Edit in project settings" withArrow>
+                            <ActionIcon
+                              component={Link}
+                              to={stat.subtitleEditHref}
+                              variant="transparent"
+                              size="xs"
+                              color="dimmed"
+                              aria-label="Edit PPA price in project settings"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <IconPencil size={12} stroke={1.5} />
+                            </ActionIcon>
+                          </Tooltip>
+                        </Group>
+                      ) : (
+                        <Text size="sm" c="dimmed" mt={5}>
+                          {stat.subtitle}
+                        </Text>
+                      ))}
                   </Card>
                 )
 
@@ -2875,271 +3389,336 @@ const Page: React.FC = () => {
               })}
         </SimpleGrid>
 
-        {/* AI Performance Summary, Daily Energy, and Trailing Energy */}
+        <CustomCard
+          title={
+            rangeStartStr && rangeEndStr
+              ? `Meter Power - ${dayjs(rangeStartStr).format('MMM DD, YYYY')} – ${dayjs(rangeEndStr).format('MMM DD, YYYY')}`
+              : 'Meter Power - Select date range'
+          }
+          headerChildren={
+            <Group gap="sm" wrap="wrap" justify="flex-end">
+              <SegmentedControl
+                size="xs"
+                value={meterPowerChartView}
+                onChange={(v) =>
+                  setMeterPowerChartView(v as 'standard' | 'delta')
+                }
+                data={[
+                  { label: 'Standard', value: 'standard' },
+                  { label: 'Delta & losses', value: 'delta' },
+                ]}
+              />
+              {meterPowerChartView === 'delta' && (
+                <Tooltip label="Moving average window (number of points)">
+                  <Select
+                    size="xs"
+                    w={118}
+                    data={[
+                      { value: '12', label: '12 pt smooth' },
+                      { value: '20', label: '20 pt smooth' },
+                      { value: '36', label: '36 pt smooth' },
+                    ]}
+                    value={String(meterPowerMaWindow)}
+                    onChange={(v) => v && setMeterPowerMaWindow(Number(v))}
+                  />
+                </Tooltip>
+              )}
+            </Group>
+          }
+          style={{ minHeight: 'clamp(420px, 52vh, 760px)' }}
+          bodyStyle={{
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+          info={
+            <Stack gap="xs">
+              <Text fw={600}>Understanding Meter Power</Text>
+              <Text size="sm">
+                This chart displays actual meter power compared to budgeted
+                power for each day in the selected range. The chart may also
+                show the{' '}
+                <Text component="span" fw={500}>
+                  PPC Active Power Setpoint
+                </Text>{' '}
+                if available for the project. Use the{' '}
+                <Text component="span" fw={500}>
+                  Standard
+                </Text>{' '}
+                /{' '}
+                <Text component="span" fw={500}>
+                  Delta &amp; losses
+                </Text>{' '}
+                control on this card to switch views. Use the{' '}
+                <Text component="span" fw={500}>
+                  Budgeted Comparison
+                </Text>{' '}
+                toggle at the top of the page to switch between comparison
+                modes:
+              </Text>
+              <List spacing={4} withPadding>
+                <List.Item>
+                  <Text size="sm">
+                    <Text component="span" fw={500}>
+                      ± 15 days:
+                    </Text>{' '}
+                    Shows the average hourly meter power based on the budgeted
+                    series uploaded in the{' '}
+                    <Link
+                      to={`/projects/${projectId}/settings?tab=pv-budgeted`}
+                      style={{ textDecoration: 'underline' }}
+                    >
+                      Settings page
+                    </Link>
+                    , averaged across ±15 days around the selected date and
+                    adjusted for the selected degradation rate.
+                  </Text>
+                </List.Item>
+                <List.Item>
+                  <Text size="sm">
+                    <Text component="span" fw={500}>
+                      Day of:
+                    </Text>{' '}
+                    Shows the budgeted power for the exact same calendar date
+                    (MM-DD) from the budgeted year, adjusted for degradation.
+                  </Text>
+                </List.Item>
+              </List>
+              <Text size="sm">
+                The{' '}
+                <Text component="span" fw={500}>
+                  Budgeted Degradation Rate
+                </Text>{' '}
+                selector at the top controls how much degradation is applied to
+                the budgeted data based on the project&apos;s Commercial
+                Operation Date (COD) to account for expected performance decline
+                over time.
+              </Text>
+              <Text size="sm" mt="xs">
+                <Text component="span" fw={500}>
+                  Delta &amp; losses:
+                </Text>{' '}
+                Shows a smoothed curve of model expected power minus actual
+                meter power (positive when output is below expected; window size
+                is selectable above); stacked Proximal energy losses by device
+                type; and a{' '}
+                <Text component="span" fw={500}>
+                  Curtailment
+                </Text>{' '}
+                layer when delivered power is near the PPC active-power setpoint
+                (same rule as the PV_PROJECT_CURTAILMENT KPI), as max(0,
+                expected &minus; actual) in MW. Loss traces use the same
+                5-minute timestamps as the power series (multiple 5-minute loss
+                samples in one interval are averaged). The vertical axis is
+                megawatts (MW).
+              </Text>
+            </Stack>
+          }
+        >
+          <WeeklyEnergyComparison
+            rangeEnd={rangeEnd}
+            rangeStart={rangeStart}
+            projectId={projectId}
+            degradationRate={degradationRate}
+            budgetedDataQuery={budgetedDataQuery}
+            comparisonMode={budgetedComparisonMode}
+            viewMode={meterPowerChartView}
+            movingAverageWindow={meterPowerMaWindow}
+          />
+        </CustomCard>
+
         <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
-          {/* Left Column: AI Performance Summary and Daily Energy */}
           <Stack gap="md">
-            {/* AI Performance Summary Card - Much shorter */}
             <AICard
               stats={aiStats}
               isLoading={isAICardLoading}
               hasBudgetedSeries={seriesOptions.length > 0}
-              hasSelectedDate={!!selectedDate}
+              hasSelectedDate={!!rangeStart && !!rangeEnd}
             />
-
-            {/* Daily Energy Comparison Card */}
             <CustomCard
-              title={`Meter Power - ${selectedDateStr ? dayjs(selectedDateStr).format('MMM DD, YYYY') : 'Select Date'}`}
-              style={{ minHeight: '300px' }}
+              title="Events by Device Type"
               info={
                 <Stack gap="xs">
-                  <Text fw={600}>Understanding Meter Power</Text>
+                  <Text fw={600}>Understanding Events by Device Type</Text>
                   <Text size="sm">
-                    This chart displays the actual meter power output compared
-                    to budgeted power for the selected date. The chart may also
-                    show the{' '}
-                    <Text component="span" fw={500}>
-                      PPC Active Power Setpoint
-                    </Text>{' '}
-                    if available for the project. Use the{' '}
-                    <Text component="span" fw={500}>
-                      Budgeted Comparison
-                    </Text>{' '}
-                    toggle at the top of the page to switch between comparison
-                    modes:
+                    This table displays all events (both open and closed) that
+                    occurred in the selected period, grouped by device type.
+                  </Text>
+                  <Text size="sm" fw={500}>
+                    Event Information:
                   </Text>
                   <List spacing={4} withPadding>
                     <List.Item>
                       <Text size="sm">
                         <Text component="span" fw={500}>
-                          ± 15 days:
+                          Daily Loss ($):
                         </Text>{' '}
-                        Shows the average hourly meter power based on the
-                        budgeted series uploaded in the{' '}
-                        <Link
-                          to={`/projects/${projectId}/settings?tab=pv-budgeted`}
-                          style={{ textDecoration: 'underline' }}
-                        >
-                          Settings page
-                        </Link>
-                        , averaged across ±15 days around the selected date and
-                        adjusted for the selected degradation rate.
+                        The financial impact of the event for the selected day.
                       </Text>
                     </List.Item>
                     <List.Item>
                       <Text size="sm">
                         <Text component="span" fw={500}>
-                          Day of:
+                          Daily Loss (MWh):
                         </Text>{' '}
-                        Shows the budgeted power for the exact same calendar
-                        date (MM-DD) from the budgeted year, adjusted for
-                        degradation.
+                        The energy loss associated with the event for the
+                        selected day.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Failure Mode & Root Cause:
+                        </Text>{' '}
+                        Classification of the event type and underlying cause.
                       </Text>
                     </List.Item>
                   </List>
                   <Text size="sm">
-                    The{' '}
-                    <Text component="span" fw={500}>
-                      Budgeted Degradation Rate
-                    </Text>{' '}
-                    selector at the top controls how much degradation is applied
-                    to the budgeted data based on the project&apos;s Commercial
-                    Operation Date (COD) to account for expected performance
-                    decline over time.
+                    Events are automatically grouped by device type. Click on
+                    any row to view detailed event information, or use the
+                    external link icon to open the event in a new tab.
+                    Aggregated values are shown for each device type group.
                   </Text>
                 </Stack>
               }
             >
-              <DailyEnergyComparison
-                selectedDate={selectedDate}
-                projectId={projectId}
-                degradationRate={degradationRate}
-                budgetedDataQuery={budgetedDataQuery}
-                comparisonMode={budgetedComparisonMode}
-              />
+              {eventsData.isLoading ? (
+                <Skeleton height={200} />
+              ) : !eventsData.data || eventsData.data.length === 0 ? (
+                <Text c="dimmed" ta="center" py="xl">
+                  No events in this period
+                </Text>
+              ) : (
+                <MantineReactTable table={eventsTable} />
+              )}
             </CustomCard>
           </Stack>
-
-          {/* Trailing Period Energy Chart */}
-          <CustomCard
-            title={`Trailing ${trailingPeriod}-Day Project Energy (${degradationRate}%/yr degradation)`}
-            info={
-              <Stack gap="xs">
-                <Text fw={600}>Understanding Trailing Period Energy</Text>
-                <Text size="sm">
-                  This chart shows cumulative or daily energy production over
-                  the trailing period (default 30 days) ending on the selected
-                  date.
-                </Text>
-                <Text size="sm" fw={500}>
-                  View Modes:
-                </Text>
-                <List spacing={4} withPadding>
-                  <List.Item>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Cumulative:
-                      </Text>{' '}
-                      Shows the running total of energy production over the
-                      period, with a percentage delta annotation comparing
-                      actual vs. budgeted at the end of the period.
-                    </Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Daily:
-                      </Text>{' '}
-                      Shows daily energy production as individual bars, allowing
-                      you to see day-to-day variations.
-                    </Text>
-                  </List.Item>
-                </List>
-                <Text size="sm">
-                  The budgeted energy is adjusted for degradation using the{' '}
-                  <Text component="span" fw={500}>
-                    Budgeted Degradation Rate
-                  </Text>{' '}
-                  selector at the top of the page, based on the project&apos;s
-                  COD. The percentage delta shows how actual performance
-                  compares to the degraded budgeted values.
-                </Text>
-                {isPvs && (
+          <Stack gap="md">
+            <CustomCard
+              title={`Trailing ${trailingPeriod}-Day Project Energy (${degradationRate}%/yr degradation)`}
+              info={
+                <Stack gap="xs">
+                  <Text fw={600}>Understanding Trailing Period Energy</Text>
                   <Text size="sm">
-                    <Text component="span" fw={500}>
-                      PV+Storage:
-                    </Text>{' '}
-                    Actual energy is PV Inverter Energy (PV-only, excludes
-                    storage). If PV Inverter data is not available, the chart
-                    falls back to POI energy so the Actual series still
-                    displays.
+                    This chart shows cumulative or daily energy production over
+                    the trailing period (default 30 days) ending on the last day
+                    of your selected date range.
                   </Text>
-                )}
-              </Stack>
-            }
-          >
-            <Group justify="space-between" mb="md">
-              <Group>
-                <Select
-                  label="Period"
-                  placeholder="Select period"
-                  data={trailingPeriodOptions}
-                  value={trailingPeriod.toString()}
+                  <Text size="sm" fw={500}>
+                    View Modes:
+                  </Text>
+                  <List spacing={4} withPadding>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Cumulative:
+                        </Text>{' '}
+                        Shows the running total of energy production over the
+                        period, with a percentage delta annotation comparing
+                        actual vs. budgeted at the end of the period.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Daily:
+                        </Text>{' '}
+                        Shows daily energy production as individual bars,
+                        allowing you to see day-to-day variations.
+                      </Text>
+                    </List.Item>
+                  </List>
+                  <Text size="sm">
+                    The budgeted energy is adjusted for degradation using the{' '}
+                    <Text component="span" fw={500}>
+                      Budgeted Degradation Rate
+                    </Text>{' '}
+                    selector at the top of the page, based on the project&apos;s
+                    COD. The percentage delta shows how actual performance
+                    compares to the degraded budgeted values.
+                  </Text>
+                  {isPvs && (
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        PV+Storage:
+                      </Text>{' '}
+                      Actual energy is PV Inverter Energy (PV-only, excludes
+                      storage). If PV Inverter data is not available, the chart
+                      falls back to POI energy so the Actual series still
+                      displays.
+                    </Text>
+                  )}
+                </Stack>
+              }
+            >
+              <Group justify="space-between" mb="md">
+                <Group>
+                  <Select
+                    label="Period"
+                    placeholder="Select period"
+                    data={trailingPeriodOptions}
+                    value={trailingPeriod.toString()}
+                    onChange={(value) =>
+                      setTrailingPeriod(parseInt(value || '30'))
+                    }
+                    style={{ minWidth: '120px' }}
+                  />
+                </Group>
+                <SegmentedControl
+                  value={energyView}
                   onChange={(value) =>
-                    setTrailingPeriod(parseInt(value || '30'))
+                    setEnergyView(value as 'cumulative' | 'daily')
                   }
-                  style={{ minWidth: '120px' }}
+                  data={[
+                    { label: 'Cumulative', value: 'cumulative' },
+                    { label: 'Daily', value: 'daily' },
+                  ]}
                 />
               </Group>
-              <SegmentedControl
-                value={energyView}
-                onChange={(value) =>
-                  setEnergyView(value as 'cumulative' | 'daily')
-                }
-                data={[
-                  { label: 'Cumulative', value: 'cumulative' },
-                  { label: 'Daily', value: 'daily' },
-                ]}
-              />
-            </Group>
-            {energyChartData.length === 0 &&
-            !trailingKpiData.isLoading &&
-            !dailyBudgetedDataQuery.isLoading ? (
-              <Text c="dimmed" ta="center" py="xl">
-                No energy data available for the selected period
-              </Text>
-            ) : (
-              <PlotlyPlot
-                data={energyChartData}
-                layout={dailyTrailingEnergyChartLayout}
-                isLoading={
-                  trailingKpiData.isLoading || dailyBudgetedDataQuery.isLoading
-                }
-              />
-            )}
-          </CustomCard>
-        </SimpleGrid>
-
-        {/* Events Table and Pie Chart */}
-        <SimpleGrid cols={{ base: 1, md: 2 }}>
-          <CustomCard
-            title="Events by Device Type"
-            info={
-              <Stack gap="xs">
-                <Text fw={600}>Understanding Events by Device Type</Text>
-                <Text size="sm">
-                  This table displays all events (both open and closed) that
-                  occurred on the selected date, grouped by device type.
+              {energyChartData.length === 0 &&
+              !trailingKpiData.isLoading &&
+              !dailyBudgetedDataQuery.isLoading ? (
+                <Text c="dimmed" ta="center" py="xl">
+                  No energy data available for the selected period
                 </Text>
-                <Text size="sm" fw={500}>
-                  Event Information:
-                </Text>
-                <List spacing={4} withPadding>
-                  <List.Item>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Daily Loss ($):
-                      </Text>{' '}
-                      The financial impact of the event for the selected day.
-                    </Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Daily Loss (MWh):
-                      </Text>{' '}
-                      The energy loss associated with the event for the selected
-                      day.
-                    </Text>
-                  </List.Item>
-                  <List.Item>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Failure Mode & Root Cause:
-                      </Text>{' '}
-                      Classification of the event type and underlying cause.
-                    </Text>
-                  </List.Item>
-                </List>
-                <Text size="sm">
-                  Events are automatically grouped by device type. Click on any
-                  row to view detailed event information, or use the external
-                  link icon to open the event in a new tab. Aggregated values
-                  are shown for each device type group.
-                </Text>
-              </Stack>
-            }
-          >
-            {eventsData.isLoading ? (
-              <Skeleton height={200} />
-            ) : !eventsData.data || eventsData.data.length === 0 ? (
-              <Text c="dimmed" ta="center" py="xl">
-                No events for this day
-              </Text>
-            ) : (
-              <MantineReactTable table={eventsTable} />
-            )}
-          </CustomCard>
-
-          {/* DC Combiner Field Health Map */}
-          <MapCard
-            data={combinerHealthKpiData.data?.[0]}
-            kpiType={combinerKpiType}
-            cardTitle="DC Combiner Field Health"
-            devices={combinerDevices.data || []}
-            isLoading={
-              combinerHealthKpiData.isLoading || combinerDevices.isLoading
-            }
-            isError={combinerHealthKpiData.isError || combinerDevices.isError}
-            onMapIdle={setIsMapIdle}
-          />
+              ) : (
+                <Box
+                  w="100%"
+                  miw={0}
+                  style={{
+                    flexShrink: 0,
+                    height: 'clamp(360px, 42vh, 640px)',
+                  }}
+                >
+                  <PlotlyPlot
+                    data={energyChartData}
+                    layout={weeklyTrailingEnergyChartLayout}
+                    isLoading={
+                      trailingKpiData.isLoading ||
+                      dailyBudgetedDataQuery.isLoading
+                    }
+                  />
+                </Box>
+              )}
+            </CustomCard>
+            <MapCard
+              data={combinerHealthKpiData.data?.[0]}
+              kpiType={combinerKpiType}
+              cardTitle="DC Combiner Field Health"
+              devices={combinerDevices.data || []}
+              isLoading={
+                combinerHealthKpiData.isLoading || combinerDevices.isLoading
+              }
+              isError={combinerHealthKpiData.isError || combinerDevices.isError}
+              onMapIdle={setIsMapIdle}
+            />
+          </Stack>
         </SimpleGrid>
 
         {/* Waterfall Loss Chart */}
-        <CustomCard
-          title="Daily Loss Waterfall"
-          info={<LossWaterfallCardInfo />}
-        >
+        <CustomCard title="Loss Waterfall" info={<LossWaterfallCardInfo />}>
           {startTime && endTime ? (
             <LossWaterfall
               level="device_type"
@@ -3148,7 +3727,7 @@ const Page: React.FC = () => {
             />
           ) : (
             <Text c="dimmed" ta="center" py="xl">
-              Please select a date to view waterfall data
+              Please select a date range to view waterfall data
             </Text>
           )}
         </CustomCard>

@@ -4,8 +4,10 @@ import {
   ActionIcon,
   Box,
   Card,
+  Divider,
   Group,
   Loader,
+  Stack,
   Text,
   Title,
   useComputedColorScheme,
@@ -31,7 +33,8 @@ const AICard = ({
   const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme()
-  const [summary, setSummary] = useState<string | null>(null)
+  const [performanceText, setPerformanceText] = useState<string | null>(null)
+  const [cmmsText, setCmmsText] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
 
   const generateSummary = useDailyPerformanceSummary()
@@ -42,31 +45,38 @@ const AICard = ({
     setIsGenerating(true)
     try {
       const response = await generateSummary.mutateAsync(stats)
-      setSummary(response.summary)
+      setPerformanceText(response.summary)
+      setCmmsText(response.cmms_tickets_activity ?? null)
     } catch (error) {
       console.error('Failed to generate AI summary:', error)
-      setSummary('Unable to generate performance summary at this time.')
+      setPerformanceText('Unable to generate performance summary at this time.')
+      setCmmsText(null)
     } finally {
       setIsGenerating(false)
     }
   }, [stats, generateSummary])
 
-  // Clear summary when date changes (stats.date changes)
   useEffect(() => {
-    setSummary(null)
-  }, [stats?.date])
+    setPerformanceText(null)
+    setCmmsText(null)
+  }, [
+    stats?.date,
+    stats?.project_id,
+    stats?.cmms_period_start,
+    stats?.cmms_period_end,
+  ])
 
-  // Auto-generate summary when stats change and data is fully loaded
   useEffect(() => {
-    if (stats && !isLoading && !summary && !isGenerating) {
+    if (stats && !isLoading && !performanceText && !isGenerating) {
       handleGenerateSummary()
     }
-  }, [stats, isLoading, summary, isGenerating, handleGenerateSummary])
+  }, [stats, isLoading, performanceText, isGenerating, handleGenerateSummary])
 
   const cardBgColor =
     colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0]
   const borderColor =
     colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]
+  const labelColor = colorScheme === 'dark' ? theme.colors.gray[5] : 'dimmed'
 
   return (
     <Card
@@ -76,8 +86,7 @@ const AICard = ({
       style={{
         backgroundColor: cardBgColor,
         borderColor: borderColor,
-        minHeight: '120px',
-        maxHeight: '150px',
+        minHeight: '140px',
       }}
     >
       <Group justify="space-between" align="center" mb="sm">
@@ -130,10 +139,44 @@ const AICard = ({
               Generating AI summary...
             </Text>
           </Group>
-        ) : summary ? (
-          <Text size="md" style={{ lineHeight: 1.4 }}>
-            {summary}
-          </Text>
+        ) : performanceText ? (
+          <Stack gap="sm">
+            <Box>
+              <Text
+                size="xs"
+                c={labelColor}
+                tt="uppercase"
+                fw={700}
+                mb={6}
+                style={{ letterSpacing: '0.04em' }}
+              >
+                Performance
+              </Text>
+              <Text size="sm" style={{ lineHeight: 1.6 }}>
+                {performanceText}
+              </Text>
+            </Box>
+            {cmmsText ? (
+              <>
+                <Divider color={borderColor} />
+                <Box>
+                  <Text
+                    size="xs"
+                    c={labelColor}
+                    tt="uppercase"
+                    fw={700}
+                    mb={6}
+                    style={{ letterSpacing: '0.04em' }}
+                  >
+                    CMMS tickets activity
+                  </Text>
+                  <Text size="sm" style={{ lineHeight: 1.6 }}>
+                    {cmmsText}
+                  </Text>
+                </Box>
+              </>
+            ) : null}
+          </Stack>
         ) : (
           <Text c="dimmed" size="sm">
             Click refresh to generate AI summary

@@ -147,6 +147,7 @@ import MonthlyPerformanceReport from './pages/projects/reports/MonthlyPerformanc
 import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageReport'
 import SCADATelemetryLastReported from './pages/projects/reports/SCADATelemetryLastReported'
 import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabilityReport'
+import WeeklyPerformanceReport from './pages/projects/reports/WeeklyPerformanceReport'
 // Utility
 import Backfill from './pages/projects/utility/Backfill'
 import CompanyView from './pages/projects/utility/CompanyView'
@@ -460,6 +461,10 @@ const ClerkProviderWithRoutes = () => {
               <Route
                 path="reports/daily-performance"
                 element={<DailyPerformanceReport />}
+              />
+              <Route
+                path="reports/weekly-performance"
+                element={<WeeklyPerformanceReport />}
               />
               <Route
                 path="reports/monthly-performance"

@@ -77,6 +77,7 @@ const REPORT_CONFIG: {
     [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]:
       'pcs-apparent-vs-voltage',
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: 'daily-performance',
+    [ReportTypeEnum.PV_PERFORMANCE_WEEKLY]: 'weekly-performance',
     [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: 'eec-bess-monthly-report',
     [ReportTypeEnum.SCADA_TELEMETRY_LAST_REPORTED]:
       'scada-telemetry-last-reported',
@@ -90,6 +91,7 @@ const REPORT_CONFIG: {
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: true,
   },
   selectable_date_range: {
+    [ReportTypeEnum.PV_PERFORMANCE_WEEKLY]: true,
     [ReportTypeEnum.MODULE_DEGRADATION]: true,
     [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]: true,
     [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: true,
@@ -107,6 +109,7 @@ const REPORT_CONFIG: {
   downloadable_pdf: {
     [ReportTypeEnum.MONTHLY_PERFORMANCE]: true,
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: true,
+    [ReportTypeEnum.PV_PERFORMANCE_WEEKLY]: true,
     [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: true,
   },
 }
@@ -118,6 +121,7 @@ const reportTypeIcons: Partial<Record<number, Icon>> = {
     IconClockHour2,
   [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: IconClockHour2,
   [ReportTypeEnum.PV_PERFORMANCE_DAILY]: IconGraph,
+  [ReportTypeEnum.PV_PERFORMANCE_WEEKLY]: IconCalendarWeek,
   [ReportTypeEnum.MONTHLY_PERFORMANCE]: IconGraph,
   [ReportTypeEnum.MODULE_DEGRADATION]: IconTrendingDown,
   [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]: IconActivity,
@@ -169,7 +173,8 @@ const Page = () => {
 
     // For PV projects, show Daily Performance Report
     if (projectTypeId === ProjectTypeEnum.PV) {
-      const reportType = reportTypeLookup[ReportTypeEnum.PV_PERFORMANCE_DAILY]
+      const dailyType = reportTypeLookup[ReportTypeEnum.PV_PERFORMANCE_DAILY]
+      const weeklyType = reportTypeLookup[ReportTypeEnum.PV_PERFORMANCE_WEEKLY]
       return [
         {
           project_id: projectId || '',
@@ -177,11 +182,22 @@ const Page = () => {
           is_visible: true,
           report_type: {
             report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
-            // noqa: hardcoded-name-short
-            name_short: reportType?.name_short ?? 'Daily Performance',
-            name_long: reportType?.name_long ?? 'PV Daily Performance Report',
-            doc_url: reportType?.doc_url ?? '',
-            description: reportType?.description ?? null,
+            name_short: dailyType?.name_short ?? 'Daily Performance',
+            name_long: dailyType?.name_long ?? 'PV Daily Performance Report',
+            doc_url: dailyType?.doc_url ?? '',
+            description: dailyType?.description ?? null,
+          },
+        } as ReportInstance,
+        {
+          project_id: projectId || '',
+          report_type_id: ReportTypeEnum.PV_PERFORMANCE_WEEKLY,
+          is_visible: true,
+          report_type: {
+            report_type_id: ReportTypeEnum.PV_PERFORMANCE_WEEKLY,
+            name_short: weeklyType?.name_short ?? 'Weekly Performance',
+            name_long: weeklyType?.name_long ?? 'PV Weekly Performance Report',
+            doc_url: weeklyType?.doc_url ?? '',
+            description: weeklyType?.description ?? null,
           },
         } as ReportInstance,
       ]
@@ -212,6 +228,8 @@ const Page = () => {
     // For PVS (PV + BESS) projects, show both example reports
     if (projectTypeId === ProjectTypeEnum.PVS) {
       const pvReportType = reportTypeLookup[ReportTypeEnum.PV_PERFORMANCE_DAILY]
+      const pvWeeklyType =
+        reportTypeLookup[ReportTypeEnum.PV_PERFORMANCE_WEEKLY]
       const bessReportType =
         reportTypeLookup[ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]
       return [
@@ -225,6 +243,19 @@ const Page = () => {
             name_long: pvReportType?.name_long ?? 'PV Daily Performance Report',
             doc_url: pvReportType?.doc_url ?? '',
             description: pvReportType?.description ?? null,
+          },
+        } as ReportInstance,
+        {
+          project_id: projectId || '',
+          report_type_id: ReportTypeEnum.PV_PERFORMANCE_WEEKLY,
+          is_visible: true,
+          report_type: {
+            report_type_id: ReportTypeEnum.PV_PERFORMANCE_WEEKLY,
+            name_short: pvWeeklyType?.name_short ?? 'Weekly Performance',
+            name_long:
+              pvWeeklyType?.name_long ?? 'PV Weekly Performance Report',
+            doc_url: pvWeeklyType?.doc_url ?? '',
+            description: pvWeeklyType?.description ?? null,
           },
         } as ReportInstance,
         {

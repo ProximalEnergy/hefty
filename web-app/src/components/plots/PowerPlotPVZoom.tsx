@@ -14,6 +14,7 @@ import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { DataTimeSeries } from '@/hooks/types'
+import { alignLossSeries, parseIntervalMinutes } from '@/utils/alignLossSeries'
 import { getInterval, roundTime } from '@/utils/interval'
 import {
   Badge,
@@ -38,96 +39,6 @@ import { useParams } from 'react-router'
 // Extend dayjs with timezone support
 dayjs.extend(utc)
 dayjs.extend(timezone)
-
-const parseIntervalMinutes = (value: string): number => {
-  const match = value.match(/(\d+)/)
-  if (!match) {
-    return 5
-  }
-  return Number(match[1])
-}
-
-const alignLossSeries = (
-  baseTimes: string[],
-  lossTimes: string[],
-  lossValues: number[],
-  targetMinutes: number,
-  timezone: string,
-): (number | null)[] => {
-  if (baseTimes.length === 0 || lossTimes.length === 0) {
-    return Array.from({ length: baseTimes.length }, () => null)
-  }
-
-  const baseMs = baseTimes.map((time) =>
-    dayjs(time).tz(timezone, true).valueOf(),
-  )
-  const losses = lossTimes
-    .map((time, idx) => ({
-      time: dayjs(time).tz(timezone, true).valueOf(),
-      value: lossValues[idx],
-    }))
-    .sort((a, b) => a.time - b.time)
-
-  const result: (number | null)[] = Array.from(
-    { length: baseTimes.length },
-    () => null,
-  )
-
-  if (targetMinutes <= 1) {
-    let lossIdx = 0
-    let currentValue: number | null = losses[0]?.value ?? null
-
-    for (let i = 0; i < baseMs.length; i += 1) {
-      const time = baseMs[i]
-      while (lossIdx + 1 < losses.length && time >= losses[lossIdx + 1].time) {
-        lossIdx += 1
-        currentValue = losses[lossIdx].value
-      }
-
-      if (time < losses[0].time) {
-        result[i] = null
-      } else {
-        result[i] = currentValue
-      }
-    }
-
-    return result
-  }
-
-  let pointer = 0
-  let lastValue: number | null = null
-
-  for (let i = 0; i < baseMs.length; i += 1) {
-    const start = baseMs[i]
-    const end =
-      i < baseMs.length - 1 ? baseMs[i + 1] : start + targetMinutes * 60 * 1000
-
-    while (pointer < losses.length && losses[pointer].time < start) {
-      pointer += 1
-    }
-
-    let idx = pointer
-    let sum = 0
-    let count = 0
-
-    while (idx < losses.length && losses[idx].time < end) {
-      sum += losses[idx].value
-      count += 1
-      idx += 1
-    }
-
-    if (count > 0) {
-      const average = sum / count
-      result[i] = average
-      lastValue = average
-      pointer = idx
-    } else {
-      result[i] = lastValue
-    }
-  }
-
-  return result
-}
 
 const isLossSeries = (entry: EventLosses5Min): entry is EventLosses5MinSeries =>
   'losses' in entry
@@ -575,6 +486,41 @@ const PowerPlotPVZoom = () => {
     })
   }
 
+  let performanceIndexBadgeColor: 'gray' | 'green' | 'yellow' | 'red' = 'gray'
+  let performanceIndexBadgeText = ''
+  if (performanceIndex !== undefined) {
+    performanceIndexBadgeText =
+      performanceIndex < 1.11
+        ? `P.I. ${(performanceIndex * 100).toFixed(1)}%`
+        : 'P.I. >110%'
+    performanceIndexBadgeColor =
+      performanceIndex < 1.11
+        ? performanceIndex > 0.9
+          ? 'green'
+          : performanceIndex > 0.5
+            ? 'yellow'
+            : 'red'
+        : 'gray'
+  }
+
+  const meterPowerPlotLayout: Partial<Plotly.Layout> | undefined = project.data
+    ? {
+        yaxis: {
+          title: { text: 'Power (MW)' },
+          fixedrange: true,
+          range:
+            project.data.project_type_id === ProjectTypeEnum.PVS
+              ? undefined
+              : [0, project.data.poi * 1.05],
+        },
+        xaxis: {
+          type: 'date',
+          fixedrange: false,
+          tickangle: 0,
+        },
+      }
+    : undefined
+
   return (
     <CustomCard
       title="Meter Power"
@@ -583,21 +529,8 @@ const PowerPlotPVZoom = () => {
         <Group wrap="nowrap">
           {performanceIndex !== undefined && (
             <Tooltip label="Performance Index for the plotted period: metered energy divided by expected energy at full health.">
-              <Badge
-                size="lg"
-                color={
-                  performanceIndex < 1.11
-                    ? performanceIndex > 0.9
-                      ? 'green'
-                      : performanceIndex > 0.5
-                        ? 'yellow'
-                        : 'red'
-                    : 'gray'
-                }
-              >
-                {performanceIndex < 1.11
-                  ? `P.I. ${(performanceIndex * 100).toFixed(1) + '%'}`
-                  : 'P.I. >110%'}
+              <Badge size="lg" color={performanceIndexBadgeColor}>
+                {performanceIndexBadgeText}
               </Badge>
             </Tooltip>
           )}
@@ -648,29 +581,12 @@ const PowerPlotPVZoom = () => {
       <PlotlyPlot
         data={plotData}
         xAxisTimeZone={projectTimeZone}
-        layout={
-          project.data && {
-            yaxis: {
-              title: { text: 'Power (MW)' },
-              fixedrange: true,
-              // Restore explicit range
-              range:
-                project.data?.project_type_id === ProjectTypeEnum.PVS
-                  ? undefined
-                  : [0, project.data.poi * 1.05],
-            },
-            xaxis: {
-              type: 'date',
-              fixedrange: false,
-              tickangle: 0,
-            },
-          }
-        }
+        layout={meterPowerPlotLayout}
         onRelayout={handleRelayout}
         // Use the loading state from the hook
         isLoading={meterAndExpectedPower.isLoading || project.isLoading}
         error={meterAndExpectedPower.error}
-        config={{ responsive: true, scrollZoom: true }}
+        config={{ responsive: true, scrollZoom: false }}
       />
     </CustomCard>
   )

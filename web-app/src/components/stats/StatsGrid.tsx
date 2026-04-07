@@ -1,3 +1,4 @@
+import { AutoFitStatValue } from '@/components/stats/AutoFitStatValue'
 import { Statistic, StatisticIcon } from '@/hooks/types'
 import {
   Box,
@@ -121,16 +122,18 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
             <Icon size="1.2rem" stroke={1.5} />
           </Group>
 
-          <Group align="flex-end" gap="xs" mt={15}>
+          <Group align="flex-end" gap="xs" mt={15} wrap="nowrap">
             {stat.value === null ? (
               <Skeleton height={32} width={120} radius="xl" />
             ) : typeof stat.value === 'string' ? (
-              <Text fz={32} fw={700}>
-                {stat.value}
-              </Text>
+              <Box style={{ flex: 1, minWidth: 0 }}>
+                <AutoFitStatValue>{stat.value}</AutoFitStatValue>
+              </Box>
             ) : (
               <Box
                 style={{
+                  flex: 1,
+                  minWidth: 0,
                   fontSize: 'calc(2rem * var(--mantine-scale))',
                   fontWeight: 700,
                 }}
@@ -139,7 +142,7 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
               </Box>
             )}
             {stat.diff !== undefined && stat.diff !== null && (
-              <Text c={diffColor} fz="sm" fw={500}>
+              <Text c={diffColor} fz="sm" fw={500} style={{ flexShrink: 0 }}>
                 {stat.title.includes('(avg)') ? (
                   <span>{`Δ${stat.diff.toFixed(1)}${
                     stat.title.includes('SOC') || stat.title.includes('SOH')

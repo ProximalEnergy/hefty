@@ -29,6 +29,10 @@ export interface DailyPerformanceStats {
   open_events: number
   closed_events: number
   total_revenue_loss: number
+  /** When set with CMMS window, server loads tickets for Aria CMMS paragraph. */
+  project_id?: string
+  cmms_period_start?: string
+  cmms_period_end?: string
 }
 
 export interface DailyPerformanceSummaryRequest {
@@ -38,4 +42,5 @@ export interface DailyPerformanceSummaryRequest {
 
 export interface DailyPerformanceSummaryResponse {
   summary: string
+  cmms_tickets_activity?: string | null
 }

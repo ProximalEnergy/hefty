@@ -226,6 +226,9 @@ async def get_cmms_tickets_v2(
     max_results: Annotated[int | None, Query()] = 50,
     device_ids: Annotated[list[int] | None, Query()] = None,
     device_type_ids: Annotated[list[int] | None, Query()] = None,
+    source_created_at_start: Annotated[datetime | None, Query()] = None,
+    source_created_at_end: Annotated[datetime | None, Query()] = None,
+    source_created_order_asc: Annotated[bool, Query()] = False,
     include_json_raw: Annotated[
         bool, Query()
     ] = False,  # include the raw JSON data in the response
@@ -240,6 +243,9 @@ async def get_cmms_tickets_v2(
         max_results: The maximum number of tickets to return.
         device_ids: The list of device ids to filter by.
         device_type_ids: The list of device type ids to filter by.
+        source_created_at_start: Inclusive lower bound on source_created_at.
+        source_created_at_end: Inclusive upper bound on source_created_at.
+        source_created_order_asc: Sort by creation time ascending when True.
         include_json_raw: Whether to include the raw JSON data in the response.
     """
     cmms_permissions = await core_get_cmms_permissions_by_project_id(
@@ -262,8 +268,11 @@ async def get_cmms_tickets_v2(
         cmms_integration_ids=cmms_integration_ids,
         device_ids=device_ids,
         device_type_ids=device_type_ids,
+        source_created_at_start=source_created_at_start,
+        source_created_at_end=source_created_at_end,
         max_results=max_results,
         include_json_raw=include_json_raw,
+        source_created_order_asc=source_created_order_asc,
     ).get_async(schema=project.name_short, output_type=OutputType.PANDAS)
 
     provider_info = cmms_permissions[

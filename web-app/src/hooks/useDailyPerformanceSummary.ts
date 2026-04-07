@@ -17,9 +17,11 @@ export const useDailyPerformanceSummary = () => {
     ): Promise<DailyPerformanceSummaryResponse> => {
       const token = await getToken({ template: 'default' })
 
+      const body: DailyPerformanceSummaryRequest = { stats }
+
       const response = await axios.post<DailyPerformanceSummaryResponse>(
         `${baseURL}/v1/ai/daily-performance-summary`,
-        { stats } as DailyPerformanceSummaryRequest,
+        body,
         {
           headers: {
             Authorization: `Bearer ${token}`,

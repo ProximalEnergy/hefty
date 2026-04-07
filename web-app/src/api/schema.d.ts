@@ -1096,7 +1096,8 @@ export interface paths {
          *         summary of the project's performance for the selected day.
          *
          *     Args:
-         *         request: Description for request.
+         *         request: Performance stats and optional CMMS window for ticket context.
+         *         user: Authenticated user (for CMMS access).
          */
         post: operations["generate_daily_performance_summary_v1_ai_daily_performance_summary_post"];
         delete?: never;
@@ -2673,6 +2674,9 @@ export interface paths {
          *         max_results: The maximum number of tickets to return.
          *         device_ids: The list of device ids to filter by.
          *         device_type_ids: The list of device type ids to filter by.
+         *         source_created_at_start: Inclusive lower bound on source_created_at.
+         *         source_created_at_end: Inclusive upper bound on source_created_at.
+         *         source_created_order_asc: Sort by creation time ascending when True.
          *         include_json_raw: Whether to include the raw JSON data in the response.
          */
         get: operations["get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get"];
@@ -8858,6 +8862,12 @@ export interface components {
             closed_events: number;
             /** Total Revenue Loss */
             total_revenue_loss: number;
+            /** Project Id */
+            project_id?: string | null;
+            /** Cmms Period Start */
+            cmms_period_start?: string | null;
+            /** Cmms Period End */
+            cmms_period_end?: string | null;
         };
         /**
          * DailyPerformanceSummaryRequest
@@ -8878,6 +8888,8 @@ export interface components {
         DailyPerformanceSummaryResponse: {
             /** Summary */
             summary: string;
+            /** Cmms Tickets Activity */
+            cmms_tickets_activity?: string | null;
         };
         /**
          * DashboardComponent
@@ -16401,6 +16413,9 @@ export interface operations {
                 max_results?: number | null;
                 device_ids?: number[] | null;
                 device_type_ids?: number[] | null;
+                source_created_at_start?: string | null;
+                source_created_at_end?: string | null;
+                source_created_order_asc?: boolean;
                 include_json_raw?: boolean;
             };
             header?: {
