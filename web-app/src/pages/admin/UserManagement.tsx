@@ -322,6 +322,36 @@ const UserManagement = () => {
       return newState
     })
   }
+
+  const handleSelectAllForProject = (projectId: string) => {
+    setModifiedUsers((prev) => {
+      const newState = { ...prev }
+
+      sortedUsers?.forEach((tableUser) => {
+        const originalProjects = tableUser.operational_project_ids || []
+        const userProjects = newState[tableUser.user_id] || originalProjects
+
+        if (userProjects.includes(projectId)) {
+          return
+        }
+
+        const updatedProjects = [...userProjects, projectId]
+
+        const isUnchanged =
+          updatedProjects.length === originalProjects.length &&
+          updatedProjects.every((id) => originalProjects.includes(id))
+
+        if (isUnchanged) {
+          delete newState[tableUser.user_id]
+        } else {
+          newState[tableUser.user_id] = updatedProjects
+        }
+      })
+
+      return newState
+    })
+  }
+
   // Handle project updates submission
   const handleProjectUpdates = async () => {
     const userIds = Object.keys(modifiedUsers)
@@ -371,12 +401,29 @@ const UserManagement = () => {
       <Table stickyHeader stickyHeaderOffset={0} striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Company</Table.Th>
+            <Table.Th rowSpan={2}>Name</Table.Th>
+            <Table.Th rowSpan={2}>Company</Table.Th>
             {projects.data?.map((project) => (
-              <Table.Th key={project.project_id}>{project.name_long}</Table.Th>
+              <Table.Th key={project.project_id}>
+                <Text size="sm" fw={600}>
+                  {project.name_long}
+                </Text>
+              </Table.Th>
             ))}
-            <Table.Th>Remove User</Table.Th>
+            <Table.Th rowSpan={2}>Remove User</Table.Th>
+          </Table.Tr>
+          <Table.Tr>
+            {projects.data?.map((project) => (
+              <Table.Th key={`${project.project_id}-select-all`}>
+                <Button
+                  size="compact-xs"
+                  variant="light"
+                  onClick={() => handleSelectAllForProject(project.project_id)}
+                >
+                  Select All
+                </Button>
+              </Table.Th>
+            ))}
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
