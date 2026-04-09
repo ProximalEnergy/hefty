@@ -179,6 +179,15 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
       ? `$${priceData.price.toFixed(2)} /MWh`
       : 'N/A'
 
+  const rtPriceTime = useMemo(() => {
+    if (!priceData?.timestamp) {
+      return 'N/A'
+    }
+    return dayjs(priceData.timestamp)
+      .tz(project.data?.time_zone || 'UTC')
+      .format('HH:mm')
+  }, [priceData?.timestamp, project.data?.time_zone])
+
   // Get DA price for current hour and calculate difference
   const { daPrice, priceDiff } = useMemo(() => {
     if (
@@ -712,8 +721,8 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
   const realtimeStats: Statistic[] = useMemo(
     () => [
       {
-        title: 'RT Price on Node',
-        description: 'Real-time settlement point price at the current node',
+        title: 'Settlement Point Price (Node)',
+        description: '15-minute average price (SPP) used for settlement.',
         value: priceLoading ? null : (
           <Box
             onMouseEnter={() => setIsHoveringRTPrice(true)}
@@ -721,8 +730,13 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
             style={{ cursor: 'pointer' }}
           >
             <Stack gap={2}>
-              <Text fz={32} fw={700}>
-                {rtPriceValue}
+              <Text>
+                <Text component="span" fz={32} fw={700}>
+                  {rtPriceValue}
+                </Text>{' '}
+                <Text component="span" size="sm" c="dimmed">
+                  (Updated {rtPriceTime})
+                </Text>
               </Text>
               {daPrice !== null && priceDiff !== null && (
                 <Text size="xs" c="dimmed">
@@ -827,6 +841,7 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
     [
       priceLoading,
       rtPriceValue,
+      rtPriceTime,
       daPrice,
       priceDiff,
       revenueTodayValue,
