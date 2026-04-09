@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import os
+import re
 import shutil
 import tempfile
 import uuid
@@ -14,6 +15,7 @@ import boto3
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from app.integrations.providers import ptp_explorer
 from app.logger import logger
 from core.crud.operational.contract_kpis import (
     get_contract_kpis as crud_get_contract_kpis,
@@ -893,6 +895,12 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
     def _delta_str(row: str) -> str:  # nosemgrep
         return str(executive_summary_df.loc[row, "Delta"])
 
+    def _format_percent_cell(*, row: str, column: str) -> str:
+        value = _cell_float(row=row, column=column)
+        if np.isnan(value):
+            return "—"
+        return format_percentage_value(value=value)
+
     # --- Table Data (now 4 columns) ---
     executive_data: list[list[str]] = [
         ["Metric", "This Month", "Expected", "Δ vs Expected"],
@@ -940,19 +948,19 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
         ],
         [
             "Capacity-Weighted Availability",
-            format_percentage_value(
-                value=_cell_float(
-                    row="Capacity-Weighted Availability",
-                    column="This Month",
-                )
+            _format_percent_cell(
+                row="Capacity-Weighted Availability", column="This Month"
             ),
-            format_percentage_value(
-                value=_cell_float(
-                    row="Capacity-Weighted Availability",
-                    column="Expected",
-                )
+            _format_percent_cell(
+                row="Capacity-Weighted Availability", column="Expected"
             ),
             _delta_str(row="Capacity-Weighted Availability"),
+        ],
+        [
+            "Market Availability",
+            _format_percent_cell(row="Market Availability", column="This Month"),
+            _format_percent_cell(row="Market Availability", column="Expected"),
+            _delta_str(row="Market Availability"),
         ],
         [
             "Degradation Rate",
@@ -994,7 +1002,7 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
                     Paragraph(row[3], bold_center),
                 ]
             )
-        elif i == 5:  # degradation rate row
+        elif row[0] == "Degradation Rate":
             formatted_rows.append(
                 [
                     Paragraph(row[0], cell_style),  # Metric (left)
@@ -2267,9 +2275,12 @@ async def get_tbx(
     work["date"] = work["intervalEndingLocal"].dt.date
     work["hour"] = work["intervalEndingLocal"].dt.hour
     grouped = work.groupby(["date", "hour"])["value"].mean()
-    project_tbx = round(
-        project.capacity_bess_energy_bol_dc / project.capacity_bess_power_ac, 1
-    )
+    if project.poi is None or project.poi == 0:
+        project_tbx = round(
+            project.capacity_bess_energy_bol_dc / project.capacity_bess_power_ac, 1
+        )
+    else:
+        project_tbx = round(project.capacity_bess_energy_bol_dc / project.poi, 1)
 
     def _partial_cycle_sum(
         *, values: np.ndarray, count: float, select: Literal["bottom", "top"]
@@ -2371,6 +2382,382 @@ async def get_tps_element_identifier(
     if qse_integration.qse_project_identifier is None:
         raise KeyError("QSE project identifier not configured")
     return cast(str, qse_integration.qse_project_identifier)
+
+
+def _get_qse_resource_id(
+    *,
+    qse_integration: models.QSEIntegration,
+) -> str | None:
+    """Extract resource_id from QSE integration provider config."""
+    provider_config = qse_integration.provider_config
+    if not isinstance(provider_config, dict):
+        return None
+    resource_id = provider_config.get("resource_id")
+    if not resource_id:
+        return None
+    return str(resource_id)
+
+
+def _parse_ptp_datetime(*, raw_value: Any) -> pd.Timestamp | None:
+    """Parse a PTP datetime value into a UTC timestamp."""
+    if not isinstance(raw_value, str):
+        return None
+    parsed = pd.to_datetime(raw_value, utc=True, errors="coerce")
+    if pd.isna(parsed):
+        return None
+    return cast(pd.Timestamp, parsed)
+
+
+def _parse_ptp_float(*, raw_value: Any) -> float | None:
+    """Parse a PTP numeric value into float."""
+    if isinstance(raw_value, (int, float)):
+        parsed = float(raw_value)
+        if np.isnan(parsed):
+            return None
+        return parsed
+    if not isinstance(raw_value, str):
+        return None
+    stripped = raw_value.replace(",", "").strip()
+    if not stripped:
+        return None
+    try:
+        parsed = float(stripped)
+    except ValueError:
+        return None
+    if np.isnan(parsed):
+        return None
+    return parsed
+
+
+def _extract_ticket_data_points(*, entry: dict[str, Any]) -> dict[str, Any]:
+    """Extract first data value for each ticket data point key."""
+    ticket_data_points: dict[str, Any] = {}
+    for data_point in entry.get("dataPoints", []):
+        if not isinstance(data_point, dict):
+            continue
+        key_name = data_point.get("keyName")
+        if not isinstance(key_name, str):
+            continue
+        values = data_point.get("values", [])
+        if not isinstance(values, list):
+            continue
+        for value_item in values:
+            if not isinstance(value_item, dict):
+                continue
+            data_items = value_item.get("data", [])
+            if not isinstance(data_items, list):
+                continue
+            for data_item in data_items:
+                if not isinstance(data_item, dict):
+                    continue
+                value = data_item.get("value")
+                if value is not None:
+                    ticket_data_points[key_name] = value
+                    break
+            if key_name in ticket_data_points:
+                break
+    return ticket_data_points
+
+
+def _ticket_interval(
+    *,
+    ticket_data_points: dict[str, Any],
+) -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
+    """Return outage interval start and end for a ticket."""
+    start = _parse_ptp_datetime(raw_value=ticket_data_points.get("ActualStartTime"))
+    if start is None:
+        start = _parse_ptp_datetime(
+            raw_value=ticket_data_points.get("PlannedStartTime")
+        )
+
+    end = _parse_ptp_datetime(raw_value=ticket_data_points.get("ActualEndTime"))
+    if end is None:
+        end = _parse_ptp_datetime(raw_value=ticket_data_points.get("PlannedEndTime"))
+
+    return start, end
+
+
+def _ticket_available_capacity_mw(
+    *,
+    ticket_data_points: dict[str, Any],
+) -> float | None:
+    """Return ticket available MW as abs(LSL) + abs(HSL)."""
+    lsl = _parse_ptp_float(raw_value=ticket_data_points.get("LSL"))
+    hsl = _parse_ptp_float(raw_value=ticket_data_points.get("HSL"))
+    if lsl is None or hsl is None:
+        return None
+    return abs(lsl) + abs(hsl)
+
+
+async def _find_outage_element_identifier(
+    *,
+    token: str,
+    resource_name: str,
+    begin_utc: pd.Timestamp,
+    end_utc: pd.Timestamp,
+) -> str | None:
+    """Find outage endpoint element identifier by resource name."""
+    begin = begin_utc.isoformat().replace("+00:00", "Z")
+    end = end_utc.isoformat().replace("+00:00", "Z")
+    data = await ptp_explorer.get_endpoint_data(
+        token=token,
+        market="Operations",
+        endpoint="Outage-Ticket-Data-ERCOT",
+        begin=begin,
+        end=end,
+    )
+    entries = data.get("data")
+    if not isinstance(entries, list):
+        return None
+
+    normalized_resource = resource_name.strip().upper()
+    best_match_identifier: str | None = None
+    best_match_score: int | None = None
+
+    for entry in entries:
+        if not isinstance(entry, dict) or entry.get("definition") != "Equipment":
+            continue
+        entry_name = str(entry.get("element", "")).strip().upper()
+        identifier = entry.get("identifier")
+        if not isinstance(identifier, str) or not entry_name:
+            continue
+        if entry_name == normalized_resource:
+            return identifier
+
+        entry_tokens = re.split(r"[^A-Z0-9]+", entry_name)
+        if normalized_resource in entry_tokens:
+            score = len(entry_name) - len(normalized_resource)
+            if best_match_score is None or score < best_match_score:
+                best_match_identifier = identifier
+                best_match_score = score
+
+    return best_match_identifier
+
+
+async def get_market_outage_tickets(
+    *,
+    project: models.Project,
+    token: str,
+    start: datetime.date,
+    end: datetime.date,
+) -> pd.DataFrame:
+    """Get outage tickets active during the report period.
+
+    Args:
+        project: Project model instance.
+        token: PTP API authentication token.
+        start: Inclusive report-period start date.
+        end: Exclusive report-period end date.
+
+    Returns:
+        DataFrame with outage rows containing `time_start`, `time_end`,
+        and `available_capacity_mw`.
+    """
+    qse_integration_query = crud_get_qse_integration_by_project_id(
+        project_id=project.project_id,
+    )
+    qse_integration = await qse_integration_query.get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
+    if qse_integration is None:
+        logger.warning(
+            "QSE integration missing for project_id=%s",
+            project.project_id,
+        )
+        return pd.DataFrame(columns=["time_start", "time_end", "available_capacity_mw"])
+
+    resource_name = _get_qse_resource_id(qse_integration=qse_integration)
+    if resource_name is None:
+        logger.warning(
+            "QSE provider_config missing resource_id for %s",
+            project.project_id,
+        )
+        return pd.DataFrame(columns=["time_start", "time_end", "available_capacity_mw"])
+
+    period_start = pd.Timestamp(start, tz=project.time_zone).tz_convert("UTC")
+    period_end = pd.Timestamp(end, tz=project.time_zone).tz_convert("UTC")
+    query_begin = period_start - pd.Timedelta(days=31)
+
+    element_identifier = await _find_outage_element_identifier(
+        token=token,
+        resource_name=resource_name,
+        begin_utc=query_begin,
+        end_utc=period_end,
+    )
+    if element_identifier is None:
+        return pd.DataFrame(columns=["time_start", "time_end", "available_capacity_mw"])
+
+    data = await ptp_explorer.get_endpoint_data(
+        token=token,
+        market="Operations",
+        endpoint="Outage-Ticket-Data-ERCOT",
+        elements=[element_identifier],
+        begin=query_begin.isoformat().replace("+00:00", "Z"),
+        end=period_end.isoformat().replace("+00:00", "Z"),
+    )
+    entries = data.get("data")
+    if not isinstance(entries, list):
+        return pd.DataFrame(columns=["time_start", "time_end", "available_capacity_mw"])
+
+    ticket_intervals: list[dict[str, pd.Timestamp | None | float]] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("definition") != "Ticket Item":
+            continue
+        ticket_data_points = _extract_ticket_data_points(entry=entry)
+        interval_start, interval_end = _ticket_interval(
+            ticket_data_points=ticket_data_points
+        )
+        available_capacity_mw = _ticket_available_capacity_mw(
+            ticket_data_points=ticket_data_points
+        )
+        if interval_start is None:
+            continue
+        if available_capacity_mw is None:
+            logger.debug(
+                "Skipping outage ticket without LSL/HSL for project_id=%s",
+                project.project_id,
+            )
+            continue
+        ticket_intervals.append(
+            {
+                "time_start": interval_start,
+                "time_end": interval_end,
+                "available_capacity_mw": available_capacity_mw,
+            }
+        )
+
+    if not ticket_intervals:
+        return pd.DataFrame(columns=["time_start", "time_end", "available_capacity_mw"])
+
+    tickets_df = pd.DataFrame(ticket_intervals)
+    effective_end = tickets_df["time_end"].fillna(period_end)
+    active_mask = (tickets_df["time_start"] < period_end) & (
+        effective_end > period_start
+    )
+    return tickets_df.loc[active_mask].copy()
+
+
+def _capacity_weighted_availability(
+    *,
+    tickets_df: pd.DataFrame,
+    period_start: pd.Timestamp,
+    period_end: pd.Timestamp,
+    max_capacity_mw: float,
+) -> float:
+    """Calculate availability from ticket capacities over time.
+
+    Uses max available capacity when there is no active ticket. For overlapping
+    tickets, uses the most restrictive (minimum) available capacity.
+    """
+    if period_end <= period_start or max_capacity_mw <= 0:
+        return 0.0
+
+    clipped = tickets_df.copy()
+    clipped["time_end"] = clipped["time_end"].fillna(period_end)
+    clipped["time_start"] = clipped["time_start"].where(
+        clipped["time_start"] >= period_start,
+        period_start,
+    )
+    clipped["time_end"] = clipped["time_end"].where(
+        clipped["time_end"] <= period_end,
+        period_end,
+    )
+    clipped = clipped[clipped["time_end"] > clipped["time_start"]].copy()
+    if clipped.empty:
+        return 1.0
+
+    events: list[tuple[pd.Timestamp, int, float]] = []
+    for row in clipped.itertuples(index=False):
+        start_ts = cast(pd.Timestamp, row.time_start)
+        end_ts = cast(pd.Timestamp, row.time_end)
+        capacity = float(cast(float | int, row.available_capacity_mw))
+        bounded_capacity = float(np.clip(capacity, 0.0, max_capacity_mw))
+        events.append((start_ts, 1, bounded_capacity))
+        events.append((end_ts, 0, bounded_capacity))
+
+    events.sort(key=lambda x: (x[0], x[1]))
+    active_caps: list[float] = []
+    weighted_capacity_seconds = 0.0
+    current_ts = period_start
+
+    for event_ts, is_start, capacity in events:
+        if event_ts > current_ts:
+            active_capacity = min(active_caps) if active_caps else max_capacity_mw
+            weighted_capacity_seconds += (
+                event_ts - current_ts
+            ).total_seconds() * active_capacity
+            current_ts = event_ts
+
+        if is_start == 1:
+            active_caps.append(capacity)
+        elif capacity in active_caps:
+            active_caps.remove(capacity)
+
+    if current_ts < period_end:
+        active_capacity = min(active_caps) if active_caps else max_capacity_mw
+        weighted_capacity_seconds += (
+            period_end - current_ts
+        ).total_seconds() * active_capacity
+
+    max_capacity_seconds = (period_end - period_start).total_seconds() * max_capacity_mw
+    if max_capacity_seconds <= 0:
+        return 0.0
+    return float(np.clip(weighted_capacity_seconds / max_capacity_seconds, 0.0, 1.0))
+
+
+async def get_market_availability(
+    *,
+    project: models.Project,
+    token: str,
+    start: datetime.date,
+    end: datetime.date,
+) -> float | None:
+    """Calculate market availability for report period from outage tickets.
+
+    Args:
+        project: Project model instance.
+        token: PTP API authentication token.
+        start: Inclusive report-period start date.
+        end: Exclusive report-period end date.
+
+    Returns:
+        Fractional availability between 0.0 and 1.0, or None on error.
+    """
+    period_start = pd.Timestamp(start, tz=project.time_zone).tz_convert("UTC")
+    period_end = pd.Timestamp(end, tz=project.time_zone).tz_convert("UTC")
+    if period_end <= period_start:
+        return None
+    if project.poi is None:
+        return None
+    max_capacity_mw = float(2 * abs(project.poi))
+    if max_capacity_mw <= 0:
+        return None
+
+    try:
+        tickets_df = await get_market_outage_tickets(
+            project=project,
+            token=token,
+            start=start,
+            end=end,
+        )
+    except Exception:
+        logger.exception(
+            "Failed retrieving outage tickets for project_id=%s",
+            project.project_id,
+        )
+        return None
+
+    if tickets_df.empty:
+        return 1.0
+
+    return _capacity_weighted_availability(
+        tickets_df=tickets_df,
+        period_start=period_start,
+        period_end=period_end,
+        max_capacity_mw=max_capacity_mw,
+    )
 
 
 async def yearly_degradation_rate_from_soh(
@@ -3144,7 +3531,8 @@ async def generate_executive_summary(
     other_tps_data: dict[str, float],
     rev_breakdown_df: pd.DataFrame,
     expected_values: dict[str, float] | None = None,
-    total_availability: float,
+    total_availability: float | None,
+    market_availability: float | None,
     degradation_rate: float,
     deg_rate_expected: float,
     request: BESSMonthlyReportRequest,
@@ -3157,6 +3545,7 @@ async def generate_executive_summary(
         expected_values: Optional dictionary of expected values. If None,
             uses hardcoded defaults (should be replaced with real data).
         total_availability: Total availability.
+        market_availability: Availability derived from market outage tickets.
         degradation_rate: Degradation rate.
         deg_rate_expected: Expected degradation rate.
         request: Request data including month, strategies, and commentary.
@@ -3191,6 +3580,7 @@ async def generate_executive_summary(
             "Total Energy Discharged",
             "Total Energy Charged",
             "Capacity-Weighted Availability",
+            "Market Availability",
             "Degradation Rate",
             "Forecast Accuracy",
         ],
@@ -3219,7 +3609,7 @@ async def generate_executive_summary(
     executive_summary_df.loc["Capacity-Weighted Availability", "Expected"] = defaults[
         "capacity_weighted_availability"
     ]
-    executive_summary_df.loc["Market Availability", "This Month"] = np.nan
+    executive_summary_df.loc["Market Availability", "This Month"] = market_availability
     executive_summary_df.loc["Market Availability", "Expected"] = defaults[
         "market_availability"
     ]
@@ -3563,6 +3953,13 @@ async def generate_eec_bess_monthly_report(
         total_availability = 1 - (lost_capacity_mwh / possible_capacity)
     else:
         total_availability = None
+
+    market_availability = await get_market_availability(
+        project=project,
+        token=tps_token,
+        start=req_start,
+        end=req_end,
+    )
     req_days = (req_end - req_start).total_seconds() / 60 / 60 / 24
     expected_energy = project.capacity_bess_energy_bol_dc * req_days
     expected_values = {
@@ -3575,6 +3972,7 @@ async def generate_eec_bess_monthly_report(
         rev_breakdown_df=rev_breakdown_df,
         expected_values=expected_values,
         total_availability=total_availability,
+        market_availability=market_availability,
         degradation_rate=degradation_rate,
         deg_rate_expected=deg_rate,
         request=request,

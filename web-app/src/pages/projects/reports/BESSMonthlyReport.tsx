@@ -34,7 +34,7 @@ import { useLocalStorage } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { IconDownload, IconMinus, IconPlus } from '@tabler/icons-react'
 import { UseQueryResult } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
+import { AxiosError, isAxiosError } from 'axios'
 import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
@@ -42,6 +42,31 @@ import { useParams } from 'react-router'
 const ICON_SIZE = 14
 
 type SmartBidderRowValues = { actual: number | ''; expected: number | '' }
+
+const getGenerateReportErrorMessage = (error: unknown): string => {
+  const fallback =
+    'Failed to generate the BESS monthly report. Please try again.'
+  if (!isAxiosError(error)) {
+    return fallback
+  }
+
+  const responseData = error.response?.data
+  if (typeof responseData === 'string' && responseData.trim().length > 0) {
+    return responseData
+  }
+
+  if (responseData && typeof responseData === 'object') {
+    const maybeDetail = (responseData as { detail?: unknown }).detail
+    if (typeof maybeDetail === 'string' && maybeDetail.trim().length > 0) {
+      return maybeDetail
+    }
+  }
+
+  if (error.message.trim().length > 0) {
+    return error.message
+  }
+  return fallback
+}
 
 const SMART_BIDDER_ROWS = [
   'Energy Capacity (MWh)',
@@ -316,18 +341,28 @@ const BESSMonthlyReport = () => {
       included_projects: includedProjects,
     }
 
-    await generateReport.mutateAsync({
-      projectId,
-      data: payload,
-    })
+    try {
+      await generateReport.mutateAsync({
+        projectId,
+        data: payload,
+      })
 
-    await bucketList.refetch()
+      await bucketList.refetch()
 
-    notifications.show({
-      title: 'Report ready',
-      message: 'The BESS monthly report generated successfully.',
-      color: 'teal',
-    })
+      notifications.show({
+        title: 'Report ready',
+        message: 'The BESS monthly report generated successfully.',
+        color: 'teal',
+        autoClose: false,
+      })
+    } catch (error) {
+      notifications.show({
+        title: 'Report generation failed',
+        message: getGenerateReportErrorMessage(error),
+        color: 'red',
+        autoClose: false,
+      })
+    }
   }
 
   const trimmedRowNames = rowNames.map((name) => name.trim())
