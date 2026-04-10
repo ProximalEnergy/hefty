@@ -42,7 +42,7 @@ The entire name should be snake case.
     - `PV_INVERTER_MODULE -> inverter_module`
 
     BESS Device Names
-    - `BESS_MV_CIRCUIT_METER -> circuit`
+    - `BESS_MV_COLLECTOR_CIRCUIT_METER -> circuit`
     - `BESS_PCS -> pcs`
     - `BESS_PCS_MODULE -> pcs_module`
     - `BESS_PCS_MODULE_GROUP -> pcs_module_group`

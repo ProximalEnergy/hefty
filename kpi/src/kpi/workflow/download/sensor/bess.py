@@ -32,12 +32,12 @@ class DownloadSensorBess(SensorSchema):
     # mv circuit level
 
     circuit_total_energy_charged_raw_kwh_5m = field(
-        sensor_type=SensorType.BESS_MV_CIRCUIT_METER_CONSUMED_ENERGY,
+        sensor_type=SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_CONSUMED_ENERGY,
         scale=1000,
     )
 
     circuit_total_energy_discharged_raw_kwh_5m = field(
-        sensor_type=SensorType.BESS_MV_CIRCUIT_METER_DELIVERED_ENERGY,
+        sensor_type=SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_DELIVERED_ENERGY,
         scale=1000,
     )
 

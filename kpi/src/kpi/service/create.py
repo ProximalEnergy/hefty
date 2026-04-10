@@ -19,7 +19,7 @@ device_types = [
     DeviceType.MET_STATION,
     DeviceType.TRACKER_ROW,
     DeviceType.PV_INVERTER_MODULE,
-    DeviceType.BESS_MV_CIRCUIT_METER,
+    DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER,
     DeviceType.BESS_PCS,
     DeviceType.BESS_PCS_MODULE,
     DeviceType.BESS_PCS_MODULE_GROUP,

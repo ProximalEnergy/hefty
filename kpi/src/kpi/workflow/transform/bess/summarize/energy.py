@@ -117,9 +117,7 @@ class TransformBessSummarizeEnergy(CalcSchema):
     # BESS_PCS_ENERGY_CHARGED_DC (87)
     @method_calc
     def pcs_energy_charged_dc_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.pcs_total_energy_charged_filled_kwh_5m
-        ),
+        total_energy: xr.DataArray = Input(Eval.pcs_total_energy_charged_filled_kwh_5m),
         power_capacity: xr.DataArray = Input(Clean.pcs_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
@@ -179,7 +177,9 @@ class TransformBessSummarizeEnergy(CalcSchema):
     def project_circuit_energy_charged_kwh_d(
         energy: xr.DataArray = Input(circuit_energy_charged_kwh_d),
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_MV_CIRCUIT_METER), min_count=1)
+        return energy.sum(
+            dim=coord(DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
+        )
 
     # BESS_CIRCUIT_ENERGY_DISCHARGED (112)
     @method_calc
@@ -200,7 +200,9 @@ class TransformBessSummarizeEnergy(CalcSchema):
     def project_circuit_energy_discharged_kwh_d(
         energy: xr.DataArray = Input(circuit_energy_discharged_kwh_d),
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_MV_CIRCUIT_METER), min_count=1)
+        return energy.sum(
+            dim=coord(DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
+        )
 
     # =======================================================
     # Project level
@@ -241,9 +243,7 @@ class TransformBessSummarizeEnergy(CalcSchema):
     # BESS_MV_AUX_METER_ENERGY (93)
     @method_calc
     def project_aux_energy_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.project_total_aux_energy_filled_kwh_5m
-        ),
+        total_energy: xr.DataArray = Input(Eval.project_total_aux_energy_filled_kwh_5m),
         power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:

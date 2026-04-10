@@ -15,7 +15,7 @@ class DownloadDeviceBessAttribute(DeviceSchema):
     # mv circuit
 
     circuit_power_capacity_raw_kw = field(
-        device_type=DeviceType.BESS_MV_CIRCUIT_METER,
+        device_type=DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER,
         source_field_name=models.Device.capacity_ac.name,
     )
 

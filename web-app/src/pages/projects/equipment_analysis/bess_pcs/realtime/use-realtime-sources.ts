@@ -145,7 +145,9 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
       projectId: projectId || '-1',
     },
     queryParams: {
-      sensor_type_ids: [SensorTypeEnum.BESS_MV_CIRCUIT_METER_ACTIVE_POWER],
+      sensor_type_ids: [
+        SensorTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
+      ],
     },
     queryOptions: {
       enabled,

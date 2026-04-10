@@ -229,7 +229,9 @@ async def get_gauge(
             if project.project_type_id == ProjectType.PV:
                 measured_sensor_type_id = SensorType.METER_ACTIVE_POWER
             else:
-                measured_sensor_type_id = SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER
+                measured_sensor_type_id = (
+                    SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+                )
             tags_query = core.crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[measured_sensor_type_id],
                 deep=False,
@@ -585,7 +587,7 @@ async def get_line(
                 pass
 
         # Special handling for this sensor type
-        if sensor_type_id == SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER:
+        if sensor_type_id == SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER:
             temp_df *= -1
 
         # Get maximum and minimum for this trace (index i)

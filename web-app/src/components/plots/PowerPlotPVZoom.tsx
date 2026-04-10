@@ -108,7 +108,8 @@ const PowerPlotPVZoom = () => {
     [SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT]: theme.colors.blue[7], // Add setpoint color
     [SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER]:
       theme.colors.cyan[7], // Adjusted PV color for distinction
-    [SensorTypeEnum.BESS_MV_CIRCUIT_METER_ACTIVE_POWER]: theme.colors.yellow[7],
+    [SensorTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER]:
+      theme.colors.yellow[7],
     [-1]: theme.colors.gray[7],
   }
 

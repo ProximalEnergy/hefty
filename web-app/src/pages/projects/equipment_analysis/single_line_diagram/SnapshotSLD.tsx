@@ -897,13 +897,14 @@ const BusNode = ({ data }: NodeProps<Node<BusData>>) => {
       // We'll add handles dynamically based on the row buses that connect to this main bus
       for (let i = 0; i < 10; i++) {
         // Support up to 10 rows
+        const rowHandleLeftPercent = 10 + i * 10
         handles.push(
           <Handle
             key={`proj-bus-row-${i}`}
             type="source"
             id={`proj-bus-row-${i}`}
             position={Position.Bottom}
-            style={{ left: `${10 + i * 10}%` }} // Distribute across the bus
+            style={{ left: `${rowHandleLeftPercent}%` }} // Distribute across the bus
           />,
         )
       }
@@ -1952,10 +1953,10 @@ function SnapshotSLDContent() {
       const childBlocks =
         devices.filter((d) => d.parent_device_id === selectedBlockId) || []
 
-      // Check for BESS MV Circuits (device_type_id = BESS_MV_CIRCUIT) connected to project
+      // Check for BESS MV Circuits (device_type_id = BESS_MV_COLLECTOR_CIRCUIT) connected to project
       const mvCircuits = devices.filter(
         (d) =>
-          d.device_type_id === DeviceTypeEnum.BESS_MV_CIRCUIT &&
+          d.device_type_id === DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT &&
           d.parent_device_id === selectedBlockId,
       )
 
@@ -3027,6 +3028,9 @@ function SnapshotSLDContent() {
     )
   }
 
+  const sohAvg = sohStats?.avg
+  const projectAvgSohPercent = sohAvg != null ? sohAvg * 100 : null
+
   return (
     <div
       style={{
@@ -3050,13 +3054,13 @@ function SnapshotSLDContent() {
         setTimestamp={setTimestamp}
         isLive={isLive}
         setIsLive={setIsLive}
-        viewStartDate={viewStartDate!}
+        viewStartDate={viewStartDate}
         setViewStartDate={setViewStartDate}
-        viewEndDate={viewEndDate!}
+        viewEndDate={viewEndDate}
         setViewEndDate={setViewEndDate}
         projectAvgSoc={socStats?.avg ?? null}
         socDelta={socStats?.spread ?? null}
-        projectAvgSoh={sohStats?.avg ? sohStats.avg * 100 : null}
+        projectAvgSoh={projectAvgSohPercent}
         sohDelta={sohStats?.spread ?? null}
         projectAvgCellTemp={cellTempStats?.avg ?? null}
         cellTempDelta={cellTempStats?.spread ?? null}

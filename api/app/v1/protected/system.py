@@ -141,7 +141,7 @@ async def get_meter_power_and_expected_power_v3(
         sensor_type_ids.extend(
             [
                 SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
-                SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER,
+                SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
             ],
         )
     if include_setpoint:
