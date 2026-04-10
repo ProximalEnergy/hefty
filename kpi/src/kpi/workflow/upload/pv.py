@@ -116,43 +116,43 @@ models: list[UploadModel] = [
     # Tracker Row KPIs
     # =======================================================
     UploadModel(
-        kpi_type=KPIType.TRACKER_AVAILABILITY_BY_ROW,
+        kpi_type=KPIType.TRACKER_ROW_AVAILABILITY_BY_ROW,
         version="2.0.0",
-        project_var=T.project_tracker_availability_d.name,
+        project_var=T.project_tracker_row_availability_d.name,
         device_var=T.tracker_row_availability_d.name,
     ),
     UploadModel(
-        kpi_type=KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+        kpi_type=KPIType.TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
         version="2.0.0",
-        project_var=T.project_tracker_deviation_from_setpoint_deg_d.name,
+        project_var=T.project_tracker_row_deviation_from_setpoint_deg_d.name,
         device_var=T.tracker_row_deviation_from_setpoint_deg_d.name,
     ),
     UploadModel(
-        kpi_type=KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
+        kpi_type=KPIType.TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
         version="2.0.0",
-        project_var=T.project_tracker_setpoint_deviating_from_median_deg_d.name,
+        project_var=T.project_tracker_row_setpoint_deviating_from_median_deg_d.name,
         device_var=T.tracker_row_setpoint_deviating_from_median_deg_d.name,
     ),
     # =======================================================
     # PV Block KPIs
     # =======================================================
     UploadModel(
-        kpi_type=KPIType.TRACKER_AVAILABILITY_BY_BLOCK,
+        kpi_type=KPIType.TRACKER_ROW_AVAILABILITY_BY_BLOCK,
         version="2.0.0",
-        project_var=T.project_tracker_availability_d.name,
-        device_var=T.block_tracker_availability_d.name,
+        project_var=T.project_tracker_row_availability_d.name,
+        device_var=T.block_tracker_row_availability_d.name,
     ),
     UploadModel(
-        kpi_type=KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
+        kpi_type=KPIType.TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
         version="2.0.0",
-        project_var=T.project_tracker_deviation_from_setpoint_deg_d.name,
-        device_var=T.block_tracker_deviation_from_setpoint_deg_d.name,
+        project_var=T.project_tracker_row_deviation_from_setpoint_deg_d.name,
+        device_var=T.block_tracker_row_deviation_from_setpoint_deg_d.name,
     ),
     UploadModel(
-        kpi_type=KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
+        kpi_type=KPIType.TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
         version="2.0.0",
-        project_var=T.project_tracker_setpoint_deviating_from_median_deg_d.name,
-        device_var=T.block_tracker_setpoint_deviating_from_median_deg_d.name,
+        project_var=T.project_tracker_row_setpoint_deviating_from_median_deg_d.name,
+        device_var=T.block_tracker_row_setpoint_deviating_from_median_deg_d.name,
     ),
 ]
 

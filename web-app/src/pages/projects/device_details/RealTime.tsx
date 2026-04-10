@@ -102,8 +102,8 @@ const Page = ({
       label: 'Tracker',
       deviceId: '29',
       sensorTypeIds: [
-        String(SensorTypeEnum.TRACKER_POSITION),
-        String(SensorTypeEnum.TRACKER_SETPOINT),
+        String(SensorTypeEnum.TRACKER_ROW_POSITION),
+        String(SensorTypeEnum.TRACKER_ROW_SETPOINT),
       ],
     },
     {
@@ -972,15 +972,19 @@ const GroupNavigation = ({
     }
   }
 
+  const groups = Array.from(availableGroups)
+  const groupNavIndex = groupBy != null ? groups.indexOf(groupBy) : -1
+  const groupFirstOrPrevDisabled = !groupBy || groupNavIndex === 0
+  const groupNextOrLastDisabled =
+    !groupBy || groupNavIndex === groups.length - 1
+
   return (
     <Button.Group>
       <Button
         variant={GROUP_BUTTON_VARIANT}
         px={GROUP_BUTTON_PX}
         onClick={handleFirst}
-        disabled={
-          !groupBy || Array.from(availableGroups).indexOf(groupBy) === 0
-        }
+        disabled={groupFirstOrPrevDisabled}
       >
         <IconChevronsLeft />
       </Button>
@@ -988,14 +992,12 @@ const GroupNavigation = ({
         variant={GROUP_BUTTON_VARIANT}
         px={GROUP_BUTTON_PX}
         onClick={handlePrevious}
-        disabled={
-          !groupBy || Array.from(availableGroups).indexOf(groupBy) === 0
-        }
+        disabled={groupFirstOrPrevDisabled}
       >
         <IconChevronLeft />
       </Button>
       <Select
-        data={Array.from(availableGroups).map((group) => ({
+        data={groups.map((group) => ({
           label: group,
           value: group,
         }))}
@@ -1009,11 +1011,7 @@ const GroupNavigation = ({
         variant={GROUP_BUTTON_VARIANT}
         px={GROUP_BUTTON_PX}
         onClick={handleNext}
-        disabled={
-          !groupBy ||
-          Array.from(availableGroups).indexOf(groupBy) ===
-            Array.from(availableGroups).length - 1
-        }
+        disabled={groupNextOrLastDisabled}
       >
         <IconChevronRight />
       </Button>
@@ -1021,11 +1019,7 @@ const GroupNavigation = ({
         variant={GROUP_BUTTON_VARIANT}
         px={GROUP_BUTTON_PX}
         onClick={handleLast}
-        disabled={
-          !groupBy ||
-          Array.from(availableGroups).indexOf(groupBy) ===
-            Array.from(availableGroups).length - 1
-        }
+        disabled={groupNextOrLastDisabled}
       >
         <IconChevronsRight />
       </Button>

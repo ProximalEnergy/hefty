@@ -108,8 +108,8 @@ const TrackerRowDetail = React.memo(() => {
     queryParams: {
       device_ids: deviceId ? [parseInt(deviceId)] : undefined,
       sensor_type_ids: [
-        SensorTypeEnum.TRACKER_POSITION,
-        SensorTypeEnum.TRACKER_SETPOINT,
+        SensorTypeEnum.TRACKER_ROW_POSITION,
+        SensorTypeEnum.TRACKER_ROW_SETPOINT,
       ],
       start: startQuery,
       end: endQuery,

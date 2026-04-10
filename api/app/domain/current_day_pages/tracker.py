@@ -63,10 +63,10 @@ async def get_tracker_data(
             start=start,
             end=end,
             kpi_type_ids=[
-                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
-                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
-                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
-                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
+                KPIType.TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
+                KPIType.TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
+                KPIType.TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+                KPIType.TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
             ],
             project_ids=[project.project_id],
             include_device_data=True,
@@ -167,8 +167,8 @@ async def get_tracker_by_pv_block_id_data(
     tags = await core.crud.project.tags.get_project_tags_v2(
         device_ids=devices_df["device_id"].astype(int).tolist(),
         sensor_type_ids=[
-            SensorType.TRACKER_POSITION,
-            SensorType.TRACKER_SETPOINT,
+            SensorType.TRACKER_ROW_POSITION,
+            SensorType.TRACKER_ROW_SETPOINT,
         ],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
@@ -199,7 +199,7 @@ async def get_tracker_by_pv_block_id_data(
 
     tags_ids_position = natsorted(
         tags.loc[
-            tags["sensor_type_id"] == SensorType.TRACKER_POSITION,
+            tags["sensor_type_id"] == SensorType.TRACKER_ROW_POSITION,
             "tag_id",
         ]
         .astype(int)
@@ -207,7 +207,7 @@ async def get_tracker_by_pv_block_id_data(
     )
     tags_ids_setpoint = natsorted(
         tags.loc[
-            tags["sensor_type_id"] == SensorType.TRACKER_SETPOINT,
+            tags["sensor_type_id"] == SensorType.TRACKER_ROW_SETPOINT,
             "tag_id",
         ]
         .astype(int)

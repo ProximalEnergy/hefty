@@ -17,8 +17,8 @@ def pv_dc_combiner_module_excess_degradation(
     pv_inverter_module_voltage_v_5m: xr.DataArray,
     pv_inverter_module_power_kw_5m: xr.DataArray,
     pv_inverter_module_power_capacity_kw: xr.DataArray,
-    block_tracker_deviation_from_setpoint_deg_d: xr.DataArray,
-    block_tracker_setpoint_deviation_from_median_deg_d: xr.DataArray,
+    block_tracker_row_deviation_from_setpoint_deg_d: xr.DataArray,
+    block_tracker_row_setpoint_deviation_from_median_deg_d: xr.DataArray,
     pv_dc_combiner_field_health_d: xr.DataArray,
     pv_dc_combiner_current_amps_5m: xr.DataArray,
     pv_dc_combiner_expected_energy_kwh_5m: xr.DataArray,
@@ -217,8 +217,8 @@ def pv_dc_combiner_module_excess_degradation(
         project_good_indices_1d = project_good_poa_indices_5m.groupby(date).sum() >= 12
 
         # Block level: skip SOH if tracker setpoint or position deviation >= 1°.
-        block_good_indices_d = (block_tracker_deviation_from_setpoint_deg_d < 1) & (
-            block_tracker_setpoint_deviation_from_median_deg_d < 1
+        block_good_indices_d = (block_tracker_row_deviation_from_setpoint_deg_d < 1) & (
+            block_tracker_row_setpoint_deviation_from_median_deg_d < 1
         )
 
         # combiner level

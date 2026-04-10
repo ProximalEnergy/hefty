@@ -210,7 +210,7 @@ class TransformPvSummarize(CalcSchema):
     # Tracker Row KPIs
     # =======================================================
 
-    # TRACKER_AVAILABILITY_BY_ROW (4)
+    # TRACKER_ROW_AVAILABILITY_BY_ROW (4)
 
     @method_calc
     def tracker_row_availability_d(
@@ -220,7 +220,7 @@ class TransformPvSummarize(CalcSchema):
         return is_available.groupby(date_local(date_local_5m)).mean()
 
     @method_calc
-    def project_tracker_availability_d(
+    def project_tracker_row_availability_d(
         is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m),
         date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
@@ -230,7 +230,7 @@ class TransformPvSummarize(CalcSchema):
             date_local_5m=date_local_5m,
         )
 
-    # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW (21)
+    # TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW (21)
 
     @method_calc
     def tracker_row_deviation_from_setpoint_deg_d(
@@ -241,7 +241,7 @@ class TransformPvSummarize(CalcSchema):
         return abs(position - setpoint).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
-    def project_tracker_deviation_from_setpoint_deg_d(
+    def project_tracker_row_deviation_from_setpoint_deg_d(
         position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
         date_local_5m: xr.DataArray = Input(date_local_5m),
@@ -252,7 +252,7 @@ class TransformPvSummarize(CalcSchema):
             date_local_5m=date_local_5m,
         )
 
-    # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
+    # TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
     @method_calc
     def tracker_row_setpoint_deviating_from_median_deg_d(
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
@@ -262,7 +262,7 @@ class TransformPvSummarize(CalcSchema):
         return abs(setpoint - median_setpoint).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
-    def project_tracker_setpoint_deviating_from_median_deg_d(
+    def project_tracker_row_setpoint_deviating_from_median_deg_d(
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
         date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
@@ -277,9 +277,9 @@ class TransformPvSummarize(CalcSchema):
     # PV Block KPIs
     # =======================================================
 
-    # TRACKER_AVAILABILITY_BY_BLOCK (3)
+    # TRACKER_ROW_AVAILABILITY_BY_BLOCK (3)
     @method_calc
-    def block_tracker_availability_d(
+    def block_tracker_row_availability_d(
         is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m),
         device_mapping: xr.DataArray = Input(
             DownloadDevicePvHierarchy.tracker_row_to_block
@@ -295,9 +295,9 @@ class TransformPvSummarize(CalcSchema):
 
     # see above for project level availability
 
-    # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK (18)
+    # TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK (18)
     @method_calc
-    def block_tracker_deviation_from_setpoint_deg_d(
+    def block_tracker_row_deviation_from_setpoint_deg_d(
         position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
         device_mapping: xr.DataArray = Input(
@@ -314,9 +314,9 @@ class TransformPvSummarize(CalcSchema):
 
     # see above for project level deviation from setpoint
 
-    # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK (19)
+    # TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK (19)
     @method_calc
-    def block_tracker_setpoint_deviating_from_median_deg_d(
+    def block_tracker_row_setpoint_deviating_from_median_deg_d(
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
         device_mapping: xr.DataArray = Input(
             DownloadDevicePvHierarchy.tracker_row_to_block
@@ -406,11 +406,11 @@ class TransformPvSummarize(CalcSchema):
         inverter_module_capacity: xr.DataArray = Input(
             Clean.inverter_module_ac_capacity_kw
         ),
-        block_tracker_deviation_from_setpoint: xr.DataArray = Input(
-            block_tracker_deviation_from_setpoint_deg_d
+        block_tracker_row_deviation_from_setpoint: xr.DataArray = Input(
+            block_tracker_row_deviation_from_setpoint_deg_d
         ),
-        block_tracker_deviation_from_median: xr.DataArray = Input(
-            block_tracker_setpoint_deviating_from_median_deg_d
+        block_tracker_row_setpoint_deviation_from_median: xr.DataArray = Input(
+            block_tracker_row_setpoint_deviating_from_median_deg_d
         ),
         combiner_field_health: xr.DataArray = Input(combiner_field_health_d),
         combiner_current: xr.DataArray = Input(
@@ -445,8 +445,8 @@ class TransformPvSummarize(CalcSchema):
             pv_inverter_module_voltage_v_5m=inverter_module_voltage,
             pv_inverter_module_power_kw_5m=inverter_module_power,
             pv_inverter_module_power_capacity_kw=inverter_module_capacity,
-            block_tracker_deviation_from_setpoint_deg_d=block_tracker_deviation_from_setpoint,
-            block_tracker_setpoint_deviation_from_median_deg_d=block_tracker_deviation_from_median,
+            block_tracker_row_deviation_from_setpoint_deg_d=block_tracker_row_deviation_from_setpoint,
+            block_tracker_row_setpoint_deviation_from_median_deg_d=block_tracker_row_setpoint_deviation_from_median,
             pv_dc_combiner_field_health_d=combiner_field_health,
             pv_dc_combiner_current_amps_5m=combiner_current,
             pv_dc_combiner_expected_energy_kwh_5m=combiner_expected_energy,

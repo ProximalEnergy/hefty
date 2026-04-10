@@ -33,8 +33,8 @@ def get_data_timeseries_latest_by_device_type(
                 SensorType.PV_DC_COMBINER_CURRENT.value,
             ],
             DeviceType.TRACKER_ROW.value: [
-                SensorType.TRACKER_POSITION.value,
-                SensorType.TRACKER_SETPOINT.value,
+                SensorType.TRACKER_ROW_POSITION.value,
+                SensorType.TRACKER_ROW_SETPOINT.value,
             ],
         }
         sensor_type_ids = device_type_id_to_sensor_type_ids.get(device_type_id, [])

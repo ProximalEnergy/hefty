@@ -861,7 +861,7 @@ const Page = () => {
       line: {
         color: unitColorMap[unit] || traceColorsArray[0],
         dash:
-          tag?.sensor_type_id === SensorTypeEnum.TRACKER_SETPOINT
+          tag?.sensor_type_id === SensorTypeEnum.TRACKER_ROW_SETPOINT
             ? 'dash'
             : 'solid',
       },

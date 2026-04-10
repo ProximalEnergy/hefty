@@ -67,12 +67,12 @@ const REPORT_CONFIG: {
     [ReportTypeEnum.DC_AMPERAGE]: 'dc-amperage',
     [ReportTypeEnum.MODULE_DEGRADATION]: 'module-degradation',
     [ReportTypeEnum.MONTHLY_PERFORMANCE]: 'monthly-performance',
-    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT]:
+    [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_SETPOINT]:
       'tracker-availability?report_type_id=' +
-      ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT,
-    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]:
+      ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_SETPOINT,
+    [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]:
       'tracker-availability?report_type_id=' +
-      ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT,
+      ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT,
     [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: 'inverter-availability',
     [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]:
       'pcs-apparent-vs-voltage',
@@ -85,8 +85,8 @@ const REPORT_CONFIG: {
   selectable_date: {
     [ReportTypeEnum.DC_AMPERAGE]: true,
     [ReportTypeEnum.MONTHLY_PERFORMANCE]: true,
-    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT]: true,
-    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]: true,
+    [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_SETPOINT]: true,
+    [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]: true,
     [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: true,
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: true,
   },
@@ -98,8 +98,8 @@ const REPORT_CONFIG: {
   },
   downloadable_excel: {
     [ReportTypeEnum.DC_AMPERAGE]: true,
-    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT]: true,
-    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]: true,
+    [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_SETPOINT]: true,
+    [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]: true,
     [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: true,
     [ReportTypeEnum.SCADA_TELEMETRY_LAST_REPORTED]: true,
   },
@@ -116,8 +116,9 @@ const REPORT_CONFIG: {
 
 const reportTypeIcons: Partial<Record<number, Icon>> = {
   [ReportTypeEnum.DC_AMPERAGE]: IconCircuitAmmeter,
-  [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT]: IconClockHour2,
-  [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]:
+  [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_SETPOINT]:
+    IconClockHour2,
+  [ReportTypeEnum.TRACKER_ROW_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]:
     IconClockHour2,
   [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: IconClockHour2,
   [ReportTypeEnum.PV_PERFORMANCE_DAILY]: IconGraph,

@@ -556,7 +556,7 @@ async def get_vertical(
         SensorTypeEnum.PV_INVERTER_AC_POWER: "Power (MW)",
         SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER: "Power (MW)",
         SensorTypeEnum.PV_DC_COMBINER_CURRENT: "Current (A)",
-        SensorTypeEnum.TRACKER_POSITION: "Position (deg)",
+        SensorTypeEnum.TRACKER_ROW_POSITION: "Position (deg)",
         SensorTypeEnum.BESS_PCS_AC_POWER: "Power (MW)",
         SensorTypeEnum.BESS_PCS_MODULE_GROUP_AC_POWER: "Power (MW)",
         SensorTypeEnum.BESS_PCS_MODULE_AC_POWER: "Power (MW)",

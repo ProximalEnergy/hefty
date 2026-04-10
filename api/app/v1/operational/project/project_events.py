@@ -1090,15 +1090,15 @@ async def get_event_trace_tags(
             ]
         case DeviceType.TRACKER_ZONE:
             sensor_type_ids = [
-                SensorType.TRACKER_POSITION,
-                SensorType.TRACKER_SETPOINT,
+                SensorType.TRACKER_ROW_POSITION,
+                SensorType.TRACKER_ROW_SETPOINT,
                 SensorType.TRACKER_ZONE_STATUS,
                 SensorType.TRACKER_ROW_STATUS,
             ]
         case DeviceType.TRACKER_ROW:
             sensor_type_ids = [
-                SensorType.TRACKER_POSITION,
-                SensorType.TRACKER_SETPOINT,
+                SensorType.TRACKER_ROW_POSITION,
+                SensorType.TRACKER_ROW_SETPOINT,
                 SensorType.TRACKER_ZONE_STATUS,
                 SensorType.TRACKER_ROW_STATUS,
             ]

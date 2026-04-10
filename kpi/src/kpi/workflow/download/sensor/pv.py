@@ -64,9 +64,9 @@ class DownloadSensorPv(SensorSchema):
     )
 
     tracker_row_position_raw_deg_5m = field(
-        sensor_type=SensorType.TRACKER_POSITION,
+        sensor_type=SensorType.TRACKER_ROW_POSITION,
     )
 
     tracker_row_setpoint_raw_deg_5m = field(
-        sensor_type=SensorType.TRACKER_SETPOINT,
+        sensor_type=SensorType.TRACKER_ROW_SETPOINT,
     )
