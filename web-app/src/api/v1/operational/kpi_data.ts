@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export interface OperationalKPIData {
@@ -51,7 +52,7 @@ export const useGetOperationalKPIData = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
   return useCustomQuery<OperationalKPIData[]>({
     axiosConfig,
@@ -88,7 +89,7 @@ export const useGetContractKPIs = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
   }
 
   return useCustomQuery<ContractKPI[]>({
@@ -119,7 +120,7 @@ export const useGetKPIExcel = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
   }
 
   return useCustomQuery<string>({

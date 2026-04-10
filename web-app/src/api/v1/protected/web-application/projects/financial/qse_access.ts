@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface QSEAccessResponse {
@@ -18,7 +19,7 @@ export const useGetQSEAccess = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60, // 1 hour
+    staleTime: QUERY_TIME.ONE_HOUR, // 1 hour
     retry: false,
   } satisfies Partial<UseQueryOptions>
 

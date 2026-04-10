@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL = '/v1/operational/projects/{project_id}/solar/position'
@@ -33,7 +34,7 @@ export const useGetSolarPosition = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 30000, // 30 seconds
+    staleTime: QUERY_TIME.THIRTY_SECONDS, // 30 seconds
   }
 
   return useCustomQuery<SolarPositionResponse>({

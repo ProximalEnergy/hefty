@@ -3,6 +3,7 @@ import type { components } from '@/api/schema'
 import { useGetDeviceModels } from '@/api/v1/operational/device_models'
 import { useGetDevicesV2 } from '@/hooks/api'
 import type { Device } from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 type DeviceModel = components['schemas']['DeviceModel']
@@ -24,7 +25,7 @@ export type BessPcsStaticData = {
 }
 
 const queryOptions = {
-  staleTime: Infinity,
+  staleTime: QUERY_TIME.NEVER,
   refetchOnWindowFocus: false,
   refetchOnMount: false,
   refetchOnReconnect: false,

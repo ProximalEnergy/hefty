@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface PTPEndpoint {
@@ -59,7 +60,7 @@ export const useGetPTPEndpoints = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
     refetchOnMount: true,
     refetchOnReconnect: false,
   } satisfies Partial<UseQueryOptions>
@@ -96,7 +97,7 @@ export const useGetPTPData = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
     refetchOnMount: true,
     refetchOnReconnect: false,
   } satisfies Partial<UseQueryOptions>
@@ -128,7 +129,7 @@ export const useGetPTPEndpointsAvailability = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes - availability doesn't change often
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes - availability doesn't change often
     refetchOnMount: false,
     refetchOnReconnect: false,
   } satisfies Partial<UseQueryOptions>
@@ -181,7 +182,7 @@ export const useGetActiveOutageTickets = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 2 * 60 * 1000, // 2 minutes - outage tickets can change
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute - outage tickets can change
     refetchOnMount: true,
     refetchOnReconnect: false,
   } satisfies Partial<UseQueryOptions>

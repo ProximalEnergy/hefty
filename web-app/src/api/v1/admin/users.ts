@@ -1,5 +1,6 @@
 import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL_GET_USERS = '/v1/admin/users'
@@ -16,7 +17,7 @@ export const useGetUsers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<GetUsers['Response']>({
@@ -39,7 +40,7 @@ export const useGetUserSelf = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<GetUserSelf['Response']>({
@@ -61,7 +62,7 @@ export const useGetSelfCompanyUsers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<GetSelfCompanyUsers['Response']>({

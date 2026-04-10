@@ -1,6 +1,7 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/projects/real_time'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 export function useBatterySOC(projectId: string) {
@@ -13,8 +14,8 @@ export function useBatterySOC(projectId: string) {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30 * 1000,
-      staleTime: 15 * 1000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 

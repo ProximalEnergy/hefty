@@ -8,6 +8,7 @@ import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import * as gisUtils from '@/utils/GIS'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Box,
@@ -344,8 +345,8 @@ export function AdaptiveGisMap() {
         !!(viewportBounds ?? projectBounds) &&
         (zoom >= LOW_ZOOM || isViewLocked),
       placeholderData: keepPreviousData,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
+      staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data stale after 30 seconds
     },
   })
 

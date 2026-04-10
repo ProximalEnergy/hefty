@@ -1188,11 +1188,15 @@ fi
 
 if [ "${RUN_WEB_WARNINGS}" = "true" ]; then
     WEB_JSX_CALCS_CHECK_CMD="mise run web:jsx_calcs"
+    WEB_QUERY_TIME_ENUM_CHECK_CMD="mise run web:query_time_enum"
     if [ "${ALL_WARNINGS}" = "true" ]; then
         WEB_JSX_CALCS_CHECK_CMD+=" -- --all-files"
+        WEB_QUERY_TIME_ENUM_CHECK_CMD+=" -- --all-files"
     fi
     add_warning_check "Web-App: JSX Calculations" \
         "${WEB_JSX_CALCS_CHECK_CMD}"
+    add_warning_check "Web-App: Query Time Enum" \
+        "${WEB_QUERY_TIME_ENUM_CHECK_CMD}"
 fi
 
 # Run all registered checks

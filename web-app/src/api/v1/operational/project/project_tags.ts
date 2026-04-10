@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import * as types from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export const useGetTagsByRegex = ({
@@ -25,7 +26,7 @@ export const useGetTagsByRegex = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<types.Tag[]>({

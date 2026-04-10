@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import * as types from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export interface EnrichedEvent extends types.Event {
@@ -56,7 +57,7 @@ export const useGetEventsMetaAnalysis = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<EventsMetaAnalysis>({

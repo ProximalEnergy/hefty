@@ -3,6 +3,7 @@ import {
   useGetHomepageSummary,
 } from '@/api/v1/protected/web-application/projects/events/events'
 import CustomCard from '@/components/CustomCard'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Box,
@@ -40,8 +41,8 @@ export function TopEventsTableCard({ showLosses }: { showLosses: boolean }) {
       sort_by: sortBy,
     },
     queryOptions: {
-      refetchInterval: 60 * 1000,
-      staleTime: 30 * 1000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 

@@ -1,5 +1,6 @@
 import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL_REPORT_TYPE = '/v1/operational/report-types/{report_type_id}'
@@ -38,7 +39,7 @@ export const useGetReportTypes = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<GetReportTypes['Response']>({

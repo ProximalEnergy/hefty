@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 type UtilityExpected = types.components['schemas']['UtilityExpectedResponse']
@@ -22,7 +23,7 @@ export const useGetUtilityExpected = ({
     url: `/v1/protected/${pathParams.projectId}/pv-expected-energy/plot`,
   }
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<UtilityExpected>({

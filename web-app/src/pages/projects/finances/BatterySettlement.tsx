@@ -15,6 +15,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   ActionIcon,
@@ -160,7 +161,7 @@ const Page = () => {
         !!endRequest &&
         !!selectedSensorTypeIds.length,
       refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 60 * 6, // 6 hours
+      staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
     },
   })
 

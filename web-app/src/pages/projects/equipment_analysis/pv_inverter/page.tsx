@@ -24,6 +24,7 @@ import {
   getDeviceModelImagePublicUrl,
   getDeviceModelImageUrl,
 } from '@/utils/cdn'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Box,
@@ -235,7 +236,7 @@ const PCSEquipmentAnalysis = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      staleTime: Infinity, // Never refetch - header data should be static
+      staleTime: QUERY_TIME.NEVER, // Never refetch - header data should be static
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -270,7 +271,7 @@ const PCSEquipmentAnalysis = () => {
     queryParams: deviceModelsQueryParams,
     queryOptions: {
       enabled: deviceModelIds.length > 0,
-      staleTime: Infinity, // Never refetch - header data should be static
+      staleTime: QUERY_TIME.NEVER, // Never refetch - header data should be static
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -282,7 +283,7 @@ const PCSEquipmentAnalysis = () => {
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
-      staleTime: Infinity, // Never refetch - header data should be static
+      staleTime: QUERY_TIME.NEVER, // Never refetch - header data should be static
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -417,7 +418,7 @@ const PCSEquipmentAnalysis = () => {
     },
     queryOptions: {
       enabled: mostCommonDeviceModelId !== null,
-      staleTime: Infinity, // Never refetch - header data should be static
+      staleTime: QUERY_TIME.NEVER, // Never refetch - header data should be static
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,

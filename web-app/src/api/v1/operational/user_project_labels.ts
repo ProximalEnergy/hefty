@@ -2,6 +2,7 @@ import type * as types from '@/api/schema'
 import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -31,7 +32,7 @@ export const useGetUserProjectLabels = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<UserProjectLabel[]>({

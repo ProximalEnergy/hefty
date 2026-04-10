@@ -14,6 +14,7 @@ import {
   useGetGISTrackerByBlock,
 } from '@/hooks/api'
 import DeviceEventsTimeline from '@/pages/projects/events/DeviceEventsTimeline'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Alert,
   Button,
@@ -49,7 +50,7 @@ const TrackerRowDetail = React.memo(() => {
       ],
     },
     queryOptions: {
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -115,7 +116,7 @@ const TrackerRowDetail = React.memo(() => {
       end: endQuery,
     },
     queryOptions: {
-      staleTime: Infinity, // Never expires
+      staleTime: QUERY_TIME.NEVER, // Never expires
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -131,7 +132,7 @@ const TrackerRowDetail = React.memo(() => {
         end: endQuery,
       },
       queryOptions: {
-        staleTime: Infinity, // Never expires
+        staleTime: QUERY_TIME.NEVER, // Never expires
         refetchOnWindowFocus: false,
         refetchOnMount: false,
         refetchOnReconnect: false,
@@ -146,7 +147,7 @@ const TrackerRowDetail = React.memo(() => {
       open: false, // Include both open and closed events
     },
     queryOptions: {
-      staleTime: Infinity, // Never expires
+      staleTime: QUERY_TIME.NEVER, // Never expires
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,

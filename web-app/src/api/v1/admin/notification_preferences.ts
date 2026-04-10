@@ -1,6 +1,7 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -37,7 +38,7 @@ export const useGetNotificationPreferences = ({
     refetchOnWindowFocus: false,
     refetchOnMount: false, // Only refetch if explicitly requested
     refetchOnReconnect: false, // Don't refetch on reconnect
-    staleTime: Infinity, // User settings don't change unless user changes them
+    staleTime: QUERY_TIME.NEVER, // User settings don't change unless user changes them
     gcTime: Infinity, // Keep in cache forever (formerly cacheTime)
   }
 

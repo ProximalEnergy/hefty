@@ -1,4 +1,5 @@
 import { useCustomQuery, useCustomQueryArrow } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface RealTimeData {
@@ -59,7 +60,7 @@ export const useGetRealTimeByDeviceTypeID = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<RealTimeData>({
@@ -91,7 +92,7 @@ export const useGetDataAvailabilityV2 = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQueryArrow({
@@ -125,7 +126,7 @@ export const useGetDataTimeseriesLast = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<DataTimeSeriesLast[]>({
@@ -158,7 +159,7 @@ export const useGetExpectedPowerByDeviceTypeID = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 25 * 1000, // 25 seconds
+    staleTime: QUERY_TIME.THIRTY_SECONDS, // 25 seconds
   }
 
   return useCustomQuery<ExpectedPowerByDeviceType>({

@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 import { FeatureCollection } from 'geojson'
 
@@ -17,7 +18,7 @@ export const useGetGISCombinerBlock = ({
 }) => {
   const axiosConfig = { url: URL }
 
-  const defaultQueryOptions = { staleTime: 60 * 1000 }
+  const defaultQueryOptions = { staleTime: QUERY_TIME.ONE_MINUTE }
 
   return useCustomQuery<FeatureCollection>({
     axiosConfig,

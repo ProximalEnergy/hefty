@@ -3,6 +3,7 @@ import { ProjectType } from '@/api/v1/operational/project_types'
 import { useCustomQuery } from '@/hooks/api'
 import { MultiPolygon, Point } from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import { readLocalStorageValue } from '@mantine/hooks'
 import {
@@ -222,7 +223,7 @@ export const useGetProjects = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   const mergedQueryOptions = {

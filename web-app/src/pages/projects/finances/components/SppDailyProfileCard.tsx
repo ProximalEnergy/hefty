@@ -1,6 +1,7 @@
 import { useGetPTPData } from '@/api/v1/protected/web-application/projects/financial/ptp_data'
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { Skeleton, Stack, Text, useMantineTheme } from '@mantine/core'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
@@ -142,7 +143,7 @@ export function SppDailyProfileCard({
     },
     queryOptions: {
       enabled: !!projectId && !!projectTimeZone && !!startDate && !!endDate,
-      staleTime: 5 * 60 * 1000,
+      staleTime: QUERY_TIME.FIVE_MINUTES,
     },
   })
 

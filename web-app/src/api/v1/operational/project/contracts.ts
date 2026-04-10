@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -57,7 +58,7 @@ export const useGetProjectContracts = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Contract[]>({
@@ -179,7 +180,7 @@ export const useGetContractKPIs = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 30_000,
+    staleTime: QUERY_TIME.THIRTY_SECONDS,
   }
 
   return useCustomQuery<ContractKPI[]>({
@@ -207,7 +208,7 @@ export const useGetContractCategories = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<ContractCategory[]>({

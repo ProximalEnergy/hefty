@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { Device } from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 // Assuming a base Device type exists
 import { UseQueryOptions } from '@tanstack/react-query'
 
@@ -62,7 +63,7 @@ export const useGetDevicesInViewport = ({
   // Default options - adjust staleTime/refetch as needed for viewport data
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // Cache viewport data for 5 minutes?
+    staleTime: QUERY_TIME.FIVE_MINUTES, // Cache viewport data for 5 minutes?
   }
 
   const combinedQueryOptions = { ...defaultQueryOptions, ...queryOptions }

@@ -17,6 +17,7 @@ import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Badge,
@@ -776,7 +777,7 @@ const ProjectTagExplorer = () => {
     queryOptions: {
       enabled: !!selectedTagPattern,
       refetchOnWindowFocus: false,
-      staleTime: 0,
+      staleTime: QUERY_TIME.ZERO,
     },
   })
 

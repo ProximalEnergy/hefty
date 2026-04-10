@@ -16,6 +16,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { DataTimeSeries } from '@/hooks/types'
 import { alignLossSeries, parseIntervalMinutes } from '@/utils/alignLossSeries'
 import { getInterval, roundTime } from '@/utils/interval'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,
   Button,
@@ -165,8 +166,8 @@ const PowerPlotPVZoom = () => {
     queryOptions: {
       enabled: !!project.data && !!startTime && !!endTime,
       refetchOnWindowFocus: false,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
+      staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data stale after 30 seconds
     },
   })
 

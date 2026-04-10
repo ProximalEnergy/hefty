@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import * as types from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export const useGetPvExpected = ({
@@ -24,7 +25,7 @@ export const useGetPvExpected = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   const mergedQueryOptions = {

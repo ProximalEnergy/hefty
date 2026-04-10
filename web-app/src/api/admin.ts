@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -32,7 +33,7 @@ export const useGetUserType = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<UserType>({
@@ -53,7 +54,7 @@ export const useGetAllPermissions = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Permission[]>({
@@ -76,7 +77,7 @@ export const useGetCompanyPermissions = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Permission[]>({
@@ -100,7 +101,7 @@ export const useGetCompanyUsersPermissions = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<UserWithPermissions[]>({
@@ -124,7 +125,7 @@ export const useGetUserPermissions = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Permission[]>({
@@ -231,7 +232,7 @@ export const useGetCompanies = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Company[]>({
@@ -257,7 +258,7 @@ export const useGetCompaniesWithProjects = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<CompanyWithProjects[]>({
@@ -278,7 +279,7 @@ export const useGetCompanyTeams = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Team[]>({
@@ -299,7 +300,7 @@ export const useGetCompanyTeamsWithMembers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<TeamWithMembers[]>({
@@ -344,7 +345,7 @@ export const useGetTeamsWithMembers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<TeamWithMembers[]>({

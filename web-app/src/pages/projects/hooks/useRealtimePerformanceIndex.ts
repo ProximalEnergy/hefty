@@ -2,6 +2,7 @@ import { ProjectTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetSolarPosition } from '@/api/v1/operational/project/project_solar'
 import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import { roundTime } from '@/utils/interval'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 
@@ -35,8 +36,8 @@ export function useRealtimePerformanceIndex(
     },
     queryOptions: {
       enabled: isEnabled,
-      refetchInterval: 10 * 60 * 1000,
-      staleTime: 5 * 60 * 1000,
+      refetchInterval: QUERY_TIME.TEN_MINUTES,
+      staleTime: QUERY_TIME.FIVE_MINUTES,
     },
   })
 
@@ -61,8 +62,8 @@ export function useRealtimePerformanceIndex(
     queryOptions: {
       enabled: isEnabled,
       refetchOnWindowFocus: false,
-      refetchInterval: 60 * 1000,
-      staleTime: 30 * 1000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 

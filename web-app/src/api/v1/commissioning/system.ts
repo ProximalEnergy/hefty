@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import { UseQueryOptions, useMutation } from '@tanstack/react-query'
 import axios from 'axios'
@@ -23,7 +24,7 @@ export const useGetProjectSystemFileStatus = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 60_000,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<ProjectSystemFileStatus>({

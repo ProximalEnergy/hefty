@@ -1,5 +1,6 @@
 import { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL_GET_CMMS_TICKETS =
@@ -24,7 +25,7 @@ export const useGetCMMSTickets = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 5,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<GetCMMSTickets['Response']>({

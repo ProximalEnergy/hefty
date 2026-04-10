@@ -1,5 +1,6 @@
 import { DeviceDetailsHorizontalData } from '@/api/v1/protected/web-application/projects/device-details/horizontal/horizontal'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface DeviceDetailsHorizontalBESS {
@@ -24,7 +25,7 @@ export const useGetDeviceDetailsHorizontalBESS = ({
   }
 
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
     refetchOnWindowFocus: false,
   }
 

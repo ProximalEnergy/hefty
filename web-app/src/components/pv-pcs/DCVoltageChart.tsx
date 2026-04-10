@@ -2,6 +2,7 @@ import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import type { PlotRelayoutEvent } from 'plotly.js'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
@@ -25,8 +26,8 @@ export const DCVoltageChart = ({ realtimeData }: DCVoltageChartProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 

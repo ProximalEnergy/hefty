@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface PVBudgetedSeries {
@@ -50,7 +51,7 @@ export const useGetPVBudgetedSeries = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<PVBudgetedSeries[]>({
@@ -78,7 +79,7 @@ export const useGetPVBudgetedData = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+    staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   }
 
@@ -111,7 +112,7 @@ export const useGetPVBudgetedDataBySeries = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+    staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   }
 
@@ -146,7 +147,7 @@ export const useGetPVBudgetedSeriesDailyData = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+    staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   }
 

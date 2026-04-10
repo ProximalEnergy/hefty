@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface Data {
@@ -28,7 +29,7 @@ export const useGetEquipmentAnalysisTrackerBlock = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<Data>({

@@ -12,6 +12,7 @@ import {
   useGetDataTimeseriesLast,
   useGetRealTimeByDeviceTypeID,
 } from '@/api/v1/protected/web-application/projects/real_time'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 type UseRealtimeSourcesParams = {
@@ -41,8 +42,8 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -56,7 +57,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 60_000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -70,7 +71,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 60_000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -84,7 +85,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 60_000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -101,7 +102,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 60_000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -109,7 +110,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
       enabled,
-      staleTime: 60_000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -135,8 +136,8 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -151,8 +152,8 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -179,7 +180,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     eventIds: openEventIds,
     queryOptions: {
       enabled: enabled && openEventIds.length > 0,
-      refetchInterval: 60_000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -205,7 +206,7 @@ export function useRealtimeSources({ projectId }: UseRealtimeSourcesParams) {
     },
     queryOptions: {
       enabled: enabled && linkedCmmsTicketIds.length > 0,
-      refetchInterval: 60_000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 

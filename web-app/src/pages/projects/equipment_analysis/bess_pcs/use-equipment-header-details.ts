@@ -3,6 +3,7 @@ import {
   type OMContractorScope,
   useGetOMContractorScopes,
 } from '@/api/v1/operational/project/om_contractors'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 type UseEquipmentHeaderDetailsParams = {
@@ -16,7 +17,7 @@ type EquipmentHeaderDetails = {
 }
 
 const queryOptions = {
-  staleTime: Infinity,
+  staleTime: QUERY_TIME.NEVER,
   refetchOnWindowFocus: false,
   refetchOnMount: false,
   refetchOnReconnect: false,

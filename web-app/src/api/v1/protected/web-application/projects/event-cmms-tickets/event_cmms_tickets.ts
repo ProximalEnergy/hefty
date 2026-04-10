@@ -1,6 +1,7 @@
 import { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -32,7 +33,7 @@ export const useGetEventCMMSTickets = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<GetEventCMMSTickets['Response']>({
@@ -65,7 +66,7 @@ export const useGetEventCMMSTicketsByEventIds = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useQuery({
@@ -109,7 +110,7 @@ export const useGetSuggestedEvents = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<GetSuggestedEvents['Response']>({
@@ -142,7 +143,7 @@ export const useGetSuggestedTickets = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
+    staleTime: QUERY_TIME.ONE_MINUTE,
   }
 
   return useCustomQuery<GetSuggestedTickets['Response']>({

@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL = '/v1/protected/web-application/portfolio/bess-power-availability'
@@ -33,8 +34,8 @@ export const usePortfolioBessPowerAvailability = ({
 
   const defaultQueryOptions = {
     enabled: projectIds.length > 0,
-    refetchInterval: 60 * 1000,
-    staleTime: 30 * 1000,
+    refetchInterval: QUERY_TIME.ONE_MINUTE,
+    staleTime: QUERY_TIME.THIRTY_SECONDS,
     refetchOnWindowFocus: false,
   }
 

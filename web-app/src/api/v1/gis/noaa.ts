@@ -1,3 +1,4 @@
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import type { Feature, FeatureCollection, MultiPolygon } from 'geojson'
@@ -113,8 +114,8 @@ const useGetSPCForecastPolygons = ({
   queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   const defaultQueryOptions = {
-    staleTime: 1000 * 60 * 5,
-    refetchInterval: 1000 * 60 * 5,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
+    refetchInterval: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useQuery<GeoJsonFeatureCollection>({

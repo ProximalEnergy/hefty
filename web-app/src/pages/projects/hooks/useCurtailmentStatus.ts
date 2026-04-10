@@ -5,6 +5,7 @@ import {
 } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetTags } from '@/hooks/api'
 import type { Tag } from '@/hooks/projectTags'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 /**
@@ -30,8 +31,8 @@ export function useCurtailmentStatus(
     },
     queryOptions: {
       enabled,
-      refetchInterval: 30 * 1000,
-      staleTime: 15 * 1000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -42,7 +43,7 @@ export function useCurtailmentStatus(
     },
     queryOptions: {
       enabled,
-      staleTime: 5 * 60 * 1000,
+      staleTime: QUERY_TIME.FIVE_MINUTES,
     },
   })
 
@@ -62,7 +63,7 @@ export function useCurtailmentStatus(
     queryParams: { tag_ids: ppcSetpointTagIds },
     queryOptions: {
       enabled: !!projectId && ppcSetpointTagIds.length > 0,
-      staleTime: 30 * 1000,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 

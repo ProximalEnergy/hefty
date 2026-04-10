@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseMutationOptions,
@@ -83,7 +84,7 @@ export const useGetInverters = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minute
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
     enabled: inverter_ids.length > 0 || device_model_ids.length > 0,
   }
 
@@ -107,7 +108,7 @@ export const useGetInverterIdsByManufacturerAndModel = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minute
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
     enabled: manufacturers.length > 0 && models.length > 0,
   }
 
@@ -134,7 +135,7 @@ export const useGetProximalInverterManufacturers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minute
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
     enabled: !!company_id,
   }
 
@@ -167,7 +168,7 @@ export const useGetProximalInverterModels = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minute
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
     enabled: !!manufacturer && !!company_id,
   }
 

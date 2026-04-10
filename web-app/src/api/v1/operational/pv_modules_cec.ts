@@ -1,5 +1,6 @@
 import { PVModule } from '@/api/v1/operational/pv_modules'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 // --- Manufacturers ---
@@ -16,7 +17,7 @@ export const useGetCECPVModuleManufacturers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
   }
 
   return useCustomQuery<string[]>({
@@ -41,7 +42,7 @@ export const useGetCECPVModuleModels = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
     enabled: !!queryParams?.manufacturer,
   }
 
@@ -72,7 +73,7 @@ export const useGetCECPVModuleIdsByManufacturerAndModel = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
     enabled:
       manufacturers.length > 0 &&
       models.length > 0 &&
@@ -105,7 +106,7 @@ export const useGetCECPVModuleInProximalFormat = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 1, // 10 seconds
+    staleTime: QUERY_TIME.TEN_SECONDS, // 10 seconds
     enabled: !!cec_pv_module_id,
   }
 

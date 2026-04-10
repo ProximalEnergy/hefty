@@ -14,6 +14,7 @@ import RequiresUserType from '@/components/admin/RequiresUserType'
 import { useGetDevicesV2, useGetPaginatedEvents, useGetTags } from '@/hooks/api'
 import type { Tag } from '@/hooks/projectTags'
 import type { Device } from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,
   Box,
@@ -243,7 +244,7 @@ const DeviceTypeOverview = ({
     },
     queryOptions: {
       enabled: !!projectId && includedDeviceTypeIds.length > 0,
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 
@@ -426,7 +427,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 2,
-        staleTime: 30 * 1000, // Cache for 30 seconds
+        staleTime: QUERY_TIME.THIRTY_SECONDS, // Cache for 30 seconds
       },
     })
 
@@ -442,7 +443,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 13,
-        staleTime: 30 * 1000, // Cache for 30 seconds
+        staleTime: QUERY_TIME.THIRTY_SECONDS, // Cache for 30 seconds
       },
     })
 
@@ -456,7 +457,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 9,
-        staleTime: 30 * 1000, // Cache for 30 seconds
+        staleTime: QUERY_TIME.THIRTY_SECONDS, // Cache for 30 seconds
       },
     })
 
@@ -470,7 +471,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 17,
-        staleTime: 30 * 1000, // Cache for 30 seconds
+        staleTime: QUERY_TIME.THIRTY_SECONDS, // Cache for 30 seconds
       },
     })
 
@@ -484,7 +485,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 2,
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        staleTime: QUERY_TIME.FIVE_MINUTES, // Cache for 5 minutes
       },
     })
 
@@ -498,7 +499,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 9,
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        staleTime: QUERY_TIME.FIVE_MINUTES, // Cache for 5 minutes
       },
     })
 
@@ -512,7 +513,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 17,
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        staleTime: QUERY_TIME.FIVE_MINUTES, // Cache for 5 minutes
       },
     })
 
@@ -526,7 +527,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 1,
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        staleTime: QUERY_TIME.FIVE_MINUTES, // Cache for 5 minutes
       },
     })
 
@@ -551,7 +552,7 @@ const DeviceTypeOverview = ({
       queryOptions: {
         enabled:
           !!projectId && deviceTypeId === 1 && substationTagIds.length > 0,
-        staleTime: 30 * 1000, // Cache for 30 seconds
+        staleTime: QUERY_TIME.THIRTY_SECONDS, // Cache for 30 seconds
       },
     })
 
@@ -725,8 +726,8 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 1,
-        staleTime: 30 * 1000,
-        refetchInterval: 60 * 1000, // Refetch every 60 seconds
+        staleTime: QUERY_TIME.THIRTY_SECONDS,
+        refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
       },
     })
 
@@ -821,7 +822,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId && !!deviceTypeId,
-        staleTime: 60 * 1000,
+        staleTime: QUERY_TIME.ONE_MINUTE,
       },
     })
 
@@ -832,7 +833,7 @@ const DeviceTypeOverview = ({
       },
       queryOptions: {
         enabled: !!projectId,
-        staleTime: 5 * 60 * 1000,
+        staleTime: QUERY_TIME.FIVE_MINUTES,
       },
     })
 

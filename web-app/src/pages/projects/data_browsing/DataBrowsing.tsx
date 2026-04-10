@@ -14,6 +14,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import { useGetDevicesV2, useGetTags } from '@/hooks/api'
 import { Tag } from '@/hooks/projectTags'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Box,
   Button,
@@ -138,7 +139,7 @@ const DataBrowsing = () => {
         !hasLoadedTagsFromUrl &&
         selectedTags.length === 0 &&
         !!project.data,
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 
@@ -156,7 +157,7 @@ const DataBrowsing = () => {
         !hasLoadedTagsFromUrl &&
         selectedTags.length === 0 &&
         !!project.data,
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 

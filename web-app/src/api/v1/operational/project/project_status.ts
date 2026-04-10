@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'StatusTimeSeries'
@@ -31,7 +32,7 @@ export const useGetStatusTimeSeries = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<StatusTimeSeries[]>({
@@ -58,7 +59,7 @@ export const useGetLastKnownStatuses = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 30000,
+    staleTime: QUERY_TIME.THIRTY_SECONDS,
   }
 
   return useCustomQuery<DeviceStatus[]>({

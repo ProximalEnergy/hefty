@@ -1,3 +1,4 @@
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { DeviceTypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
@@ -213,7 +214,7 @@ const ProjectKPIContractual = () => {
       },
       queryOptions: {
         enabled: !!kpiTypeData?.kpi_type_id,
-        staleTime: Infinity,
+        staleTime: QUERY_TIME.NEVER,
       },
     })
 

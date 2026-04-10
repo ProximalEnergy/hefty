@@ -1,5 +1,6 @@
 import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/projects/real_time'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 const STOW_THRESHOLD_PCT = 20
@@ -26,8 +27,8 @@ export function useTrackerStowStatus(
     },
     queryOptions: {
       enabled: !!projectId && hasTrackers === true,
-      refetchInterval: 60 * 1000,
-      staleTime: 30 * 1000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 

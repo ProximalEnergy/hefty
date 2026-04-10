@@ -5,6 +5,7 @@ import {
   useGetExpectedPowerByDeviceTypeID,
   useGetRealTimeByDeviceTypeID,
 } from '@/api/v1/protected/web-application/projects/real_time'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { Card, Group, SimpleGrid, Skeleton, Text, Tooltip } from '@mantine/core'
 import {
   IconBolt,
@@ -54,8 +55,8 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -66,11 +67,11 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 25000,
+      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS,
     },
   })
 
@@ -82,7 +83,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -94,7 +95,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -106,7 +107,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -117,7 +118,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 

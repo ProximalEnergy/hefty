@@ -1,6 +1,7 @@
 import { DeviceType } from '@/api/v1/operational/device_types'
 import { useCustomQuery } from '@/hooks/api'
 import { KPITypeWithContracts } from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export interface KPIType {
@@ -58,7 +59,7 @@ export const useGetKPITypes = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<KPIType[]>({
@@ -82,7 +83,7 @@ export const useGetProjectKPITypes = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
   }
 
   return useCustomQuery<KPITypeWithContractInfo[]>({

@@ -10,6 +10,7 @@ import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import * as gisUtils from '@/utils/GIS'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Box,
@@ -308,8 +309,8 @@ function AdaptiveGisBESS() {
     queryOptions: {
       enabled: !!projectId,
       refetchOnWindowFocus: false,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -325,8 +326,8 @@ function AdaptiveGisBESS() {
     queryOptions: {
       enabled: !!projectId && layerAvailability['PCS + String'],
       refetchOnWindowFocus: false,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -342,8 +343,8 @@ function AdaptiveGisBESS() {
     queryOptions: {
       enabled: !!projectId && layerAvailability['PCS + DC Enclosure'],
       refetchOnWindowFocus: false,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -358,8 +359,8 @@ function AdaptiveGisBESS() {
     queryOptions: {
       enabled: !!projectId && layerAvailability['PCS + DC Skid'],
       refetchOnWindowFocus: false,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -374,8 +375,8 @@ function AdaptiveGisBESS() {
     queryOptions: {
       enabled: !!projectId && layerAvailability['PCS + Bank'],
       refetchOnWindowFocus: false,
-      refetchInterval: 30_000,
-      staleTime: 15_000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -390,7 +391,7 @@ function AdaptiveGisBESS() {
     queryOptions: {
       enabled: !!projectId,
       refetchOnWindowFocus: false,
-      staleTime: Infinity, // String devices don't change frequently
+      staleTime: QUERY_TIME.NEVER, // String devices don't change frequently
     },
   })
 

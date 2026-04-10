@@ -3,6 +3,7 @@ import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application
 import CustomCard from '@/components/CustomCard'
 import { useBessPcsFaultData } from '@/components/bess-pcs/useBessPcsFaultData'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { SegmentedControl } from '@mantine/core'
 import type { Data } from 'plotly.js'
 import { useMemo, useState } from 'react'
@@ -37,8 +38,8 @@ export const ACVoltageChart = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -52,8 +53,8 @@ export const ACVoltageChart = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 

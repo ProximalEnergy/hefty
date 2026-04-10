@@ -3,6 +3,7 @@ import { useGetDataTimeSeriesV3 } from '@/api/v1/operational/project/project_dat
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import dayjs from 'dayjs'
 import type { Data, PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
@@ -50,8 +51,8 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
     },
     queryOptions: {
       enabled: !!projectId && devices.data && devices.data.length > 0,
-      refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes
-      staleTime: 14 * 60 * 1000, // Consider data stale after 14 minutes
+      refetchInterval: QUERY_TIME.FIFTEEN_MINUTES, // Refetch every 15 minutes
+      staleTime: QUERY_TIME.FOURTEEN_MINUTES, // Consider data stale after 14 minutes
     },
   })
 
@@ -66,8 +67,8 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
     },
     queryOptions: {
       enabled: !!projectId && devices.data && devices.data.length > 0,
-      refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes
-      staleTime: 14 * 60 * 1000, // Consider data stale after 14 minutes
+      refetchInterval: QUERY_TIME.FIFTEEN_MINUTES, // Refetch every 15 minutes
+      staleTime: QUERY_TIME.FOURTEEN_MINUTES, // Consider data stale after 14 minutes
     },
   })
 
@@ -79,7 +80,7 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 
@@ -100,8 +101,8 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
         devices.data.length > 0 &&
         pcsModuleDevices.data &&
         pcsModuleDevices.data.length > 0,
-      refetchInterval: 15 * 60 * 1000,
-      staleTime: 14 * 60 * 1000,
+      refetchInterval: QUERY_TIME.FIFTEEN_MINUTES,
+      staleTime: QUERY_TIME.FOURTEEN_MINUTES,
     },
   })
 
@@ -121,8 +122,8 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
         devices.data.length > 0 &&
         pcsModuleDevices.data &&
         pcsModuleDevices.data.length > 0,
-      refetchInterval: 15 * 60 * 1000,
-      staleTime: 14 * 60 * 1000,
+      refetchInterval: QUERY_TIME.FIFTEEN_MINUTES,
+      staleTime: QUERY_TIME.FOURTEEN_MINUTES,
     },
   })
 

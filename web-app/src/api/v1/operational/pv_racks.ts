@@ -1,6 +1,7 @@
 import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -28,7 +29,7 @@ export const useGetProximalPVRackManufacturers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
   }
 
   return useCustomQuery<string[]>({
@@ -53,7 +54,7 @@ export const useGetProximalPVRackModels = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
     enabled: !!queryParams?.manufacturer,
   }
 
@@ -85,7 +86,7 @@ export const useGetPVRackingIdsByManufacturerAndModel = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
     enabled: manufacturers.length > 0 && models.length > 0,
   }
 
@@ -116,7 +117,7 @@ export const useGetProximalPVRackDetails = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 10, // 10 seconds
+    staleTime: QUERY_TIME.TEN_SECONDS, // 10 seconds
     enabled: racking_ids.length > 0,
   }
 

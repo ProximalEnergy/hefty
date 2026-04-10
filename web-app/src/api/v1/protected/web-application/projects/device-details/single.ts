@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export interface DeviceDetailsSingle {
@@ -24,7 +25,7 @@ export const useGetDeviceDetailsSingle = ({
   }
 
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
     refetchOnWindowFocus: false,
   }
 

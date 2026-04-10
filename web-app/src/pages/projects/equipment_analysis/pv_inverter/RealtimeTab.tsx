@@ -19,6 +19,7 @@ import { StatsCards } from '@/components/pv-pcs/StatsCards'
 import { StatusAndErrorCodes } from '@/components/pv-pcs/StatusAndErrorCodes'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { DataTimeSeries } from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { Stack } from '@mantine/core'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -92,8 +93,8 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000, // Refetch every 30 seconds
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -106,7 +107,7 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
     },
   })
 
@@ -119,7 +120,7 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
     },
   })
 
@@ -132,7 +133,7 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
     },
   })
 
@@ -168,11 +169,11 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedIntegration === true,
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 25000, // Consider data stale after 25 seconds
+      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS, // Consider data stale after 25 seconds
     },
   })
 
@@ -184,7 +185,7 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60000, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
     },
   })
 
@@ -196,11 +197,11 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedIntegration === true,
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 25000, // Consider data stale after 25 seconds
+      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS, // Consider data stale after 25 seconds
     },
   })
 
@@ -209,8 +210,8 @@ const RealtimeTab = () => {
     pathParams: { project_id: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000, // Refetch every 30 seconds
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
@@ -252,8 +253,8 @@ const RealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000, // Refetch every 30 seconds
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 

@@ -8,6 +8,7 @@ import {
   useGetDataTimeseriesLast,
 } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 const getValue = (row: DataTimeSeriesLast) =>
@@ -41,7 +42,7 @@ export function useRealtimePowerAvailability(
     },
     queryOptions: {
       enabled: isEnabled,
-      staleTime: 5 * 60 * 1000,
+      staleTime: QUERY_TIME.FIVE_MINUTES,
     },
   })
 
@@ -55,8 +56,8 @@ export function useRealtimePowerAvailability(
     },
     queryOptions: {
       enabled: isEnabled,
-      refetchInterval: 60 * 1000,
-      staleTime: 30 * 1000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 
@@ -70,8 +71,8 @@ export function useRealtimePowerAvailability(
     },
     queryOptions: {
       enabled: isEnabled,
-      refetchInterval: 60 * 1000,
-      staleTime: 30 * 1000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 

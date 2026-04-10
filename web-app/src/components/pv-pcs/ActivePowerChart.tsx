@@ -6,6 +6,7 @@ import {
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { SegmentedControl } from '@mantine/core'
 import type { Data, PlotRelayoutEvent } from 'plotly.js'
 import { useMemo, useState } from 'react'
@@ -34,11 +35,11 @@ export const ActivePowerChart = ({
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedEnergyIntegration === true,
-      refetchInterval: 30000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 25000,
+      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS,
     },
   })
 

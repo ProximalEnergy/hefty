@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -58,7 +59,7 @@ export const useGetCalendarEvents = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
   }
 
   return useCustomQuery<CalendarEvent[]>({
@@ -87,7 +88,7 @@ export const useGetCalendarEventCategories = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes, categories are not expected to change often
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes, categories are not expected to change often
   }
 
   return useCustomQuery<CalendarEventCategory[]>({

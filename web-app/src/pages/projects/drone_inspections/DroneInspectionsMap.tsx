@@ -12,6 +12,7 @@ import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import type { Device } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Badge,
@@ -404,7 +405,7 @@ const DroneInspectionsMap = ({
     },
     queryOptions: {
       enabled: !!projectId && (zoom >= LOW_ZOOM || isViewLocked),
-      staleTime: Infinity, // Device geometries don't change
+      staleTime: QUERY_TIME.NEVER, // Device geometries don't change
       gcTime: Infinity, // Keep in cache forever (renamed from cacheTime)
     },
   })

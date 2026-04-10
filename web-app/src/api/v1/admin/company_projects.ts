@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'CompanyProject'
@@ -22,7 +23,7 @@ export const useGetAllCompanyProjectsForProject = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
   }
 
   return useCustomQuery<CompanyProject[]>({

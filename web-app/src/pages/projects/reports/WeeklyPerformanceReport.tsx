@@ -45,6 +45,7 @@ import type { DataTimeSeries, Device, EventSummary } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import { alignLossSeries } from '@/utils/alignLossSeries'
 import { calculateMovingAverage } from '@/utils/movingAverage'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Box,
@@ -222,7 +223,7 @@ const WeeklyEnergyComparison = ({
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
       gcTime: 7 * 24 * 60 * 60 * 1000,
     },
   })
@@ -248,7 +249,7 @@ const WeeklyEnergyComparison = ({
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 60 * 1000, // 1 minute
+      staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1299,7 +1300,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000,
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS,
       gcTime: 7 * 24 * 60 * 60 * 1000,
     },
   })
@@ -1328,7 +1329,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
       gcTime: 7 * 24 * 60 * 60 * 1000,
     },
   })
@@ -1349,7 +1350,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
       gcTime: 7 * 24 * 60 * 60 * 1000,
     },
   })
@@ -1378,7 +1379,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: Infinity, // Never consider data stale
+      staleTime: QUERY_TIME.NEVER, // Never consider data stale
       gcTime: Infinity, // Keep in cache forever
     },
   })
@@ -1437,7 +1438,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours - met stations don't change often
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours - met stations don't change often
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1465,7 +1466,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 60 * 60 * 1000, // 1 hour
+      staleTime: QUERY_TIME.ONE_HOUR, // 1 hour
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1537,7 +1538,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1563,7 +1564,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1580,7 +1581,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1599,7 +1600,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1633,7 +1634,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1649,7 +1650,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1689,7 +1690,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1745,7 +1746,7 @@ const Page: React.FC = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      staleTime: QUERY_TIME.TWENTY_FOUR_HOURS, // 24 hours
       gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -1761,7 +1762,7 @@ const Page: React.FC = () => {
     queryOptions: {
       enabled: true,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 

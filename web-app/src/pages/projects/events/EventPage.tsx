@@ -25,6 +25,7 @@ import { useGetEvents, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,
   Box,
@@ -403,7 +404,7 @@ const useEventTraces = (
       end: traceEnd.format('YYYY-MM-DD HH:mm:ss'),
     },
     queryOptions: {
-      staleTime: Infinity, // Never expires
+      staleTime: QUERY_TIME.NEVER, // Never expires
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,

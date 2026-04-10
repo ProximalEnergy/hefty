@@ -1,6 +1,7 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   type InfiniteData,
@@ -59,7 +60,7 @@ export const useInfiniteNotifications = ({
     },
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes - prevent frequent background refetches
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes - prevent frequent background refetches
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
     ...queryOptions,
   })
@@ -76,8 +77,8 @@ export const useGetUnreadNotificationCount = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 30 * 1000, // 30 seconds - count doesn't need to be super fresh
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds to check for new notifications
+    staleTime: QUERY_TIME.THIRTY_SECONDS, // 30 seconds - count doesn't need to be super fresh
+    refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds to check for new notifications
   }
 
   return useCustomQuery<{ count: number }>({

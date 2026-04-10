@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
@@ -29,7 +30,7 @@ export const usePortfolioBessRevenueSummary = ({
   const defaultQueryOptions = {
     enabled: projectIds.length > 0,
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 30,
+    staleTime: QUERY_TIME.THIRTY_MINUTES,
     retry: false,
   } satisfies Partial<UseQueryOptions<Row[]>>
 

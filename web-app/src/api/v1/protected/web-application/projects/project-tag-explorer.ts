@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -89,7 +90,7 @@ export const useGetTagsByPattern = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 300000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
     enabled: false,
   }
 
@@ -120,7 +121,7 @@ export const useGetUniqueTagTypes = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 300000, // 5 minutes
+    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
   }
 
   return useCustomQuery<UniqueTagType[]>({
@@ -147,7 +148,7 @@ export const useGetTagPatternSamples = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
     enabled: false,
   }
 

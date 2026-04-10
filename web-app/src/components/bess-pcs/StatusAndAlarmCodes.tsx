@@ -2,6 +2,7 @@ import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetLastKnownStatuses } from '@/api/v1/operational/project/project_status'
 import CustomCard from '@/components/CustomCard'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Group,
@@ -52,7 +53,7 @@ export const StatusAndAlarmCodes = ({
     },
     queryOptions: {
       enabled: !!projectId,
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 
@@ -65,8 +66,8 @@ export const StatusAndAlarmCodes = ({
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 

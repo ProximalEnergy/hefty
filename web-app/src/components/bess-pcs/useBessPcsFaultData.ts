@@ -2,6 +2,7 @@ import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetLastKnownStatuses } from '@/api/v1/operational/project/project_status'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
@@ -49,7 +50,7 @@ export const useBessPcsFaultData = (realtimeOverrides?: {
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: { device_type_ids: STATUS_DEVICE_TYPES },
-    queryOptions: { enabled: !!projectId, staleTime: 60_000 },
+    queryOptions: { enabled: !!projectId, staleTime: QUERY_TIME.ONE_MINUTE },
   })
 
   const childStatuses = useGetLastKnownStatuses({
@@ -61,8 +62,8 @@ export const useBessPcsFaultData = (realtimeOverrides?: {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30000,
-      staleTime: 15000,
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 

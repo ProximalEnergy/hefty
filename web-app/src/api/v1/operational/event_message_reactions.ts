@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -41,8 +42,8 @@ export const useGetEventMessageReactions = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    refetchInterval: 5000, // Refetch every 5 seconds (same as messages)
-    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchInterval: QUERY_TIME.FIVE_SECONDS, // Refetch every 5 seconds (same as messages)
+    staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data fresh for 30 seconds
   }
 
   // Filter out project_id from queryParams since it's already in the path

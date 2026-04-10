@@ -1,5 +1,6 @@
 import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export type KPISummaryCard = components['schemas']['KPISummary'] & {
@@ -27,7 +28,7 @@ export const useGetKPISummaryCards = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
   return useCustomQuery<KPISummaryCard[]>({
     axiosConfig,
@@ -56,7 +57,7 @@ export const useGetRoundTripEfficiency = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
   return useCustomQuery<components['schemas']['RTEResponse']>({
     axiosConfig,

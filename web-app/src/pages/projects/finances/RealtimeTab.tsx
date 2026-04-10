@@ -9,6 +9,7 @@ import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/pro
 import { Sparkline } from '@/components/stats/Sparkline'
 import { StatsGrid } from '@/components/stats/StatsGrid'
 import { Statistic } from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Box,
   Group,
@@ -168,8 +169,8 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 30 * 1000, // Refetch every 30 seconds
-      staleTime: 15 * 1000, // Consider data stale after 15 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      staleTime: QUERY_TIME.FIFTEEN_SECONDS, // Consider data stale after 15 seconds
     },
   })
 

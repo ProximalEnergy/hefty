@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -54,7 +55,8 @@ export const useGetEventMessages = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchInterval: QUERY_TIME.FIVE_SECONDS,
+    staleTime: QUERY_TIME.FIVE_SECONDS,
   }
 
   return useCustomQuery<EventMessage[]>({

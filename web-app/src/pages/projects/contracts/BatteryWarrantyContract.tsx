@@ -7,6 +7,7 @@ import {
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { VoiceChatModal } from '@/components/VoiceChat'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Alert,
   Anchor,
@@ -63,7 +64,7 @@ export const BatteryWarrantyContract = ({
       },
       queryOptions: {
         enabled: Boolean(projectId && contract.contract_id),
-        staleTime: 30_000,
+        staleTime: QUERY_TIME.THIRTY_SECONDS,
       },
     })
 

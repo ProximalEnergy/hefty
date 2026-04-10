@@ -2,6 +2,11 @@ import type { operations } from '@/api/schema'
 import { KPIType } from '@/api/v1/operational/kpi_types'
 import * as types from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
+import {
+  QUERY_TIME,
+  withDevRefetchInterval,
+  withDevStaleTime,
+} from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -43,6 +48,30 @@ function interpolatePath(url: string, pathParams: object): string {
 
 type AxiosRequestConfigWithoutParams = AxiosRequestConfig & { params?: never }
 
+type QueryOptionsWithTiming = {
+  staleTime?: unknown
+  refetchInterval?: unknown
+}
+
+const applyDevQueryTimingFloor = <T extends object>(queryOptions: T): T => {
+  const normalized = { ...queryOptions } as T & QueryOptionsWithTiming
+
+  if (typeof normalized.staleTime === 'number') {
+    normalized.staleTime = withDevStaleTime(normalized.staleTime)
+  }
+
+  if (
+    typeof normalized.refetchInterval === 'number' ||
+    normalized.refetchInterval === false
+  ) {
+    normalized.refetchInterval = withDevRefetchInterval(
+      normalized.refetchInterval,
+    )
+  }
+
+  return normalized
+}
+
 export const useCustomQuery = <T>({
   axiosConfig,
   queryName,
@@ -57,6 +86,7 @@ export const useCustomQuery = <T>({
   queryOptions?: object
 }) => {
   const { getToken } = useAuth()
+  const normalizedQueryOptions = applyDevQueryTimingFloor(queryOptions)
 
   const queryKey: unknown[] = [queryName]
 
@@ -96,7 +126,7 @@ export const useCustomQuery = <T>({
   return useQuery({
     queryKey: queryKey,
     queryFn: () => queryFn(),
-    ...queryOptions,
+    ...normalizedQueryOptions,
   })
 }
 
@@ -114,6 +144,7 @@ export const useCustomQueryArrow = ({
   queryOptions?: object
 }) => {
   const { getToken } = useAuth()
+  const normalizedQueryOptions = applyDevQueryTimingFloor(queryOptions)
 
   const queryKey: unknown[] = [queryName]
 
@@ -148,7 +179,7 @@ export const useCustomQueryArrow = ({
   return useQuery({
     queryKey: queryKey,
     queryFn: () => queryFn(),
-    ...queryOptions,
+    ...normalizedQueryOptions,
   })
 }
 
@@ -251,7 +282,7 @@ export const useGetDevice = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<types.Device>({
@@ -308,7 +339,7 @@ export const useGetDevicesV2 = ({
     queryKey: queryKey,
     queryFn: queryFn,
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
     ...queryOptions,
   })
 }
@@ -328,7 +359,7 @@ export const useGetTags = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<types.Tag[]>({
@@ -538,7 +569,7 @@ export const useGetWeather = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: QUERY_TIME.FIFTEEN_MINUTES, // 15 minutes
   }
 
   return useCustomQuery<types.WeatherResponse>({
@@ -562,7 +593,7 @@ export const useGetForecast = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: QUERY_TIME.FIFTEEN_MINUTES, // 15 minutes
   }
 
   return useCustomQuery<types.ForecastResponse>({
@@ -616,7 +647,7 @@ export const useGetGISTrackerByBlock = ({
   }
 
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
     refetchOnWindowFocus: false,
   }
 
@@ -663,7 +694,7 @@ export const useGetResources = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<types.Resource[]>({
@@ -689,7 +720,7 @@ export const useGetResource = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<types.Resource>({
@@ -735,7 +766,7 @@ export const useGetKPIType = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<KPIType>({
@@ -760,7 +791,7 @@ export const useGetSunburstData = ({
   }
 
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<types.SunburstProps>({
@@ -790,7 +821,7 @@ export const useGetClearskyPOA = ({
       `${pathParams.projectId}/reports/clearsky-poa`,
   }
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<types.DataTimeSeries[]>({
@@ -820,7 +851,7 @@ export const useGetDegradationPOA = ({
       `${pathParams.projectId}/reports/degradation-poa`,
   }
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<types.DegradationPOA>({
@@ -902,7 +933,7 @@ export const useValidateCombinerData = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
     // Only enable the query if we have all required parameters
     enabled: !!(
       queryParams.start &&

@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'DeviceDetailsHorizontalPV'
@@ -26,7 +27,7 @@ export const useGetDeviceDetailsHorizontalPV = ({
   }
 
   const defaultQueryOptions = {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
     refetchOnWindowFocus: false,
   }
 

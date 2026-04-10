@@ -1,5 +1,6 @@
 import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useGetDevicesV2, useGetEvents } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
 /**
@@ -35,7 +36,7 @@ export function useRealtimeEnergyAvailability(
     },
     queryOptions: {
       enabled: isEnabled,
-      staleTime: 5 * 60 * 1000,
+      staleTime: QUERY_TIME.FIVE_MINUTES,
     },
   })
 
@@ -46,8 +47,8 @@ export function useRealtimeEnergyAvailability(
     queryParams: { open: true },
     queryOptions: {
       enabled: isEnabled,
-      refetchInterval: 60 * 1000,
-      staleTime: 30 * 1000,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
     },
   })
 

@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'PortfolioHome'
@@ -21,8 +22,8 @@ export const useGetPortfolioHome = ({
   }
 
   const defaultQueryOptions = {
-    staleTime: 1000 * 60 * 5,
-    refetchInterval: queryParams.time === '24h' ? 1000 * 60 * 5 : undefined,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
+    refetchInterval: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<PortfolioHome[]>({

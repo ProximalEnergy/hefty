@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'ProjectDataLastUpdated'
@@ -23,7 +24,7 @@ export const useGetProjectDataLastUpdated = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    refetchInterval: 1000 * 30,
+    refetchInterval: QUERY_TIME.THIRTY_SECONDS,
   }
 
   return useCustomQuery<ProjectDataLastUpdated[]>({

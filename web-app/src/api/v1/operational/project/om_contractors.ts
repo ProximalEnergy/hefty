@@ -1,5 +1,6 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseMutationResult,
@@ -36,7 +37,7 @@ export const useGetOMContractorScopes = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 5,
+    staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
   return useCustomQuery<OMContractorScope[]>({

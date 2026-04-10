@@ -2,6 +2,7 @@ import { SensorTypeEnum } from '@/api/enumerations'
 import type { DataTimeSeriesLast } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetForecast, useGetTags, useGetWeather } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   type DataTimeSeriesLastWithTag,
   calculateAverage,
@@ -45,7 +46,7 @@ export const useProjectWeatherData = (
   } = useGetWeather({
     pathParams: { projectId },
     queryOptions: {
-      staleTime: 15 * 60 * 1000, // 15 minutes
+      staleTime: QUERY_TIME.FIFTEEN_MINUTES, // 15 minutes
     },
   })
 
@@ -57,7 +58,7 @@ export const useProjectWeatherData = (
   } = useGetForecast({
     pathParams: { projectId },
     queryOptions: {
-      staleTime: 15 * 60 * 1000, // 15 minutes
+      staleTime: QUERY_TIME.FIFTEEN_MINUTES, // 15 minutes
     },
   })
 
@@ -73,7 +74,7 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.MET_STATION_GHI],
     },
     queryOptions: {
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -87,7 +88,7 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE],
     },
     queryOptions: {
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -101,7 +102,7 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.MET_STATION_WIND_SPEED],
     },
     queryOptions: {
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -115,7 +116,7 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.METER_ACTIVE_POWER],
     },
     queryOptions: {
-      staleTime: 60 * 1000,
+      staleTime: QUERY_TIME.ONE_MINUTE,
     },
   })
 
@@ -123,7 +124,7 @@ export const useProjectWeatherData = (
   const { data: tagsData } = useGetTags({
     pathParams: { projectId },
     queryOptions: {
-      staleTime: Infinity,
+      staleTime: QUERY_TIME.NEVER,
     },
   })
 

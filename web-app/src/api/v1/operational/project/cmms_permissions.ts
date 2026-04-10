@@ -1,5 +1,6 @@
 import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL_CMMS_PERMISSIONS =
@@ -19,7 +20,7 @@ export const useGetCMMSPermissions = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<GetCMMsPermissions['Response']>({

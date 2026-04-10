@@ -21,6 +21,7 @@ import { TopEventsTableCard } from '@/pages/projects/TopEventsTableCard'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { projectDescription } from '@/utils/projectDescription'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
   Badge,
@@ -125,8 +126,8 @@ const KPICards = () => {
     queryOptions: {
       enabled:
         !!projectId && !!favoritedKPITypes.data && !!projectKPIInstances.data,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
+      staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data stale after 30 seconds
     },
   })
 
@@ -341,8 +342,8 @@ const ContractualKPIOverview = ({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
+      staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data stale after 30 seconds
     },
   })
 
@@ -361,8 +362,8 @@ const ContractualKPIOverview = ({
     },
     queryOptions: {
       enabled: !!projectId && contractualKpiTypeIds.length > 0,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
+      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
+      staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data stale after 30 seconds
     },
   })
 

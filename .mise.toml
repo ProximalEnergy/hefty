@@ -864,6 +864,11 @@ description = "Detect arithmetic calculations in changed web-app JSX/TSX files"
 dir = "."
 run = "./_scripts/web_jsx_calcs_check.sh"
 
+[tasks."web:query_time_enum"]
+description = "Warn if staleTime/refetchInterval do not use QUERY_TIME.*"
+dir = "."
+run = "./_scripts/web_query_time_enum_check.sh"
+
 [tasks."web:default-query-options-no-explicit-type"]
 description = "Check for explicit type annotation on defaultQueryOptions"
 dir = "."

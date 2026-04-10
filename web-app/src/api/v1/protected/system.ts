@@ -1,5 +1,6 @@
 import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL_METER_POWER_AND_EXPECTED_POWER_V3 =
@@ -24,7 +25,7 @@ export const useGetMeterPowerAndExpectedPowerV3 = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<GetMeterPowerAndExpectedPowerV3['Response']>({

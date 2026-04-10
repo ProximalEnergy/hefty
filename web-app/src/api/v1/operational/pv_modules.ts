@@ -1,6 +1,7 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseMutationOptions,
@@ -30,7 +31,7 @@ export const useGetPvModules = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   return useCustomQuery<PVModule[]>({
@@ -54,7 +55,7 @@ export const useGetProximalPVModuleManufacturers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
   }
 
   return useCustomQuery<string[]>({
@@ -78,7 +79,7 @@ export const useGetProximalPVModuleModels = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
     enabled: !!queryParams?.manufacturer,
   }
 
@@ -108,7 +109,7 @@ export const useGetPVModuleIdsByManufacturerAndModel = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 1, // 1 minutes
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minutes
     enabled: manufacturers.length > 0 && models.length > 0,
   }
 
@@ -135,7 +136,7 @@ export const useGetPVModuleDetails = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 1, // 1 seconds
+    staleTime: QUERY_TIME.ONE_SECOND, // 1 seconds
     enabled: queryParams.pv_module_ids.length > 0,
   }
 

@@ -1,6 +1,7 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -53,7 +54,7 @@ export const useGetDroneIntegrations = ({
   }
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
 
   return useCustomQuery<DroneIntegration[]>({
@@ -73,7 +74,7 @@ export const useGetDroneProviders = ({
   }
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
 
   return useCustomQuery<DroneProvider[]>({
@@ -163,7 +164,7 @@ export const useGetDronePermissions = ({
   }
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
 
   return useCustomQuery<DronePermission[]>({

@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface DeviceTypePowerSummary {
@@ -19,8 +20,8 @@ export const useGetDeviceTypePowerSummary = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 30 * 1000, // Cache for 30 seconds since this is real-time data
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds
+    staleTime: QUERY_TIME.THIRTY_SECONDS, // Cache for 30 seconds since this is real-time data
+    refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
   }
 
   const combinedQueryOptions = { ...defaultQueryOptions, ...queryOptions }

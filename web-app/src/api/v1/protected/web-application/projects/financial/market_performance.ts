@@ -1,4 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface RealtimePriceResponse {
@@ -23,8 +24,8 @@ export const useGetRealtimePrice = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 60 * 1000, // 1 minute - prices update every 15 minutes
-    refetchInterval: 60 * 1000, // Refetch every minute to get latest price
+    staleTime: QUERY_TIME.ONE_MINUTE, // 1 minute - prices update every 15 minutes
+    refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute to get latest price
     refetchOnMount: true,
     refetchOnReconnect: false,
   } satisfies Partial<UseQueryOptions>
@@ -67,7 +68,7 @@ export const useGetProjectIdentifiers = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 30 * 60 * 1000, // 30 minutes - identifiers don't change often
+    staleTime: QUERY_TIME.THIRTY_MINUTES, // 30 minutes - identifiers don't change often
     refetchOnMount: true,
     refetchOnReconnect: false,
   } satisfies Partial<UseQueryOptions>

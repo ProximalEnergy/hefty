@@ -1,6 +1,7 @@
 import { paths } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import * as types from '@/hooks/types'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL = '/v1/operational/projects/{project_id}/time-series'
@@ -28,7 +29,7 @@ export const useGetTimeSeries = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   const mergedQueryOptions = {
@@ -68,7 +69,7 @@ export const useGetDataTimeSeriesV3 = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: QUERY_TIME.NEVER,
   }
 
   const mergedQueryOptions = {

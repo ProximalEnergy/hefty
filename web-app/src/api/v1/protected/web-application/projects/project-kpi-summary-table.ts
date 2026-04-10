@@ -1,6 +1,7 @@
 import { components } from '@/api/schema'
 import { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export type KPISummaryTableRow = components['schemas']['KPISummaryTableRow']
@@ -24,7 +25,7 @@ export const useGetProjectKPISummaryTable = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
   return useCustomQuery<GetProjectKPISummaryTable['Response']>({
     axiosConfig,

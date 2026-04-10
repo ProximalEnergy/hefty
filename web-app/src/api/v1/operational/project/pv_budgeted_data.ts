@@ -1,6 +1,7 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import { UseQueryOptions, useMutation } from '@tanstack/react-query'
 
@@ -19,7 +20,7 @@ export const useGetPVBudgetedSeries = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 0, // always consider stale so invalidation refetches immediately
+    staleTime: QUERY_TIME.ZERO, // always consider stale so invalidation refetches immediately
     refetchOnMount: 'always',
   }
 
