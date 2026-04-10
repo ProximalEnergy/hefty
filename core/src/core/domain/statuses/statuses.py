@@ -522,8 +522,10 @@ def interpret_boolean_sparse(
     # (safe because valid implies notna)
     obs_bool = arr[valid].astype(bool, copy=False)
 
-    # Compare to nominal
-    nom_bool = nominal_arr[None, :][valid].astype(bool, copy=False)
+    # Compare to nominal (broadcast 1D nominal per column to full grid; cannot use
+    # nominal_arr[None, :] which is shape (1, n_cols) with a (n_rows, n_cols) mask)
+    nominal_2d = np.broadcast_to(nominal_arr, arr.shape)
+    nom_bool = nominal_2d[valid].astype(bool, copy=False)
     non_nominal = obs_bool != nom_bool
     if not np.any(non_nominal):
         return _empty_facts_df()
