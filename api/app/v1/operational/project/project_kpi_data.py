@@ -9,7 +9,12 @@ from core.crud.operational.kpi_data import (
 )
 from core.database import get_db
 from core.db_query import OutputType
-from core.domain.kpis.rte import get_project_rte as core_get_project_rte
+from core.domain.kpis.rte import (
+    get_and_calculate_rte,
+)
+from core.domain.kpis.rte import (
+    get_project_rte as core_get_project_rte,
+)
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pandas.tseries.offsets import DateOffset
@@ -578,3 +583,32 @@ async def get_rte(
         end=end,
     )
     return RTEResponse(rte=rte[project_id])
+
+
+@router.get("/rte-v2")
+async def get_rte_v2(
+    start: datetime.date,
+    end: datetime.date,
+    project: Annotated[models.Project, Depends(get_project_api)],
+    rte_type: Literal["POI", "POI_NO_AUX", "FEEDER", "DC"] = "POI",
+) -> RTEResponse:
+    """
+    Get the RTE for a project using the core/domain logic.
+    Designed to be backward-compatible with the legacy endpoint.
+
+    Args:
+        start: The start date of the period.
+        end: The end date of the period (exclusive).
+        project: The project.
+        rte_type: The type of RTE.
+
+    Returns:
+        RTEResponse: The RTE for the project.
+    """
+    rte = await get_and_calculate_rte(
+        project=project,
+        rte_type=rte_type,
+        start=start,
+        end=end,
+    )
+    return RTEResponse(rte=rte)

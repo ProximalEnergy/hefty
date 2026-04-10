@@ -66,3 +66,35 @@ export const useGetRoundTripEfficiency = ({
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
+
+type RTEType = 'POI' | 'POI_NO_AUX' | 'FEEDER' | 'DC'
+
+export const useGetRoundTripEfficiencyV2 = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    start: string
+    end: string
+    rte_type: RTEType
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/rte-v2`,
+  }
+
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+  }
+  return useCustomQuery<components['schemas']['RTEResponse']>({
+    axiosConfig,
+    queryName: 'getRoundTripEfficiencyV2',
+    pathParams,
+    queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}

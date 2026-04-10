@@ -1,11 +1,15 @@
 import datetime
+from typing import Literal, cast
 from uuid import UUID
 
 import numpy as np
+import pandas as pd
 
+import core.models as models
 from core.crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from core.crud.operational.projects import get_projects as crud_get_projects
 from core.db_query import OutputType
+from core.enumerations import KPIType
 
 
 async def get_project_rte(
@@ -25,10 +29,10 @@ async def get_project_rte(
     Returns:
         A dictionary of project IDs to RTE values.
     """
-    STRING_ENERGY_CHARGED_KPI_ID = 37
-    STRING_ENERGY_DISCHARGED_KPI_ID = 41
-    PROJECT_SOC_INCREASE_KPI_ID = 94
-    PROJECT_SOC_DECREASE_KPI_ID = 95
+    STRING_ENERGY_CHARGED_KPI_ID = KPIType.BESS_STRING_ENERGY_CHARGED.value
+    STRING_ENERGY_DISCHARGED_KPI_ID = KPIType.BESS_STRING_ENERGY_DISCHARGED.value
+    PROJECT_SOC_INCREASE_KPI_ID = KPIType.BESS_PROJECT_CHARGE_CYCLES.value
+    PROJECT_SOC_DECREASE_KPI_ID = KPIType.BESS_PROJECT_DISCHARGE_CYCLES.value
 
     THRESHOLD = 0.2
 
@@ -56,6 +60,10 @@ async def get_project_rte(
             continue
 
         project_key = project.project_id
+        if not project.capacity_bess_energy_bol_dc:
+            rte_dict[project_key] = None
+            continue
+
         rte_dict[project_key] = None
 
         project_df = df[df["project_id"] == project.project_id].copy()
@@ -112,8 +120,10 @@ async def get_project_rte_from_modules(
     start: datetime.date,
     end: datetime.date,
 ) -> dict[UUID, float | None]:
-    """
-    Get the RTE for a project.
+    """Get the RTE using PCS-module charged/discharged energy KPI values.
+
+    This function exists for backward compatibility with existing API/reporting
+    code paths that historically used these KPI types.
 
     Args:
         project_ids: The project IDs to get the RTE for.
@@ -123,12 +133,14 @@ async def get_project_rte_from_modules(
     Returns:
         A dictionary of project IDs to RTE values.
     """
-    PCS_MODULE_ENERGY_CHARGED_KPI_ID = 113
-    PCS_MODULE_ENERGY_DISCHARGED_KPI_ID = 114
-    PROJECT_SOC_INCREASE_KPI_ID = 94
-    PROJECT_SOC_DECREASE_KPI_ID = 95
+    pcs_module_energy_charged_kpi_id = KPIType.BESS_PCS_MODULE_ENERGY_CHARGED.value
+    pcs_module_energy_discharged_kpi_id = (
+        KPIType.BESS_PCS_MODULE_ENERGY_DISCHARGED.value
+    )
+    project_soc_increase_kpi_id = KPIType.BESS_PROJECT_CHARGE_CYCLES.value
+    project_soc_decrease_kpi_id = KPIType.BESS_PROJECT_DISCHARGE_CYCLES.value
 
-    THRESHOLD = 0.2
+    threshold = 0.2
 
     projects = await crud_get_projects(project_ids=project_ids).get_async(
         output_type=OutputType.SQLALCHEMY
@@ -139,10 +151,10 @@ async def get_project_rte_from_modules(
         end=end,
         project_ids=[project.project_id for project in projects],
         kpi_type_ids=[
-            PCS_MODULE_ENERGY_CHARGED_KPI_ID,
-            PCS_MODULE_ENERGY_DISCHARGED_KPI_ID,
-            PROJECT_SOC_INCREASE_KPI_ID,
-            PROJECT_SOC_DECREASE_KPI_ID,
+            pcs_module_energy_charged_kpi_id,
+            pcs_module_energy_discharged_kpi_id,
+            project_soc_increase_kpi_id,
+            project_soc_decrease_kpi_id,
         ],
         include_device_data=False,
     ).get_async(output_type=OutputType.PANDAS)
@@ -154,6 +166,10 @@ async def get_project_rte_from_modules(
             continue
 
         project_key = project.project_id
+        if not project.capacity_bess_energy_bol_dc:
+            rte_dict[project_key] = None
+            continue
+
         rte_dict[project_key] = None
 
         project_df = df[df["project_id"] == project.project_id].copy()
@@ -166,19 +182,17 @@ async def get_project_rte_from_modules(
             values="project_data",
         ).reindex(
             columns=[
-                PCS_MODULE_ENERGY_CHARGED_KPI_ID,
-                PCS_MODULE_ENERGY_DISCHARGED_KPI_ID,
-                PROJECT_SOC_INCREASE_KPI_ID,
-                PROJECT_SOC_DECREASE_KPI_ID,
+                pcs_module_energy_charged_kpi_id,
+                pcs_module_energy_discharged_kpi_id,
+                project_soc_increase_kpi_id,
+                project_soc_decrease_kpi_id,
             ]
         )
 
         energy_cols = [
-            PCS_MODULE_ENERGY_CHARGED_KPI_ID,
-            PCS_MODULE_ENERGY_DISCHARGED_KPI_ID,
+            pcs_module_energy_charged_kpi_id,
+            pcs_module_energy_discharged_kpi_id,
         ]
-        if not project.capacity_bess_energy_bol_dc:
-            continue
         pivot_df[energy_cols] = (
             pivot_df[energy_cols] / project.capacity_bess_energy_bol_dc
         )
@@ -186,17 +200,17 @@ async def get_project_rte_from_modules(
 
         sum_df = pivot_df.sum(min_count=1)
 
-        charge_total = sum_df[PCS_MODULE_ENERGY_CHARGED_KPI_ID]
-        if charge_total < THRESHOLD:
+        charge_total = sum_df[pcs_module_energy_charged_kpi_id]
+        if charge_total < threshold:
             charge_total = np.nan
-        discharge_total = sum_df[PCS_MODULE_ENERGY_DISCHARGED_KPI_ID]
-        if discharge_total < THRESHOLD:
+        discharge_total = sum_df[pcs_module_energy_discharged_kpi_id]
+        if discharge_total < threshold:
             discharge_total = np.nan
-        soc_increase_total = sum_df[PROJECT_SOC_INCREASE_KPI_ID]
-        if soc_increase_total < THRESHOLD:
+        soc_increase_total = sum_df[project_soc_increase_kpi_id]
+        if soc_increase_total < threshold:
             soc_increase_total = np.nan
-        soc_decrease_total = sum_df[PROJECT_SOC_DECREASE_KPI_ID]
-        if soc_decrease_total < THRESHOLD:
+        soc_decrease_total = sum_df[project_soc_decrease_kpi_id]
+        if soc_decrease_total < threshold:
             soc_decrease_total = np.nan
 
         charge_efficiency = soc_increase_total / charge_total
@@ -207,3 +221,84 @@ async def get_project_rte_from_modules(
         rte_dict[project_key] = rte
 
     return rte_dict
+
+
+def calculate_rte(
+    *,
+    daily_energy_charged_series: pd.Series,
+    daily_energy_discharged_series: pd.Series,
+    energy_capacity: float,
+) -> float:
+    """
+    A simple implementation of RTE
+    There is no adjustment based on SOC increase or decrease.
+    Only concurrent days are used and there must be at least 3 cycles
+    """
+    concat_df = pd.concat(
+        [daily_energy_charged_series, daily_energy_discharged_series], axis=1
+    )
+    concat_df.columns = ["daily_energy_charged", "daily_energy_discharged"]
+    # only use days where data is present for both days
+    concat_df = concat_df.dropna()
+
+    energy_charged_sum = concat_df["daily_energy_charged"].sum()
+    energy_discharged_sum = concat_df["daily_energy_discharged"].sum()
+    if energy_charged_sum < 3 * energy_capacity:
+        return np.nan
+    if energy_discharged_sum < 3 * energy_capacity:
+        return np.nan
+    rte = energy_discharged_sum / energy_charged_sum
+    if rte > 1:
+        return np.nan
+    return cast(float, rte)
+
+
+async def get_and_calculate_rte(
+    *,
+    project: models.Project,
+    rte_type: Literal["POI", "POI_NO_AUX", "FEEDER", "DC"],
+    start: datetime.date,
+    end: datetime.date,
+) -> float:
+    if not project.capacity_bess_energy_bol_dc:
+        return np.nan
+    match rte_type:
+        case "POI":
+            charged_kpi_id = KPIType.BESS_PROJECT_ENERGY_CHARGED.value
+            discharged_kpi_id = KPIType.PROJECT_ENERGY_DISCHARGED.value
+        case "POI_NO_AUX":
+            charged_kpi_id = KPIType.BESS_PROJECT_ENERGY_CHARGED_NO_AUX.value
+            discharged_kpi_id = KPIType.PROJECT_ENERGY_DISCHARGED.value
+        case "FEEDER":
+            charged_kpi_id = KPIType.BESS_CIRCUIT_ENERGY_CHARGED.value
+            discharged_kpi_id = KPIType.BESS_CIRCUIT_ENERGY_DISCHARGED.value
+        case "DC":
+            charged_kpi_id = KPIType.BESS_STRING_ENERGY_CHARGED.value
+            discharged_kpi_id = KPIType.BESS_STRING_ENERGY_DISCHARGED.value
+        case _:
+            raise ValueError(f"Unsupported RTE type: {rte_type}")
+    df = await crud_get_kpi_data(
+        start=start,
+        end=end,
+        project_ids=[project.project_id],
+        kpi_type_ids=[charged_kpi_id, discharged_kpi_id],
+        include_device_data=False,
+    ).get_async(
+        schema=project.name_short,
+        output_type=OutputType.PANDAS,
+    )
+    if df.empty:
+        return np.nan
+    df = df.set_index("date")
+    daily_energy_charged_series = df.loc[
+        df.kpi_type_id == charged_kpi_id, "project_data"
+    ]
+    daily_energy_discharged_series = df.loc[
+        df.kpi_type_id == discharged_kpi_id, "project_data"
+    ]
+    energy_capacity = project.capacity_bess_energy_bol_dc
+    return calculate_rte(
+        daily_energy_charged_series=daily_energy_charged_series,
+        daily_energy_discharged_series=daily_energy_discharged_series,
+        energy_capacity=energy_capacity,
+    )

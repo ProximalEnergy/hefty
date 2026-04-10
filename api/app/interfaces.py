@@ -612,6 +612,38 @@ class KPIInstance(BaseModel):
     kpi_type: KPIType | None = None
 
 
+class EnergyLoss(BaseModel):
+    """Energy loss and efficiency at a waterfall step."""
+
+    energy_loss: float
+    efficiency: float
+    expected_efficiency: float
+
+
+class ProjectBessWaterfallResponse(BaseModel):
+    """BESS energy waterfall from charge at POI to discharge at POI."""
+
+    charge_at_poi: float
+    gen_tie_gsu_step_down: EnergyLoss
+    charge_at_mv_circuits: float
+    aux_energy: EnergyLoss
+    charge_at_feeder: float
+    mvt_step_down_pcs: EnergyLoss
+    charge_at_string: float
+    rte: EnergyLoss
+    discharge_at_string: float
+    pcs_pvt_step_up: EnergyLoss
+    discharge_at_feeder: float
+    gen_tie_gsu_step_up: EnergyLoss
+    discharge_at_poi: float
+
+
+class AuxEnergyDailyAvgResponse(BaseModel):
+    """Average auxiliary energy per day (MWh) over the date range."""
+
+    average_aux_energy_per_day: float
+
+
 class DeviceDataObj(BaseModel):
     """Devicedataobj model."""
 

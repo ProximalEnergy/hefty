@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from app import utils
 from app.dependencies import check_project_access_async
 from app.v1.protected.web_application.projects import (
+    bess_waterfall,
     project_kpi_summary_table,
     project_tag_explorer,
 )
@@ -35,6 +36,7 @@ router = APIRouter(
     dependencies=[Depends(check_project_access_async)],
 )
 
+router.include_router(bess_waterfall.router)
 router.include_router(battery_settlement.router)
 router.include_router(combiner_correlation_analysis.router)
 router.include_router(custom_dash.router)

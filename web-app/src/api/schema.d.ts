@@ -4027,6 +4027,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/kpi-data/rte-v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Rte V2
+         * @description Get the RTE for a project using the core/domain logic.
+         *     Designed to be backward-compatible with the legacy endpoint.
+         *
+         *     Args:
+         *         start: The start date of the period.
+         *         end: The end date of the period (exclusive).
+         *         project: The project.
+         *         rte_type: The type of RTE.
+         *
+         *     Returns:
+         *         RTEResponse: The RTE for the project.
+         */
+        get: operations["get_rte_v2_v1_operational_projects__project_id__kpi_data_rte_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/om-contractors": {
         parameters: {
             query?: never;
@@ -5792,6 +5822,58 @@ export interface paths {
          *         db: Async database session.
          */
         get: operations["get_portfolio_calendar_categories_v1_protected_web_application_portfolio_calendar_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/bess-waterfall": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Bess Waterfall
+         * @description Return BESS energy waterfall values from operational KPI data.
+         *
+         *     Args:
+         *         project: Resolved project from path.
+         *         db: Async DB session (operational schema).
+         *         start: Start date for KPI aggregation.
+         *         end: End date for KPI aggregation.
+         */
+        get: operations["get_project_bess_waterfall"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/bess-waterfall/aux-energy-daily-avg": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Bess Aux Energy Daily Avg
+         * @description Return average auxiliary energy per day (MWh) over the date range.
+         *
+         *     Args:
+         *         project: Resolved project from path.
+         *         db: Async DB session (operational schema).
+         *         start: Start date for KPI aggregation.
+         *         end: End date for KPI aggregation.
+         */
+        get: operations["get_project_bess_aux_energy_daily_avg"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7767,6 +7849,14 @@ export interface components {
             unit_scada: string | null;
         };
         /**
+         * AuxEnergyDailyAvgResponse
+         * @description Average auxiliary energy per day (MWh) over the date range.
+         */
+        AuxEnergyDailyAvgResponse: {
+            /** Average Aux Energy Per Day */
+            average_aux_energy_per_day: number;
+        };
+        /**
          * BESSMonthlyReportRequest
          * @description BESS monthly report generation request.
          */
@@ -9429,6 +9519,18 @@ export interface components {
             target_project_ids?: string[] | null;
         };
         /**
+         * EnergyLoss
+         * @description Energy loss and efficiency at a waterfall step.
+         */
+        EnergyLoss: {
+            /** Energy Loss */
+            energy_loss: number;
+            /** Efficiency */
+            efficiency: number;
+            /** Expected Efficiency */
+            expected_efficiency: number;
+        };
+        /**
          * EnrichedCMMSTicket
          * @description An enriched CMMS ticket with provider metadata.
          */
@@ -10945,6 +11047,32 @@ export interface components {
              * @default false
              */
             has_real_time_data: boolean;
+        };
+        /**
+         * ProjectBessWaterfallResponse
+         * @description BESS energy waterfall from charge at POI to discharge at POI.
+         */
+        ProjectBessWaterfallResponse: {
+            /** Charge At Poi */
+            charge_at_poi: number;
+            gen_tie_gsu_step_down: components["schemas"]["EnergyLoss"];
+            /** Charge At Mv Circuits */
+            charge_at_mv_circuits: number;
+            aux_energy: components["schemas"]["EnergyLoss"];
+            /** Charge At Feeder */
+            charge_at_feeder: number;
+            mvt_step_down_pcs: components["schemas"]["EnergyLoss"];
+            /** Charge At String */
+            charge_at_string: number;
+            rte: components["schemas"]["EnergyLoss"];
+            /** Discharge At String */
+            discharge_at_string: number;
+            pcs_pvt_step_up: components["schemas"]["EnergyLoss"];
+            /** Discharge At Feeder */
+            discharge_at_feeder: number;
+            gen_tie_gsu_step_up: components["schemas"]["EnergyLoss"];
+            /** Discharge At Poi */
+            discharge_at_poi: number;
         };
         /**
          * ProjectCreate
@@ -18341,6 +18469,44 @@ export interface operations {
             };
         };
     };
+    get_rte_v2_v1_operational_projects__project_id__kpi_data_rte_v2_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                rte_type?: "POI" | "POI_NO_AUX" | "FEEDER" | "DC";
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RTEResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get: {
         parameters: {
             query?: never;
@@ -21007,6 +21173,84 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CalendarItemCategory"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_bess_waterfall: {
+        parameters: {
+            query: {
+                /** @description Start date (inclusive) */
+                start: string;
+                /** @description End date (exclusive) */
+                end: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectBessWaterfallResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_bess_aux_energy_daily_avg: {
+        parameters: {
+            query: {
+                /** @description Start date (inclusive) */
+                start: string;
+                /** @description End date (exclusive) */
+                end: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuxEnergyDailyAvgResponse"];
                 };
             };
             /** @description Validation Error */
