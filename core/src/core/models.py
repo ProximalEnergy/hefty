@@ -527,7 +527,7 @@ class DeviceType(Base):
     device_type_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
     name_short: Mapped[str] = mapped_column(unique=True)
     name_long: Mapped[str] = mapped_column(unique=True)
-    description: Mapped[str | None]
+    description: Mapped[str]
 
     __table_args__ = {"schema": "operational"}
 

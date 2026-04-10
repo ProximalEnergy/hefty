@@ -503,7 +503,7 @@ class DeviceType(BaseModel):
     device_type_id: int
     name_short: str
     name_long: str
-    description: str | None
+    description: str
 
     model_config = {"from_attributes": True}
 

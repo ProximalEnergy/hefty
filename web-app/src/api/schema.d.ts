@@ -9122,7 +9122,7 @@ export interface components {
             /** Name Long */
             name_long: string;
             /** Description */
-            description: string | null;
+            description: string;
         };
         /**
          * DeviceTypePowerSummary
