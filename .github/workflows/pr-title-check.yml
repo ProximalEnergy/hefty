@@ -1,0 +1,187 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PR Title Scope Sync
+# ─────────────────────────────────────────────────────────────────────────────
+# Automatically keeps PR titles prefixed with the sorted, bracketed list of
+# every top-level folder touched by the PR's changed files.
+#
+# Example output:
+#   [api, core, root] Add battery availability endpoint
+#
+# Rules enforced:
+#   1. Every changed top-level folder appears in the prefix.
+#   2. Files changed at the repo root contribute the literal scope "root".
+#   3. Scopes are always alphabetically sorted.
+#   4. Any existing [...] prefix is replaced — the description is preserved.
+#
+# The title is updated via the GitHub API using the built-in GITHUB_TOKEN.
+# No personal access tokens or external secrets are required.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# LIMITATIONS
+# ─────────────────────────────────────────────────────────────────────────────
+# - The GitHub API returns at most 100 files per page. PRs touching more than
+#   100 files will have their scopes derived only from the first 100. If your
+#   team regularly produces very large PRs, replace the curl call with a
+#   paginated loop (see GitHub docs: List pull request files).
+#
+# - Scope matching is case-sensitive. A folder named "Core" and a title scope
+#   "core" will be treated as different. Keep folder names lowercase or add
+#   `| tr '[:upper:]' '[:lower:]'` to both sides of the comparison.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# CUSTOMISATION
+# ─────────────────────────────────────────────────────────────────────────────
+# To ignore certain top-level folders (e.g. ".github", "docs"), add a grep
+# filter after the SUBDIR_SCOPES line:
+#
+#   SUBDIR_SCOPES=$(echo "$FILES" \
+#     | awk -F'/' 'NF>1 {print $1}' \
+#     | grep -vxE '\.github|docs' \
+#     | sort -u)
+#
+# To disable the "root" scope (i.e. silently ignore root-level file changes),
+# simply delete the ROOT_SCOPE block and its entry in the printf merge below.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: PR Title Scope Sync
+
+on:
+  pull_request:
+    types:
+      - opened # First push of a new PR
+      - edited # PR title or body was manually changed
+      - synchronize # New commits pushed to the PR branch
+      - reopened # PR was re-opened after being closed
+
+# The workflow needs write access to pull requests so it can PATCH the title.
+# All other permissions are left at their default (read or none).
+permissions:
+  pull-requests: write
+
+# Only allow one run per PR at a time. If a new event arrives (e.g. the
+# `edited` event fired by our own title PATCH) while a run is still in
+# progress, the in-progress run is cancelled and the new one takes over.
+#
+# This prevents a race condition where two concurrent runs each read the
+# current title, independently prepend a new scope prefix, and produce a
+# title with duplicate bracket groups like "[api] [api, core] Description".
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  sync-title-scopes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Auto-update PR title with sorted scopes
+        env:
+          # The current PR title, injected from the webhook payload.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          # Built-in token — no setup required.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Full repo identifier, e.g. "my-org/my-repo".
+          REPO: ${{ github.repository }}
+        run: |
+          # ── 1. Fetch the list of files changed in this PR ──────────────────
+          #
+          # The API returns an array of file objects; we extract just the
+          # filename field. per_page=100 is the maximum allowed by GitHub.
+          FILES=$(curl -s \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files?per_page=100" \
+            | jq -r '.[].filename')
+
+          echo "Changed files:"
+          echo "$FILES"
+          echo "---"
+
+          # ── 2. Derive scopes from changed file paths ───────────────────────
+          #
+          # Files in subdirectories (contain at least one "/"):
+          #   "core/models/battery.py"  →  "core"
+          #   "api/routes/health.py"    →  "api"
+          SUBDIR_SCOPES=$(echo "$FILES" | awk -F'/' 'NF>1 {print $1}' | sort -u)
+
+          # Files at the repo root (no "/" in their path):
+          #   "README.md"      →  "root"
+          #   ".env.example"   →  "root"
+          # The `exit` after the first match means we only ever emit "root"
+          # once, regardless of how many root-level files were changed.
+          ROOT_SCOPE=$(echo "$FILES" | awk -F'/' 'NF==1 {print "root"; exit}')
+
+          # Merge both sets, drop empty lines, sort and deduplicate.
+          SCOPES=$(printf "%s\n%s\n" "$ROOT_SCOPE" "$SUBDIR_SCOPES" \
+            | grep -v '^$' \
+            | sort -u)
+
+          # If the PR somehow has no changed files, leave the title alone.
+          if [ -z "$SCOPES" ]; then
+            echo "✅ No changes detected, leaving title as-is."
+            exit 0
+          fi
+
+          # ── 3. Build the new scope prefix ──────────────────────────────────
+          #
+          # Convert the newline-separated list into "api, core, root" and
+          # wrap it in brackets → "[api, core, root]".
+          #
+          # tr '\n' ','     → "api,core,root,"
+          # sed 's/,/, /g'  → "api, core, root,"
+          # sed 's/, $//'   → "api, core, root"   (trim trailing separator)
+          SCOPE_LIST=$(echo "$SCOPES" | tr '\n' ',' | sed 's/,/, /g;s/, $//')
+          NEW_PREFIX="[$SCOPE_LIST]"
+
+          # ── 4. Strip any existing scope prefix(es) from the current title ──
+          #
+          # We use a GREEDY match that removes ALL leading [...] groups, not
+          # just one. This is a belt-and-suspenders defence against the race
+          # condition where two concurrent runs each prepend a bracket group,
+          # producing a title like "[api] [api, core] Description". The
+          # concurrency group above prevents this in most cases, but the
+          # greedy strip ensures we self-heal if it ever slips through.
+          #
+          # Regex breakdown (extended regex via sed -E):
+          #   ^              — start of string
+          #   (              — begin repeating group
+          #     \[           — literal "["
+          #     [^]]*        — any characters that are not "]"
+          #                    (in extended regex, ] as the first char after
+          #                    [^ is treated as literal, so [^]] = "not ]")
+          #     \]           — literal "]"
+          #     [[:space:]]* — optional trailing whitespace
+          #   )*             — zero or more of the above group
+          #
+          # Examples:
+          #   "[api, core] Add feature"        →  "Add feature"
+          #   "[api] [api, core] Add feature"  →  "Add feature"  (self-heal)
+          #   "Add feature"                    →  "Add feature"  (no-op)
+          BARE_TITLE=$(echo "$PR_TITLE" | sed -E 's/^(\[[^]]*\][[:space:]]*)*//')
+
+          # ── 5. Assemble and apply the new title ────────────────────────────
+          NEW_TITLE="$NEW_PREFIX $BARE_TITLE"
+
+          echo "Old title: $PR_TITLE"
+          echo "New title: $NEW_TITLE"
+
+          # Skip the API call if nothing actually changed.
+          if [ "$NEW_TITLE" = "$PR_TITLE" ]; then
+            echo "✅ Title already correct, no update needed."
+            exit 0
+          fi
+
+          # PATCH the PR title via the GitHub REST API.
+          #
+          # We use `jq -n --arg` to build the JSON body rather than shell
+          # string interpolation — this correctly escapes quotes, backslashes,
+          # and other special characters that might appear in a PR title.
+          curl -s -X PATCH \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER" \
+            -d "$(jq -n --arg title "$NEW_TITLE" '{"title": $title}')"
+
+          echo "✅ PR title updated successfully."
