@@ -1,5 +1,6 @@
 import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export const useGetProjectBessWaterfall = ({
@@ -20,7 +21,7 @@ export const useGetProjectBessWaterfall = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
 
   return useCustomQuery<components['schemas']['ProjectBessWaterfallResponse']>({
@@ -50,7 +51,7 @@ export const useGetBessAuxEnergyDailyAvg = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
 
   return useCustomQuery<components['schemas']['AuxEnergyDailyAvgResponse']>({

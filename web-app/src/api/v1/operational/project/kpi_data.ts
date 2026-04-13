@@ -89,7 +89,7 @@ export const useGetRoundTripEfficiencyV2 = ({
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    staleTime: QUERY_TIME.SIX_HOURS, // 6 hours
   }
   return useCustomQuery<components['schemas']['RTEResponse']>({
     axiosConfig,
