@@ -2453,6 +2453,260 @@ class Transformer(Base):
     )
 
 
+class BESSString(Base):
+    """BESS string equipment specifications."""
+
+    __tablename__ = "bess_strings"
+
+    bess_string_id: Mapped[int] = mapped_column(
+        primary_key=True,
+    )
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("admin.companies.company_id"),
+        primary_key=True,
+        server_default="01959294-3e51-4d3e-9f57-e9c2c3635c84",
+    )
+    device_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.device_models.device_model_id"),
+    )
+
+    configuration: Mapped[str | None]
+    chemistry: Mapped[str | None]
+    cells_in_series: Mapped[int | None]
+    strings_in_parallel: Mapped[int | None]
+    module_count: Mapped[int | None]
+
+    nominal_energy_kwh: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    nominal_power_kw: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    charge_power_max_kw: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    discharge_power_max_kw: Mapped[float | None] = mapped_column(sa.Float)
+    operating_voltage_min_v: Mapped[float | None] = mapped_column(sa.Float)
+    operating_voltage_max_v: Mapped[float | None] = mapped_column(sa.Float)
+
+    dimensions_width_mm: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    dimensions_depth_mm: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    dimensions_height_mm: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    weight_kg: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+
+    bms_supply_voltage_vdc: Mapped[float | None] = mapped_column(sa.Float)
+    bms_cell_voltage_accuracy_mv: Mapped[dict | None] = mapped_column(JSONB)
+    bms_total_voltage_accuracy_pct: Mapped[float | None] = mapped_column(sa.Float)
+    bms_total_voltage_detection_min_v: Mapped[float | None] = mapped_column(sa.Float)
+    bms_total_voltage_detection_max_v: Mapped[float | None] = mapped_column(sa.Float)
+    bms_current_accuracy_pct: Mapped[float | None] = mapped_column(sa.Float)
+    bms_current_min_a: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    bms_current_max_a: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    bms_temperature_accuracy_c: Mapped[dict | None] = mapped_column(JSONB)
+    bms_soc_accuracy_pct: Mapped[float | None] = mapped_column(sa.Float)
+    bms_soc_accuracy_notes: Mapped[str | None]
+
+    enclosure_rating_battery: Mapped[str | None]
+    enclosure_rating_electrical: Mapped[str | None]
+    anti_corrosion_rating: Mapped[str | None]
+
+    operating_temp_min_c: Mapped[float | None] = mapped_column(sa.Float)
+    operating_temp_max_c: Mapped[float | None] = mapped_column(sa.Float)
+    storage_temp_min_c: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    storage_temp_max_c: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    relative_humidity_min_pct: Mapped[float | None] = mapped_column(sa.Float)
+    relative_humidity_max_pct: Mapped[float | None] = mapped_column(sa.Float)
+    altitude_max_m: Mapped[float | None] = mapped_column(sa.Float)
+
+    thermal_management_method: Mapped[str | None]
+    auxiliary_power_phase: Mapped[str | None]
+    auxiliary_power_ac_min_v: Mapped[float | None] = mapped_column(sa.Float)
+    auxiliary_power_ac_max_v: Mapped[float | None] = mapped_column(sa.Float)
+    auxiliary_power_frequency_hz: Mapped[dict | None] = mapped_column(JSONB)
+
+    charge_power_limit_map: Mapped[dict | None] = mapped_column(JSONB)
+    discharge_power_limit_map: Mapped[dict | None] = mapped_column(JSONB)
+    standards: Mapped[dict | None] = mapped_column(JSONB)
+
+    source_filename: Mapped[str | None]
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        onupdate=sa.func.now(),
+        server_default=sa.func.now(),
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint("device_model_id", "company_id"),
+        {"schema": "operational"},
+    )
+
+
+class BESSPCS(Base):
+    """BESS PCS equipment specifications."""
+
+    __tablename__ = "bess_pcss"
+
+    bess_pcs_id: Mapped[int] = mapped_column(
+        primary_key=True,
+    )
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("admin.companies.company_id"),
+        primary_key=True,
+        server_default="01959294-3e51-4d3e-9f57-e9c2c3635c84",
+    )
+    device_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.device_models.device_model_id"),
+    )
+
+    # DC-side
+    dc_voltage_min_v: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    dc_voltage_max_v: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    battery_voltage_min_v: Mapped[float | None] = mapped_column(sa.Float)
+    battery_voltage_max_v: Mapped[float | None] = mapped_column(sa.Float)
+    dc_current_max_a: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    dc_current_per_input_a: Mapped[float | None] = mapped_column(sa.Float)
+    num_dc_inputs: Mapped[int | None]
+    dc_input_topology: Mapped[str | None]
+
+    # AC-side
+    ac_power_nominal_kw: Mapped[float | None] = mapped_column(sa.Float)
+    ac_power_max_kw: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    ac_voltage_nominal_v: Mapped[float | None] = mapped_column(sa.Float)
+    ac_voltage_min_v: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    ac_voltage_max_v: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    ac_current_max_a: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    grid_frequency_nominal_hz: Mapped[float | None] = mapped_column(sa.Float)
+    power_factor_min: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    power_factor_max: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    thdi_pct: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+
+    # Bidirectional / storage
+    bidirectional: Mapped[bool | None]
+    charge_power_max_kw: Mapped[float | None] = mapped_column(sa.Float)
+    discharge_power_max_kw: Mapped[float | None] = mapped_column(sa.Float)
+    four_quadrant_operation: Mapped[bool | None]
+    black_start_capability: Mapped[bool | None]
+    grid_forming_capable: Mapped[bool | None]
+    grid_following_capable: Mapped[bool | None]
+    response_time_ms: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+
+    # Off-grid / microgrid
+    offgrid_supported: Mapped[bool | None]
+    offgrid_voltage_nominal_v: Mapped[float | None] = mapped_column(sa.Float)
+    offgrid_voltage_min_v: Mapped[float | None] = mapped_column(sa.Float)
+    offgrid_voltage_max_v: Mapped[float | None] = mapped_column(sa.Float)
+    offgrid_voltage_distortion_pct: Mapped[float | None] = mapped_column(sa.Float)
+    dc_injection_limit_pct: Mapped[float | None] = mapped_column(sa.Float)
+    unbalanced_load_capacity_pct: Mapped[float | None] = mapped_column(sa.Float)
+
+    # Efficiency
+    efficiency_max_pct: Mapped[float | None] = mapped_column(sa.Float)
+    efficiency_cec_pct: Mapped[float | None] = mapped_column(sa.Float)
+    efficiency_european_pct: Mapped[float | None] = mapped_column(sa.Float)
+
+    # Transformer
+    transformer_integrated: Mapped[bool | None]
+    transformer_power_rating_kva: Mapped[float | None] = mapped_column(sa.Float)
+    transformer_lv_voltage_kv: Mapped[float | None] = mapped_column(sa.Float)
+    transformer_mv_voltage_kv: Mapped[float | None] = mapped_column(sa.Float)
+    transformer_vector_group: Mapped[str | None]
+    transformer_cooling_type: Mapped[str | None]
+    transformer_insulation_type: Mapped[str | None]
+
+    # Environmental / mechanical
+    ip_rating: Mapped[str | None]
+    operating_temp_min_c: Mapped[float | None] = mapped_column(sa.Float)
+    operating_temp_max_c: Mapped[float | None] = mapped_column(sa.Float)
+    relative_humidity_max_pct: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    altitude_max_m: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+    cooling_method: Mapped[str | None]
+    dimensions_width_mm: Mapped[float | None] = mapped_column(sa.Float)
+    dimensions_depth_mm: Mapped[float | None] = mapped_column(sa.Float)
+    dimensions_height_mm: Mapped[float | None] = mapped_column(sa.Float)
+    weight_kg: Mapped[float | None] = mapped_column(
+        sa.Float,
+    )
+
+    # Communications / controls
+    communication_protocols: Mapped[list[str] | None] = mapped_column(
+        sa.ARRAY(sa.String)
+    )
+    supports_ieee_2030_5: Mapped[bool | None]
+    supports_scada: Mapped[bool | None]
+    ems_interface: Mapped[bool | None]
+
+    # System architecture / features
+    modular: Mapped[bool | None]
+    module_power_rating_kw: Mapped[float | None] = mapped_column(sa.Float)
+    max_system_power_kw: Mapped[float | None] = mapped_column(sa.Float)
+    containerized: Mapped[bool | None]
+    mv_station_integrated: Mapped[bool | None]
+    battery_cluster_expansion: Mapped[bool | None]
+    soc_balancing_support: Mapped[bool | None]
+
+    source_filename: Mapped[str | None]
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        onupdate=sa.func.now(),
+        server_default=sa.func.now(),
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint("device_model_id", "company_id"),
+        {"schema": "operational"},
+    )
+
+
 class CMMSProvider(Base):
     __tablename__ = "cmms_providers"
 
