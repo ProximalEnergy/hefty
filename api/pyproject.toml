@@ -10,7 +10,7 @@ dependencies = [
     "botocore~=1.42",
     "clerk-backend-api~=5.0",
     "core",
-    "fastapi~=0.134",
+    "fastapi~=0.135",
     "fastapi-mcp==0.4.0",
     "geoalchemy2>=0.18,<0.19",
     "google-api-python-client>=2.166.0,<3",
@@ -29,7 +29,7 @@ dependencies = [
     "plotly>=6.3.1,<7",
     # Added strict version constraint to avoid breaking change introduced here:
     # https://github.com/pola-rs/polars/pull/24027
-    "polars==1.38.1",
+    "polars==1.39",
     "psycopg2-binary==2.9.11",
     "pvlib~=0.14",
     "pyarrow~=23.0",
