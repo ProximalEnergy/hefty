@@ -48,6 +48,8 @@ name: PR Title Scope Sync
 
 on:
   pull_request:
+    branches:
+      - dev
     types:
       - opened # First push of a new PR
       - edited # PR title or body was manually changed
@@ -72,6 +74,11 @@ concurrency:
 
 jobs:
   sync-title-scopes:
+    if: |
+      github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.head.ref != 'dev' &&
+      github.event.pull_request.head.ref != 'staging' &&
+      github.event.pull_request.head.ref != 'main'
     runs-on: ubuntu-latest
 
     steps:
