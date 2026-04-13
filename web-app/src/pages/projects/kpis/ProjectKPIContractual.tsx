@@ -1,4 +1,3 @@
-import { QUERY_TIME } from '@/utils/queryTiming'
 import { DeviceTypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
@@ -11,6 +10,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { KPITypeWithContracts } from '@/hooks/types'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Box,
   Button,

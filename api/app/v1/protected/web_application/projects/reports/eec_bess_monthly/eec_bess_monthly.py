@@ -1957,25 +1957,28 @@ async def get_tps_data(
 
     Returns:
         Tuple of (revenue breakdown DataFrame, generation hourly DataFrame,
-        consumption hourly DataFrame).
+        consumption hourly DataFrame, virtual volume).
     """
 
-    def build_daily_dataframe(
-        *, element: dict, interval_start_utc, project_time_zone: str
+    def df_generator_settlement_frame(
+        *,
+        element: dict[str, Any],
+        interval_start_utc: Any,
+        project_time_zone: str,
     ) -> pd.DataFrame:
-        df_all = pd.DataFrame(
+        df = pd.DataFrame(
             index=interval_start_utc,
             data=element["DataPoints"],
         )
-        df_all.index = pd.to_datetime(df_all.index)
-        df_all.index = df_all.index.tz_convert(project_time_zone)
-        df_all = df_all.drop(
-            columns=list(DROP_COLUMNS & set(df_all.columns)), errors="ignore"
-        )
+        df.index = pd.to_datetime(df.index)
+        df.index = df.index.tz_convert(project_time_zone)
+        return df
 
-        missing = REQUIRED_COLUMNS - set(df_all.columns)
-        if missing:
-            raise ValueError(f"Element missing required columns: {sorted(missing)}")
+    def build_daily_dataframe(*, df_all_in: pd.DataFrame) -> pd.DataFrame:
+        df_all = df_all_in.drop(
+            columns=list(DROP_COLUMNS & set(df_all_in.columns)),
+            errors="ignore",
+        )
 
         df_daily = df_all.groupby(pd.Grouper(freq="D")).sum()
 
@@ -2142,7 +2145,8 @@ async def get_tps_data(
         raise ValueError("Generator settlement response missing elements.")
 
     selected_element: dict[str, Any] | None = None
-    df_all: pd.DataFrame | None = None
+    best_candidate: dict[str, Any] | None = None
+    best_candidate_keys: set[str] = set()
 
     for candidate in generator_elements:
         data_points = candidate.get("DataPoints")
@@ -2153,27 +2157,34 @@ async def get_tps_data(
             continue
 
         candidate_keys = set(data_points.keys())
+        if len(REQUIRED_COLUMNS & candidate_keys) > len(
+            REQUIRED_COLUMNS & best_candidate_keys
+        ):
+            best_candidate = candidate
+            best_candidate_keys = candidate_keys
+
         if REQUIRED_COLUMNS.issubset(candidate_keys):
             selected_element = candidate
-
-            df_all = pd.DataFrame(
-                index=generator_data["IntervalStartUtc"],
-                data=selected_element["DataPoints"],
-            )
-            df_all.index = pd.to_datetime(df_all.index)
-            df_all.index = df_all.index.tz_convert(project.time_zone)
             break
 
-    if selected_element is None or df_all is None:
-        raise ValueError(
-            "Could not find generator settlement element with required columns."
-        )
+    if selected_element is None:
+        if best_candidate is None:
+            raise ValueError(
+                "Could not find generator settlement element with required columns."
+            )
+        selected_element = best_candidate
 
-    rev_breakdown_df = build_daily_dataframe(
+    df_all = df_generator_settlement_frame(
         element=selected_element,
         interval_start_utc=generator_data["IntervalStartUtc"],
         project_time_zone=project.time_zone,
     )
+    missing_df_all = REQUIRED_COLUMNS - set(df_all.columns)
+    if missing_df_all:
+        for col in sorted(missing_df_all):
+            df_all[col] = 0.0
+
+    rev_breakdown_df = build_daily_dataframe(df_all_in=df_all)
 
     meter = df_all["TWTG"]
     hourly_gen = meter[meter >= 0].resample("1h").sum()
@@ -2193,7 +2204,12 @@ async def get_tps_data(
         index="date", columns="hour", values="value"
     ).abs()
 
-    return rev_breakdown_df, generation_hourly, consumption_hourly, virtual_volume
+    return (
+        rev_breakdown_df,
+        generation_hourly,
+        consumption_hourly,
+        virtual_volume,
+    )
 
 
 async def generate_revenue_breakdown_chart(
