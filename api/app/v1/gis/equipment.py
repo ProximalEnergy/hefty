@@ -56,8 +56,8 @@ async def get_tracker_by_block(
             start=start,
             end=end,
             kpi_type_ids=[
-                KPIType.TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
-                KPIType.TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
+                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
             ],
             project_ids=[project.project_id],
             include_device_data=True,

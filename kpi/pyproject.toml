@@ -101,7 +101,6 @@ explicit_package_bases = true
 disable_error_code = ["import-untyped"]
 mypy_path = "src"
 plugins = ["pydantic.mypy"]
-exclude = ["^_sandbox/"]
 
 # =============================================================================
 # BASEDPYRIGHT CONFIGURATION

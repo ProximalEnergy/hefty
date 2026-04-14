@@ -210,7 +210,7 @@ class TransformPvSummarize(CalcSchema):
     # Tracker Row KPIs
     # =======================================================
 
-    # TRACKER_ROW_AVAILABILITY_BY_ROW (4)
+    # TRACKER_AVAILABILITY_BY_ROW (4)
 
     @method_calc
     def tracker_row_availability_d(
@@ -230,7 +230,7 @@ class TransformPvSummarize(CalcSchema):
             date_local_5m=date_local_5m,
         )
 
-    # TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW (21)
+    # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW (21)
 
     @method_calc
     def tracker_row_deviation_from_setpoint_deg_d(
@@ -252,7 +252,7 @@ class TransformPvSummarize(CalcSchema):
             date_local_5m=date_local_5m,
         )
 
-    # TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
+    # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
     @method_calc
     def tracker_row_setpoint_deviating_from_median_deg_d(
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
@@ -277,7 +277,7 @@ class TransformPvSummarize(CalcSchema):
     # PV Block KPIs
     # =======================================================
 
-    # TRACKER_ROW_AVAILABILITY_BY_BLOCK (3)
+    # TRACKER_AVAILABILITY_BY_BLOCK (3)
     @method_calc
     def block_tracker_row_availability_d(
         is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m),
@@ -295,7 +295,7 @@ class TransformPvSummarize(CalcSchema):
 
     # see above for project level availability
 
-    # TRACKER_ROW_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK (18)
+    # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK (18)
     @method_calc
     def block_tracker_row_deviation_from_setpoint_deg_d(
         position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
@@ -314,7 +314,7 @@ class TransformPvSummarize(CalcSchema):
 
     # see above for project level deviation from setpoint
 
-    # TRACKER_ROW_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK (19)
+    # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK (19)
     @method_calc
     def block_tracker_row_setpoint_deviating_from_median_deg_d(
         setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
