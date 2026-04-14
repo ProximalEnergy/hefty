@@ -37,7 +37,6 @@ dev = [
     "netcdf4~=1.7.0",
     "notebook~=7.5.0",
     "pandas-stubs==3.0.0.260204",
-    "plotly~=6.5.0",
     "poethepoet~=0.42.1",
     "pytest~=9.0",
     "types-psycopg2==2.9.21.20260223",
@@ -102,9 +101,7 @@ explicit_package_bases = true
 disable_error_code = ["import-untyped"]
 mypy_path = "src"
 plugins = ["pydantic.mypy"]
-exclude = [
-    "^_sandbox/",
-]
+exclude = ["^_sandbox/"]
 
 # =============================================================================
 # BASEDPYRIGHT CONFIGURATION
