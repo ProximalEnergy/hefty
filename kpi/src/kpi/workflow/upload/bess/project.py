@@ -120,6 +120,18 @@ models: list[UploadModel] = [
         version="2.0.0",
         project_var=T.project_string_soc_balance_score_d.name,
     ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_POWER_AVAILABILITY,
+        version="2.0.0",
+        project_var=T.project_power_availability_d.name,
+        scale=0.001,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_ENERGY_AVAILABILITY,
+        version="2.0.0",
+        project_var=T.project_energy_availability_d.name,
+        scale=0.001,
+    ),
 ]
 
 registry = {model.kpi_type.name: model for model in models}

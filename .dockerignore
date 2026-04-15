@@ -96,6 +96,11 @@ microservices/microservice_1/**/*
 # microservices/data_connection_outage_notifications_lambda/Dockerfile).
 !core/pyproject.toml
 !core/README.md
+!kpi/pyproject.toml
+!kpi/lambda_function.py
+!kpi/.env
+!kpi/src/
+!kpi/src/**
 
 # Keep only what we need:
 # - core/src/core/** (needed)

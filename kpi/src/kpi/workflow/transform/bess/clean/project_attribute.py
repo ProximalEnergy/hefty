@@ -16,3 +16,8 @@ class TransformBessCleanProjectAttribute(CalcSchema):
         verify_positive,
         field=T.project_power_capacity_raw_kw,
     )
+
+    project_poi_limit_kw = unary_field(
+        verify_positive,
+        field=T.project_poi_limit_raw_kw,
+    )

@@ -5,6 +5,10 @@ field = event_model_field
 
 
 class DownloadEventBess(EventSchema):
-    pcs_module_offline_event_change_5m = field(
+    pcs_offline_event_change_raw_5m = field(
+        device_type=DeviceType.BESS_PCS,
+    )
+
+    pcs_module_offline_event_change_raw_5m = field(
         device_type=DeviceType.BESS_PCS_MODULE,
     )

@@ -18,3 +18,8 @@ class DownloadProjectAttributeBess(ProjectAttributeSchema):
         source_field_name=models.Project.capacity_bess_power_ac.name,
         scale=1000,
     )
+
+    project_poi_limit_raw_kw = field(
+        source_field_name=models.Project.poi.name,
+        scale=1000,
+    )

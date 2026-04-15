@@ -1,6 +1,7 @@
 import xarray as xr
+from core.enumerations import DeviceType
 from kpi.domain.bess import resting_soc
-from kpi.domain.util import diff, fill_accumulator, filter_mask
+from kpi.domain.util import TimeCoords, coord, diff, fill_accumulator, filter_mask
 from kpi.service.field import Field
 from kpi.service.time import DayGrouper
 from kpi.service.transform.method import Input, method_calc
@@ -88,9 +89,7 @@ class TransformBessEvaluate(CalcSchema):
 
     @method_calc
     def project_energy_charged_kwh_5m(
-        energy_total: xr.DataArray = Input(
-            project_total_energy_charged_filled_kwh_5m
-        ),
+        energy_total: xr.DataArray = Input(project_total_energy_charged_filled_kwh_5m),
         power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
     ) -> xr.DataArray:
         difference = diff(energy_total)
@@ -183,3 +182,86 @@ class TransformBessEvaluate(CalcSchema):
         resting_soc,
         field=Clean.string_soc_5m,
     )
+
+    # =======================================================
+    # Other
+    # =======================================================
+
+    @method_calc
+    def project_soh_5m(
+        soh: xr.DataArray = Input(Clean.string_soh_5m),
+    ) -> xr.DataArray:
+        """
+        Project SOH Per 5-Minute Interval
+        average across all string devices for each 5-minute interval.
+        String devices with missing SOH are excluded from the average.
+        """
+        return soh.mean(dim=coord(DeviceType.BESS_STRING))
+
+    # =======================================================
+    # Availability
+    # =======================================================
+
+    @method_calc
+    def pcs_offline_event_5m(
+        offline_event_change: xr.DataArray = Input(Clean.pcs_offline_event_change_5m),
+    ) -> xr.DataArray:
+        """
+        PCS Offline Event Per 5-Minute Interval
+        """
+        return offline_event_change.cumsum(dim=TimeCoords.TIME_5MIN_UTC.value) > 0
+
+    @method_calc
+    def pcs_module_offline_event_5m(
+        offline_event_change: xr.DataArray = Input(
+            Clean.pcs_module_offline_event_change_5m
+        ),
+    ) -> xr.DataArray:
+        """
+        PCS Module Offline Event Per 5-Minute Interval
+        """
+        return offline_event_change.cumsum(dim=TimeCoords.TIME_5MIN_UTC.value) > 0
+
+    @method_calc
+    def pcs_availability_5m(
+        offline_event: xr.DataArray = Input(pcs_offline_event_5m),
+    ) -> xr.DataArray:
+        """
+        PCS Availability Per 5-Minute Interval
+        1 - `offline_event`
+        """
+        return 1 - offline_event
+
+    @method_calc
+    def project_pcs_availability_5m(
+        availability: xr.DataArray = Input(pcs_availability_5m),
+    ) -> xr.DataArray:
+        """
+        Project PCS Availability Per 5-Minute Interval
+        average across all PCS devices for each 5-minute interval.
+        """
+        return availability.mean(dim=coord(DeviceType.BESS_PCS))
+
+    @method_calc
+    def project_energy_availability_5m(
+        availability: xr.DataArray = Input(project_pcs_availability_5m),
+        soh: xr.DataArray = Input(project_soh_5m),
+        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
+    ) -> xr.DataArray:
+        """
+        Project Energy Availability Per 5-Minute Interval
+        system availability multiplied by project SOH and energy capacity.
+        """
+        return availability * soh * energy_capacity
+
+    @method_calc
+    def project_power_availability_5m(
+        availability: xr.DataArray = Input(project_pcs_availability_5m),
+        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
+        poi_capacity: xr.DataArray = Input(Clean.project_poi_limit_kw),
+    ) -> xr.DataArray:
+        """
+        Project Power Availability Per 5-Minute Interval
+        availability times power capacity, clipped at POI capacity
+        """
+        return (availability * power_capacity).clip(max=poi_capacity)

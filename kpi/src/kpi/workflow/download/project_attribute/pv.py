@@ -17,11 +17,6 @@ class DownloadProjectAttributePv(ProjectAttributeSchema):
         scale=1000,
     )
 
-    project_poi_limit_raw_kw = field(
-        source_field_name=models.Project.poi.name,
-        scale=1000,
-    )
-
     project_latitude_raw_deg = Field(Latitude())
 
     project_longitude_raw_deg = Field(Longitude())

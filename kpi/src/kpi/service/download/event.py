@@ -7,7 +7,6 @@ from kpi.service.field import Field, NoInputs
 from kpi.service.field_registry import FieldRegistry
 from kpi.service.observer import observe
 from kpi.service.time import end_tz_aware, start_tz_aware
-from kpi.service.util import assign_var
 from pydantic import BaseModel
 
 
@@ -64,10 +63,7 @@ class EventSchema(FieldRegistry[EventsModel]):
                     project_level=model.project_level,
                     device_type=model.device_type,
                 )
-                assign_var(
-                    dataset,
-                    field,
-                    value,
-                )
+                # allow empty data arrays
+                dataset[field] = value
 
         return dataset

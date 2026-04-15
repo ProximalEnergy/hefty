@@ -17,7 +17,7 @@ from kpi.service.transform.method import Input, Optional, method_calc
 from kpi.service.transform.schema import CalcSchema
 from kpi.workflow.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.workflow.download.sensor.pv import DownloadSensorPv
-from kpi.workflow.transform.hybrid.fields import date_local_5m
+from kpi.workflow.transform.hybrid.fields import date_local_5m, project_poi_limit_kw
 from kpi.workflow.transform.pv.clean import TransformPvClean as Clean
 from kpi.workflow.transform.pv.evaluate import TransformPvEvaluate as Eval
 
@@ -391,7 +391,7 @@ class TransformPvSummarize(CalcSchema):
             Eval.project_theoretical_poa_irradiance_w_m2_5m
         ),
         power: xr.DataArray = Input(Clean.pv_project_power_kw_5m),
-        poi_limit: xr.DataArray = Input(Clean.project_poi_limit_kw),
+        poi_limit: xr.DataArray = Input(project_poi_limit_kw),
         inverter_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m),
         inverter_capacity: xr.DataArray = Input(Clean.inverter_ac_capacity_kw),
         inverter_reactive_power: xr.DataArray = Input(

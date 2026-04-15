@@ -70,11 +70,6 @@ class TransformPvClean(CalcSchema):
         field=Project.project_dc_capacity_raw_kw,
     )
 
-    project_poi_limit_kw = unary_field(
-        verify_positive,
-        field=Project.project_poi_limit_raw_kw,
-    )
-
     # =======================================================
     # Device Attributes
     # =======================================================

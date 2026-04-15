@@ -7,7 +7,7 @@ T = TransformBessSummarize
 models: list[UploadModel] = [
     UploadModel(
         kpi_type=KPIType.BESS_PCS_AVAILABILITY,
-        version="2.0.0",
+        version="2.0.1",
         project_var=T.project_pcs_availability_d.name,
         device_var=T.pcs_availability_d.name,
     ),

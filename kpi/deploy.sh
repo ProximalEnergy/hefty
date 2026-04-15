@@ -2,71 +2,43 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MONO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SWITCH_CORE_SOURCE_SCRIPT="$SCRIPT_DIR/_scripts/switch_core_source.py"
 
-switch_core_source() {
-  local mode="$1"
-  python3 "$SWITCH_CORE_SOURCE_SCRIPT" \
-    --mode "$mode" \
-    --no-sync
-}
+if [[ -n "$(git -C "$MONO_ROOT" status --short)" ]]; then
+  echo "Error: deployment requires a clean git working tree." >&2
+  echo "Commit or stash all changes before running deploy." >&2
+  exit 1
+fi
 
-restore_editable_core_source() {
-  if ! switch_core_source editable; then
-    echo "Warning: failed to restore editable core source in kpi/pyproject.toml" >&2
-  fi
-}
-
-trap restore_editable_core_source EXIT
-
-# Pre-deploy checks (stop on first failure)
-mypy src/kpi
-mypy lambda_function.py
+# Pre-deploy checks (same as `mise run kpi:mypy` + `mise run kpi:pytest`)
+(
+  mise run kpi:mypy
+  mise run kpi:pytest
+)
 
 # Deployment configuration
 ECR_URI="016997484973.dkr.ecr.us-east-2.amazonaws.com/kpi-pipeline-ecr:latest"
 LAMBDA_FUNCTION="kpi-pipeline-lambda"
 IMAGE_NAME="kpi-pipeline-image:latest"
 
-# Load AWS/CodeArtifact auth vars
-. "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
-
-
 # Disable AWS CLI pager for non-interactive script runs
 export AWS_PAGER=""
+export AWS_DEFAULT_REGION="us-east-2"
+export AWS_REGION="us-east-2"
 
-# Ensure Docker Desktop is open on macOS
-open -a Docker
-
-# Wait until Docker daemon is ready (max ~60s)
-for _ in {1..30}; do
-  if docker info >/dev/null 2>&1; then
-    break
-  fi
-  sleep 2
-done
-docker info >/dev/null 2>&1
-
-# Use CodeArtifact source during image build/deploy.
-switch_core_source codeartifact
+if ! docker info >/dev/null 2>&1; then
+  echo "Error: Docker is not running." >&2
+  echo "Open Docker Desktop and try again." >&2
+  exit 1
+fi
 
 # Build and publish container image
-INDEX_USER_ARG="UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=\
-${UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME}"
-INDEX_PASSWORD_ARG="UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=\
-${UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD}"
-
 docker buildx build \
   --platform linux/arm64 \
   --provenance=false \
-  --build-arg "${INDEX_USER_ARG}" \
-  --build-arg "${INDEX_PASSWORD_ARG}" \
+  --load \
   -t "$IMAGE_NAME" \
-  .
-
-# Restore local editable mode immediately after image build.
-restore_editable_core_source
-trap - EXIT
+  -f "$SCRIPT_DIR/Dockerfile" \
+  "$MONO_ROOT"
 
 aws ecr get-login-password --region us-east-2 | docker login \
   --username AWS \

@@ -59,3 +59,13 @@ The entire name should be snake case.
     Short version of the `base.enums.Time` enum. Only needed if there is a time axis.
    - `5m` for `TimeCoords.TIME_5MIN_UTC`
    - `d` for `TimeCoords.DATE_LOCAL`
+
+
+## Docker
+
+Test it locally
+
+```
+docker run --platform linux/arm64 -p 9000:8080 kpi-pipeline-image:latest
+curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"start_date": "2026-04-10", "end_date": "2026-04-15", "project_name_short": "palacios_indie", "kpi_type_ids": [123, 124]}'
+```

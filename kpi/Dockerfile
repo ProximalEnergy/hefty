@@ -1,20 +1,19 @@
 # Build stage
 FROM public.ecr.aws/lambda/python:3.12 AS builder
 
-ARG UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME
-ARG UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD
-
 # Install uv
 RUN pip install uv
 
-# Copy your pyproject.toml file into the container
-COPY pyproject.toml .
-
-# copy src folder into the container
-COPY src/ ./src/
+# Copy local package sources from the monorepo root context.
+WORKDIR /build
+COPY core/pyproject.toml ./core/pyproject.toml
+COPY core/README.md ./core/README.md
+COPY core/src/ ./core/src/
+COPY kpi/pyproject.toml ./kpi/pyproject.toml
+COPY kpi/src/ ./kpi/src/
 
 # Install dependencies from pyproject.toml into the target directory
-# Set environment variables during installation to ensure they're available
+WORKDIR /build/kpi
 RUN uv pip install . --target /tmp/deps
 
 # Runtime stage
@@ -22,12 +21,13 @@ FROM public.ecr.aws/lambda/python:3.12
 
 # Copy dependencies from builder stage
 COPY --from=builder /tmp/deps ${LAMBDA_TASK_ROOT}
+COPY --from=builder /build/core/src/core ${LAMBDA_TASK_ROOT}/core
 
 # copy .env file into the container
-COPY .env ${LAMBDA_TASK_ROOT}
+COPY kpi/.env ${LAMBDA_TASK_ROOT}
 
 # Copy the lambda function code
-COPY lambda_function.py ${LAMBDA_TASK_ROOT}
+COPY kpi/lambda_function.py ${LAMBDA_TASK_ROOT}
 
 # Set the correct handler for the function
 CMD ["lambda_function.lambda_handler"]

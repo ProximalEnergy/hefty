@@ -10,9 +10,3 @@ class DownloadStatusBess(StatusSchema):
         device_type=DeviceType.BESS_BANK,
         failure_modes=[87],
     )
-
-    pcs_status_5m = field(
-        sensor_type=SensorType.BESS_PCS_STATUS,
-        device_type=DeviceType.BESS_PCS,
-        failure_modes=[91],
-    )
