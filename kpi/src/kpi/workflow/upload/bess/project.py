@@ -102,12 +102,12 @@ models: list[UploadModel] = [
     ),
     UploadModel(
         kpi_type=KPIType.BESS_PROJECT_METER_TO_PCS_MODULE_CHARGE_EFFICIENCY,
-        version="2.0.0",
+        version="2.0.1",
         project_var=T.project_pcs_module_charge_efficiency_d.name,
     ),
     UploadModel(
         kpi_type=KPIType.BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY,
-        version="2.0.0",
+        version="2.0.1",
         project_var=T.project_pcs_module_discharge_efficiency_d.name,
     ),
     UploadModel(

@@ -206,6 +206,27 @@ class TransformPvSummarize(CalcSchema):
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.PV_INVERTER_MODULE))
 
+    @method_calc
+    def project_inverter_module_to_meter_efficiency_d(
+        source: xr.DataArray = Input(project_inverter_module_energy_kwh_d),
+        sink: xr.DataArray = Input(project_energy_production_kwh_d),
+        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw),
+    ) -> xr.DataArray:
+        """
+        Project Inverter Module to Meter Efficiency per Day
+        Used to calculate `PV_PROJECT_INVERTER_MODULE_TO_METER_EFFICIENCY` (122).
+        Energy produced at the meter divided by the total energy
+        produced at the inverter module level. Days where the specific
+        yield was less than 2 hours are excluded.
+        """
+        specific_yield = sink / power_capacity
+        source_filtered = source.where(specific_yield > 2)
+        efficiency = sink / source_filtered
+        epsilon = 1e-6
+        return efficiency.where(
+            filter_mask(filter_by=efficiency, min_value=0, max_value=1 + epsilon)
+        )
+
     # =======================================================
     # Tracker Row KPIs
     # =======================================================

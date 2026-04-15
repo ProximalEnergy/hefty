@@ -263,30 +263,42 @@ class TransformBessSummarizeEnergy(CalcSchema):
     ) -> xr.DataArray:
         return energy_charged - aux_energy
 
-    # BESS_PROJECT_METER_TO_PCS_MODULE_CHARGE_EFFICIENCY (116)
-
     @method_calc
     def project_pcs_module_charge_efficiency_d(
         source: xr.DataArray = Input(project_energy_charged_kwh_d),
         sink: xr.DataArray = Input(project_pcs_module_energy_charged_kwh_d),
         energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
     ) -> xr.DataArray:
+        """
+        Project PCS Module Charge Efficiency Per Day
+        Used to calculate `BESS_PROJECT_METER_TO_PCS_MODULE_CHARGE_EFFICIENCY` (116).
+        Total energy charged at the PCS module level divided by
+        the energy charged at the meter. Days where the project
+        charged less than 10% of the energy capacity are excluded.
+        """
         source_filtered = source.where(source / energy_capacity > 0.1)
-        efficiency = source_filtered / sink
+        efficiency = sink / source_filtered
         epsilon = 1e-6
         return efficiency.where(
             filter_mask(filter_by=efficiency, min_value=0, max_value=1 + epsilon)
         )
 
-    # BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY (117)
     @method_calc
     def project_pcs_module_discharge_efficiency_d(
         source: xr.DataArray = Input(project_pcs_module_energy_discharged_kwh_d),
         sink: xr.DataArray = Input(project_energy_discharged_kwh_d),
         energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
     ) -> xr.DataArray:
+        """
+        Project PCS Module Discharge Efficiency Per Day
+        Used to calculate `BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY` (117).
+        Energy discharged at the meter divided by the total energy
+        discharged at the PCS module level. Days where the project
+        discharged less than 10% of the energy capacity
+        (as measured by the PCS) are excluded.
+        """
         source_filtered = source.where(source / energy_capacity > 0.1)
-        efficiency = source_filtered / sink
+        efficiency = sink / source_filtered
         epsilon = 1e-6
         return efficiency.where(
             filter_mask(filter_by=efficiency, min_value=0, max_value=1 + epsilon)

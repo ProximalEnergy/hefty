@@ -59,6 +59,11 @@ models: list[UploadModel] = [
         project_var=T.project_curtailed_energy_kwh_d.name,
         scale=0.001,
     ),
+    UploadModel(
+        kpi_type=KPIType.PV_PROJECT_INVERTER_MODULE_TO_METER_EFFICIENCY,
+        version="2.0.1",
+        project_var=T.project_inverter_module_to_meter_efficiency_d.name,
+    ),
     # =======================================================
     # PV Inverter KPIs
     # =======================================================
