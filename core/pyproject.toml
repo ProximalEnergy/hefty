@@ -75,3 +75,9 @@ DEP002 = ["asyncpg", "greenlet", "psycopg2-binary", "pyarrow"]
 DEP004 = [
     "fastapi", # optional dependency used by api callers
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

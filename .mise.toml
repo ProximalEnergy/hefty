@@ -264,6 +264,7 @@ description = "Run all quality checks for core"
 dir = "core"
 depends = [
   "core:types",
+  "core:pytest",
   "core:ruff",
   "core:ruff_format",
   "core:star_syntax",
@@ -317,7 +318,7 @@ run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.ya
 [tasks."core:pytest"]
 description = "Run pytest for core"
 dir = "core"
-run = "pytest"
+run = "uv run pytest tests"
 
 [tasks."core:enum"]
 description = "Validate enums in core"

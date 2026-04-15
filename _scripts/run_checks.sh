@@ -1103,6 +1103,7 @@ if [ "${RUN_CORE}" = "true" ]; then
     add_db_check "Core: Enum Validation" "mise run core:enum"
     add_check "Core: Unused Import Check" "mise run core:deptry"
     add_check "Core: Dead Code Check" "mise run core:vulture"
+    add_check "Core: Pytest" "mise run core:pytest"
 fi
 
 if [ "${RUN_CORE_WARNINGS}" = "true" ]; then

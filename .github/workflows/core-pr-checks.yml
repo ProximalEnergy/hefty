@@ -102,6 +102,24 @@ jobs:
           uv run --with "${{ steps.resolve_mypy.outputs.requirement }}" mypy
           --config-file ../pyproject.toml src/
 
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+          working-directory: core
+
+      - name: install core project
+        working-directory: core
+        run: uv sync
+
+      - name: run pytest
+        working-directory: core
+        run: uv run pytest tests
+
   validate-enums:
     runs-on: ubuntu-latest
     steps:
