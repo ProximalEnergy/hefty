@@ -581,7 +581,11 @@ class DataTimeseries:
         df = df.rename({"time_bucket": "time"})
         if not isinstance(df["time"].dtype, pl.Datetime):
             df = df.with_columns(
-                pl.from_epoch(pl.col("time"), time_unit="s").alias("time")
+                pl.from_epoch(
+                    # Casting to Int64 due to UInt32 overflow error introduced in https://github.com/pola-rs/polars/pull/26419
+                    pl.col("time").cast(pl.Int64),
+                    time_unit="s",
+                ).alias("time")
             )
         return df
 
