@@ -59,7 +59,7 @@ def calc_rotation_angles(
     solar_position = pd.concat(
         [
             solar_apparent_zenith,
-            solar_azimuth,
+            solar_azimuth.rename("solar_azimuth"),
         ],
         axis=1,
     )
@@ -76,7 +76,7 @@ def calc_rotation_angles(
         group_inputs = unique_by_group.loc[unique_by_group["_unique_id"] == group_id]
         group_rotation_angles = pvlib.tracking.singleaxis(
             apparent_zenith=group_inputs["apparent_zenith"],
-            apparent_azimuth=group_inputs["azimuth"],
+            solar_azimuth=group_inputs["solar_azimuth"],
             axis_tilt=AXIS_TILT,
             cross_axis_tilt=CROSS_AXIS_TILT,
             axis_azimuth=axis_azimuth,

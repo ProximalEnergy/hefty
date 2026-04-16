@@ -1,12 +1,12 @@
 [project]
 name = "pv-expected-energy"
-version = "0.17.0"
+version = "0.17.1"
 description = "PV Expected Energy Model for Proximal Energy"
 readme = "_README.md"
 requires-python = ">=3.12.8,<3.13"
 dependencies = [
     "boto3~=1.41", # for reading pyproject.toml version
-    "core==0.3.118b1",
+    "core==0.3.119b",
     "polars==1.39.0", # for database read interactions (faster than pandas)
     "psycopg2-binary~=2.9.10", # used under the hood by sqlalchemy
     "pvlib~=0.15", # main performance modeling library

@@ -1149,6 +1149,7 @@ if [ "${RUN_API}" = "true" ]; then
 fi
 
 if [ "${RUN_PVEEM}" = "true" ]; then
+    add_check "PV-EEM: Pin Parity Check" "mise run pveem:pin-parity"
     add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
     add_check "PV-EEM: Pytest" "mise run pveem:pytest"
 fi
