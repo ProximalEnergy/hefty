@@ -1,0 +1,13 @@
+[project]
+name = "meta"
+version = "0.1.0"
+description = "Simple TUI for recent git file churn"
+requires-python = ">=3.12.8,<3.13"
+dependencies = []
+
+[project.scripts]
+meta = "meta.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.7.2,<0.8"]
+build-backend = "uv_build"
