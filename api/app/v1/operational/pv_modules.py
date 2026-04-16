@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import Annotated, Any
 
@@ -23,6 +24,8 @@ from app._dependencies.authorization import require_user_company
 from app.domain.equipment.pv_module.parse_pan.c_parse_pan import parse_pan
 
 # --- Routes ---
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/pv-modules", tags=["pv_modules"])
 
 
@@ -235,6 +238,11 @@ async def parse_pan_file(
 
         return result
     except Exception as e:
+        logger.exception(
+            "Failed to parse PAN file upload: filename=%s content_type=%s",
+            file.filename,
+            file.content_type,
+        )
         raise HTTPException(
             status_code=400,
             detail=f"Error parsing PAN file: {str(e)}",

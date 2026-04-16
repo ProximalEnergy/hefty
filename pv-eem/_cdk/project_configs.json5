@@ -43,13 +43,13 @@
   },
   {
     "project_name_short": "sun_pond",
-    "single_diode_model": "PVWATTS",
+    "single_diode_model": "PVSYST",
     "degradation": "warranted",
     "use_poa_only": false
   },
   {
     "project_name_short": "sun_pond",
-    "single_diode_model": "PVWATTS",
+    "single_diode_model": "PVSYST",
     "degradation": "none",
     "use_poa_only": false
   }

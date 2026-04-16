@@ -55,6 +55,15 @@ OUTPUT_DIR = (
     / _OUTPUT_DATE_PART
 )
 OUTPUT_FILE_PATH = OUTPUT_DIR / f"_{SIMULATION_LEVEL}_{_OUTPUT_TIME_PART}.pq"
+PVSYST_REQUIRED_MODULE_COLUMNS = (
+    "r_shunt_0",
+    "r_shunt_exponent",
+    "diode_ideality_factor",
+    "diode_ideality_factor_temp_coefficient",
+)
+PVSYST_SNAPSHOT_ERROR = (
+    "Snapshot incompatible with PVSyst, check database and recapture"
+)
 
 
 def _snapshot_dir() -> Path:
@@ -97,6 +106,29 @@ def _to_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
     if column not in data_frame:
         raise KeyError(f"Missing column '{column}' in snapshot table.")
     return data_frame.loc[:, column]
+
+
+def _to_optional_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
+    if column in data_frame:
+        return data_frame.loc[:, column]
+    return pd.Series(index=data_frame.index, dtype="float64", name=column)
+
+
+def _raise_for_incompatible_pvsyst_snapshot(
+    *, simulation_inputs: SimulationInputs
+) -> None:
+    if (
+        simulation_inputs.simulation_config.single_diode_model
+        != ModelSingleDiode.PVSYST
+    ):
+        return
+
+    missing_values = any(
+        getattr(simulation_inputs.modules, column).isna().any()
+        for column in PVSYST_REQUIRED_MODULE_COLUMNS
+    )
+    if missing_values:
+        raise ValueError(PVSYST_SNAPSHOT_ERROR)
 
 
 def _to_numpy_array(value: Any) -> Any:
@@ -341,6 +373,27 @@ def _read_inputs_snapshot() -> SimulationInputs:
         r_shunt=ModuleEquipmentSeries(
             _to_series(data_frame=module_data, column="r_shunt")
         ),
+        r_shunt_0=ModuleEquipmentSeries(
+            _to_optional_series(data_frame=module_data, column="r_shunt_0")
+        ),
+        r_shunt_exponent=ModuleEquipmentSeries(
+            _to_optional_series(
+                data_frame=module_data,
+                column="r_shunt_exponent",
+            )
+        ),
+        diode_ideality_factor=ModuleEquipmentSeries(
+            _to_optional_series(
+                data_frame=module_data,
+                column="diode_ideality_factor",
+            )
+        ),
+        diode_ideality_factor_temp_coefficient=ModuleEquipmentSeries(
+            _to_optional_series(
+                data_frame=module_data,
+                column="diode_ideality_factor_temp_coefficient",
+            )
+        ),
         modified_ideality_factor=ModuleEquipmentSeries(
             _to_series(data_frame=module_data, column="modified_ideality_factor")
         ),
@@ -506,6 +559,7 @@ def _install_inputs_loader_patch(*, monkeypatch: Any) -> None:
         for key, value in config_overrides.items():
             if hasattr(simulation_inputs.simulation_config, key):
                 setattr(simulation_inputs.simulation_config, key, value)
+        _raise_for_incompatible_pvsyst_snapshot(simulation_inputs=simulation_inputs)
         return simulation_inputs
 
     monkeypatch.setattr(

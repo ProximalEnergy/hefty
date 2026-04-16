@@ -120,6 +120,43 @@ const getSubmitErrorMessage = (error: unknown) => {
   return 'Failed to save module configuration'
 }
 
+const getPANUploadErrorMessage = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const detail = error.response?.data?.detail as unknown
+
+    if (typeof detail === 'string' && detail.trim().length > 0) {
+      return detail
+    }
+
+    if (Array.isArray(detail)) {
+      const issues = detail
+        .map((item) => {
+          if (typeof item === 'string') {
+            return item
+          }
+
+          if (item && typeof item === 'object') {
+            const issue = item as ValidationIssue
+            return typeof issue.msg === 'string' ? issue.msg : null
+          }
+
+          return null
+        })
+        .filter((item): item is string => Boolean(item))
+
+      if (issues.length > 0) {
+        return issues.join(' | ')
+      }
+    }
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message
+  }
+
+  return 'Failed to upload PAN file'
+}
+
 const Page = () => {
   // --- User and Company Info ---
   const self = useGetUserSelf({})
@@ -185,6 +222,11 @@ const Page = () => {
       diodeSaturationCurrent: panData.diode_saturation_current || 1e-10,
       rSeries: panData.r_series || 0.3,
       rShunt: panData.r_shunt || 500,
+      rShunt0: panData.r_shunt_0 || panData.r_shunt || 500,
+      rShuntExponent: panData.r_shunt_exponent || 5.5,
+      diodeIdealityFactor: panData.diode_ideality_factor || 1.2,
+      diodeIdealityFactorTempCoefficient:
+        panData.diode_ideality_factor_temp_coefficient || 0.0,
       modifiedIdealityFactor: panData.modified_ideality_factor || 1.2,
       eg: panData.eg || 1.12,
       degdt: panData.degdt || -0.0002,
@@ -201,6 +243,7 @@ const Page = () => {
   const parsePANfileMutation = useParsePANfileMutation({
     onSuccess: (data) => {
       setUploadedPANData(data)
+      setPanUploadError(null)
       setHasManualEdits(false) // Reset manual edits flag
       populateFormWithPANData(data)
       notifications.show({
@@ -211,9 +254,14 @@ const Page = () => {
       })
     },
     onError: (error) => {
+      const errorMessage = getPANUploadErrorMessage(error)
+
+      setUploadedPANData(null)
+      setPanUploadError(errorMessage)
+
       notifications.show({
         title: 'Upload Error',
-        message: error.message || 'Failed to upload PAN file',
+        message: errorMessage,
         color: 'red',
       })
     },
@@ -225,6 +273,7 @@ const Page = () => {
     setPanFile(file)
     setPanUploadError(null)
     setSelectedModuleId(null)
+    setUploadedPANData(null)
 
     // Parse the PAN file
     parsePANfileMutation.mutate(file)
@@ -256,6 +305,10 @@ const Page = () => {
     diodeSaturationCurrent: number
     rSeries: number
     rShunt: number
+    rShunt0: number
+    rShuntExponent: number
+    diodeIdealityFactor: number
+    diodeIdealityFactorTempCoefficient: number
     modifiedIdealityFactor: number
     eg: number
     degdt: number
@@ -287,6 +340,10 @@ const Page = () => {
       diodeSaturationCurrent: 1e-10,
       rSeries: 0.3,
       rShunt: 500,
+      rShunt0: 500,
+      rShuntExponent: 5.5,
+      diodeIdealityFactor: 1.2,
+      diodeIdealityFactorTempCoefficient: 0.0,
       modifiedIdealityFactor: 1.2,
       eg: 1.12,
       degdt: -0.0002,
@@ -324,6 +381,16 @@ const Page = () => {
         value <= 0 ? 'Cells in series must be positive' : null,
       cellsInParallel: (value) =>
         value <= 0 ? 'Cells in Parallel must be positive' : null,
+      rSeries: (value) =>
+        value <= 0 ? 'Series resistance must be positive' : null,
+      rShunt: (value) =>
+        value <= 0 ? 'Shunt resistance must be positive' : null,
+      rShunt0: (value) =>
+        value <= 0 ? 'Zero-irradiance shunt resistance must be positive' : null,
+      rShuntExponent: (value) =>
+        value <= 0 ? 'Shunt exponent must be positive' : null,
+      diodeIdealityFactor: (value) =>
+        value <= 0 ? 'Diode ideality factor must be positive' : null,
       photocurrent: (value) =>
         value <= 0 ? 'Photocurrent must be positive' : null,
       eg: (value) => (value <= 0 ? 'Bandgap energy must be positive' : null),
@@ -651,6 +718,11 @@ const Page = () => {
       diodeSaturationCurrent: moduleData.diode_saturation_current,
       rSeries: moduleData.r_series,
       rShunt: moduleData.r_shunt,
+      rShunt0: moduleData.r_shunt_0 ?? moduleData.r_shunt,
+      rShuntExponent: moduleData.r_shunt_exponent ?? 5.5,
+      diodeIdealityFactor: moduleData.diode_ideality_factor ?? 1.2,
+      diodeIdealityFactorTempCoefficient:
+        moduleData.diode_ideality_factor_temp_coefficient ?? 0.0,
       modifiedIdealityFactor: moduleData.modified_ideality_factor,
       eg: moduleData.eg,
       degdt: moduleData.degdt,
@@ -733,6 +805,11 @@ const Page = () => {
         diode_saturation_current: values.diodeSaturationCurrent,
         r_series: values.rSeries,
         r_shunt: values.rShunt,
+        r_shunt_0: values.rShunt0,
+        r_shunt_exponent: values.rShuntExponent,
+        diode_ideality_factor: values.diodeIdealityFactor,
+        diode_ideality_factor_temp_coefficient:
+          values.diodeIdealityFactorTempCoefficient,
         modified_ideality_factor: values.modifiedIdealityFactor,
         eg: values.eg,
         degdt: values.degdt,
@@ -1306,6 +1383,50 @@ const Page = () => {
                         step={1}
                         min={0}
                         {...getInputPropsWithTracking('rShunt')}
+                      />
+                    </Grid.Col>
+
+                    <Grid.Col span={6}>
+                      <NumberInput
+                        label="Zero-Irradiance Shunt Resistance (Ω)"
+                        placeholder="Enter zero-irradiance shunt resistance"
+                        step={1}
+                        min={0}
+                        {...getInputPropsWithTracking('rShunt0')}
+                      />
+                    </Grid.Col>
+
+                    <Grid.Col span={6}>
+                      <NumberInput
+                        label="Shunt Resistance Exponent"
+                        placeholder="Enter shunt resistance exponent"
+                        step={0.1}
+                        min={0}
+                        decimalScale={3}
+                        {...getInputPropsWithTracking('rShuntExponent')}
+                      />
+                    </Grid.Col>
+
+                    <Grid.Col span={6}>
+                      <NumberInput
+                        label="Diode Ideality Factor"
+                        placeholder="Enter diode ideality factor"
+                        step={0.01}
+                        min={0}
+                        decimalScale={3}
+                        {...getInputPropsWithTracking('diodeIdealityFactor')}
+                      />
+                    </Grid.Col>
+
+                    <Grid.Col span={6}>
+                      <NumberInput
+                        label="Diode Ideality Temp Coefficient"
+                        placeholder="Enter diode ideality temp coefficient"
+                        step={0.0001}
+                        decimalScale={6}
+                        {...getInputPropsWithTracking(
+                          'diodeIdealityFactorTempCoefficient',
+                        )}
                       />
                     </Grid.Col>
 

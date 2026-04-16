@@ -87,7 +87,7 @@ class PowerAtCombiner:
                     cell_temperature=cell_temperature.cell_temperature,
                     egpoai=egpoai,
                 )
-            case ModelSingleDiode.DESOTO:
+            case ModelSingleDiode.DESOTO | ModelSingleDiode.PVSYST:
                 single_diode_inputs = SingleDiodeParameters(
                     single_diode_model=single_diode_model,
                     indeces=indeces,

@@ -105,10 +105,15 @@ class SingleDiodeParameters:
                 modules.pmax,
                 modules.photocurrent,
                 modules.alpha_isc,
+                modules.cells_in_series,
                 modules.modified_ideality_factor,
                 modules.diode_saturation_current,
                 modules.r_series,
                 modules.r_shunt,
+                modules.r_shunt_0,
+                modules.r_shunt_exponent,
+                modules.diode_ideality_factor,
+                modules.diode_ideality_factor_temp_coefficient,
                 modules.eg,
                 modules.degdt,
                 cell_temperature,
@@ -127,6 +132,12 @@ class SingleDiodeParameters:
                 "diode_saturation_current": "diode_saturation_current_ref",
                 "r_series": "r_series_ref",
                 "r_shunt": "r_shunt_ref",
+                "r_shunt_0": "r_shunt_0_ref",
+                "r_shunt_exponent": "r_shunt_exponent_ref",
+                "diode_ideality_factor": "diode_ideality_factor_ref",
+                "diode_ideality_factor_temp_coefficient": (
+                    "diode_ideality_factor_temp_coefficient_ref"
+                ),
                 "eg": "eg_ref",
                 "degdt": "degdt_ref",
             }
@@ -160,25 +171,26 @@ class SingleDiodeParameters:
                     irrad_ref=IRRAD_REF,
                     temp_ref=TEMP_REF,
                 )
-
-            # case ModelSingleDiode.PVSYST:
-            #     params_raw = pvlib.pvsystem.calcparams_pvsyst(
-            #         effective_irradiance=unique_by_group["global"],
-            #         temp_cell=unique_by_group["cell_temp"],
-            #         alpha_sc=unique_by_group["alpha_isc_ref"],
-            #         gamma_ref=unique_by_group["gamma_ref"],
-            #         mu_gamma=unique_by_group["mu_gamma"],
-            #         I_L_ref=unique_by_group["photocurrent_ref"],
-            #         I_o_ref=unique_by_group["diode_saturation_current_ref"],
-            #         R_sh_ref=unique_by_group["R_sh_ref"],
-            #         R_sh_0=unique_by_group["R_sh_0"],
-            #         R_s=unique_by_group["R_s"],
-            #         cells_in_series=unique_by_group["cells_in_series"],
-            #         R_sh_exp=unique_by_group["R_sh_exp"],  # type: ignore
-            #         EgRef=unique_by_group["EgRef"],  # type: ignore
-            #         irrad_ref=IRRAD_REF,  # type: ignore
-            #         temp_ref=TEMP_REF,  # type: ignore
-            #     )
+            case ModelSingleDiode.PVSYST:
+                params_raw = pvlib.pvsystem.calcparams_pvsyst(
+                    effective_irradiance=unique_by_group["global"],
+                    temp_cell=unique_by_group["cell_temp"],
+                    alpha_sc=unique_by_group["alpha_isc_ref"],
+                    gamma_ref=unique_by_group["diode_ideality_factor_ref"],
+                    mu_gamma=unique_by_group[
+                        "diode_ideality_factor_temp_coefficient_ref"
+                    ],
+                    I_L_ref=unique_by_group["photocurrent_ref"],
+                    I_o_ref=unique_by_group["diode_saturation_current_ref"],
+                    R_sh_ref=unique_by_group["r_shunt_ref"],
+                    R_sh_0=unique_by_group["r_shunt_0_ref"],
+                    R_s=unique_by_group["r_series_ref"],
+                    cells_in_series=unique_by_group["cells_in_series"],
+                    R_sh_exp=unique_by_group["r_shunt_exponent_ref"],
+                    EgRef=unique_by_group["eg_ref"],
+                    irrad_ref=IRRAD_REF,
+                    temp_ref=TEMP_REF,
+                )
             case _:
                 raise ValueError(
                     f"Unsupported single diode model: {single_diode_model}"

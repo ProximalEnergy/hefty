@@ -239,7 +239,7 @@ if __name__ == "__main__":
     result = asyncio.run(
         get_expected_energy(
             # ARGS
-            project_name_short="sigurd",  # noqa: hardcoded-name-short
+            project_name_short="sigurd",  # allow: hardcoded-name-short
             simulation_temporal_mode=SimulationTemporalMode.WINDOW,
             simulation_start="2025-10-01 00:00:00",
             simulation_end="2025-10-01 23:55:00",

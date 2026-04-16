@@ -1246,6 +1246,22 @@ class PVModule(BaseModel):
     )
     r_series: float = Field(..., description="Series resistance in ( Ω )")
     r_shunt: float = Field(..., description="Shunt resistance in ( Ω )")
+    r_shunt_0: float | None = Field(
+        default=None,
+        description="Zero-irradiance shunt resistance",
+    )
+    r_shunt_exponent: float | None = Field(
+        default=None,
+        description="PVsyst shunt resistance exponent",
+    )
+    diode_ideality_factor: float | None = Field(
+        default=None,
+        description="PVsyst diode ideality factor (gamma_ref)",
+    )
+    diode_ideality_factor_temp_coefficient: float | None = Field(
+        default=None,
+        description="PVsyst diode ideality factor temperature coefficient",
+    )
     modified_ideality_factor: float = Field(..., description="Modified ideality factor")
     eg: float = Field(..., description="Bandgap energy in ( eV )")
     degdt: float = Field(..., description="delta eg over delta temperature")

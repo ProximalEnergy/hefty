@@ -10586,6 +10586,26 @@ export interface components {
              */
             r_shunt: number;
             /**
+             * R Shunt 0
+             * @description Zero-irradiance shunt resistance
+             */
+            r_shunt_0?: number | null;
+            /**
+             * R Shunt Exponent
+             * @description PVsyst shunt resistance exponent
+             */
+            r_shunt_exponent?: number | null;
+            /**
+             * Diode Ideality Factor
+             * @description PVsyst diode ideality factor (gamma_ref)
+             */
+            diode_ideality_factor?: number | null;
+            /**
+             * Diode Ideality Factor Temp Coefficient
+             * @description PVsyst diode ideality factor temperature coefficient
+             */
+            diode_ideality_factor_temp_coefficient?: number | null;
+            /**
              * Modified Ideality Factor
              * @description Modified ideality factor
              */

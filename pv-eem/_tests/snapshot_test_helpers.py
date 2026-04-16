@@ -32,9 +32,20 @@ from p01_get_data.source_proximal.s04_get_system_data import System
 from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
 from p01_get_data.source_proximal.s09_get_module_data import Module
 from p01_get_data.source_proximal.s09_get_racking_data import Racking
+from p02_simulation.p4_dc_iv.s02_single_diode_params import ModelSingleDiode
 from p03_export.s00_simulation_level import SimulationLevel
 
 logger = logging.getLogger(__name__)
+
+PVSYST_REQUIRED_MODULE_COLUMNS = (
+    "r_shunt_0",
+    "r_shunt_exponent",
+    "diode_ideality_factor",
+    "diode_ideality_factor_temp_coefficient",
+)
+PVSYST_SNAPSHOT_ERROR = (
+    "Snapshot incompatible with PVSyst, check database and recapture"
+)
 
 
 def _artifacts_root() -> Path:
@@ -311,6 +322,12 @@ def save_snapshot_inputs(
         "diode_saturation_current": simulation_inputs.modules.diode_saturation_current,
         "r_series": simulation_inputs.modules.r_series,
         "r_shunt": simulation_inputs.modules.r_shunt,
+        "r_shunt_0": simulation_inputs.modules.r_shunt_0,
+        "r_shunt_exponent": simulation_inputs.modules.r_shunt_exponent,
+        "diode_ideality_factor": simulation_inputs.modules.diode_ideality_factor,
+        "diode_ideality_factor_temp_coefficient": (
+            simulation_inputs.modules.diode_ideality_factor_temp_coefficient
+        ),
         "modified_ideality_factor": simulation_inputs.modules.modified_ideality_factor,
         "eg": simulation_inputs.modules.eg,
         "degdt": simulation_inputs.modules.degdt,
@@ -393,6 +410,29 @@ def _to_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
     if column not in data_frame:
         raise KeyError(f"Missing column '{column}' in snapshot table.")
     return data_frame.loc[:, column]
+
+
+def _to_optional_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
+    if column in data_frame:
+        return data_frame.loc[:, column]
+    return pd.Series(index=data_frame.index, dtype="float64", name=column)
+
+
+def _raise_for_incompatible_pvsyst_snapshot(
+    *, simulation_inputs: SimulationInputs
+) -> None:
+    if (
+        simulation_inputs.simulation_config.single_diode_model
+        != ModelSingleDiode.PVSYST
+    ):
+        return
+
+    missing_values = any(
+        getattr(simulation_inputs.modules, column).isna().any()
+        for column in PVSYST_REQUIRED_MODULE_COLUMNS
+    )
+    if missing_values:
+        raise ValueError(PVSYST_SNAPSHOT_ERROR)
 
 
 def _to_numpy_array(*, value: Any) -> Any:
@@ -682,6 +722,27 @@ def read_snapshot_inputs(
         r_shunt=ModuleEquipmentSeries(
             _to_series(data_frame=module_data, column="r_shunt")
         ),
+        r_shunt_0=ModuleEquipmentSeries(
+            _to_optional_series(data_frame=module_data, column="r_shunt_0")
+        ),
+        r_shunt_exponent=ModuleEquipmentSeries(
+            _to_optional_series(
+                data_frame=module_data,
+                column="r_shunt_exponent",
+            )
+        ),
+        diode_ideality_factor=ModuleEquipmentSeries(
+            _to_optional_series(
+                data_frame=module_data,
+                column="diode_ideality_factor",
+            )
+        ),
+        diode_ideality_factor_temp_coefficient=ModuleEquipmentSeries(
+            _to_optional_series(
+                data_frame=module_data,
+                column="diode_ideality_factor_temp_coefficient",
+            )
+        ),
         modified_ideality_factor=ModuleEquipmentSeries(
             _to_series(data_frame=module_data, column="modified_ideality_factor")
         ),
@@ -860,6 +921,7 @@ def install_snapshot_inputs_loader_patch(
                 simulation_end=simulation_end,
                 **config_overrides,
             )
+            _raise_for_incompatible_pvsyst_snapshot(simulation_inputs=simulation_inputs)
             save_snapshot_inputs(
                 snapshot_name=snapshot_name, simulation_inputs=simulation_inputs
             )
@@ -876,6 +938,8 @@ def install_snapshot_inputs_loader_patch(
         for key, value in config_overrides.items():
             if hasattr(simulation_inputs.simulation_config, key):
                 setattr(simulation_inputs.simulation_config, key, value)
+
+        _raise_for_incompatible_pvsyst_snapshot(simulation_inputs=simulation_inputs)
 
         return simulation_inputs
 

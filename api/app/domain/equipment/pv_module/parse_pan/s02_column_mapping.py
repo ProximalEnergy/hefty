@@ -3,6 +3,18 @@ from typing import Any
 from app.domain.equipment._utils.enumerations import PANformat
 
 
+def _get_first_value(
+    *,
+    data: dict[str, Any],
+    keys: tuple[str, ...],
+    output_key: str,
+) -> Any:
+    for key in keys:
+        if key in data:
+            return data[key]
+    raise ValueError(f"Something unexpected happened while mapping {output_key}")
+
+
 def format_pan_to_pvmodule(
     *,
     pan_data: dict[str, Any],
@@ -54,7 +66,16 @@ def format_pan_to_pvmodule(
                 "cells_in_parallel": ("NCelP", int),
                 "r_series": ("RSerie", float),
                 "r_shunt": ("RShunt", float),
+                "r_shunt_0": (("RShunt0", "RShunt_0", "Rp_0"), float),
+                "r_shunt_exponent": (
+                    ("RShuntExp", "RShunt_exp", "Rp_Exp"),
+                    float,
+                ),
                 "diode_ideality_factor": ("Gamma", float),
+                "diode_ideality_factor_temp_coefficient": (
+                    ("muGamma", "MuGamma"),
+                    float,
+                ),
                 "alpha_isc": ("muISC", float),
                 "beta_voc": ("muVocSpec", float),
                 "gamma_pmax": ("muPmpReq", float),
@@ -80,6 +101,10 @@ def format_pan_to_pvmodule(
                 "vmp": ("Vmp", float),
                 "r_series": ("RSerie", float),
                 "r_shunt": ("RShunt", float),
+                "r_shunt_0": ("RShunt_0", float),
+                "r_shunt_exponent": ("RShunt_exp", float),
+                "diode_ideality_factor": ("Gamma", float),
+                "diode_ideality_factor_temp_coefficient": ("muGamma", float),
                 "gamma_pmax": ("muPmp", float),
                 "alpha_isc": ("muISC", float),
                 "beta_voc": ("muVocSpec", float),
@@ -88,7 +113,15 @@ def format_pan_to_pvmodule(
     # Build the formatted data dictionary
     formatted_data = {}
     for output_key, (pan_key, target_type) in output_mapping.items():
-        if pan_key in pan_data:
+        if isinstance(pan_key, tuple):
+            formatted_data[output_key] = target_type(
+                _get_first_value(
+                    data=pan_data,
+                    keys=pan_key,
+                    output_key=output_key,
+                )
+            )
+        elif isinstance(pan_key, str) and pan_key in pan_data:
             formatted_data[output_key] = target_type(pan_data[pan_key])
         elif output_key == "bifaciality_factor":
             formatted_data[output_key] = 0.0
@@ -102,6 +135,14 @@ def format_pan_to_pvmodule(
             else:
                 # Crystalline silicon (default): beta_voc = -0.0029 × Voc
                 formatted_data[output_key] = -0.0029 * voc
+        elif output_key == "r_shunt_0":
+            formatted_data[output_key] = formatted_data["r_shunt"]
+        elif output_key == "r_shunt_exponent":
+            formatted_data[output_key] = 5.5
+        elif output_key == "diode_ideality_factor":
+            formatted_data[output_key] = 1.2
+        elif output_key == "diode_ideality_factor_temp_coefficient":
+            formatted_data[output_key] = 0.0
         else:
             raise ValueError(
                 f"Something unexpected happened while mapping {output_key}"

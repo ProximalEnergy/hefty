@@ -54,6 +54,10 @@ class Module:
     diode_saturation_current: ModuleEquipmentSeries
     r_series: ModuleEquipmentSeries
     r_shunt: ModuleEquipmentSeries
+    r_shunt_0: ModuleEquipmentSeries
+    r_shunt_exponent: ModuleEquipmentSeries
+    diode_ideality_factor: ModuleEquipmentSeries
+    diode_ideality_factor_temp_coefficient: ModuleEquipmentSeries
     modified_ideality_factor: ModuleEquipmentSeries
     eg: ModuleEquipmentSeries
     degdt: ModuleEquipmentSeries
@@ -102,6 +106,10 @@ class Module:
                 diode_saturation_current,
                 r_series,
                 r_shunt,
+                r_shunt_0,
+                r_shunt_exponent,
+                diode_ideality_factor,
+                diode_ideality_factor_temp_coefficient,
                 modified_ideality_factor,
                 eg,
                 degdt,
@@ -184,6 +192,16 @@ class Module:
             ),
             r_series=ModuleEquipmentSeries(modules_pd.loc[:, "r_series"]),
             r_shunt=ModuleEquipmentSeries(modules_pd.loc[:, "r_shunt"]),
+            r_shunt_0=ModuleEquipmentSeries(modules_pd.loc[:, "r_shunt_0"]),
+            r_shunt_exponent=ModuleEquipmentSeries(
+                modules_pd.loc[:, "r_shunt_exponent"]
+            ),
+            diode_ideality_factor=ModuleEquipmentSeries(
+                modules_pd.loc[:, "diode_ideality_factor"]
+            ),
+            diode_ideality_factor_temp_coefficient=ModuleEquipmentSeries(
+                modules_pd.loc[:, "diode_ideality_factor_temp_coefficient"]
+            ),
             modified_ideality_factor=ModuleEquipmentSeries(
                 modules_pd.loc[:, "modified_ideality_factor"]
             ),

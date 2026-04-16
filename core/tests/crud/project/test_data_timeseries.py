@@ -28,7 +28,7 @@ def test_get_returns_expected_dataframe_for_clickhouse_page():
 
     async def run_case() -> DataTimeseries:
         timeseries = DataTimeseries(
-            project_name_short="test_project",  # noqa: hardcoded-name-short
+            project_name_short="test_project",  # allow: hardcoded-name-short
             filter_method=FilterMethod.TAG_IDS,
             filter_values=[1],
             query_start=datetime(2024, 1, 1),

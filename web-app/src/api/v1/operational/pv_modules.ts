@@ -206,6 +206,10 @@ export interface PVModuleFromPAN {
   photocurrent: number
   diode_saturation_current: number
   modified_ideality_factor: number
+  r_shunt_0: number
+  r_shunt_exponent: number
+  diode_ideality_factor: number
+  diode_ideality_factor_temp_coefficient: number
 }
 
 export const useParsePANfileMutation = (

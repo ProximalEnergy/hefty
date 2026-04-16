@@ -1,0 +1,43 @@
+{
+  "ENVIRONMENT": "PROD",
+  "SIMULATION_TEMPORAL_MODE": "window",
+  "axis_azimuth": 180.0,
+  "project": {
+    "cod": "2025-10-21",
+    "data_table": "data_timeseries",
+    "elevation": 287.0,
+    "latitude": 33.377983,
+    "longitude": -112.831194,
+    "name_long": "Sun Pond",
+    "name_short": "sun_pond",
+    "poi_limit": 85.0,
+    "time_zone": "America/Phoenix"
+  },
+  "simulation_config": {
+    "sun_position_offset": 0.0,
+    "use_poa_only": false,
+    "use_median_irr_sensor": false,
+    "spa": "NREL_2008",
+    "airmass_relative": "kastenyoung1989",
+    "airmass_absolute": "gueymard1993",
+    "dewpoint_temperature": "magnus_tetens",
+    "extra_terrestrial_dni": "spencer",
+    "decomposition": "erbs_driesse",
+    "retro_transposition": "gti_dirint",
+    "transposition": "Perez_Driesse",
+    "rear_poa": "solar_factors",
+    "circumsolar": "Diffuse",
+    "soiling": "none",
+    "iam": "Physical",
+    "spectral": "FirstSolar",
+    "thermal": "PVSystCell",
+    "thermal_uc": 29.0,
+    "thermal_uv": 0.0,
+    "single_diode_model": "PVSYST",
+    "degradation": "none",
+    "dc_wiring_to_combiner": "target_stc",
+    "dc_wiring_to_inverter": "target_stc",
+    "inverter_efficiency": "sandia"
+  },
+  "version": "0.16.15"
+}

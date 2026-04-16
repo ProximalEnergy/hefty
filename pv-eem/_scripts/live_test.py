@@ -27,7 +27,7 @@ PROJECT_NAME_SHORT = "sun_pond"
 SIMULATION_START = "2026-03-10 12:00:00"
 SIMULATION_END = "2026-03-10 12:05:00"
 SIMULATION_CONFIG = {
-    "single_diode_model": "DESOTO",
+    "single_diode_model": "PVSYST",
     "degradation": "warranted",
     "use_poa_only": False,
 }
