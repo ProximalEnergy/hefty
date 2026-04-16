@@ -8,7 +8,7 @@
   schedule: ["* 5-12 * * 1"],
   timezone: "America/Los_Angeles",
   description: "Schedule Monday at 5 AM Pacific",
-  ignorePaths: ["**/requirements.txt"],
+  ignorePaths: ["**/requirements.txt", "sql-admin/**"],
   packageRules: [
     // =========== Don't Upgrade Python ============
     {
@@ -54,11 +54,6 @@
     {
       matchFileNames: ["microservices/**"],
       groupName: "microservices",
-    },
-    {
-      matchFileNames: ["sql-admin/**"],
-      groupName: "sql-admin",
-      reviewers: ["davidthemathman"],
     },
     {
       matchFileNames: ["pv-eem/**"],
