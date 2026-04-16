@@ -201,6 +201,18 @@ export const themes = {
     '#014C4C',
     '#014848',
   ],
+  'anesco-green': [
+    '#F2F8EA',
+    '#E0EFCF',
+    '#CFE6B4',
+    '#BDDD99',
+    '#ACD37D',
+    '#9BCA62',
+    '#89C147',
+    '#78B82C',
+    '#72AF2A',
+    '#6CA628',
+  ],
 } satisfies Record<string, StringArray10 & MantineColorsTuple>
 
 // Extract the keys from the themes object

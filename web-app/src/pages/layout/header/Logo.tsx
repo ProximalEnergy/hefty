@@ -56,6 +56,20 @@ const OdenLogo = () => {
   )
 }
 
+const AnescoLogo = () => {
+  const computedColorScheme = useComputedColorScheme()
+  return (
+    <Image
+      src={getCompanyLogoUrl(
+        computedColorScheme === 'dark'
+          ? 'logo_anesco_dark.webp'
+          : 'logo_anesco.webp',
+      )}
+      h="70%"
+    />
+  )
+}
+
 const MONTSERRAT_FONT_ID = 'sable-point-montserrat-font'
 
 const SablePointEnergyLogo = () => {
@@ -167,6 +181,8 @@ const Logo = () => {
         return (
           <Image src={getCompanyLogoUrl('logo_doral_renewables.svg')} h="70%" />
         )
+      case 'anesco':
+        return <AnescoLogo />
     }
   }
 

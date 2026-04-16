@@ -5,6 +5,7 @@ import { useUser } from '@clerk/react'
 import { useEffect } from 'react'
 
 const COMPANY_THEME_CONFIG: Record<string, KnownMantineColor | CustomColors> = {
+  anesco: 'anesco-green',
   catl: 'blue',
   cleanamps_energy: 'cleanamps-energy-green',
   desri: 'desri-blue',
