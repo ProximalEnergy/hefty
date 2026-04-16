@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 import xarray as xr
+from kpi.base.protocol import CalcProtocol
 from kpi.service.field import Field
 from kpi.service.util import select_optional, select_var
 
@@ -57,8 +58,8 @@ class MethodCalc:
         return self._fn(**inputs)
 
 
-def method_calc(fn: Callable[[], xr.DataArray]) -> Field[MethodCalc]:
-    return Field[MethodCalc](
+def method_calc(fn: Callable[[], xr.DataArray]) -> Field[CalcProtocol]:
+    return Field[CalcProtocol](
         MethodCalc(
             fn=fn,
             inputs_map=extract_input_mapping(fn),

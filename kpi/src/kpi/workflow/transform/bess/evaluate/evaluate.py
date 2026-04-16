@@ -1,9 +1,11 @@
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import resting_soc
-from kpi.domain.util import TimeCoords, coord, diff, fill_accumulator, filter_mask
+from kpi.domain.util import TimeCoords, coord, fill_accumulator
 from kpi.service.field import Field
-from kpi.service.time import DayGrouper
+from kpi.service.time import DateLocal5m
+from kpi.service.transform.class_calc import Energy5mFromAccumulator
 from kpi.service.transform.method import Input, method_calc
 from kpi.service.transform.schema import CalcSchema
 from kpi.service.transform.unary import unary_field
@@ -11,8 +13,12 @@ from kpi.workflow.download.sensor.bess import DownloadSensorBess
 from kpi.workflow.transform.bess.clean.workflow import TransformBessClean as Clean
 
 
+def field(value: CalcProtocol) -> Field[CalcProtocol]:
+    return Field[CalcProtocol](value=value)
+
+
 class TransformBessEvaluate(CalcSchema):
-    date_local_5m = Field(DayGrouper())
+    date_local_5m = field(DateLocal5m())
 
     # =======================================================
     # Backfill and forward fill accumulators to remove nans
@@ -87,39 +93,37 @@ class TransformBessEvaluate(CalcSchema):
     # Estimate 5-minute energy
     # =======================================================
 
-    @method_calc
-    def project_energy_charged_kwh_5m(
-        energy_total: xr.DataArray = Input(project_total_energy_charged_filled_kwh_5m),
-        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
-    ) -> xr.DataArray:
-        difference = diff(energy_total)
-        epsilon = 1e-6
-        clean_diff = difference.where(
-            filter_mask(
-                filter_by=difference / power_capacity,
-                min_value=-epsilon,
-                max_value=1 / 12 + epsilon,
-            )
-        )
-        return clean_diff
+    # Project level
 
-    @method_calc
-    def project_energy_discharged_kwh_5m(
-        energy_total: xr.DataArray = Input(
-            project_total_energy_discharged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
-    ) -> xr.DataArray:
-        difference = diff(energy_total)
-        epsilon = 1e-6
-        clean_diff = difference.where(
-            filter_mask(
-                filter_by=difference / power_capacity,
-                min_value=-epsilon,
-                max_value=1 / 12 + epsilon,
-            )
+    project_energy_charged_kwh_5m = field(
+        Energy5mFromAccumulator(
+            accumulator=project_total_energy_charged_filled_kwh_5m.name,
+            power_capacity=Clean.project_power_capacity_kw.name,
         )
-        return clean_diff
+    )
+
+    project_energy_discharged_kwh_5m = field(
+        Energy5mFromAccumulator(
+            accumulator=project_total_energy_discharged_filled_kwh_5m.name,
+            power_capacity=Clean.project_power_capacity_kw.name,
+        )
+    )
+
+    # PCS level
+
+    pcs_energy_charged_dc_kwh_5m = field(
+        Energy5mFromAccumulator(
+            accumulator=pcs_total_energy_charged_filled_kwh_5m.name,
+            power_capacity=Clean.pcs_power_capacity_kw.name,
+        )
+    )
+
+    pcs_energy_discharged_dc_kwh_5m = field(
+        Energy5mFromAccumulator(
+            accumulator=pcs_total_energy_discharged_filled_kwh_5m.name,
+            power_capacity=Clean.pcs_power_capacity_kw.name,
+        )
+    )
 
     # =======================================================
     # C-Rate

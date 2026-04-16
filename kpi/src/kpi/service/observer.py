@@ -1,4 +1,3 @@
-import logging
 import warnings
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -16,7 +15,9 @@ from kpi.base.exception import (
 from kpi.base.protocol import ObserverProtocol
 from kpi.base.warning import KpiWarning
 
-_log = logging.getLogger(__name__)
+
+def _prefix(field: str | None) -> str:
+    return f"Field: {field}\n" if field else ""
 
 
 class NoOpObserver:
@@ -63,9 +64,7 @@ class LocalObserver:
     def handle_error(self, error: Exception, *, field_name: str | None = None) -> None:
         if isinstance(error, self.ignore_errors):
             return
-        if field_name:
-            _log.info(" Field: %s", field_name)
-        _log.info("Error: %s", error)
+        print(_prefix(field_name) + f"Error: {error}")  # noqa: T201
         return
 
     def handle_warnings(
@@ -76,9 +75,9 @@ class LocalObserver:
     ) -> None:
         for msg in warning_messages:
             if issubclass(msg.category, self.capture_warnings):
-                if field_name:
-                    _log.info(" Field: %s", field_name)
-                _log.info("Warning: %s", msg.message)
+                print(  # noqa: T201
+                    _prefix(field_name) + f"{msg.category.__name__}: {msg.message}"
+                )
         return
 
 

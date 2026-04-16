@@ -23,7 +23,12 @@ class TimeLocal:
         )
 
 
-class DayGrouper:
+class DateLocal5m:
+    """
+    Local date taking into account time zone and daylight savings
+    for each 5-minute UTC time stamp.
+    """
+
     def inputs(self) -> set[str]:
         return set[str]()
 

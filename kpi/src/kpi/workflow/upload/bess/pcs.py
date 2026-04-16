@@ -77,7 +77,13 @@ models: list[UploadModel] = [
     ),
     # BESS_PCS_EFFICIENCY_CHARGING (91) not implemented
     # BESS_PCS_EFFICIENCY_DISCHARGING (92) not implemented
-    # BESS_PCS_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY (109) not implemented
+    UploadModel(
+        kpi_type=KPIType.BESS_PCS_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
+        version="2.0.0",
+        project_var=T.project_pcs_maximum_continuous_discharged_energy_kwh_d.name,
+        device_var=T.pcs_maximum_continuous_discharged_energy_kwh_d.name,
+        scale=0.001,
+    ),
     UploadModel(
         kpi_type=KPIType.BESS_PCS_STRING_SOC_VARIANCE,
         version="2.0.0",

@@ -4,11 +4,10 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 
 import xarray as xr
 from core.enumerations import DeviceType
-from kpi.base.enumeration import TimeCoords
 from kpi.base.util import coord
-from kpi.domain.bess import daily_energy
-from kpi.domain.util import cumsum, date_local, filter_mask
-from kpi.service.transform.method import Input, method_calc
+from kpi.domain.bess import daily_energy, maximum_continuous_discharged_energy
+from kpi.domain.util import filter_mask
+from kpi.service.transform.method import Input, Optional, method_calc
 from kpi.service.transform.schema import CalcSchema
 from kpi.workflow.transform.bess.clean.workflow import TransformBessClean as Clean
 from kpi.workflow.transform.bess.evaluate.evaluate import TransformBessEvaluate as Eval
@@ -153,6 +152,51 @@ class TransformBessSummarizeEnergy(CalcSchema):
         energy: xr.DataArray = Input(pcs_energy_discharged_dc_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
+
+    @method_calc
+    def pcs_maximum_continuous_discharged_energy_kwh_d(
+        discharge_5m: xr.DataArray = Input(Eval.pcs_energy_discharged_dc_kwh_5m),
+        charge_5m: xr.DataArray = Input(Eval.pcs_energy_charged_dc_kwh_5m),
+        energy_capacity: xr.DataArray | None = Optional(Clean.pcs_energy_capacity_kwh),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+    ) -> xr.DataArray:
+        """
+        PCS Maximum Continuous Discharged Energy (kWh) Per Day
+        Used to calculate `BESS_PCS_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY` (109).
+        See `maximum_continuous_discharged_energy` for more details.
+        """
+        return maximum_continuous_discharged_energy(
+            energy=discharge_5m - charge_5m,
+            is_charging=charge_5m > 1e-6,
+            energy_capacity=energy_capacity,
+            date_local_5m=date_local_5m,
+        )
+
+    @method_calc
+    def project_pcs_maximum_continuous_discharged_energy_kwh_d(
+        pcs_discharge_5m: xr.DataArray = Input(Eval.pcs_energy_discharged_dc_kwh_5m),
+        pcs_charge_5m: xr.DataArray = Input(Eval.pcs_energy_charged_dc_kwh_5m),
+        project_charge_5m: xr.DataArray = Input(Eval.project_energy_charged_kwh_5m),
+        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+    ) -> xr.DataArray:
+        """
+        Project PCS Maximum Continuous Discharged Energy (kWh) Per Day
+        Used to calculate `BESS_PCS_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY` (109).
+        PCS energy is summed across devices before determining the
+        longest continuous discharging period.
+        Since it's possible for some PCS's to be charging slightly while others
+        discharge, the charging period is determined at the meter level.
+        See `maximum_continuous_discharged_energy` for more details.
+        """
+        discharge = pcs_discharge_5m.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
+        charge = pcs_charge_5m.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
+        return maximum_continuous_discharged_energy(
+            energy=discharge - charge,
+            is_charging=project_charge_5m > 1e-6,
+            energy_capacity=energy_capacity,
+            date_local_5m=date_local_5m,
+        )
 
     # =======================================================
     # Circuit level
@@ -312,28 +356,9 @@ class TransformBessSummarizeEnergy(CalcSchema):
         energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
         date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
-        epsilon = 1e-6
-
-        discharge_total = cumsum(discharge_5m)
-
-        discharge_total_while_charging = discharge_total.where(charge_5m > epsilon)
-
-        # determine a baseline total from the most recent charging event
-        total_discharged_since_last_charging = discharge_total_while_charging.ffill(
-            dim=TimeCoords.TIME_5MIN_UTC.value
-        ).fillna(discharge_5m.min())
-
-        total_discharged_during_discharging_event = (
-            discharge_total - total_discharged_since_last_charging
+        return maximum_continuous_discharged_energy(
+            energy=discharge_5m - charge_5m,
+            is_charging=charge_5m > 1e-6,
+            energy_capacity=energy_capacity,
+            date_local_5m=date_local_5m,
         )
-
-        # make sure the total discharged is not greater than the energy capacity
-        filtered = total_discharged_during_discharging_event.where(
-            filter_mask(
-                filter_by=total_discharged_during_discharging_event / energy_capacity,
-                min_value=0,
-                max_value=1,
-            )
-        )
-
-        return filtered.groupby(date_local(date_local_5m)).max()

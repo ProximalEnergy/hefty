@@ -1,6 +1,6 @@
 import xarray as xr
 from kpi.base.enumeration import TimeCoords
-from kpi.domain.util import date_local, diff, filter_mask
+from kpi.domain.util import cumsum, date_local, diff, filter_mask
 
 
 def clean_soc(soc: xr.DataArray) -> xr.DataArray:
@@ -67,3 +67,41 @@ def is_discharging(c_rate: xr.DataArray) -> xr.DataArray:
 
 def is_idling(c_rate: xr.DataArray) -> xr.DataArray:
     return (c_rate < 0.01) & (c_rate > -0.01)
+
+
+def maximum_continuous_discharged_energy(
+    *,
+    energy: xr.DataArray,
+    is_charging: xr.DataArray,
+    date_local_5m: xr.DataArray,
+    energy_capacity: xr.DataArray | None = None,
+) -> xr.DataArray:
+    """
+    The maximum amount of energy that was discharged in a continuous period.
+    If a day has multiple discharging periods, the highest energy period is used.
+    Discharging events that straddle midnight are counted in part (up to midnight)
+    on the previous day and in whole on the next day.
+    """
+
+    discharge_total = cumsum(energy)
+
+    discharge_total_while_charging = discharge_total.where(is_charging)
+
+    # determine a baseline total from the most recent charging event
+    total_discharged_since_last_charging = discharge_total_while_charging.ffill(
+        dim=TimeCoords.TIME_5MIN_UTC.value
+    )
+
+    result = discharge_total - total_discharged_since_last_charging
+
+    # make sure the total discharged is not greater than the energy capacity
+    if energy_capacity is not None:
+        result = result.where(
+            filter_mask(
+                filter_by=result / energy_capacity,
+                min_value=0,
+                max_value=1,
+            )
+        )
+
+    return result.groupby(date_local(date_local_5m)).max()
