@@ -107,3 +107,13 @@ microservices/microservice_1/**/*
 # - microservices/weather_alerts_lambda/** (needed)
 # - microservices/calendar_notifications_lambda/** (needed)
 
+
+# Exclude exceptions for pv-eem Lambda
+!uv.lock
+!pyproject.toml
+!pv-eem/pyproject.toml
+!pv-eem/_scripts/
+!pv-eem/_scripts/**
+!pv-eem/src/
+!pv-eem/src/**
+!pv-eem/.env

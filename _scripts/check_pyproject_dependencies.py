@@ -108,7 +108,12 @@ def has_upper_bound(
     return False
 
 
-def check_pyproject(*, path: Path, errors: list[str]) -> None:
+def check_pyproject(
+    *,
+    path: Path,
+    errors: list[str],
+    extra_allow_unbounded: set[str] | None = None,
+) -> None:
     try:
         with path.open("rb") as file_handle:
             data = tomllib.load(file_handle)
@@ -123,7 +128,7 @@ def check_pyproject(*, path: Path, errors: list[str]) -> None:
     tool = data.get("tool", {})
     uv = tool.get("uv", {})
     sources = uv.get("sources", {})
-    allow_unbounded = set()
+    allow_unbounded: set[str] = set(extra_allow_unbounded or [])
     if isinstance(sources, dict):
         allow_unbounded.update(name.lower().replace("_", "-") for name in sources)
     dependencies = project.get("dependencies", [])
@@ -189,10 +194,26 @@ def discover_pyprojects_via_walk(*, root: Path) -> list[Path]:
     return sorted(paths)
 
 
+def workspace_root_dependencies(*, root: Path) -> set[str]:
+    root_pyproject = root / "pyproject.toml"
+    try:
+        with root_pyproject.open("rb") as fh:
+            data = tomllib.load(fh)
+    except (FileNotFoundError, tomllib.TOMLDecodeError):
+        return set()
+    workspace = data.get("tool", {}).get("uv", {}).get("workspace", {})
+    if not workspace:
+        return set()
+    deps = data.get("project", {}).get("dependencies", [])
+    return {dependency_name(requirement=dep) for dep in deps if isinstance(dep, str)}
+
+
 def main() -> int:
+    root = Path.cwd()
+    root_managed = workspace_root_dependencies(root=root)
     errors: list[str] = []
-    for path in discover_pyprojects(root=Path.cwd()):
-        check_pyproject(path=path, errors=errors)
+    for path in discover_pyprojects(root=root):
+        check_pyproject(path=path, errors=errors, extra_allow_unbounded=root_managed)
 
     if errors:
         print("Pyproject dependency checks failed:", file=sys.stderr)

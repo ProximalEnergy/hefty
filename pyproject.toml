@@ -9,7 +9,10 @@ name = "mono"
 version = "0.1.0"
 description = "Monorepo root for unified tooling"
 requires-python = "~=3.12.8"
-dependencies = []
+dependencies = [
+    "polars==1.39.0",
+    "sqlalchemy~=2.0.41",
+]
 
 [dependency-groups]
 dev = [
@@ -195,3 +198,6 @@ exclude = [
 
 [tool.basedpyright]
 typeCheckingMode = "off"
+
+[tool.uv.workspace]
+members = ["core", "pv-eem"]

@@ -43,7 +43,7 @@ jobs:
 
       - name: install core project
         working-directory: core
-        run: uv sync
+        run: uv sync --package core
 
       - name: resolve root ruff requirement
         id: resolve_ruff
@@ -88,7 +88,7 @@ jobs:
 
       - name: install core project
         working-directory: core
-        run: uv sync
+        run: uv sync --package core
 
       - name: resolve root mypy requirement
         id: resolve_mypy
@@ -114,7 +114,7 @@ jobs:
 
       - name: install core project
         working-directory: core
-        run: uv sync
+        run: uv sync --package core
 
       - name: run pytest
         working-directory: core
@@ -131,7 +131,7 @@ jobs:
           working-directory: core
 
       - name: install project
-        run: uv sync
+        run: uv sync --package core
         working-directory: core
 
       - name: Run enum validation

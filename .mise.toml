@@ -928,16 +928,10 @@ description = "Run project quality checks for pv-eem"
 dir = "pv-eem"
 run = """
 mise run pveem:version-check && \
-mise run pveem:pin-parity && \
 mise run pveem:types && \
 mise run pveem:ruff && \
 mise run pveem:pytest
 """
-
-[tasks."pveem:pin-parity"]
-description = "Check if core production pin matches uv.lock version"
-dir = "pv-eem"
-run = "uv run python _scripts/check_pin_parity.py"
 
 [tasks."pveem:version-check"]
 description = "Ensure local pv-eem version exceeds deployed Lambda version"

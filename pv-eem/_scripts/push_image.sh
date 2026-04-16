@@ -74,16 +74,19 @@ aws ecr get-login-password --region "${aws_region}" |
   docker login --username AWS --password-stdin "${registry}"
 
 echo "[push-image] Building Lambda-compatible image ${local_image_name}"
+# Temporarily copy the workspace uv.lock into the build context
+
+
+
 # Lambda rejects the image indexes/attestations that `buildx --push` can emit.
 # Build a single ARM64 image locally, then push plain image tags to ECR.
 docker buildx build \
   --platform linux/arm64 \
   --provenance=false \
-  --build-arg "CODEARTIFACT_TOKEN=${AWS_CODEARTIFACT_TOKEN}" \
   --load \
   --file "${PROJECT_ROOT}/Dockerfile" \
   --tag "${local_image_name}" \
-  "${PROJECT_ROOT}"
+  "${MONO_ROOT}"
 
 echo "[push-image] Tagging ${image_repo_uri}:${version_tag}"
 docker tag "${local_image_name}" "${image_repo_uri}:${version_tag}"
