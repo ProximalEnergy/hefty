@@ -162,6 +162,7 @@ const PowerPlotPVZoom = () => {
       include_setpoint: true, // Placeholder - set based on actual project properties
       include_soiling: includeSoiling,
       include_degradation: includeDegradation,
+      nighttime_losses: true,
     },
     queryOptions: {
       enabled: !!project.data && !!startTime && !!endTime,

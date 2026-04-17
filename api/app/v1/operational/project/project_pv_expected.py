@@ -30,18 +30,22 @@ async def get_expected_power(
     expected_metric_ids: Annotated[list[int], Query()] = [],
     highest_priority_only: bool = False,
     cutoff_now: bool = False,
+    nighttime_losses: bool = False,
 ):
-    """todo
+    """Return PV expected power time series for requested devices.
 
     Args:
-        project_db: Description for project_db.
-        project: Description for project.
-        start: Description for start.
-        end: Description for end.
-        device_ids: Description for device_ids.
-        expected_metric_ids: Description for expected_metric_ids.
-        highest_priority_only: Description for highest_priority_only.
-        cutoff_now: Description for cutoff_now.
+        project_db: Project-schema database session.
+        project: Operational project (time zone, location, AC capacity).
+        start: Range start (inclusive, interpreted in project time zone).
+        end: Range end (exclusive, interpreted in project time zone).
+        device_ids: Devices to include; project device may be injected for joins.
+        expected_metric_ids: Filter to these EEM expected metric IDs (optional).
+        highest_priority_only: Keep only the best expected_metric_id per device.
+        cutoff_now: Drop future timestamps beyond "now" in the project time zone.
+        nighttime_losses: If True, overwrite night samples (sun below horizon)
+            with ``NIGHTTIME_LOSS_FACTOR * project.capacity_ac`` MW; see
+            ``NIGHTTIME_LOSS_FACTOR`` in ``app.utils`` (EEM NaN gap stand-in).
     """
     project_device_id = 1  # The device_id whose device_type_id is 1 (Project).
     if device_ids == []:
@@ -118,6 +122,13 @@ async def get_expected_power(
     ).ffill()
     if cutoff_now:
         df = df[df.index <= pd.Timestamp.now(tz=project.time_zone)]
+    if nighttime_losses and not df.empty:
+        night = utils.night_mask_leq_horizon(
+            project=project,
+            index=pd.DatetimeIndex(df.index),
+        )
+        loss_mw = utils.NIGHTTIME_LOSS_FACTOR * float(project.capacity_ac or 0)
+        df.loc[night, :] = loss_mw
     df = df.fillna(0)
     df = df.replace(np.nan, None)
 

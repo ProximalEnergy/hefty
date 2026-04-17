@@ -60,6 +60,8 @@ const DataBrowsing = () => {
     'name_full',
   )
   const [interval, setInterval] = useState<string>('5min')
+  const [pvExpectedNighttimeLosses, setPvExpectedNighttimeLosses] =
+    useState(false)
   const [showTags, setShowTags] = useState<
     'curated_tags' | 'unique_patterns' | 'all_tags'
   >('curated_tags')
@@ -533,6 +535,7 @@ const DataBrowsing = () => {
         .map((tag) => -tag.tag_id),
       highest_priority_only: true,
       cutoff_now: true,
+      nighttime_losses: pvExpectedNighttimeLosses,
     },
     queryOptions: {
       enabled: false,
@@ -1092,6 +1095,13 @@ const DataBrowsing = () => {
               flex={1}
             />
           </Group>
+          <Checkbox
+            label="PV expected: fill night with -0.18% site AC (MW)"
+            checked={pvExpectedNighttimeLosses}
+            onChange={(e) =>
+              setPvExpectedNighttimeLosses(e.currentTarget.checked)
+            }
+          />
           <AdvancedDatePicker
             width="100%"
             includeTodayInDateRange

@@ -16,6 +16,7 @@ export const useGetPvExpected = ({
     expected_metric_ids?: number[]
     highest_priority_only?: boolean
     cutoff_now?: boolean
+    nighttime_losses?: boolean
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

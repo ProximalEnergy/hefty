@@ -50,6 +50,7 @@ async def get_meter_power_and_expected_power_v3(
     include_soiling: bool = True,
     include_degradation: bool = False,
     interval: str = "5min",
+    nighttime_losses: bool = False,
 ) -> list[MeterPowerAndExpectedPowerV3Trace]:
     """Return meter and expected power traces for a project.
 
@@ -63,6 +64,9 @@ async def get_meter_power_and_expected_power_v3(
         include_soiling: Whether to request expected power adjusted for soiling.
         include_degradation: Whether to include degradation-adjusted expectation.
         interval: Resampling interval used for tag retrieval (e.g., "5min").
+        nighttime_losses: If True, overwrite night expected power with
+            ``NIGHTTIME_LOSS_FACTOR * project.capacity_ac`` MW (sun below
+            horizon); see ``NIGHTTIME_LOSS_FACTOR`` in ``app.utils``.
     """
 
     if include_soiling:
@@ -134,6 +138,13 @@ async def get_meter_power_and_expected_power_v3(
             tz=project.time_zone,
         )
         df_expected_power = df_expected_power.reindex(full_index)
+        if nighttime_losses:
+            night = utils.night_mask_leq_horizon(
+                project=project,
+                index=pd.DatetimeIndex(df_expected_power.index),
+            )
+            loss_mw = utils.NIGHTTIME_LOSS_FACTOR * float(project.capacity_ac or 0)
+            df_expected_power.loc[night, "value"] = loss_mw
 
     # Dynamically build sensor_type_name_shorts
     sensor_type_ids = [SensorType.METER_ACTIVE_POWER, SensorType.PV_EXPECTED_POWER]

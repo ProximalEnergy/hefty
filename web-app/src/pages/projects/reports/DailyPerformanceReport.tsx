@@ -145,6 +145,7 @@ const DailyEnergyComparison = ({
       include_setpoint: true,
       include_soiling: includeSoiling,
       include_degradation: includeDegradation,
+      nighttime_losses: true,
     },
     queryOptions: {
       enabled: !!projectId && !!startTime && !!endTime,

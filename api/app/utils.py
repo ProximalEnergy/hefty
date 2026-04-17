@@ -3,7 +3,7 @@ import hashlib
 import random
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import numpy as np
 import pandas as pd
@@ -24,6 +24,10 @@ from app._crud.projects.data_timeseries import (
     get_project_data_timeseries_latest,
 )
 from core import models
+
+# EEM nighttime expected-power: project PV inverter capacity_ac (MW) times this
+# factor (~0.18% nameplate) yields standby loss MW.
+NIGHTTIME_LOSS_FACTOR = -0.0018
 
 
 class TagLike(Protocol):
@@ -561,6 +565,27 @@ def get_truetracking_irradiance(
         axis=1,
     )
     return pd.DataFrame(result)
+
+
+def night_mask_leq_horizon(
+    *,
+    project: models.Project,
+    index: pd.DatetimeIndex,
+) -> pd.Series:
+    """True where the solar elevation is at or below the horizon.
+
+    Args:
+        project: Project with geography point and IANA time zone.
+        index: Timezone-aware datetimes for the frame to classify.
+
+    Returns:
+        Boolean series aligned to ``index``.
+    """
+    lon, lat = project.point.coordinates  # type: ignore[attr-defined]
+    site = location.Location(lat, lon, tz=project.time_zone)
+    solpos = site.get_solarposition(times=index)
+    elevation = solpos["elevation"]
+    return cast(pd.Series, elevation <= 0)
 
 
 def map_ancestors_to_descendents(
