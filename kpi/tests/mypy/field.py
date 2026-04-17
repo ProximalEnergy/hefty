@@ -8,12 +8,12 @@ from kpi.base.protocol import (
     ProjectAttributeProtocol,
     SensorProtocol,
 )
-from kpi.service.download.device.attribute import DeviceAttributeModel
-from kpi.service.download.device.hierarchy import DeviceHierarchyModel
-from kpi.service.download.project_attribute import Latitude, ProjectAttributeModel
-from kpi.service.download.sensor import SensorModel
-from kpi.service.field import NoInputs
-from kpi.service.transform.unary import UnaryCalc
+from kpi.op.download.device.attribute import DeviceAttributeModel
+from kpi.op.download.device.hierarchy import DeviceHierarchyModel
+from kpi.op.download.project_attribute import Latitude, ProjectAttributeModel
+from kpi.op.download.sensor import SensorModel
+from kpi.op.field import NoInputs
+from kpi.op.transform.unary import UnaryCalc
 
 if TYPE_CHECKING:
     _no_inputs: HasInputsProtocol = NoInputs()

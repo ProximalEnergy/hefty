@@ -5,10 +5,10 @@ import pytest
 import xarray as xr
 from kpi.base.exception import ValidationError
 from kpi.base.protocol import CalcProtocol
-from kpi.workflow.download.project_attribute.workflow import (
+from kpi.registry.download.project_attribute.api import (
     DownloadProjectAttribute as Download,
 )
-from kpi.workflow.transform.bess.clean.project_attribute import (
+from kpi.registry.transform.bess.clean.project_attribute import (
     TransformBessCleanProjectAttribute as Project,
 )
 

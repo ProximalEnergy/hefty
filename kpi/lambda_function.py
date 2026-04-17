@@ -26,9 +26,9 @@ from core.enumerations import KPIType
 from kpi.base.exception import KpiError
 from kpi.base.warning import UnimplementedWarning
 from kpi.infra.util import get_project_from_database
-from kpi.service.create import create_dataset
-from kpi.service.observer import SentryObserver, observe, set_global_observer
-from kpi.workflow.workflow import get_workflow
+from kpi.op.create import create_dataset
+from kpi.op.observer import SentryObserver, observe, set_global_observer
+from kpi.registry.api import get_workflow
 from pydantic import BaseModel
 from sqlalchemy.exc import DBAPIError, OperationalError
 

@@ -14,8 +14,8 @@ from core.crud import operational as op_crud
 from core.database import with_db
 from core.enumerations import KPIType, ProjectType
 from dotenv import load_dotenv
-from kpi.workflow.upload.workflow import Upload
-from kpi.workflow.workflow import BaseWorkflow
+from kpi.registry.api import BaseWorkflow
+from kpi.registry.upload.api import Upload
 from sqlalchemy import select, text
 
 from core import models

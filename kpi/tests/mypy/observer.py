@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from kpi.base.protocol import ObserverProtocol
-from kpi.service.observer import LocalObserver, NoOpObserver, SentryObserver
+from kpi.op.observer import LocalObserver, NoOpObserver, SentryObserver
 
 if TYPE_CHECKING:
     _noop_observer: ObserverProtocol = NoOpObserver()

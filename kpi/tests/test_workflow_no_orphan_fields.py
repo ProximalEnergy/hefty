@@ -1,7 +1,7 @@
 """Guard against workflow fields that no KPI upload depends on."""
 
-from kpi.service.schema import outputs
-from kpi.workflow.workflow import BaseWorkflow
+from kpi.op.schema import outputs
+from kpi.registry.api import BaseWorkflow
 
 
 def test_no_orphan_workflow_fields() -> None:

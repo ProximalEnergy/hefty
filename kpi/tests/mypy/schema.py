@@ -1,15 +1,15 @@
 from typing import TYPE_CHECKING
 
 from kpi.base.protocol import SchemaClassProtocol, SchemaProtocol
-from kpi.service.download.device.schema import DeviceSchema
-from kpi.service.download.event import EventSchema
-from kpi.service.download.expected_energy import ExpectedEnergySchema
-from kpi.service.download.project_attribute import ProjectAttributeSchema
-from kpi.service.download.sensor import SensorSchema
-from kpi.service.download.status import StatusSchema
-from kpi.service.schema_registry import SchemaRegistry
-from kpi.service.transform.schema import CalcSchema
-from kpi.service.upload import UploadSchema
+from kpi.op.download.device.schema import DeviceSchema
+from kpi.op.download.event import EventSchema
+from kpi.op.download.expected_energy import ExpectedEnergySchema
+from kpi.op.download.project_attribute import ProjectAttributeSchema
+from kpi.op.download.sensor import SensorSchema
+from kpi.op.download.status import StatusSchema
+from kpi.op.schema_registry import SchemaRegistry
+from kpi.op.transform.schema import CalcSchema
+from kpi.op.upload import UploadSchema
 
 if TYPE_CHECKING:
     _device_class: SchemaClassProtocol = DeviceSchema
