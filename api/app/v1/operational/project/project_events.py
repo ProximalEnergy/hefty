@@ -1116,6 +1116,10 @@ async def get_event_trace_tags(
             sensor_type_ids = [
                 SensorType.METER_ACTIVE_POWER,
             ]
+        case DeviceType.PV_FEEDER:
+            sensor_type_ids = [
+                SensorType.PV_INVERTER_AC_POWER,
+            ]
         case _:
             sentry_sdk.capture_exception(
                 ValueError(f"Device type {device['device_type_id']} not supported.")
