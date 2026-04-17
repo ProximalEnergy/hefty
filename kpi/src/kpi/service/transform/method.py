@@ -4,7 +4,7 @@ from typing import Any
 
 import xarray as xr
 from kpi.base.protocol import CalcProtocol
-from kpi.service.field import Field
+from kpi.service.field import Field, MakeField
 from kpi.service.util import select_optional, select_var
 
 
@@ -22,14 +22,26 @@ def Optional(field: Field[Any]) -> xr.DataArray | None:
     return InputType(field.name, optional=True)  # type: ignore
 
 
-def extract_input_mapping(fn: Callable[..., Any]) -> dict[str, InputType]:
-    """Extract param name -> field name for parameters whose default is InputField."""
+MethodFn = Callable[..., xr.DataArray]
+
+
+def extract_input_mapping(fn: MethodFn) -> dict[str, InputType]:
+    """Extract param name -> field name for parameters whose default is Input."""
     mapping: dict[str, InputType] = {}
     for name, param in inspect.signature(fn).parameters.items():
-        if param.default is not inspect.Parameter.empty and isinstance(
-            param.default, InputType
-        ):
-            mapping[name] = param.default
+        if param.default is inspect.Parameter.empty:
+            msg = (
+                f"{fn.__name__}: parameter {name!r} must have an "
+                "Input(...) or Optional(...) default"
+            )
+            raise TypeError(msg)
+        if not isinstance(param.default, InputType):
+            msg = (
+                f"{fn.__name__}: parameter {name!r} default must be "
+                "Input(...) or Optional(...)"
+            )
+            raise TypeError(msg)
+        mapping[name] = param.default
     return mapping
 
 
@@ -37,7 +49,7 @@ class MethodCalc:
     def __init__(
         self,
         *,
-        fn: Callable[[], xr.DataArray],
+        fn: MethodFn,
         inputs_map: dict[str, InputType],
     ) -> None:
         self._fn = fn
@@ -58,11 +70,15 @@ class MethodCalc:
         return self._fn(**inputs)
 
 
-def method_calc(fn: Callable[[], xr.DataArray]) -> Field[CalcProtocol]:
+def method_calc(fn: MethodFn) -> Field[CalcProtocol]:
     return Field[CalcProtocol](
         MethodCalc(
             fn=fn,
             inputs_map=extract_input_mapping(fn),
         ),
         name=fn.__name__,
+        doc=fn.__doc__,
     )
+
+
+calc_field = MakeField[CalcProtocol].infer_doc

@@ -3,7 +3,7 @@ from core.enumerations import DeviceType
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import resting_soc
 from kpi.domain.util import TimeCoords, coord, fill_accumulator
-from kpi.service.field import Field
+from kpi.service.field import MakeField
 from kpi.service.time import DateLocal5m
 from kpi.service.transform.class_calc import Energy5mFromAccumulator
 from kpi.service.transform.method import Input, method_calc
@@ -12,9 +12,7 @@ from kpi.service.transform.unary import unary_field
 from kpi.workflow.download.sensor.bess import DownloadSensorBess
 from kpi.workflow.transform.bess.clean.workflow import TransformBessClean as Clean
 
-
-def field(value: CalcProtocol) -> Field[CalcProtocol]:
-    return Field[CalcProtocol](value=value)
+field = MakeField[CalcProtocol].infer_doc
 
 
 class TransformBessEvaluate(CalcSchema):

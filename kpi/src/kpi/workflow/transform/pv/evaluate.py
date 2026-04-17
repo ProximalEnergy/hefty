@@ -3,10 +3,9 @@ import xarray as xr
 from core.enumerations import DeviceType
 from kpi.base.util import coord
 from kpi.domain.util import date_local, diff, filter_mask
-from kpi.service.field import Field
 from kpi.service.time import TimeLocal
 from kpi.service.transform.class_calc import TheoreticalPoaIrradiance
-from kpi.service.transform.method import Input, Optional, method_calc
+from kpi.service.transform.method import Input, Optional, calc_field, method_calc
 from kpi.service.transform.schema import CalcSchema
 from kpi.workflow.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.workflow.download.expected_energy import DownloadExpectedEnergy as Expected
@@ -16,7 +15,7 @@ from kpi.workflow.transform.pv.clean import TransformPvClean as Clean
 
 
 class TransformPvEvaluate(CalcSchema):
-    time_local_5m = Field(TimeLocal())
+    time_local_5m = calc_field(TimeLocal())
 
     @method_calc
     def project_delivered_energy_kwh_5m(
@@ -144,7 +143,7 @@ class TransformPvEvaluate(CalcSchema):
             xr.where(difference > threshold_deg, 0.0, np.nan),
         )
 
-    project_theoretical_poa_irradiance_w_m2_5m = Field(
+    project_theoretical_poa_irradiance_w_m2_5m = calc_field(
         TheoreticalPoaIrradiance(
             project_latitude_deg=Clean.project_latitude_deg.name,
             project_longitude_deg=Clean.project_longitude_deg.name,
