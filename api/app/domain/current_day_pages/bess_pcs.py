@@ -33,38 +33,41 @@ async def get_bess_pcs_data(
     tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.BESS_PCS_AC_POWER],
         deep=True,
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
-    if tags_df.empty:
+    if tags_df.is_empty():
         return []
 
-    tags_df = tags_df.astype({"tag_id": int})
-
-    tag_id_to_device_name_long = (
-        tags_df.set_index("tag_id")["device_name_long"].fillna("").to_dict()
-    )
+    tag_id_to_device_name_long = {
+        int(tid): name
+        for tid, name in zip(
+            tags_df["tag_id"],
+            tags_df["device_name_long"].fill_null(""),
+            strict=True,
+        )
+        if tid is not None
+    }
 
     data = await DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=tags_df["tag_id"].tolist(),
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_df,
         query_start=start,
         query_end=end,
         project_db=project_db,
         max_lookback_period=TimeOffset.ONE_HOUR,
     ).get()
 
-    df = data.df.to_pandas()
-    df = df.set_index("time")
-    df.columns = df.columns.astype(int)
-
+    df_dict = data.df.to_dict(as_series=False)
+    time_series = df_dict.pop("time")
     return_data = [
         {
-            "x": df.index.tolist(),
-            "y": df[c].tolist(),
-            "name": tag_id_to_device_name_long[c],
+            "x": time_series,
+            "y": values,
+            "name": tag_id_to_device_name_long.get(int(tag_id), ""),
         }
-        for c in df.columns.astype(int)
+        for tag_id, values in df_dict.items()
+        if tag_id is not None
     ]
 
     # Sort return_data by name
