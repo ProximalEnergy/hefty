@@ -1,17 +1,19 @@
-from kpi.base.protocol import SchemaProtocol
+from abc import ABC, abstractmethod
+
+import xarray as xr
+from kpi.base.protocol import NodeProtocol
+from kpi.op.plan import FieldPlan, delete_none
 
 
-def inputs(schema: SchemaProtocol) -> set[str]:
-    inputs = set[str]()
-    for field in reversed(schema.plan.keys()):
-        inputs.discard(field)
-        inputs.update(schema.field_registry()[field].inputs())
-    return inputs
+class SchemaAbstract[T: NodeProtocol](ABC):
+    def __init__(self, map: dict[str, T]) -> None:
+        self.map = map
 
+    @abstractmethod
+    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
+        pass
 
-def outputs(schema: SchemaProtocol) -> set[str]:
-    outputs = set[str]()
-    for field, to_delete in schema.plan.items():
-        outputs = outputs.difference(to_delete)
-        outputs.add(field)
-    return outputs
+    def full_plan(self) -> FieldPlan:
+        return FieldPlan(
+            {name: delete_none(value.inputs()) for name, value in self.map.items()}
+        )

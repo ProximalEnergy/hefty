@@ -5,6 +5,7 @@ from kpi.base.exception import KpiError
 from kpi.base.util import coord
 from kpi.op.field import Field, NoInputs
 from pydantic import BaseModel
+from kpi.base.protocol import DeviceProtocol
 
 from core import models
 
@@ -49,9 +50,10 @@ class DeviceHierarchyModel(BaseModel, NoInputs):
 def device_hierarchy_field(
     child_device_type: DeviceType,
     parent_device_type: DeviceType,
-) -> Field[DeviceHierarchyModel]:
-    return Field[DeviceHierarchyModel](
+) -> Field[DeviceProtocol]:
+    return Field[DeviceProtocol](
         DeviceHierarchyModel(
-            child_device_type=child_device_type, parent_device_type=parent_device_type
+            child_device_type=child_device_type,
+            parent_device_type=parent_device_type,
         )
     )

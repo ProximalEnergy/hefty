@@ -5,6 +5,7 @@ from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.op.field import Field, NoInputs
 from pydantic import BaseModel
+from kpi.base.protocol import DeviceProtocol
 
 
 class DeviceAttributeModel(BaseModel, NoInputs):
@@ -37,8 +38,8 @@ def device_attribute_field(
     source_field_name: str,
     scale: float | None = None,
     offset: float | None = None,
-) -> Field[DeviceAttributeModel]:
-    return Field[DeviceAttributeModel](
+) -> Field[DeviceProtocol]:
+    return Field[DeviceProtocol](
         DeviceAttributeModel(
             device_type=device_type,
             source_field_name=source_field_name,

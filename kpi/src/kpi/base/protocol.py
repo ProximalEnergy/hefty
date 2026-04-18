@@ -1,4 +1,3 @@
-from collections.abc import Mapping
 from typing import Protocol
 from warnings import WarningMessage
 
@@ -8,52 +7,31 @@ from core.enumerations import SensorType
 
 from core import models
 
+# ================================
+# Node Protocols
+# ================================
 
-class HasInputsProtocol(Protocol):
+
+class NodeProtocol(Protocol):
     def inputs(self) -> set[str]: ...
 
 
-class SchemaProtocol(Protocol):
-    def field_registry(self) -> Mapping[str, HasInputsProtocol]: ...
-
-    @property
-    def plan(self) -> dict[str, set[str]]: ...
-
-    def compile(self, outputs: set[str], *, delete: bool = True) -> set[str]: ...
-
-    def run(self, dataset: xr.Dataset) -> xr.Dataset: ...
-
-
-class SchemaClassProtocol(Protocol):
-    def field_registry(self) -> Mapping[str, HasInputsProtocol]: ...
-
-    def __call__(self) -> SchemaProtocol: ...
-
-
-class CalcProtocol(Protocol):
-    def inputs(self) -> set[str]: ...
-
+class CalcProtocol(NodeProtocol, Protocol):
     def run(self, dataset: xr.Dataset) -> xr.DataArray: ...
 
 
-class ProjectAttributeProtocol(Protocol):
-    def inputs(self) -> set[str]: ...
-
+class ProjectAttributeProtocol(NodeProtocol, Protocol):
     def run(self, project: models.Project) -> xr.DataArray: ...
 
 
-class DeviceProtocol(Protocol):
+class DeviceProtocol(NodeProtocol, Protocol):
     def device_type_ids(self) -> set[int]: ...
-
-    def inputs(self) -> set[str]: ...
 
     def run(self, device_df: pd.DataFrame) -> xr.DataArray: ...
 
 
-class SensorProtocol(Protocol):
+class SensorProtocol(NodeProtocol, Protocol):
     sensor_type: SensorType
-
-    def inputs(self) -> set[str]: ...
 
     def run(
         self,
@@ -63,6 +41,23 @@ class SensorProtocol(Protocol):
         sensor_to_device_map: dict[int, int],
     ) -> xr.DataArray | None:
         pass
+
+
+# ================================
+# Other Protocols
+# ================================
+
+
+class PlanProtocol(Protocol):
+    def trim(self, outputs: set[str], delete: bool = True) -> set[str]: ...
+
+    def outputs(self) -> set[str]: ...
+
+
+class SchemaProtocol[P: PlanProtocol](Protocol):
+    def run(self, dataset: xr.Dataset, plan: P) -> xr.Dataset: ...
+
+    def full_plan(self) -> P: ...
 
 
 class ObserverProtocol(Protocol):

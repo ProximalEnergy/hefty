@@ -1,6 +1,13 @@
-from kpi.registry.download.device.bess.api import DownloadDeviceBess
-from kpi.registry.download.device.pv.api import DownloadDevicePv
+from kpi.registry.download.device.bess.attribute import DownloadDeviceBessAttribute
+from kpi.registry.download.device.bess.hierarchy import DownloadDeviceBessHierarchy
+from kpi.registry.download.device.pv.attribute import DownloadDevicePvAttribute
+from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 
 
-class DownloadDevice(DownloadDevicePv, DownloadDeviceBess):
+class DownloadDevice(
+    DownloadDevicePvHierarchy,
+    DownloadDevicePvAttribute,
+    DownloadDeviceBessHierarchy,
+    DownloadDeviceBessAttribute,
+):
     pass

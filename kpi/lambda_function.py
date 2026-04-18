@@ -28,7 +28,9 @@ from kpi.base.warning import UnimplementedWarning
 from kpi.infra.util import get_project_from_database
 from kpi.op.create import create_dataset
 from kpi.op.observer import SentryObserver, observe, set_global_observer
-from kpi.registry.api import get_workflow
+from kpi.op.plan import get_plan
+from kpi.registry.upload.api import UPLOAD
+from kpi.schema.api import get_pipeline
 from pydantic import BaseModel
 from sqlalchemy.exc import DBAPIError, OperationalError
 
@@ -59,10 +61,9 @@ def lambda_handler(event, _context):
     event = Event(**event)
 
     project = get_project_from_database(event.project_name_short)
-
-    Pipeline = get_workflow(
+    pipeline = get_pipeline(
         project_name_short=project.name_short,
-    )
+    )()
 
     with observe():
         output_kpis: set[str] = set()
@@ -75,7 +76,7 @@ def lambda_handler(event, _context):
                 UnimplementedWarning,
             )
 
-        implemented_kpis = Pipeline.upload.field_registry().keys()
+        implemented_kpis = UPLOAD.keys()
         unimplemented_kpis = output_kpis.difference(implemented_kpis)
         if unimplemented_kpis:
             warnings.warn(
@@ -84,9 +85,7 @@ def lambda_handler(event, _context):
             )
     output_kpis = output_kpis.intersection(implemented_kpis)
 
-    pipeline = Pipeline()
-
-    pipeline.compile(outputs=output_kpis)
+    plan = get_plan(pipeline, outputs=output_kpis)
 
     dataset = create_dataset(
         project_name_short=project.name_short,
@@ -94,6 +93,6 @@ def lambda_handler(event, _context):
         end_date=event.end_date,
     )
 
-    pipeline.run(dataset=dataset)
+    pipeline.run(dataset=dataset, plan=plan)
 
     return {"statusCode": 200, "body": "Success"}

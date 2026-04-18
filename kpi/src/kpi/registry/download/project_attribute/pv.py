@@ -2,17 +2,17 @@ from kpi.base.protocol import ProjectAttributeProtocol
 from kpi.op.download.project_attribute import (
     Latitude,
     Longitude,
-    ProjectAttributeSchema,
     project_attribute_field,
 )
 from kpi.op.field import MakeField
+from kpi.op.field_registry import FieldRegistry
 
 from core import models
 
 field = MakeField[ProjectAttributeProtocol].infer_doc
 
 
-class DownloadProjectAttributePv(ProjectAttributeSchema):
+class DownloadProjectAttributePv(FieldRegistry[ProjectAttributeProtocol]):
     project_dc_capacity_raw_kw = project_attribute_field(
         source_field_name=models.Project.capacity_dc.name,
         scale=1000,

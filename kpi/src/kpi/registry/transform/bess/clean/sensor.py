@@ -1,8 +1,9 @@
 import xarray as xr
+from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import clean_cell_voltage, clean_soc, clean_soh, clean_temperature
 from kpi.domain.util import filter_mask
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess as Sensor
 from kpi.registry.transform.bess.clean.device_attribute import (
@@ -13,43 +14,7 @@ from kpi.registry.transform.bess.clean.project_attribute import (
 )
 
 
-class TransformBessCleanSensor(CalcSchema):
-    # =======================================================
-    # Energy
-    # =======================================================
-
-    # project level
-
-    # project_total_energy_charged_raw_kwh_5m
-
-    # project_total_energy_discharged_raw_kwh_5m
-
-    # project_total_aux_energy_kwh_5m
-
-    # mv circuit level
-
-    # circuit_total_energy_charged_kwh_5m
-
-    # circuit_total_energy_discharged_kwh_5m
-
-    # pcs level
-
-    # pcs_total_energy_charged_kwh_5m
-
-    # pcs_total_energy_discharged_kwh_5m
-
-    # pcs module level
-
-    # pcs_module_total_energy_discharged_kwh_5m
-
-    # pcs_module_total_energy_charged_kwh_5m
-
-    # string level
-
-    # string_total_energy_charged_kwh_5m
-
-    # string_total_energy_discharged_kwh_5m
-
+class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
     # =======================================================
     # Power
     # =======================================================

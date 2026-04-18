@@ -8,7 +8,9 @@ from kpi.registry.transform.bess.api import TransformBess
 from kpi.registry.transform.pv.api import Transform
 
 
-class BexarTransform(Transform, allow_override=True):
+class BexarTransform(Transform):
+    allow_override = True
+
     @method_calc
     @override
     def project_energy_charged_kwh_5m(
@@ -38,9 +40,7 @@ class BexarTransform(Transform, allow_override=True):
         energy_total: xr.DataArray = Input(
             TransformBess.project_total_energy_discharged_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = Input(
-            TransformBess.project_power_capacity_kw
-        ),
+        power_capacity: xr.DataArray = Input(TransformBess.project_power_capacity_kw),
     ) -> xr.DataArray:
         """
         Include a rollover value to handle the 16-bit integer overflow.
@@ -89,9 +89,7 @@ class BexarTransform(Transform, allow_override=True):
         energy_total: xr.DataArray = Input(
             TransformBess.project_total_aux_energy_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = Input(
-            TransformBess.project_power_capacity_kw
-        ),
+        power_capacity: xr.DataArray = Input(TransformBess.project_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(TransformBess.date_local_5m),
     ) -> xr.DataArray:
         """
@@ -111,9 +109,7 @@ class BexarTransform(Transform, allow_override=True):
         energy_total: xr.DataArray = Input(
             TransformBess.circuit_total_energy_charged_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = Input(
-            TransformBess.circuit_power_capacity_kw
-        ),
+        power_capacity: xr.DataArray = Input(TransformBess.circuit_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(TransformBess.date_local_5m),
     ) -> xr.DataArray:
         return daily_energy(
@@ -129,9 +125,7 @@ class BexarTransform(Transform, allow_override=True):
         energy_total: xr.DataArray = Input(
             TransformBess.circuit_total_energy_discharged_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = Input(
-            TransformBess.circuit_power_capacity_kw
-        ),
+        power_capacity: xr.DataArray = Input(TransformBess.circuit_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(TransformBess.date_local_5m),
     ) -> xr.DataArray:
         return daily_energy(
@@ -147,9 +141,7 @@ class BexarTransform(Transform, allow_override=True):
         energy_total: xr.DataArray = Input(
             TransformBess.string_total_energy_charged_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = Input(
-            TransformBess.string_power_capacity_kw
-        ),
+        power_capacity: xr.DataArray = Input(TransformBess.string_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(TransformBess.date_local_5m),
     ) -> xr.DataArray:
         return daily_energy(
@@ -165,9 +157,7 @@ class BexarTransform(Transform, allow_override=True):
         energy_total: xr.DataArray = Input(
             TransformBess.string_total_energy_discharged_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = Input(
-            TransformBess.string_power_capacity_kw
-        ),
+        power_capacity: xr.DataArray = Input(TransformBess.string_power_capacity_kw),
         date_local_5m: xr.DataArray = Input(TransformBess.date_local_5m),
     ) -> xr.DataArray:
         return daily_energy(

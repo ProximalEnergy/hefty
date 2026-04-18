@@ -4,14 +4,15 @@ Status and event-based kpis, namely availability
 
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import daily_mean_across_devices, date_local
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
-from kpi.registry.download.status import DownloadStatusBess
+from kpi.registry.download.status import DownloadStatus
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
-class TransformBessSummarizeAvailability(CalcSchema):
+class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     # PCS
 
     # BESS_PCS_AVAILABILITY (58)
@@ -63,14 +64,14 @@ class TransformBessSummarizeAvailability(CalcSchema):
     # BESS_BANK_AVAILABILITY (57)
     @method_calc
     def bank_availability_d(
-        status: xr.DataArray = Input(DownloadStatusBess.bank_status_5m),
+        status: xr.DataArray = Input(DownloadStatus.bank_status_5m),
         date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return (1 - status).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_bank_availability_d(
-        status: xr.DataArray = Input(DownloadStatusBess.bank_status_5m),
+        status: xr.DataArray = Input(DownloadStatus.bank_status_5m),
         date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(

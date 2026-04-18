@@ -5,18 +5,19 @@ SOC balance score, Depth of Discharge, and Cycle Count.
 
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.bess import cycle_count, soc_balance_score
 from kpi.domain.util import daily_mean_across_devices, date_local, diff
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.device.bess.hierarchy import DownloadDeviceBessHierarchy
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
-class TransformBessSummarizeSoc(CalcSchema):
+class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
     # blocks, modules (distinct from pcs modules), and enclosures not
     # implemented because they are being deprecated
 

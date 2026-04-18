@@ -5,8 +5,9 @@ from kpi.infra.download.sensor import get_existing_columns_df
 from kpi.infra.download.status import download_status_df, get_tag_df
 from kpi.infra.pandas_to_xarray import pandas_device_time_series_to_xarray
 from kpi.op.field import Field, NoInputs
-from kpi.op.field_registry import FieldRegistry
 from kpi.op.observer import observe
+from kpi.op.plan import FieldPlan
+from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
 from pydantic import BaseModel
@@ -32,10 +33,12 @@ def status_field(
     )
 
 
-class StatusSchema(FieldRegistry[StatusModel]):
-    def run(self, dataset: xr.Dataset) -> xr.Dataset:
+class StatusSchema(SchemaAbstract[StatusModel]):
+    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
-        sensor_type_ids = [self.get(field).sensor_type.value for field in self.plan]
+        sensor_type_ids = [
+            self.map[field].sensor_type.value for field in plan.root.keys()
+        ]
         df_status = download_status_df(
             project_name_short=project_name_short,
             start_tz_aware=start_tz_aware(dataset),
@@ -43,9 +46,9 @@ class StatusSchema(FieldRegistry[StatusModel]):
             sensor_type_ids=sensor_type_ids,
         )
         tag_df = get_tag_df(sensor_type_ids, project_name_short=project_name_short)
-        for field in self.plan:
+        for field in plan.root.keys():
             with observe(field_name=field):
-                model = self.get(field)
+                model = self.map[field]
                 filtered_df = get_existing_columns_df(
                     tag_df, df_status, model.sensor_type
                 )

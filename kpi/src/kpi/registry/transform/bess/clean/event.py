@@ -1,14 +1,15 @@
 import xarray as xr
+from kpi.base.protocol import CalcProtocol
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
-from kpi.registry.download.event import DownloadEventBess
+from kpi.registry.download.event import DownloadEvent
 
 
-class TransformBessCleanEvent(CalcSchema):
+class TransformBessCleanEvent(FieldRegistry[CalcProtocol]):
     @method_calc
     def pcs_offline_event_change_5m(
         offline_event_change: xr.DataArray = Input(
-            DownloadEventBess.pcs_offline_event_change_raw_5m
+            DownloadEvent.pcs_offline_event_change_raw_5m
         ),
     ) -> xr.DataArray:
         """
@@ -20,7 +21,7 @@ class TransformBessCleanEvent(CalcSchema):
     @method_calc
     def pcs_module_offline_event_change_5m(
         offline_event_change: xr.DataArray = Input(
-            DownloadEventBess.pcs_module_offline_event_change_raw_5m
+            DownloadEvent.pcs_module_offline_event_change_raw_5m
         ),
     ) -> xr.DataArray:
         """

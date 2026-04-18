@@ -4,8 +4,9 @@ from kpi.base.enumeration import Attrs
 from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.field import Field, NoInputs
-from kpi.op.field_registry import FieldRegistry
 from kpi.op.observer import observe
+from kpi.op.plan import FieldPlan
+from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from pydantic import BaseModel
 
@@ -27,11 +28,13 @@ def event_model_field(
     )
 
 
-class EventSchema(FieldRegistry[EventsModel]):
-    def run(self, dataset: xr.Dataset) -> xr.Dataset:
+class EventSchema(SchemaAbstract[EventsModel]):
+    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
 
-        device_type_ids = [self.get(field).device_type.value for field in self.plan]
+        device_type_ids = [
+            self.map[field].device_type.value for field in plan.root.keys()
+        ]
         df_events = download_events_df(
             project_name_short=project_name_short,
             start_tz_aware=start_tz_aware(dataset),
@@ -39,9 +42,9 @@ class EventSchema(FieldRegistry[EventsModel]):
             device_type_ids=device_type_ids,
         )
 
-        for field in self.plan:
+        for field in plan.root.keys():
             with observe(field_name=field):
-                model = self.get(field)
+                model = self.map[field]
                 filtered = df_events.loc[
                     df_events.device_type_id == model.device_type.value
                 ]

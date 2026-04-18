@@ -4,16 +4,17 @@ power-based computations including C-rates and hours charging/discharging.
 
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.bess import is_charging, is_discharging, is_idling
 from kpi.domain.util import daily_mean_across_devices, date_local
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
-class TransformBessSummarizePower(CalcSchema):
+class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     # =======================================================
     # Project level
     # =======================================================

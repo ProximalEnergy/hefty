@@ -1,12 +1,13 @@
 import numpy as np
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.util import date_local, diff, filter_mask
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.time import TimeLocal
 from kpi.op.transform.class_calc import TheoreticalPoaIrradiance
 from kpi.op.transform.method import Input, Optional, calc_field, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.expected_energy import DownloadExpectedEnergy as Expected
 from kpi.registry.download.sensor.pv import DownloadSensorPv
@@ -14,7 +15,7 @@ from kpi.registry.transform.hybrid.api import date_local_5m
 from kpi.registry.transform.pv.clean import TransformPvClean as Clean
 
 
-class TransformPvEvaluate(CalcSchema):
+class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
     time_local_5m = calc_field(TimeLocal())
 
     @method_calc

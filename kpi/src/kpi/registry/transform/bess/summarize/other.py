@@ -5,16 +5,17 @@ SoH, Temperature, voltage, and other miscellaneous kpis.
 import xarray as xr
 from core.enumerations import DeviceType
 from kpi.base.enumeration import TimeCoords
+from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.bess import diff, is_charging, is_discharging
 from kpi.domain.util import daily_mean_across_devices, date_local
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
-class TransformBessSummarizeOther(CalcSchema):
+class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     # =======================================================
     # SoH
     # =======================================================

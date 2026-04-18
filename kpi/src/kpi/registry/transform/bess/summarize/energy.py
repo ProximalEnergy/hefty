@@ -4,16 +4,17 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.bess import daily_energy, maximum_continuous_discharged_energy
 from kpi.domain.util import filter_mask
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, Optional, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
-class TransformBessSummarizeEnergy(CalcSchema):
+class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
     # String level
     # =======================================================

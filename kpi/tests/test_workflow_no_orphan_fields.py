@@ -1,17 +1,19 @@
 """Guard against workflow fields that no KPI upload depends on."""
 
-from kpi.op.schema import outputs
-from kpi.registry.api import BaseWorkflow
+from kpi.registry.api import FULL_REGISTRY
+from kpi.registry.upload.api import UPLOAD
+from kpi.schema.api import BasePipeline
 
 
 def test_no_orphan_workflow_fields() -> None:
     """Every defined field must lie on a path to some uploaded KPI field."""
-    workflow = BaseWorkflow()
-    upload_keys = set(workflow.upload.field_registry().keys())
-    inputs = workflow.compile(outputs=upload_keys, delete=False)
+    pipeline = BasePipeline()
+    upload_keys = set(UPLOAD.keys())
+    plan = pipeline.full_plan()
+    inputs = plan.trim(upload_keys, delete=False)
     assert not inputs, f"KPI's require these inputs which are not implemented: {inputs}"
-    used_for_kpis = outputs(workflow)
-    defined = set(workflow.field_registry().keys())
+    used_for_kpis = plan.outputs()
+    defined = set(FULL_REGISTRY.keys())
     orphan = defined.difference(used_for_kpis)
     assert not orphan, (
         "Fields are defined but never needed to compute KPI uploads "

@@ -1,6 +1,7 @@
 import xarray as xr
 from kpi.base.enumeration import TimeCoords
 from kpi.base.exception import ValidationError
+from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import (
     diff,
     filter_capacity,
@@ -9,8 +10,8 @@ from kpi.domain.util import (
     filter_verify,
     verify_positive,
 )
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.device.pv.attribute import (
     DownloadDevicePvAttribute as Device,
@@ -21,7 +22,7 @@ from kpi.registry.download.project_attribute.pv import (
 from kpi.registry.download.sensor.api import DownloadSensor as Sensor
 
 
-class TransformPvClean(CalcSchema):
+class TransformPvClean(FieldRegistry[CalcProtocol]):
     # =======================================================
     # Project Attributes
     # =======================================================

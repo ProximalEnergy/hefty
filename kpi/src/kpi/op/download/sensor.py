@@ -13,8 +13,9 @@ from kpi.infra.download.sensor import (
 )
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.field import Field, NoInputs
-from kpi.op.field_registry import FieldRegistry
 from kpi.op.observer import observe
+from kpi.op.plan import FieldPlan
+from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
 from pydantic import BaseModel
@@ -49,8 +50,8 @@ def sensor_field(
     project_level: bool = False,
     scale: float | None = None,
     offset: float | None = None,
-) -> Field[SensorModel]:
-    return Field[SensorModel](
+) -> Field[SensorProtocol]:
+    return Field[SensorProtocol](
         SensorModel(
             sensor_type=sensor_type,
             project_level=project_level,
@@ -60,10 +61,12 @@ def sensor_field(
     )
 
 
-class SensorSchema(FieldRegistry[SensorProtocol]):
-    def run(self, dataset: xr.Dataset) -> xr.Dataset:
+class SensorSchema(SchemaAbstract[SensorProtocol]):
+    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
-        sensor_type_id_list = [self.get(field).sensor_type.value for field in self.plan]
+        sensor_type_id_list = [
+            self.map[field].sensor_type.value for field in plan.root.keys()
+        ]
         tags_polars = get_tag_polars(
             sensor_type_id_list=sensor_type_id_list,
             project_name_short=project_name_short,
@@ -86,9 +89,9 @@ class SensorSchema(FieldRegistry[SensorProtocol]):
 
         sensor_to_device_map = get_sensor_types_map(sensor_type_id_list)
 
-        for field in self.plan:
+        for field in plan.root.keys():
             with observe(field_name=field):
-                value = self.get(field).run(
+                value = self.map[field].run(
                     tag_df=tag_df,
                     data_raw=data_raw,
                     sensor_to_device_map=sensor_to_device_map,

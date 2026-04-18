@@ -1,23 +1,24 @@
+from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import verify_positive
-from kpi.op.transform.schema import CalcSchema
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.unary import unary_field
-from kpi.registry.download.project_attribute.bess import DownloadProjectAttributeBess
+from kpi.registry.download.project_attribute.bess import (
+    DownloadProjectAttributeBess as Download,
+)
 
-T = DownloadProjectAttributeBess
 
-
-class TransformBessCleanProjectAttribute(CalcSchema):
+class TransformBessCleanProjectAttribute(FieldRegistry[CalcProtocol]):
     project_energy_capacity_kwh = unary_field(
         verify_positive,
-        field=T.project_energy_capacity_raw_kwh,
+        field=Download.project_energy_capacity_raw_kwh,
     )
 
     project_power_capacity_kw = unary_field(
         verify_positive,
-        field=T.project_power_capacity_raw_kw,
+        field=Download.project_power_capacity_raw_kw,
     )
 
     project_poi_limit_kw = unary_field(
         verify_positive,
-        field=T.project_poi_limit_raw_kw,
+        field=Download.project_poi_limit_raw_kw,
     )

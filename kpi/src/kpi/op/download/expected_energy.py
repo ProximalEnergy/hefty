@@ -7,8 +7,9 @@ from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.field import Field, NoInputs
-from kpi.op.field_registry import FieldRegistry
 from kpi.op.observer import observe
+from kpi.op.plan import FieldPlan
+from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
 from pydantic import BaseModel
@@ -42,12 +43,12 @@ def expected_energy_field(
     )
 
 
-class ExpectedEnergySchema(FieldRegistry[ExpectedEnergyModel]):
-    def run(self, dataset: xr.Dataset) -> xr.Dataset:
+class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
+    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
         expected_metric_ids = [
-            self.get(field).expected_metric_id for field in self.plan
+            self.map[field].expected_metric_id for field in plan.root.keys()
         ]
-        device_types = set(self.get(field).device_type for field in self.plan)
+        device_types = set(self.map[field].device_type for field in plan.root.keys())
         all_device_ids: list[int] = []
         for device_type in device_types:
             all_device_ids.extend(dataset.coords[coord(device_type)])
@@ -63,9 +64,9 @@ class ExpectedEnergySchema(FieldRegistry[ExpectedEnergyModel]):
 
         expected_df = model_list.set_index(models.DataExpected.time.name)
 
-        for field in self.plan:
+        for field in plan.root.keys():
             with observe(field_name=field):
-                model = self.get(field)
+                model = self.map[field]
                 filtered_df = expected_df.loc[
                     expected_df.expected_metric_id == model.expected_metric_id
                 ]

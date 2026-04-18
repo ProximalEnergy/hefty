@@ -1,12 +1,13 @@
 from core.enumerations import SensorType
 from kpi.base.protocol import SensorProtocol
-from kpi.op.download.sensor import SensorMax, SensorSchema, sensor_field
+from kpi.op.download.sensor import SensorMax, sensor_field
 from kpi.op.field import MakeField
+from kpi.op.field_registry import FieldRegistry
 
 field = MakeField[SensorProtocol].infer_doc
 
 
-class DownloadSensorPv(SensorSchema):
+class DownloadSensorPv(FieldRegistry[SensorProtocol]):
     project_total_delivered_energy_raw_kwh_5m = sensor_field(
         sensor_type=SensorType.METER_DELIVERED_ENERGY,
         project_level=True,

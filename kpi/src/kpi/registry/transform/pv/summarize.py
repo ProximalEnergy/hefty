@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceType
 from kpi.base.enumeration import TimeCoords
+from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.module_state_of_health import pv_dc_combiner_module_excess_degradation
 from kpi.domain.solv_contract import solv_lost_period, solv_period_produced
@@ -13,16 +14,19 @@ from kpi.domain.util import (
     diff,
     filter_mask,
 )
+from kpi.op.field import MakeField
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.method import Input, Optional, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.sensor.pv import DownloadSensorPv
 from kpi.registry.transform.hybrid.api import date_local_5m, project_poi_limit_kw
 from kpi.registry.transform.pv.clean import TransformPvClean as Clean
 from kpi.registry.transform.pv.evaluate import TransformPvEvaluate as Eval
 
+field = MakeField[CalcProtocol].infer_doc
 
-class TransformPvSummarize(CalcSchema):
+
+class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # =======================================================
     # Project KPIs
     # =======================================================

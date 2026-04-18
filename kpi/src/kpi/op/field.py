@@ -1,7 +1,7 @@
-from kpi.base.protocol import HasInputsProtocol
+from kpi.base.protocol import NodeProtocol
 
 
-class Field[F: HasInputsProtocol]:
+class Field[F: NodeProtocol]:
     def __init__(
         self, value: F, name: str | None = None, doc: str | None = None
     ) -> None:
@@ -27,7 +27,7 @@ class NoInputs:
         return set[str]()
 
 
-class MakeField[F: HasInputsProtocol]:
+class MakeField[F: NodeProtocol]:
     @classmethod
     def infer_doc(cls, value: F) -> Field[F]:
         return Field[F](value=value, doc=value.__doc__)

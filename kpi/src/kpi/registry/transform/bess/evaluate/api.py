@@ -4,10 +4,10 @@ from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import resting_soc
 from kpi.domain.util import TimeCoords, coord, fill_accumulator
 from kpi.op.field import MakeField
+from kpi.op.field_registry import FieldRegistry
 from kpi.op.time import DateLocal5m
 from kpi.op.transform.class_calc import Energy5mFromAccumulator
 from kpi.op.transform.method import Input, method_calc
-from kpi.op.transform.schema import CalcSchema
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
@@ -15,7 +15,7 @@ from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 field = MakeField[CalcProtocol].infer_doc
 
 
-class TransformBessEvaluate(CalcSchema):
+class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
     date_local_5m = field(DateLocal5m())
 
     # =======================================================

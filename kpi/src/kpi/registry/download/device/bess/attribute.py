@@ -1,51 +1,50 @@
 from core.enumerations import DeviceType
+from kpi.base.protocol import DeviceProtocol
 from kpi.op.download.device.attribute import device_attribute_field
-from kpi.op.download.device.schema import DeviceSchema
+from kpi.op.field_registry import FieldRegistry
 
 from core import models
 
-field = device_attribute_field
 
-
-class DownloadDeviceBessAttribute(DeviceSchema):
+class DownloadDeviceBessAttribute(FieldRegistry[DeviceProtocol]):
     # =======================================================
     # Capacity
     # =======================================================
 
     # mv circuit
 
-    circuit_power_capacity_raw_kw = field(
+    circuit_power_capacity_raw_kw = device_attribute_field(
         device_type=DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER,
         source_field_name=models.Device.capacity_ac.name,
     )
 
     # pcs
 
-    pcs_energy_capacity_raw_kwh = field(
+    pcs_energy_capacity_raw_kwh = device_attribute_field(
         device_type=DeviceType.BESS_PCS,
         source_field_name=models.Device.capacity_dc.name,
     )
 
-    pcs_power_capacity_raw_kw = field(
+    pcs_power_capacity_raw_kw = device_attribute_field(
         device_type=DeviceType.BESS_PCS,
         source_field_name=models.Device.capacity_ac.name,
     )
 
     # pcs module
 
-    pcs_module_power_capacity_raw_kw = field(
+    pcs_module_power_capacity_raw_kw = device_attribute_field(
         device_type=DeviceType.BESS_PCS_MODULE,
         source_field_name=models.Device.capacity_ac.name,
     )
 
     # string
 
-    string_power_capacity_raw_kw = field(
+    string_power_capacity_raw_kw = device_attribute_field(
         device_type=DeviceType.BESS_STRING,
         source_field_name=models.Device.capacity_ac.name,
     )
 
-    string_energy_capacity_raw_kwh = field(
+    string_energy_capacity_raw_kwh = device_attribute_field(
         device_type=DeviceType.BESS_STRING,
         source_field_name=models.Device.capacity_dc.name,
     )

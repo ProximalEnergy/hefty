@@ -14,8 +14,10 @@ from core.crud import operational as op_crud
 from core.database import with_db
 from core.enumerations import KPIType, ProjectType
 from dotenv import load_dotenv
-from kpi.registry.api import BaseWorkflow
-from kpi.registry.upload.api import Upload
+from kpi.op.plan import get_plan
+from kpi.registry.download.api import DownloadSensor
+from kpi.registry.upload.api import UPLOAD
+from kpi.schema.api import BasePipeline
 from sqlalchemy import select, text
 
 from core import models
@@ -273,17 +275,15 @@ def style_instance_values(
 
 def get_implemented_kpi_type_ids() -> set[int]:
     """Return configured KPI type IDs that are implemented in upload step."""
-    return {
-        int(kpi_model.kpi_type.value) for kpi_model in Upload.field_registry().values()
-    }
+    return {int(kpi_model.kpi_type.value) for kpi_model in UPLOAD.values()}
 
 
 def get_sensor_type_series() -> pd.Series:
     """Return sensor-type mapping from pipeline input keys to IDs."""
     return pd.Series(
         {
-            key: value.sensor_type.value
-            for key, value in BaseWorkflow.download.sensor.field_registry().items()
+            key: value.value.sensor_type.value
+            for key, value in DownloadSensor.field_map().items()
         }
     ).astype(int)
 
@@ -292,15 +292,22 @@ def get_sensor_type_ids_for_kpis(*, kpi_type_ids: list[int]) -> list[int]:
     """Return sensor_type_ids required by selected KPI pipeline outputs."""
     if not kpi_type_ids:
         return []
+    pipeline = BasePipeline()
+    plan = get_plan(pipeline, outputs=[KPIType(idx).name for idx in kpi_type_ids])
 
-    pipeline = BaseWorkflow()
-    pipeline.compile(outputs=[KPIType(idx).name for idx in kpi_type_ids])
+    download_plan = plan.root.get("download")
+    if download_plan is None:
+        return []
 
-    sensor_portion = pipeline.download.sensor
+    sensor_portion = download_plan.root.get("download_sensor")
+    if sensor_portion is None:
+        return []
 
+    field_map = DownloadSensor.field_map()
     sensor_type_ids = [
-        sensor_portion.get(field).sensor_type.value
-        for field in sensor_portion.plan.keys()
+        field_map[field].value.sensor_type.value
+        for field in sensor_portion.root.keys()
+        if field in field_map
     ]
     return sorted(set(sensor_type_ids))
 

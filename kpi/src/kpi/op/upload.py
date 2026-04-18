@@ -11,8 +11,9 @@ from kpi.infra.write_kpi import (
     get_kpi_instances,
     insert_device_kpi_data_bulk,
 )
-from kpi.op.field_registry import FieldRegistry
 from kpi.op.observer import observe
+from kpi.op.plan import FieldPlan
+from kpi.op.schema import SchemaAbstract
 from kpi.op.util import select_optional, select_var
 from pydantic import BaseModel
 
@@ -33,8 +34,21 @@ class UploadModel(BaseModel):
         )
 
 
-class UploadSchema(FieldRegistry[UploadModel]):
-    def run(self, dataset: xr.Dataset) -> xr.Dataset:
+def merge_upload_maps_strict(
+    *, maps: list[dict[str, UploadModel]]
+) -> dict[str, UploadModel]:
+    merged: dict[str, UploadModel] = {}
+    for mapping in maps:
+        overlap = merged.keys() & mapping.keys()
+        if overlap:
+            msg = f"Duplicate upload keys: {sorted(overlap)}"
+            raise ValueError(msg)
+        merged.update(mapping)
+    return merged
+
+
+class UploadSchema(SchemaAbstract[UploadModel]):
+    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
 
         project = get_project_from_database(name_short=project_name_short)
@@ -42,9 +56,9 @@ class UploadSchema(FieldRegistry[UploadModel]):
 
         data_rows = []
 
-        for field_name, to_delete in self.plan.items():
+        for field_name, inputs in plan.root.items():
             with observe(field_name=field_name):
-                model = self.get(field_name)
+                model = self.map[field_name]
                 if model.kpi_type.value not in kpi_type_ids:
                     warnings.warn(
                         message=(
@@ -74,7 +88,7 @@ class UploadSchema(FieldRegistry[UploadModel]):
                         end=dataset.attrs[Attrs.END_DATE.value],
                     )
                 )
-            dataset = dataset.drop_vars(to_delete, errors="ignore")
+            dataset = dataset.drop_vars(inputs.drop_vars(), errors="ignore")
 
         insert_device_kpi_data_bulk(
             application_name=get_application_name(),
