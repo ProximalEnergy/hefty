@@ -1033,6 +1033,7 @@ RUN_WEB=false
 RUN_PVEEM=false
 RUN_ROOT=false
 CORE_CHANGED=false
+ROOT_PYPROJECT_CHANGED=false
 
 RUN_CORE_WARNINGS=false
 RUN_WEB_WARNINGS=false
@@ -1064,6 +1065,9 @@ if [ "${RUN_ALL}" = "false" ]; then
     fi
     if diff_has '^pv-eem/'; then
         RUN_PVEEM=true
+    fi
+    if diff_has '^pyproject\.toml$'; then
+        ROOT_PYPROJECT_CHANGED=true
     fi
     if diff_has '^_scripts/|^_tools/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
         RUN_ALL=true
@@ -1099,11 +1103,15 @@ fi
 
 # Register all checks
 if [ "${RUN_CORE}" = "true" ]; then
-    add_check "Core: Type Checking (mypy)" "mise run core:types"
-    add_db_check "Core: Enum Validation" "mise run core:enum"
-    add_check "Core: Unused Import Check" "mise run core:deptry"
-    add_check "Core: Dead Code Check" "mise run core:vulture"
-    add_check "Core: Pytest" "mise run core:pytest"
+    if [ "${ROOT_PYPROJECT_CHANGED}" = "true" ]; then
+        add_check "Core: Check Task" "mise run core:check" "error" "false"
+    else
+        add_check "Core: Type Checking (mypy)" "mise run core:types"
+        add_db_check "Core: Enum Validation" "mise run core:enum"
+        add_check "Core: Unused Import Check" "mise run core:deptry"
+        add_check "Core: Dead Code Check" "mise run core:vulture"
+        add_check "Core: Pytest" "mise run core:pytest"
+    fi
 fi
 
 if [ "${RUN_CORE_WARNINGS}" = "true" ]; then
@@ -1149,8 +1157,12 @@ if [ "${RUN_API}" = "true" ]; then
 fi
 
 if [ "${RUN_PVEEM}" = "true" ]; then
-    add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
-    add_check "PV-EEM: Pytest" "mise run pveem:pytest"
+    if [ "${ROOT_PYPROJECT_CHANGED}" = "true" ]; then
+        add_check "PV-EEM: Check Task" "mise run pveem:check" "error" "false"
+    else
+        add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
+        add_check "PV-EEM: Pytest" "mise run pveem:pytest"
+    fi
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then

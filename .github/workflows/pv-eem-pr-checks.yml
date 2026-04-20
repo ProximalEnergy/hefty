@@ -5,6 +5,7 @@ on:
     branches: [dev, staging, main]
     paths:
       - "pv-eem/**"
+      - "pyproject.toml"
       - ".github/workflows/pv-eem-pr-checks.yml"
 
 concurrency:

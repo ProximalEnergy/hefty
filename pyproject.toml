@@ -10,7 +10,7 @@ version = "0.1.0"
 description = "Monorepo root for unified tooling"
 requires-python = "~=3.12.8"
 dependencies = [
-    "polars==1.39.0",
+    "polars==1.39.3",
     "sqlalchemy~=2.0.41",
 ]
 
@@ -28,6 +28,9 @@ dev = [
     "types-requests>=2.31.0.6,<3",
     "vulture>=2.14,<3",
 ]
+
+[tool.uv.workspace]
+members = ["core", "pv-eem"]
 
 [tool.ruff]
 line-length = 88
@@ -198,6 +201,3 @@ exclude = [
 
 [tool.basedpyright]
 typeCheckingMode = "off"
-
-[tool.uv.workspace]
-members = ["core", "pv-eem"]

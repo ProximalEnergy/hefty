@@ -1,6 +1,6 @@
 [project]
 name = "pv-expected-energy"
-version = "0.17.2"
+version = "0.17.3"
 description = "PV Expected Energy Model for Proximal Energy"
 readme = "_README.md"
 requires-python = ">=3.12.8,<3.13"

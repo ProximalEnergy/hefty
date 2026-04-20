@@ -5,6 +5,7 @@ on:
     branches: [dev, staging, main]
     paths:
       - "core/**"
+      - "pyproject.toml"
       - "_scripts/check_docstring_args.py"
       - ".github/actions/resolve-dev-requirement/**"
       - ".github/workflows/core-pr-checks.yml"
