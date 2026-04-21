@@ -12,9 +12,20 @@ const spcFireWxEndpointUrl = [
   'SPC_firewx/MapServer',
 ].join('/')
 
+/** GeoJSON properties for SPC outlook polygons (NWS MapServer attributes). */
+type SpcOutlookFeatureProps = {
+  dn: number
+  valid?: string
+  expire?: string
+  issue?: string
+}
+
 interface ArcGisFeature {
   attributes: {
     dn: number
+    valid?: string
+    expire?: string
+    issue?: string
   }
   geometry: {
     rings: number[][][]
@@ -25,12 +36,36 @@ interface ArcGisResponse {
   features: ArcGisFeature[]
 }
 
+interface ArcGisValidityFeature {
+  attributes: {
+    valid: string
+    expire: string
+  }
+}
+
+interface ArcGisValidityResponse {
+  features: ArcGisValidityFeature[]
+  error?: { code: number; message: string }
+}
+
 type GeoJsonFeatureCollection = FeatureCollection<
   GeoJsonMultiPolygon,
-  { dn: number }
+  SpcOutlookFeatureProps
 >
-type GeoJsonFeature = Feature<GeoJsonMultiPolygon, { dn: number }>
+type GeoJsonFeature = Feature<GeoJsonMultiPolygon, SpcOutlookFeatureProps>
 type GeoJsonMultiPolygon = MultiPolygon
+
+/** Parse NWS MapServer `valid` / `expire` strings (YYYYMMDDHHmm, UTC). */
+export const parseNwsspcTimestamp = (s: string): Date | null => {
+  if (!s || s.length < 12) return null
+  const y = Number(s.slice(0, 4))
+  const mo = Number(s.slice(4, 6)) - 1
+  const d = Number(s.slice(6, 8))
+  const h = Number(s.slice(8, 10))
+  const min = Number(s.slice(10, 12))
+  if ([y, mo, d, h, min].some((n) => Number.isNaN(n))) return null
+  return new Date(Date.UTC(y, mo, d, h, min, 0, 0))
+}
 
 const getSPCForecastPolygons = async (
   endpointUrl: string,
@@ -38,9 +73,13 @@ const getSPCForecastPolygons = async (
 ): Promise<GeoJsonFeatureCollection> => {
   const query_url = `${endpointUrl}/${arcgis_layer_id}/query`
 
+  const outFields = endpointUrl.includes('fire_weather')
+    ? 'dn,valid,expire'
+    : 'dn,valid,expire,issue'
+
   const params = {
     where: '1=1',
-    outFields: 'dn',
+    outFields,
     returnGeometry: 'true',
     geometryPrecision: '3',
     outSR: 4326, // Request WGS84 coordinates (lat/lon) instead of Web Mercator
@@ -87,11 +126,20 @@ const getSPCForecastPolygons = async (
       coordinates: polygons,
     }
 
+    const props: SpcOutlookFeatureProps = { dn: feature.attributes.dn }
+    if (feature.attributes.valid != null) {
+      props.valid = feature.attributes.valid
+    }
+    if (feature.attributes.expire != null) {
+      props.expire = feature.attributes.expire
+    }
+    if (feature.attributes.issue != null) {
+      props.issue = feature.attributes.issue
+    }
+
     return {
       type: 'Feature',
-      properties: {
-        dn: feature.attributes.dn,
-      },
+      properties: props,
       geometry,
     }
   })
@@ -122,6 +170,66 @@ const useGetSPCForecastPolygons = ({
     queryKey: [queryKey, arcgis_layer_id],
     queryFn: () => getSPCForecastPolygons(endpointUrl, arcgis_layer_id),
     ...defaultQueryOptions,
+    ...queryOptions,
+  })
+}
+
+const getSpcOutlookValiditySample = async (
+  endpointUrl: string,
+  arcgis_layer_id: number,
+): Promise<{ valid: string; expire: string } | null> => {
+  const query_url = `${endpointUrl}/${arcgis_layer_id}/query`
+  const params = {
+    where: '1=1',
+    outFields: 'valid,expire',
+    returnGeometry: 'false',
+    resultRecordCount: 1,
+    f: 'json',
+  }
+  const response = await axios.get<ArcGisValidityResponse>(query_url, {
+    params,
+  })
+  const data = response.data
+  if ('error' in data && data.error) return null
+  const row = data.features?.[0]
+  if (!row?.attributes?.valid || !row?.attributes?.expire) return null
+  return { valid: row.attributes.valid, expire: row.attributes.expire }
+}
+
+type SpcOutlookDayValidity = { valid: string; expire: string }
+
+/** Day 1 / Day 2 validity rows from representative hail outlook layers. */
+export const useSpcHailOutlookDayValidityPair = (
+  day1HailLayerId: number,
+  day2HailLayerId: number,
+  queryOptions: Partial<
+    UseQueryOptions<{
+      day1: SpcOutlookDayValidity | null
+      day2: SpcOutlookDayValidity | null
+    }>
+  > = {},
+) => {
+  const defaults = {
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5,
+  }
+  return useQuery({
+    queryKey: [
+      'spcHailOutlookDayValidityPair',
+      day1HailLayerId,
+      day2HailLayerId,
+    ],
+    queryFn: async () => ({
+      day1: await getSpcOutlookValiditySample(
+        spcWxOutlooksEndpointUrl,
+        day1HailLayerId,
+      ),
+      day2: await getSpcOutlookValiditySample(
+        spcWxOutlooksEndpointUrl,
+        day2HailLayerId,
+      ),
+    }),
+    ...defaults,
     ...queryOptions,
   })
 }

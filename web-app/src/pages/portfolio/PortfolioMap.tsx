@@ -4,11 +4,13 @@ import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import {
   getNWSWindspeedTileUrl,
   getTemperatureTileUrl,
+  parseNwsspcTimestamp,
   useGetFireOutlook,
   useGetHailForecastPolygons,
   useGetThunderstormOutlook,
   useGetTornadoOutlook,
   useGetWindOutlook,
+  useSpcHailOutlookDayValidityPair,
 } from '@/api/v1/gis/noaa'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import { Project, useGetProjects } from '@/api/v1/operational/projects'
@@ -34,6 +36,7 @@ import {
   Stack,
   Switch,
   Text,
+  Tooltip,
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
@@ -141,7 +144,41 @@ const WIND_BASE = '#7B1FA2'
 const FIRE_BASE = '#D32F2F'
 const THUNDERSTORM_BASE = '#FFB300'
 
-type ForecastDay = 'tomorrow' | 'day-after'
+type ForecastDay = 'today' | 'tomorrow'
+
+const FORECAST_DAY_STORAGE_KEY = 'forecast-day-v2'
+const FORECAST_DAY_LEGACY_STORAGE_KEY = 'forecast-day'
+
+/** Prefer v2 key; else one-time read of legacy `forecast-day` (old semantics). */
+const readForecastDayPreference = (): ForecastDay => {
+  if (typeof localStorage === 'undefined') return 'today'
+  const v2Raw = localStorage.getItem(FORECAST_DAY_STORAGE_KEY)
+  if (v2Raw != null) {
+    try {
+      const parsed = JSON.parse(v2Raw) as unknown
+      if (parsed === 'today' || parsed === 'tomorrow') return parsed
+    } catch {
+      /* invalid JSON */
+    }
+    return 'today'
+  }
+  const legacyRaw = localStorage.getItem(FORECAST_DAY_LEGACY_STORAGE_KEY)
+  if (legacyRaw != null) {
+    try {
+      const p = JSON.parse(legacyRaw) as unknown
+      if (p === 'day-after') return 'tomorrow'
+      // Legacy "Tomorrow" was SPC Day 1 → new "today"
+      if (p === 'tomorrow') return 'today'
+      if (p === 'today') return 'today'
+    } catch {
+      /* ignore */
+    }
+  }
+  return 'today'
+}
+
+const normalizeForecastDay = (v: ForecastDay | string): ForecastDay =>
+  v === 'tomorrow' ? 'tomorrow' : 'today'
 
 const LAYER_IDS: Record<
   ForecastDay,
@@ -153,14 +190,14 @@ const LAYER_IDS: Record<
     thunderstorm: number
   }
 > = {
-  tomorrow: {
+  today: {
     hail: 5,
     tornado: 3,
     wind: 7,
     fire: 1,
     thunderstorm: 1,
   },
-  'day-after': {
+  tomorrow: {
     hail: 13,
     tornado: 11,
     wind: 15,
@@ -281,6 +318,72 @@ const formatValue = (
   }
 }
 
+const startOfLocalDay = (d: Date) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate())
+
+const startOfLocalTomorrow = (now: Date) => {
+  const s = startOfLocalDay(now)
+  s.setDate(s.getDate() + 1)
+  return s
+}
+
+const sameLocalCalendarDay = (a: Date, b: Date) =>
+  startOfLocalDay(a).getTime() === startOfLocalDay(b).getTime()
+
+const formatLocalTimeHm = (d: Date) =>
+  d.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+
+/** Day 1 (Today) segment: hours/minutes left until MapServer `expire`. */
+const todayOutlookTooltip = (expireRaw: string) => {
+  const expire = parseNwsspcTimestamp(expireRaw)
+  if (!expire) return 'Outlook end time unavailable.'
+  const ms = expire.getTime() - Date.now()
+  if (ms <= 0) return 'This outlook period has ended.'
+  const hours = ms / 3_600_000
+  if (hours < 1) {
+    const m = Math.max(1, Math.round(ms / 60_000))
+    return `Valid for the next ${m} minutes.`
+  }
+  const h = Math.max(1, Math.round(hours))
+  return `Valid for the next ${h} hours.`
+}
+
+/** Day 2 (Tomorrow) segment: local-time range from `valid` through `expire`. */
+const day2OutlookTooltip = (validRaw: string, expireRaw: string) => {
+  const valid = parseNwsspcTimestamp(validRaw)
+  const expire = parseNwsspcTimestamp(expireRaw)
+  if (!valid || !expire) return 'Outlook window unavailable.'
+
+  const now = new Date()
+  const validStartsTomorrowLocal =
+    startOfLocalDay(valid).getTime() === startOfLocalTomorrow(now).getTime()
+
+  const startPhrase = validStartsTomorrowLocal
+    ? 'tomorrow'
+    : valid.toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      })
+
+  const t0 = formatLocalTimeHm(valid)
+  const t1 = formatLocalTimeHm(expire)
+
+  if (sameLocalCalendarDay(valid, expire)) {
+    return `Valid from ${startPhrase}, ${t0} – ${t1}.`
+  }
+  const endDay = expire.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  })
+  return `Valid from ${startPhrase}, ${t0} – ${endDay}, ${t1}.`
+}
+
 const PortfolioMap = () => {
   const computedColorScheme = useComputedColorScheme('dark')
   const theme = useMantineTheme()
@@ -341,10 +444,33 @@ const PortfolioMap = () => {
     key: 'show-precipitation',
     defaultValue: true,
   })
-  const [forecastDay, setForecastDay] = useLocalStorage<ForecastDay>({
-    key: 'forecast-day',
-    defaultValue: 'tomorrow',
+  const [forecastDayRaw, setForecastDay] = useLocalStorage<ForecastDay>({
+    key: FORECAST_DAY_STORAGE_KEY,
+    defaultValue: readForecastDayPreference(),
   })
+  const forecastDay = normalizeForecastDay(forecastDayRaw)
+
+  useEffect(() => {
+    if (forecastDayRaw !== forecastDay) {
+      setForecastDay(forecastDay)
+    }
+  }, [forecastDay, forecastDayRaw, setForecastDay])
+
+  // Drop legacy `forecast-day` once v2 is stored (mapping lives in
+  // readForecastDayPreference).
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(FORECAST_DAY_STORAGE_KEY) == null) {
+        return
+      }
+      if (localStorage.getItem(FORECAST_DAY_LEGACY_STORAGE_KEY) != null) {
+        localStorage.removeItem(FORECAST_DAY_LEGACY_STORAGE_KEY)
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
   const [showHail, setShowHail] = useLocalStorage({
     key: 'show-hail',
     defaultValue: false,
@@ -378,6 +504,41 @@ const PortfolioMap = () => {
     defaultValue: false,
   })
   const [demoSeed, setDemoSeed] = useState(() => Date.now())
+
+  const hailOutlookValidity = useSpcHailOutlookDayValidityPair(
+    LAYER_IDS.today.hail,
+    LAYER_IDS.tomorrow.hail,
+  )
+
+  const forecastDayTooltips = useMemo((): Record<ForecastDay, string> => {
+    if (hailOutlookValidity.isPending) {
+      return {
+        today: 'Loading outlook times…',
+        tomorrow: 'Loading outlook times…',
+      }
+    }
+    if (hailOutlookValidity.isError) {
+      return {
+        today: 'Could not load outlook times.',
+        tomorrow: 'Could not load outlook times.',
+      }
+    }
+    const d1 = hailOutlookValidity.data?.day1
+    const d2 = hailOutlookValidity.data?.day2
+    return {
+      today: d1?.expire
+        ? todayOutlookTooltip(d1.expire)
+        : 'Outlook end time unavailable.',
+      tomorrow:
+        d2?.valid && d2?.expire
+          ? day2OutlookTooltip(d2.valid, d2.expire)
+          : 'Outlook window unavailable.',
+    }
+  }, [
+    hailOutlookValidity.data,
+    hailOutlookValidity.isError,
+    hailOutlookValidity.isPending,
+  ])
 
   // Wrapper for setShowDemo that resets seed when demo mode is enabled
   const setShowDemo = (value: boolean | ((prev: boolean) => boolean)) => {
@@ -1370,12 +1531,50 @@ const PortfolioMap = () => {
             onChange={(v) => setForecastDay(v as ForecastDay)}
             data={[
               {
-                label: 'Tomorrow',
-                value: 'tomorrow',
+                value: 'today',
+                label: (
+                  <Tooltip
+                    label={forecastDayTooltips.today}
+                    multiline
+                    maw={320}
+                    position="bottom"
+                    withArrow
+                    events={{ hover: true, focus: true, touch: true }}
+                  >
+                    <span
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Today
+                    </span>
+                  </Tooltip>
+                ),
               },
               {
-                label: 'Day After',
-                value: 'day-after',
+                value: 'tomorrow',
+                label: (
+                  <Tooltip
+                    label={forecastDayTooltips.tomorrow}
+                    multiline
+                    maw={320}
+                    position="bottom"
+                    withArrow
+                    events={{ hover: true, focus: true, touch: true }}
+                  >
+                    <span
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Tomorrow
+                    </span>
+                  </Tooltip>
+                ),
               },
             ]}
             size="xs"
