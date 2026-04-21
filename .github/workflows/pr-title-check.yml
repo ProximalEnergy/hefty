@@ -12,6 +12,7 @@
 #   2. Files changed at the repo root contribute the literal scope "root".
 #   3. Scopes are always alphabetically sorted.
 #   4. Any existing [...] prefix is replaced — the description is preserved.
+#   5. Titles use the form "[scope1, scope2] Description" with no colon.
 #
 # The title is updated via the GitHub API using the built-in GITHUB_TOKEN.
 # No personal access tokens or external secrets are required.
@@ -151,6 +152,10 @@ jobs:
           # concurrency group above prevents this in most cases, but the
           # greedy strip ensures we self-heal if it ever slips through.
           #
+          # We also strip one optional ":" separator and any surrounding
+          # whitespace after the prefix so titles like "[api] : Add feature"
+          # normalize to "[api] Add feature".
+          #
           # Regex breakdown (extended regex via sed -E):
           #   ^              — start of string
           #   (              — begin repeating group
@@ -161,12 +166,16 @@ jobs:
           #     \]           — literal "]"
           #     [[:space:]]* — optional trailing whitespace
           #   )*             — zero or more of the above group
+          #   :?             — optional ":" separator
+          #   [[:space:]]*   — optional whitespace after the separator
           #
           # Examples:
           #   "[api, core] Add feature"        →  "Add feature"
+          #   "[api, core] : Add feature"      →  "Add feature"
           #   "[api] [api, core] Add feature"  →  "Add feature"  (self-heal)
           #   "Add feature"                    →  "Add feature"  (no-op)
-          BARE_TITLE=$(echo "$PR_TITLE" | sed -E 's/^(\[[^]]*\][[:space:]]*)*//')
+          BARE_TITLE=$(echo "$PR_TITLE" \
+            | sed -E 's/^(\[[^]]*\][[:space:]]*)*:?[[:space:]]*//')
 
           # ── 5. Assemble and apply the new title ────────────────────────────
           NEW_TITLE="$NEW_PREFIX $BARE_TITLE"
