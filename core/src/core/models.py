@@ -489,6 +489,48 @@ class SharedPages(Base):
     __table_args__ = {"schema": "admin"}
 
 
+class NotificationSeverity(Base):
+    __tablename__ = "notification_severities"
+
+    notification_severity_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
+class NotificationChannel(Base):
+    __tablename__ = "notification_channels"
+
+    notification_channel_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
+class NotificationStateEnum(Base):
+    __tablename__ = "notification_state_enums"
+
+    notification_state_enum_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
+class ReactionType(Base):
+    __tablename__ = "reaction_types"
+
+    reaction_type_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
 ##### END ADMIN SCHEMA #####
 
 

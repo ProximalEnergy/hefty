@@ -380,10 +380,6 @@ run = '''
 echo "Generating alembic migration with description ${usage_description}"
 uv run alembic revision --autogenerate -m "${usage_description}"
 python3 _scripts/clean_alembic.py --latest
-ROOT_DIR="$(pwd)/.."
-uv run --project "${ROOT_DIR}" --dev ruff check \
-  --config "${ROOT_DIR}/pyproject.toml" .
-
 '''
 
 [tasks."core:tag"]
