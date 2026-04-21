@@ -132,6 +132,11 @@ models: list[UploadModel] = [
         project_var=Summarize.project_energy_availability_d.name,
         scale=0.001,
     ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_NER_AVAILABILITY,
+        version="2.0.0",
+        project_var=Summarize.project_ner_availability_d.name,
+    ),
 ]
 
 UPLOAD_BESS_PROJECT: dict[str, UploadModel] = {

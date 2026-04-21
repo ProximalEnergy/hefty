@@ -2,6 +2,7 @@
 Status and event-based kpis, namely availability
 """
 
+import numpy as np
 import xarray as xr
 from core.enumerations import DeviceType
 from kpi.base.protocol import CalcProtocol
@@ -109,3 +110,27 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
         average of 5-minute interval project energy availability
         """
         return availability.groupby(date_local(date_local_5m)).mean()
+
+    @method_calc
+    def project_ner_availability_d(
+        availability_5m: xr.DataArray = Input(Eval.project_pcs_availability_5m),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+    ) -> xr.DataArray:
+        """
+        Project NER Availability Per Day
+        Used to calculate BESS_PROJECT_NER_AVAILABILITY (125).
+        Percentage of day where availability is 100%.
+        Any offline underperformance event prevents the project
+        from discharging at nameplate power (required by
+        Technical Performance Metrics in Exhibit 7) making it
+        an exclusion. See Section III bb.
+        Periods with missing availability data are excluded
+        from the calculation.
+        """
+        epsilon = 1e-6
+        perfect_availability = xr.where(
+            availability_5m >= 1 - epsilon,
+            1.0,
+            xr.where(availability_5m < 1 - epsilon, 0.0, np.nan),
+        )
+        return perfect_availability.groupby(date_local(date_local_5m)).mean()
