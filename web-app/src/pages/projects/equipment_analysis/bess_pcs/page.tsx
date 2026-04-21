@@ -20,6 +20,17 @@ import { EquipmentHeader } from './equipment-header'
 import { Realtime } from './realtime/realtime'
 
 const MAX_DAYS = 7
+const PAGE_INFO_BY_TAB = {
+  realtime:
+    'This tab provides a real-time view of BESS PCS power, voltage, ' +
+    'temperature, and alarm data for the selected project.',
+  'current-day':
+    'This tab shows current-day BESS PCS power trends. Positive values ' +
+    'indicate discharging, negative values indicate charging.',
+  'long-term':
+    'This tab is still under development and will provide long-term ' +
+    'BESS PCS performance trends.',
+} as const
 
 const Page = () => {
   useProjectFilter({
@@ -125,6 +136,7 @@ const Page = () => {
 
   const currentDayInfo =
     'Positive values indicate discharging, negative values indicate charging.'
+  const pageInfo = PAGE_INFO_BY_TAB[activeTab]
 
   const currentDayPlotData =
     data.data &&
@@ -145,7 +157,7 @@ const Page = () => {
 
   return (
     <Stack p="md" h="100%">
-      <PageTitle>BESS PCS Performance</PageTitle>
+      <PageTitle info={pageInfo}>BESS PCS Performance</PageTitle>
 
       <EquipmentHeader
         projectId={projectId}
