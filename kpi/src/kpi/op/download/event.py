@@ -5,7 +5,7 @@ from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
-from kpi.op.plan import FieldPlan
+from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from pydantic import BaseModel
@@ -29,11 +29,12 @@ def event_model_field(
 
 
 class EventSchema(SchemaAbstract[EventsModel]):
-    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
+    def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
+        field_names = plan.outputs()
 
         device_type_ids = [
-            self.map[field].device_type.value for field in plan.root.keys()
+            self.map[field_name].device_type.value for field_name in field_names
         ]
         df_events = download_events_df(
             project_name_short=project_name_short,
@@ -42,9 +43,9 @@ class EventSchema(SchemaAbstract[EventsModel]):
             device_type_ids=device_type_ids,
         )
 
-        for field in plan.root.keys():
-            with observe(field_name=field):
-                model = self.map[field]
+        for field_name in field_names:
+            with observe(field_name=field_name):
+                model = self.map[field_name]
                 filtered = df_events.loc[
                     df_events.device_type_id == model.device_type.value
                 ]
@@ -67,6 +68,6 @@ class EventSchema(SchemaAbstract[EventsModel]):
                     device_type=model.device_type,
                 )
                 # allow empty data arrays
-                dataset[field] = value
+                dataset[field_name] = value
 
         return dataset

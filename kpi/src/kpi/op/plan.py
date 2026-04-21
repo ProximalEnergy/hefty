@@ -1,62 +1,85 @@
-from typing import TYPE_CHECKING, TypeAlias
+from typing import Self
 
 from kpi.base.protocol import PlanProtocol, SchemaProtocol
-from pydantic import RootModel
+from pydantic import BaseModel, model_validator
 
 
-class InputDelete(RootModel[dict[str, bool]]):
+class SingleFieldPlan(BaseModel):
+    field_name: str
+    inputs: dict[str, bool]
+
+    @model_validator(mode="after")
+    def field_name_not_in_inputs(self) -> Self:
+        if self.field_name in self.inputs:
+            raise ValueError(
+                "field_name must not be a key in inputs (no self-dependency)"
+            )
+        return self
+
     def trim(self, outputs: set[str], delete: bool = True) -> set[str]:
-        inputs = self.root.keys()
-        for input in inputs:
-            self.root[input] = delete and (input not in outputs)
-        return outputs.union(inputs)
-
-    def drop_vars(self) -> list[str]:
-        return [input for input in self.root.keys() if self.root[input]]
-
-
-def delete_none(inputs: set[str]) -> InputDelete:
-    return InputDelete(root={input: False for input in inputs})
-
-
-class FieldPlan(RootModel[dict[str, InputDelete]]):
-    def trim(self, outputs: set[str], delete: bool = True) -> set[str]:
-        inputs = set[str](outputs)
-        reversed_fields = list(reversed(self.root.keys()))
-        for field_name in reversed_fields:
-            if field_name in inputs:
-                inputs.discard(field_name)
-                inputs = self.root[field_name].trim(inputs, delete)
-            else:
-                del self.root[field_name]
+        inputs = outputs - {self.field_name}
+        for input in self.inputs.keys():
+            self.inputs[input] = delete and (input not in inputs)
+            inputs.add(input)
         return inputs
 
-    def outputs(self) -> set[str]:
-        return set[str](self.root.keys())
+    def to_delete(self) -> set[str]:
+        return {input for input in self.inputs.keys() if self.inputs[input]}
 
 
-# mypy gets grumpy with the recursive type but pydantic needs it
-# to properly parse json-style inputs
-if TYPE_CHECKING:
-    PipelinePlanType = PlanProtocol
-else:
-    PipelinePlanType: TypeAlias = "FieldPlan | PipelinePlan"
+class MultiFieldPlan(BaseModel):
+    fields: list[SingleFieldPlan]
 
-
-class PipelinePlan(RootModel[dict[str, PipelinePlanType]]):
     def trim(self, outputs: set[str], delete: bool = True) -> set[str]:
         inputs = set[str](outputs)
-        reversed_steps = list(reversed(self.root.keys()))
-        for step_name in reversed_steps:
-            outputs_created = inputs.intersection(self.root[step_name].outputs())
-            if len(outputs_created) > 0:
-                inputs = self.root[step_name].trim(inputs, delete)
-            else:
-                del self.root[step_name]
+        reversed_plan: list[SingleFieldPlan] = []
+        for single_field_plan in reversed(self.fields):
+            if single_field_plan.field_name in inputs:
+                inputs = single_field_plan.trim(inputs, delete)
+                reversed_plan.append(single_field_plan)
+
+        self.fields = list(reversed(reversed_plan))
         return inputs
 
-    def outputs(self) -> set[str]:
-        return set[str]().union(*[plan.outputs() for plan in self.root.values()])
+    @model_validator(mode="after")
+    def no_duplicate_field_names(self) -> Self:
+        outputs = self.outputs()
+        if len(outputs) != len(set(outputs)):
+            raise ValueError("duplicate field names in MultiFieldPlan")
+        return self
+
+    def outputs(self) -> list[str]:
+        return [field.field_name for field in self.fields]
+
+
+class PipelinePlan(BaseModel):
+    steps: dict[str, Self | MultiFieldPlan]
+
+    def trim(self, outputs: set[str], delete: bool = True) -> set[str]:
+        inputs = set[str](outputs)
+        reversed_plan: dict[str, Self | MultiFieldPlan] = {}
+        for step_name, sub_plan in reversed(self.steps.items()):
+            outputs_created = inputs.intersection(sub_plan.outputs())
+            if outputs_created:
+                inputs = sub_plan.trim(inputs, delete)
+                reversed_plan[step_name] = sub_plan
+        self.steps = {
+            step_name: plan for step_name, plan in reversed(reversed_plan.items())
+        }
+        return inputs
+
+    def outputs(self) -> list[str]:
+        outputs: list[str] = []
+        for step_plan in self.steps.values():
+            outputs.extend(step_plan.outputs())
+        return outputs
+
+    @model_validator(mode="after")
+    def no_duplicate_field_names(self) -> Self:
+        outputs = self.outputs()
+        if len(outputs) != len(set(outputs)):
+            raise ValueError("duplicate field names in PipelinePlan")
+        return self
 
 
 def get_plan[P: PlanProtocol](schema: SchemaProtocol[P], outputs: set[str]) -> P:

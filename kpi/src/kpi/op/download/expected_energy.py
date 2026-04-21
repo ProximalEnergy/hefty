@@ -8,7 +8,7 @@ from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
-from kpi.op.plan import FieldPlan
+from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
@@ -44,11 +44,12 @@ def expected_energy_field(
 
 
 class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
-    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
+    def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
+        field_names = plan.outputs()
         expected_metric_ids = [
-            self.map[field].expected_metric_id for field in plan.root.keys()
+            self.map[field_name].expected_metric_id for field_name in field_names
         ]
-        device_types = set(self.map[field].device_type for field in plan.root.keys())
+        device_types = set(self.map[field_name].device_type for field_name in field_names)
         all_device_ids: list[int] = []
         for device_type in device_types:
             all_device_ids.extend(dataset.coords[coord(device_type)])
@@ -64,9 +65,9 @@ class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
 
         expected_df = model_list.set_index(models.DataExpected.time.name)
 
-        for field in plan.root.keys():
-            with observe(field_name=field):
-                model = self.map[field]
+        for field_name in field_names:
+            with observe(field_name=field_name):
+                model = self.map[field_name]
                 filtered_df = expected_df.loc[
                     expected_df.expected_metric_id == model.expected_metric_id
                 ]
@@ -85,7 +86,7 @@ class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
                     continue
                 assign_var(
                     dataset,
-                    field,
+                    field_name,
                     scale_offset(value, scale=model.scale, offset=model.offset),
                 )
         return dataset

@@ -16,6 +16,12 @@ class Schema:
     def __set_name__(self, owner: type, name: str) -> None:
         self._name = name
 
+    @property
+    def name(self) -> str:
+        if self._name is None:
+            raise AttributeError("name not set yet (__set_name__ not called)")
+        return self._name
+
     @overload
     def __get__(self, instance: None, owner: type) -> Self: ...
 
@@ -42,12 +48,12 @@ class PipelineSchema:
         self.map = mapping
 
     def run(self, dataset: xr.Dataset, plan: PipelinePlan) -> xr.Dataset:
-        for schema_name, sub_plan in plan.root.items():
+        for schema_name, sub_plan in plan.steps.items():
             with observe():
                 dataset = self.map[schema_name].run(dataset=dataset, plan=sub_plan)
         return dataset
 
     def full_plan(self) -> PipelinePlan:
         return PipelinePlan(
-            {name: schema.full_plan() for name, schema in self.map.items()}
+            steps={name: schema.full_plan() for name, schema in self.map.items()}
         )

@@ -14,7 +14,7 @@ from kpi.infra.download.sensor import (
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
-from kpi.op.plan import FieldPlan
+from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
@@ -62,10 +62,11 @@ def sensor_field(
 
 
 class SensorSchema(SchemaAbstract[SensorProtocol]):
-    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
+    def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
+        field_names = plan.outputs()
         sensor_type_id_list = [
-            self.map[field].sensor_type.value for field in plan.root.keys()
+            self.map[field_name].sensor_type.value for field_name in field_names
         ]
         tags_polars = get_tag_polars(
             sensor_type_id_list=sensor_type_id_list,
@@ -89,14 +90,14 @@ class SensorSchema(SchemaAbstract[SensorProtocol]):
 
         sensor_to_device_map = get_sensor_types_map(sensor_type_id_list)
 
-        for field in plan.root.keys():
-            with observe(field_name=field):
-                value = self.map[field].run(
+        for field_name in field_names:
+            with observe(field_name=field_name):
+                value = self.map[field_name].run(
                     tag_df=tag_df,
                     data_raw=data_raw,
                     sensor_to_device_map=sensor_to_device_map,
                 )
-                assign_var(dataset, field, value)
+                assign_var(dataset, field_name, value)
         return dataset
 
 

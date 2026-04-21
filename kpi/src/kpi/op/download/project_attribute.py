@@ -7,7 +7,7 @@ from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_from_database
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
-from kpi.op.plan import FieldPlan
+from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
 from pydantic import BaseModel
@@ -44,11 +44,11 @@ def project_attribute_field(
 
 
 class ProjectAttributeSchema(SchemaAbstract[ProjectAttributeProtocol]):
-    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
+    def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         project = get_project_from_database(
             dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
         )
-        for field_name in plan.root.keys():
+        for field_name in plan.outputs():
             with observe(field_name=field_name):
                 model = self.map[field_name]
                 assign_var(

@@ -12,7 +12,7 @@ from kpi.infra.write_kpi import (
     insert_device_kpi_data_bulk,
 )
 from kpi.op.observer import observe
-from kpi.op.plan import FieldPlan
+from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import select_optional, select_var
 from pydantic import BaseModel
@@ -48,7 +48,7 @@ def merge_upload_maps_strict(
 
 
 class UploadSchema(SchemaAbstract[UploadModel]):
-    def run(self, dataset: xr.Dataset, plan: FieldPlan) -> xr.Dataset:
+    def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
 
         project = get_project_from_database(name_short=project_name_short)
@@ -56,9 +56,9 @@ class UploadSchema(SchemaAbstract[UploadModel]):
 
         data_rows = []
 
-        for field_name, inputs in plan.root.items():
-            with observe(field_name=field_name):
-                model = self.map[field_name]
+        for field_plan in plan.fields:
+            with observe(field_name=field_plan.field_name):
+                model = self.map[field_plan.field_name]
                 if model.kpi_type.value not in kpi_type_ids:
                     warnings.warn(
                         message=(
@@ -88,7 +88,7 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                         end=dataset.attrs[Attrs.END_DATE.value],
                     )
                 )
-            dataset = dataset.drop_vars(inputs.drop_vars(), errors="ignore")
+            dataset = dataset.drop_vars(field_plan.to_delete(), errors="ignore")
 
         insert_device_kpi_data_bulk(
             application_name=get_application_name(),

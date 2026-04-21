@@ -14,7 +14,7 @@ from core.crud import operational as op_crud
 from core.database import with_db
 from core.enumerations import KPIType, ProjectType
 from dotenv import load_dotenv
-from kpi.op.plan import get_plan
+from kpi.op.plan import MultiFieldPlan, PipelinePlan, get_plan
 from kpi.registry.download.api import DownloadSensor
 from kpi.registry.upload.api import UPLOAD
 from kpi.schema.api import BasePipeline
@@ -295,19 +295,19 @@ def get_sensor_type_ids_for_kpis(*, kpi_type_ids: list[int]) -> list[int]:
     pipeline = BasePipeline()
     plan = get_plan(pipeline, outputs=[KPIType(idx).name for idx in kpi_type_ids])
 
-    download_plan = plan.root.get("download")
-    if download_plan is None:
+    download_plan = plan.steps.get("download")
+    if not isinstance(download_plan, PipelinePlan):
         return []
 
-    sensor_portion = download_plan.root.get("download_sensor")
-    if sensor_portion is None:
+    sensor_portion = download_plan.steps.get("download_sensor")
+    if not isinstance(sensor_portion, MultiFieldPlan):
         return []
 
     field_map = DownloadSensor.field_map()
     sensor_type_ids = [
-        field_map[field].value.sensor_type.value
-        for field in sensor_portion.root.keys()
-        if field in field_map
+        field_map[field_plan.field_name].value.sensor_type.value
+        for field_plan in sensor_portion.fields
+        if field_plan.field_name in field_map
     ]
     return sorted(set(sensor_type_ids))
 
