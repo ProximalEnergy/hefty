@@ -1877,26 +1877,42 @@ class Issue(Base):
         sa.ForeignKey("project.devices.device_id"),
         index=True,
     )
-    sensor_type_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("operational.sensor_types.sensor_type_id"),
+    tag_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("project.tags.tag_id"),
+        nullable=True,
     )
-    failure_mode_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("operational.failure_modes.failure_mode_id"),
-        server_default="1",
+    issue_category_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.issue_categories.issue_category_id"),
     )
     time_start: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
     time_end: Mapped[datetime.datetime | None] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=True,
     )
-    time_detected: Mapped[datetime.datetime | None] = mapped_column(
-        sa.DateTime(timezone=True),
-    )
-    version: Mapped[str | None]
+    detector_metadata: Mapped[dict | None] = mapped_column(JSONB)
 
     device = relationship("Device")
-    sensor_type = relationship("SensorType")
-    failure_mode = relationship("FailureMode")
+    tag = relationship("Tag")
+    issue_category = relationship("IssueCategory")
+
+
+class IssueUpdate(Base):
+    __tablename__ = "issue_updates"
+
+    issue_update_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    issue_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.issues.issue_id", ondelete="CASCADE"),
+    )
+    issue_state_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.issue_states.issue_state_id"),
+    )
+    state_time_start: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+    )
+    state_changed_source: Mapped[str] = mapped_column(sa.String)
+
+    issue = relationship("Issue")
+    issue_state = relationship("IssueState")
 
 
 class EventLoss(Base):
