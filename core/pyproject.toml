@@ -36,13 +36,6 @@ core = "core:main"
 requires = ["uv_build>=0.7.2,<0.8"]
 build-backend = "uv_build"
 
-[[tool.uv.index]]
-name = "proximal-package-index"
-url = """https://proximal-code-artifact-domain-016997484973.\
-d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"""
-publish-url = """https://proximal-code-artifact-domain-016997484973.\
-d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"""
-
 [dependency-groups]
 dev = [
     "alembic>=1.16.1,<2",

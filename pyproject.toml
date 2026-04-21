@@ -32,6 +32,14 @@ dev = [
 [tool.uv.workspace]
 members = ["core", "pv-eem"]
 
+[[tool.uv.index]]
+name = "proximal-package-index"
+url = """https://proximal-code-artifact-domain-016997484973.\
+d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"""
+publish-url = """https://proximal-code-artifact-domain-016997484973.\
+d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"""
+explicit = true
+
 [tool.ruff]
 line-length = 88
 fix = true
