@@ -2,6 +2,7 @@ import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
 import {
   NotificationSeverityEnum,
   NotificationTypeEnum,
+  ProjectStatusTypeEnum,
 } from '@/api/enumerations'
 import {
   type NotificationPreference,
@@ -1147,7 +1148,7 @@ function CapacityReductionNotificationsPanel({
 function DataConnectionOutageNotificationsPanel({
   projects,
 }: {
-  projects: Array<{ project_id: string; name_long: string }>
+  projects: Project[]
 }) {
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme()
@@ -1181,7 +1182,12 @@ function DataConnectionOutageNotificationsPanel({
   }
 
   const sortedProjects = useMemo(
-    () => [...projects].sort((a, b) => a.name_long.localeCompare(b.name_long)),
+    () =>
+      [...projects]
+        .filter(
+          (p) => p.project_status_type_id === ProjectStatusTypeEnum.ACTIVE,
+        )
+        .sort((a, b) => a.name_long.localeCompare(b.name_long)),
     [projects],
   )
 

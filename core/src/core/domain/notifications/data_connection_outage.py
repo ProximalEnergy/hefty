@@ -13,7 +13,7 @@ from uuid import UUID
 import polars as pl
 from sqlalchemy import outerjoin, select
 
-from core import models
+from core import enumerations, models
 from core.db_query import DbQuery, OutputType
 
 
@@ -178,10 +178,11 @@ async def _load_projects_for_connection_outage(
     *,
     now: datetime | None = None,
 ) -> tuple[datetime, pl.DataFrame]:
-    """Load schedule and ``time_last`` for every project (outer join)."""
+    """Load status, schedule, and ``time_last`` for every project (outer join)."""
     stmt = select(
         models.Project.project_id,
         models.Project.name_short,
+        models.Project.project_status_type_id,
         models.Project.data_receive_schedule,
         models.ProjectDataLastUpdated.time_last,
     ).select_from(
@@ -207,14 +208,18 @@ async def get_data_connection_outage_project_ids(
         now: Reference instant (UTC); defaults to real-time.
 
     Returns:
-        ``{True: [...], False: [...]}``. ``True`` = :func:`is_connection_outage`
-        is ``True`` (late vs schedule). ``False`` = not an outage: either
-        :func:`is_connection_outage` is ``False`` (on time) or ``None`` (no
-        ``data_receive_schedule``, so outage cannot be determined).
+        ``{True: [...], False: [...]}``. ``True`` = ACTIVE project and
+        :func:`is_connection_outage` is ``True`` (late vs schedule). ``False`` =
+        not an outage: ACTIVE projects where :func:`is_connection_outage` is
+        ``False`` or ``None``, or any project that is not ACTIVE (treated as no
+        outage so notifications can be cleared when status changes).
     """
     current, result = await _load_projects_for_connection_outage(now=now)
     out: dict[bool, list[UUID]] = {True: [], False: []}
     for row in result.iter_rows(named=True):
+        if row["project_status_type_id"] != enumerations.ProjectStatusType.ACTIVE:
+            out[False].append(row["project_id"])
+            continue
         outage = is_connection_outage(
             data_receive_schedule=row["data_receive_schedule"],
             time_last=row["time_last"],
@@ -254,40 +259,55 @@ async def print_data_connection_outage_status(
         name_short = row["name_short"]
         schedule = row["data_receive_schedule"]
         time_last = row["time_last"]
+        status_type_id = row["project_status_type_id"]
 
-        outage = is_connection_outage(
-            data_receive_schedule=schedule,
-            time_last=time_last,
-            now=current,
-        )
+        outage: bool | None
+        if status_type_id != enumerations.ProjectStatusType.ACTIVE:
+            outage = False
+        else:
+            outage = is_connection_outage(
+                data_receive_schedule=schedule,
+                time_last=time_last,
+                now=current,
+            )
 
         if debug:
-            print(f"--- project_id={project_id} name_short={name_short!r}")  # noqa: T201
-            print(f"    data_receive_schedule={schedule!r}")  # noqa: T201
-            print(_debug_time_row(label="time_last_utc", dt=time_last))  # noqa: T201
-            if schedule:
-                try:
-                    st = check_data_status(cron=schedule, now=current)
-                    thr = st.last_expected - st.grace_period
-                    print(  # noqa: T201
-                        _debug_time_row(label="last_expected_utc", dt=st.last_expected)
-                    )
-                    print(  # noqa: T201
-                        _debug_time_row(label="next_expected_utc", dt=st.next_expected)
-                    )
-                    gp = "grace_period ="
-                    print(f"    {gp:<22}{st.grace_period}")  # noqa: T201
-                    print(_debug_time_row(label="threshold_utc", dt=thr))  # noqa: T201
-                except ValueError as exc:
-                    print(f"    cron_parse_error={exc!r}")  # noqa: T201
-            print(f"    is_outage={outage!r}")  # noqa: T201
-            if outage is True:
-                stale = _outage_stale_minutes_for_debug(
-                    time_last=time_last,
-                    schedule=schedule,
-                    now=current,
+            if status_type_id != enumerations.ProjectStatusType.ACTIVE:
+                print(  # noqa: T201
+                    f"--- project_id={project_id} name_short={name_short!r} "
+                    f"(not ACTIVE; treated as no outage)"
                 )
-                print(f"    outage_stale_minutes={stale}")  # noqa: T201
+            else:
+                print(f"--- project_id={project_id} name_short={name_short!r}")  # noqa: T201
+                print(f"    data_receive_schedule={schedule!r}")  # noqa: T201
+                print(_debug_time_row(label="time_last_utc", dt=time_last))  # noqa: T201
+                if schedule:
+                    try:
+                        st = check_data_status(cron=schedule, now=current)
+                        thr = st.last_expected - st.grace_period
+                        print(  # noqa: T201
+                            _debug_time_row(
+                                label="last_expected_utc", dt=st.last_expected
+                            )
+                        )
+                        print(  # noqa: T201
+                            _debug_time_row(
+                                label="next_expected_utc", dt=st.next_expected
+                            )
+                        )
+                        gp = "grace_period ="
+                        print(f"    {gp:<22}{st.grace_period}")  # noqa: T201
+                        print(_debug_time_row(label="threshold_utc", dt=thr))  # noqa: T201
+                    except ValueError as exc:
+                        print(f"    cron_parse_error={exc!r}")  # noqa: T201
+                print(f"    is_outage={outage!r}")  # noqa: T201
+                if outage is True:
+                    stale = _outage_stale_minutes_for_debug(
+                        time_last=time_last,
+                        schedule=schedule,
+                        now=current,
+                    )
+                    print(f"    outage_stale_minutes={stale}")  # noqa: T201
 
         if outage is None:
             print(  # noqa: T201
