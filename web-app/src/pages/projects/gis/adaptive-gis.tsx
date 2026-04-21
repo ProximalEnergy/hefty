@@ -9,6 +9,7 @@ import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import * as gisUtils from '@/utils/GIS'
 import { QUERY_TIME } from '@/utils/queryTiming'
+import { formatRelativeTime } from '@/utils/relativeTime'
 import {
   ActionIcon,
   Box,
@@ -71,12 +72,14 @@ type AdaptiveGisFeatureProperties = {
   capacity_dc: number | null
   capacity_ac: number | null
   power: NullableNumber
+  power_time: string | null
   power_expected: NullableNumber
   device_type_id: number
   actual_vs_expected: NullableNumber
   expected_zero_output: boolean
   ratio_label: string
   tracker_angle: NullableNumber
+  tracker_time: string | null
   effective_zoom: number
   met_station_values?: MetStationValues | string
   renderType: 'polygon' | 'point'
@@ -301,20 +304,6 @@ export function AdaptiveGisMap() {
     return null // Return null if no valid polygon is available
   }, [project.data])
 
-  // Define bounds for viewport - use project bounds if available, otherwise fallback to test bounds
-  const viewportBounds = useMemo(() => {
-    if (projectBounds) {
-      return projectBounds
-    }
-    // Fallback to test bounds
-    return {
-      north: 40.0,
-      east: -95.0,
-      south: 35.0,
-      west: -99.0,
-    }
-  }, [projectBounds])
-
   // --- Determine Device Types to Fetch ---
   const dynamicDeviceTypeIds = useMemo(
     () => calculateDeviceTypeIds(zoom),
@@ -335,15 +324,11 @@ export function AdaptiveGisMap() {
   const viewportDevices = useGetDevicesInViewport({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      ...viewportBounds, // Use the calculated bounds or fallback
       device_type_ids: deviceTypeIdsToFetch, // Use potentially locked IDs
       power_device_type_id: powerDeviceTypeIdToFetch, // Use potentially locked ID
     },
     queryOptions: {
-      enabled:
-        !!project.data &&
-        !!(viewportBounds ?? projectBounds) &&
-        (zoom >= LOW_ZOOM || isViewLocked),
+      enabled: !!project.data && (zoom >= LOW_ZOOM || isViewLocked),
       placeholderData: keepPreviousData,
       refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every 60 seconds
       staleTime: QUERY_TIME.THIRTY_SECONDS, // Consider data stale after 30 seconds
@@ -367,6 +352,7 @@ export function AdaptiveGisMap() {
       // Common properties extraction
       const latestActualPowerRaw =
         device.power_data?.actual?.power?.slice(-1)[0] ?? null
+      const latestActualTime = device.power_data?.times?.slice(-1)[0] ?? null
       const latestExpectedPowerRaw =
         device.power_data?.expected_soiled?.power?.slice(-1)[0] ?? null
       const latestActualPower = coerceNullableNumber(latestActualPowerRaw)
@@ -435,12 +421,14 @@ export function AdaptiveGisMap() {
         capacity_dc: device.capacity_dc,
         capacity_ac: device.capacity_ac,
         power: latestActualPower,
+        power_time: latestActualTime,
         power_expected: latestExpectedPower,
         device_type_id: device.device_type_id,
         actual_vs_expected: expectedZeroOutput ? null : actual_vs_expected,
         expected_zero_output: expectedZeroOutput,
         ratio_label: ratio_label,
         tracker_angle: device.tracker_data?.tracker_angle ?? null,
+        tracker_time: device.tracker_data?.tracker_time ?? null,
         effective_zoom: effectiveZoom,
         met_station_values: coerceMetStationValues(device.met_station_values),
       }
@@ -668,6 +656,32 @@ export function AdaptiveGisMap() {
     }
   }, [])
 
+  const handleMapMouseUp = useCallback(
+    (e: MapMouseEvent) => {
+      if (mouseDownPos.current && mapRef.current) {
+        const dx = e.point.x - mouseDownPos.current.x
+        const dy = e.point.y - mouseDownPos.current.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < 5) {
+          const features = mapRef.current.queryRenderedFeatures(e.point, {
+            layers: ['data-polygons', 'data-points'],
+          })
+          if (features && features.length > 0) {
+            const deviceId = features[0].properties?.device_id
+            if (deviceId) {
+              navigate(
+                `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
+              )
+            }
+          }
+        }
+      }
+      mouseDownPos.current = null
+    },
+    [navigate, projectId],
+  )
+
   // Calculate the current view name based on zoom, even if not locked
   const currentPowerTypeId = useMemo(
     () => calculatePowerDeviceTypeId(zoom),
@@ -808,31 +822,7 @@ export function AdaptiveGisMap() {
                 interactiveLayerIds={['data-polygons', 'data-points']}
                 onMouseMove={onHover}
                 onMouseDown={(e) => (mouseDownPos.current = e.point)}
-                onMouseUp={(e) => {
-                  if (mouseDownPos.current && mapRef.current) {
-                    const dx = e.point.x - mouseDownPos.current.x
-                    const dy = e.point.y - mouseDownPos.current.y
-                    const distance = Math.sqrt(dx * dx + dy * dy)
-
-                    if (distance < 5) {
-                      const features = mapRef.current.queryRenderedFeatures(
-                        e.point,
-                        {
-                          layers: ['data-polygons', 'data-points'],
-                        },
-                      )
-                      if (features && features.length > 0) {
-                        const deviceId = features[0].properties?.device_id
-                        if (deviceId) {
-                          navigate(
-                            `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
-                          )
-                        }
-                      }
-                    }
-                  }
-                  mouseDownPos.current = null
-                }}
+                onMouseUp={handleMapMouseUp}
                 mapStyle={
                   gisUtils.mapStyle({
                     empty: mapStyleEmpty,
@@ -1203,6 +1193,12 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
   } else if (props?.device_type_id === DeviceTypeEnum.TRACKER_ROW) {
     deviceTypeString = 'Tracker Row'
   }
+  const trackerUpdated = props?.tracker_time
+    ? formatRelativeTime(props.tracker_time).relative
+    : null
+  const powerUpdated = props?.power_time
+    ? formatRelativeTime(props.power_time).relative
+    : null
 
   return (
     <Paper
@@ -1222,12 +1218,19 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
       </Text>
       {/* Show tracker angle if it's a tracker row */}
       {props?.device_type_id === DeviceTypeEnum.TRACKER_ROW && (
-        <Text size="sm">
-          Tracker Angle:{' '}
-          {props?.tracker_angle !== undefined && props?.tracker_angle !== null
-            ? props.tracker_angle.toFixed(1) + '°'
-            : 'No Data'}
-        </Text>
+        <>
+          <Text size="sm">
+            Tracker Angle:{' '}
+            {props?.tracker_angle !== undefined && props?.tracker_angle !== null
+              ? props.tracker_angle.toFixed(1) + '°'
+              : 'No Data'}
+          </Text>
+          {trackerUpdated && (
+            <Text c="dimmed" size="xs">
+              Updated: {trackerUpdated}
+            </Text>
+          )}
+        </>
       )}
       {/* Only show power details for non-tracker devices and non-met-station devices */}
       {props?.device_type_id !== DeviceTypeEnum.TRACKER_ROW &&
@@ -1239,6 +1242,13 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
                 ? props.power.toFixed(1) + ' kW'
                 : 'No Data'}
             </Text>
+            {(props?.device_type_id === DeviceTypeEnum.PV_INVERTER ||
+              props?.device_type_id === DeviceTypeEnum.PV_DC_COMBINER) &&
+              powerUpdated && (
+                <Text c="dimmed" size="xs">
+                  Updated: {powerUpdated}
+                </Text>
+              )}
             <Text size="sm">
               Expected Power:{' '}
               {props?.power_expected !== undefined &&

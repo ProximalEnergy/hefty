@@ -1672,16 +1672,12 @@ export interface paths {
         };
         /**
          * Get Devices In Viewport
-         * @description Retrieves devices whose geometry intersects the viewport bounding box
-         *     (with buffer). Optionally filters by device_type_ids. If
-         *     power_device_type_id is provided, fetches and includes latest
-         *     actual/expected power for devices matching that type within the viewport.
+         * @description Retrieves devices for the site, optionally filtered by device type.
+         *
+         *     If power_device_type_id is provided, fetches and includes latest
+         *     actual/expected power for devices matching that type.
          *
          *     Args:
-         *         north: Description for north.
-         *         east: Description for east.
-         *         south: Description for south.
-         *         west: Description for west.
          *         device_type_ids: Description for device_type_ids.
          *         power_device_type_id: Description for power_device_type_id.
          *         project_db: Description for project_db.
@@ -14982,11 +14978,7 @@ export interface operations {
     };
     get_devices_in_viewport_v1_gis__project_id__devices_in_viewport_get: {
         parameters: {
-            query: {
-                north: number;
-                east: number;
-                south: number;
-                west: number;
+            query?: {
                 device_type_ids?: number[] | null;
                 power_device_type_id?: number | null;
             };

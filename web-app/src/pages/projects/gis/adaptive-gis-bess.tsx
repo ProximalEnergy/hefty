@@ -224,11 +224,6 @@ function AdaptiveGisBESS() {
     return null
   }, [project.data])
 
-  const viewportBounds = useMemo(() => {
-    if (projectBounds) return projectBounds
-    return { north: 40.0, east: -95.0, south: 35.0, west: -99.0 }
-  }, [projectBounds])
-
   const layerAvailability = useMemo<Record<LayerViewName, boolean>>(() => {
     const usedDeviceTypeIds = new Set(
       project.data?.spec?.used_device_type_ids ?? [],
@@ -282,12 +277,11 @@ function AdaptiveGisBESS() {
   const viewportDevices = useGetDevicesInViewport({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      ...viewportBounds,
       device_type_ids: deviceTypeIdsToFetch,
       power_device_type_id: powerDeviceTypeIdToFetch,
     },
     queryOptions: {
-      enabled: !!project.data && !!viewportBounds,
+      enabled: !!project.data,
       placeholderData: keepPreviousData,
     },
   })
@@ -892,6 +886,33 @@ function AdaptiveGisBESS() {
     else setHoverInfo({ feature: null, x: 0, y: 0 })
   }, [])
 
+  const handleMapMouseUp = useCallback(
+    (e: MapMouseEvent) => {
+      if (mouseDownPos.current && mapRef.current) {
+        const dx = e.point.x - mouseDownPos.current.x
+        const dy = e.point.y - mouseDownPos.current.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+        if (distance < 5) {
+          const features = mapRef.current.queryRenderedFeatures(e.point, {
+            layers: ['data-polygons'],
+          })
+          if (features && features.length > 0) {
+            const first = features[0]
+            const deviceId = first.properties?.device_id
+            const deviceTypeId = first.properties?.device_type_id
+            if (deviceId && deviceTypeId !== DeviceTypeEnum.BESS_ENCLOSURE) {
+              navigate(
+                `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
+              )
+            }
+          }
+        }
+      }
+      mouseDownPos.current = null
+    },
+    [navigate, projectId],
+  )
+
   // --- Lock Toggle Handler ---
   const handleLockToggle = () => {
     if (effectiveIsViewLocked) {
@@ -1033,34 +1054,7 @@ function AdaptiveGisBESS() {
                 interactiveLayerIds={['data-polygons']}
                 onMouseMove={onHover}
                 onMouseDown={(e) => (mouseDownPos.current = e.point)}
-                onMouseUp={(e) => {
-                  if (mouseDownPos.current && mapRef.current) {
-                    const dx = e.point.x - mouseDownPos.current.x
-                    const dy = e.point.y - mouseDownPos.current.y
-                    const distance = Math.sqrt(dx * dx + dy * dy)
-                    if (distance < 5) {
-                      const features = mapRef.current.queryRenderedFeatures(
-                        e.point,
-                        { layers: ['data-polygons'] },
-                      )
-                      if (features && features.length > 0) {
-                        const first = features[0]
-                        const deviceId = first.properties?.device_id
-                        const deviceTypeId = first.properties?.device_type_id
-                        // Temporarily disable navigation for DC Enclosures
-                        if (
-                          deviceId &&
-                          deviceTypeId !== DeviceTypeEnum.BESS_ENCLOSURE
-                        ) {
-                          navigate(
-                            `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
-                          )
-                        }
-                      }
-                    }
-                  }
-                  mouseDownPos.current = null
-                }}
+                onMouseUp={handleMapMouseUp}
                 mapStyle={
                   gisUtils.mapStyle({
                     empty: mapStyleEmpty,

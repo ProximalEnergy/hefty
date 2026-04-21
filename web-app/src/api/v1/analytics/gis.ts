@@ -23,6 +23,7 @@ type DeviceWithPower = Device & {
   tracker_data?: {
     // Add optional tracker data
     tracker_angle: number | null
+    tracker_time?: string | null
   } | null
   met_station_values?: {
     poa: number | null
@@ -34,10 +35,6 @@ type DeviceWithPower = Device & {
 
 // Type for the hook's query parameters
 type DevicesInViewportQueryParams = {
-  north: number
-  east: number
-  south: number
-  west: number
   device_type_ids?: number[]
   power_device_type_id?: number
 }

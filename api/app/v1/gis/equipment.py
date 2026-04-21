@@ -8,7 +8,7 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, text
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 import core
@@ -22,6 +22,376 @@ router = APIRouter(
     dependencies=[Depends(dependencies.check_project_access_async)],
     include_in_schema=utils.get_include_in_schema(),
 )
+
+
+def _get_row_value(*, row: typing.Any, key: str) -> typing.Any:
+    """Read a value from either a namedtuple row or dict-like row.
+
+    Args:
+        row: Query row returned from pandas/polars conversion helpers.
+        key: Column name to fetch from the row.
+    """
+    if hasattr(row, key):
+        return getattr(row, key)
+    if isinstance(row, dict):
+        return row.get(key)
+    return None
+
+
+def _get_row_timestamp_iso(*, row: typing.Any) -> str | None:
+    """Return an ISO timestamp from a row's time column.
+
+    Args:
+        row: Query row containing a time field.
+    """
+    time_raw = _get_row_value(row=row, key="time")
+    if time_raw is None or pd.isna(time_raw):
+        return None
+
+    timestamp = pd.to_datetime(time_raw, errors="coerce", utc=True)
+    if pd.isna(timestamp):
+        return None
+
+    return typing.cast(str, timestamp.isoformat())
+
+
+def _get_scaled_data_timeseries_last_value(*, row: typing.Any) -> float | None:
+    """Return the latest numeric value from a data_timeseries_last row.
+
+    Args:
+        row: Query row containing value columns and unit metadata.
+    """
+    raw_value: float | None = None
+    for col in ("value_integer", "value_bigint", "value_real", "value_double"):
+        candidate = _get_row_value(row=row, key=col)
+        if pd.notna(candidate):
+            raw_value = float(candidate)
+            break
+
+    if raw_value is None:
+        return None
+
+    scale_raw = _get_row_value(row=row, key="unit_scale")
+    offset_raw = _get_row_value(row=row, key="unit_offset")
+    scale = float(scale_raw) if pd.notna(scale_raw) else 1.0
+    offset = float(offset_raw) if pd.notna(offset_raw) else 0.0
+    return raw_value * scale + offset
+
+
+async def _get_latest_scaled_sensor_values_by_device(
+    *,
+    device_ids: list[int],
+    sensor_type_ids: list[int],
+    project_schema: str,
+    multiplier: float = 1.0,
+) -> dict[int, tuple[str | None, float | None]]:
+    """Fetch the latest scaled value for each device from data_timeseries_last.
+
+    Args:
+        device_ids: Device ids to query.
+        sensor_type_ids: Sensor types that identify the desired measurement.
+        project_schema: Project schema for the query execution.
+        multiplier: Optional multiplier applied after scaling the raw value.
+    """
+    latest_df = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
+        device_ids=device_ids,
+        sensor_type_ids=sensor_type_ids,
+        deep=True,
+        include_ghost_tags=False,
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+
+    latest_values: dict[int, tuple[str | None, float | None]] = {}
+    for row in latest_df.itertuples(index=False):
+        device_id = _get_row_value(row=row, key="device_id")
+        if pd.isna(device_id):
+            continue
+
+        value = _get_scaled_data_timeseries_last_value(row=row)
+        latest_values[int(device_id)] = (
+            _get_row_timestamp_iso(row=row),
+            value * multiplier if value is not None else None,
+        )
+
+    return latest_values
+
+
+async def _get_latest_combiner_power_by_device(
+    *,
+    device_ids: list[int],
+    device_dict: dict[int, typing.Any],
+    project_schema: str,
+) -> dict[int, tuple[str | None, float | None]]:
+    """Calculate latest combiner power from latest current and voltage values.
+
+    Args:
+        device_ids: Combiner device ids to calculate power for.
+        device_dict: Mapping of combiner id to validated device row.
+        project_schema: Project schema for CRUD queries.
+    """
+    parent_ids = {
+        device_dict[dev_id].parent_device_id
+        for dev_id in device_ids
+        if device_dict[dev_id].parent_device_id is not None
+    }
+    if not parent_ids:
+        return {}
+
+    parent_device_ids = list(parent_ids)
+    parent_devices_df = await core.crud.project.devices.get_project_devices(
+        device_ids=[typing.cast(int, pid) for pid in parent_device_ids],
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    parent_devices_df = parent_devices_df.copy()
+    parent_devices_df["device_id"] = parent_devices_df["device_id"].astype(int)
+    parent_devices_df["device_type_id"] = parent_devices_df["device_type_id"].astype(
+        int
+    )
+    parent_devices_df["parent_device_id"] = parent_devices_df["parent_device_id"].apply(
+        lambda value: None if pd.isna(value) else value
+    )
+    parent_device_dict = {
+        typing.cast(int, row.device_id): row
+        for row in parent_devices_df.itertuples(index=False)
+    }
+
+    parent_pcs_ids: list[int] = []
+    combiner_to_parent_pcs_id: dict[int, int] = {}
+    for dev_id in device_ids:
+        parent_id = device_dict[dev_id].parent_device_id
+        if parent_id is None:
+            continue
+
+        parent_device = parent_device_dict.get(typing.cast(int, parent_id))
+        if parent_device is None:
+            continue
+
+        if parent_device.device_type_id == DeviceType.PV_INVERTER_MODULE:
+            pcs_id = parent_device.parent_device_id
+            if pcs_id is not None:
+                parent_pcs_ids.append(typing.cast(int, pcs_id))
+                combiner_to_parent_pcs_id[dev_id] = typing.cast(int, pcs_id)
+        elif parent_device.device_type_id == DeviceType.PV_INVERTER:
+            parent_pcs_ids.append(typing.cast(int, parent_id))
+            combiner_to_parent_pcs_id[dev_id] = typing.cast(int, parent_id)
+
+    parent_pcs_ids = list(set(parent_pcs_ids))
+    if not parent_pcs_ids:
+        return {}
+
+    all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
+        device_type_ids=[DeviceType.PV_INVERTER_MODULE],
+        parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    all_pcs_modules_df = all_pcs_modules_df.copy()
+    all_pcs_modules_df["device_id"] = all_pcs_modules_df["device_id"].astype(int)
+    all_pcs_modules_df["parent_device_id"] = all_pcs_modules_df[
+        "parent_device_id"
+    ].apply(lambda value: None if pd.isna(value) else value)
+    parent_pcs_id_to_module_ids: dict[int, list[int]] = {}
+    module_ids: list[int] = []
+    for row in all_pcs_modules_df.itertuples(index=False):
+        module_ids.append(typing.cast(int, row.device_id))
+        pcs_id = row.parent_device_id
+        if pcs_id is None:
+            continue
+        parent_pcs_id_to_module_ids.setdefault(typing.cast(int, pcs_id), []).append(
+            typing.cast(int, row.device_id)
+        )
+
+    latest_current_by_combiner = await _get_latest_scaled_sensor_values_by_device(
+        device_ids=device_ids,
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT.value],
+        project_schema=project_schema,
+    )
+    if not latest_current_by_combiner:
+        return {}
+
+    voltage_by_module: dict[int, float] = {}
+    if module_ids:
+        latest_voltage_by_module = await _get_latest_scaled_sensor_values_by_device(
+            device_ids=module_ids,
+            sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE.value],
+            project_schema=project_schema,
+        )
+        voltage_by_module = {
+            device_id: value
+            for device_id, (_, value) in latest_voltage_by_module.items()
+            if value is not None
+        }
+
+    voltage_by_pcs: dict[int, float] = {}
+    using_pcs_level_voltage = not voltage_by_module
+    if using_pcs_level_voltage:
+        latest_voltage_by_pcs = await _get_latest_scaled_sensor_values_by_device(
+            device_ids=parent_pcs_ids,
+            sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE.value],
+            project_schema=project_schema,
+        )
+        voltage_by_pcs = {
+            device_id: value
+            for device_id, (_, value) in latest_voltage_by_pcs.items()
+            if value is not None
+        }
+        if not voltage_by_pcs:
+            return {}
+
+    latest_power_by_combiner: dict[int, tuple[str | None, float | None]] = {}
+    for dev_id in device_ids:
+        parent_pcs_id = combiner_to_parent_pcs_id.get(dev_id)
+        if parent_pcs_id is None:
+            continue
+
+        time_iso, current_a = latest_current_by_combiner.get(dev_id, (None, None))
+        if current_a is None:
+            continue
+
+        voltage_v: float | None = None
+        if using_pcs_level_voltage:
+            voltage_v = voltage_by_pcs.get(parent_pcs_id)
+        else:
+            module_ids_for_parent = parent_pcs_id_to_module_ids.get(parent_pcs_id, [])
+            voltages = [
+                voltage_by_module[module_id]
+                for module_id in module_ids_for_parent
+                if module_id in voltage_by_module
+            ]
+            if voltages:
+                voltage_v = sum(voltages) / len(voltages)
+
+        if voltage_v is None:
+            continue
+
+        latest_power_by_combiner[dev_id] = (
+            time_iso,
+            (voltage_v * current_a) / 1_000,
+        )
+
+    return latest_power_by_combiner
+
+
+async def _get_latest_expected_power_by_device(
+    *,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    device_ids: list[int],
+    expected_metric_ids_fallback: list[int],
+    project: models.Project,
+    project_schema: str,
+) -> tuple[dict[int, tuple[str | None, float | None]], dict[int, list[str]]]:
+    """Fetch the latest expected power per device using existing metric fallbacks.
+
+    Args:
+        start: Start of the expected-power query window.
+        end: End of the expected-power query window.
+        device_ids: Device ids to fetch expected power for.
+        expected_metric_ids_fallback: Expected metric ids ordered by preference.
+        project: Project model used for timezone conversion.
+        project_schema: Project schema for CRUD queries.
+    """
+    if not expected_metric_ids_fallback:
+        return {}, {}
+
+    data_expected = None
+    found_metric_id = None
+    for expected_metric_id in expected_metric_ids_fallback:
+        data_expected = await core.crud.project.data_expected.get_project_data_expected(
+            start=start,
+            end=end,
+            device_ids=device_ids,
+            expected_metric_ids=[expected_metric_id],
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        if not data_expected.empty:
+            found_metric_id = expected_metric_id
+            break
+
+    if data_expected is None or data_expected.empty or found_metric_id is None:
+        return {}, {}
+
+    df_expected = data_expected.copy()
+    df_expected["time"] = pd.to_datetime(df_expected["time"], errors="coerce")
+    if getattr(df_expected["time"].dt, "tz", None) is None:
+        df_expected["time"] = df_expected["time"].dt.tz_localize(
+            "UTC",
+            nonexistent="NaT",
+            ambiguous="NaT",
+        )
+    df_expected["time"] = df_expected["time"].dt.tz_convert(project.time_zone)
+    df_expected = df_expected.dropna(subset=["time"]).sort_values("time")
+    if df_expected.empty:
+        return {}, {}
+
+    latest_expected_rows = df_expected.groupby("device_id", as_index=False).tail(1)
+    latest_expected_by_device: dict[int, tuple[str | None, float | None]] = {}
+    for row in latest_expected_rows.itertuples(index=False):
+        row_dev_id = getattr(row, "device_id", None)
+        if pd.isna(row_dev_id):
+            continue
+        dev_id_int = int(typing.cast(int, row_dev_id))
+        row_val = getattr(row, "value", None)
+        power_kw = (
+            float(typing.cast(int | float, row_val)) / 1_000
+            if row_val is not None and pd.notna(row_val)
+            else None
+        )
+        time_raw = getattr(row, "time", None)
+        if time_raw is None or pd.isna(time_raw):
+            time_iso = None
+        else:
+            time_ts = pd.to_datetime(
+                typing.cast(
+                    datetime.datetime | pd.Timestamp | str | float | int,
+                    time_raw,
+                ),
+                errors="coerce",
+                utc=True,
+            )
+            time_iso = (
+                None if pd.isna(time_ts) else typing.cast(str, time_ts.isoformat())
+            )
+        latest_expected_by_device[dev_id_int] = (time_iso, power_kw)
+
+    unique_versions_by_device: dict[int, list[str]] = {}
+    for device_id, df_device in df_expected.groupby("device_id"):
+        unique_versions_by_device[int(typing.cast(int, device_id))] = sorted(
+            df_device["version"].dropna().unique().tolist()
+        )
+
+    return latest_expected_by_device, unique_versions_by_device
+
+
+def _build_single_point_power_results(
+    *,
+    device_ids: list[int],
+    actual_by_device: dict[int, tuple[str | None, float | None]],
+    expected_by_device: dict[int, tuple[str | None, float | None]],
+    unique_versions_by_device: dict[int, list[str]],
+) -> dict[int, dict[str, typing.Any]]:
+    """Build the existing GIS power payload using only the latest sample.
+
+    Args:
+        device_ids: Device ids to include in the payload.
+        actual_by_device: Latest actual time/value keyed by device id.
+        expected_by_device: Latest expected time/value keyed by device id.
+        unique_versions_by_device: Expected-data versions keyed by device id.
+    """
+    results: dict[int, dict[str, typing.Any]] = {}
+    for dev_id in device_ids:
+        actual_time_iso, actual_power = actual_by_device.get(dev_id, (None, None))
+        expected_time_iso, expected_power = expected_by_device.get(
+            dev_id,
+            (None, None),
+        )
+        time_iso = actual_time_iso or expected_time_iso
+
+        results[dev_id] = {
+            "times": [time_iso] if time_iso is not None else [],
+            "actual": {"power": [actual_power]},
+            "expected_soiled": {
+                "power": [expected_power],
+                "unique_versions": unique_versions_by_device.get(dev_id, []),
+            },
+        }
+
+    return results
 
 
 @router.get("/tracker-by-block/{block_id}", response_model=interfaces.GeoJSON)
@@ -148,25 +518,17 @@ async def get_bess_enclosure(
 @router.get("/devices-in-viewport")
 async def get_devices_in_viewport(
     *,
-    north: float,
-    east: float,
-    south: float,
-    west: float,
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     power_device_type_id: Annotated[int | None, Query()] = None,
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """Retrieves devices whose geometry intersects the viewport bounding box
-    (with buffer). Optionally filters by device_type_ids. If
-    power_device_type_id is provided, fetches and includes latest
-    actual/expected power for devices matching that type within the viewport.
+    """Retrieves devices for the site, optionally filtered by device type.
+
+    If power_device_type_id is provided, fetches and includes latest
+    actual/expected power for devices matching that type.
 
     Args:
-        north: Description for north.
-        east: Description for east.
-        south: Description for south.
-        west: Description for west.
         device_type_ids: Description for device_type_ids.
         power_device_type_id: Description for power_device_type_id.
         project_db: Description for project_db.
@@ -177,49 +539,6 @@ async def get_devices_in_viewport(
     # Optional filter by general device type IDs
     if device_type_ids:
         query = query.where(models.Device.device_type_id.in_(device_type_ids))
-
-    # Use the buffer calculation from the provided example
-    width = east - west
-    height = north - south
-    buffer_size = max(width * 2, height * 2)
-
-    # Define the spatial filter using a single text() clause, mirroring the example
-    spatial_filter_sql = text(
-        """
-        (
-            (
-                polygon IS NOT NULL
-                AND ST_Intersects(
-                    polygon,
-                    ST_Buffer(
-                        ST_MakeEnvelope(:west, :south, :east, :north, 4326),
-                        :buffer_size
-                    )
-                )
-            )
-            OR
-            (
-                point IS NOT NULL
-                AND ST_Intersects(
-                    point,
-                    ST_Buffer(
-                        ST_MakeEnvelope(:west, :south, :east, :north, 4326),
-                        :buffer_size
-                    )
-                )
-            )
-        )
-        """,
-    ).bindparams(
-        west=west,
-        south=south,
-        east=east,
-        north=north,
-        buffer_size=buffer_size,
-    )
-
-    # Apply the spatial filter
-    query = query.where(spatial_filter_sql)
 
     # Execute the query
     devices = project_db.execute(query).scalars().all()
@@ -263,9 +582,6 @@ async def get_devices_in_viewport(
             and dev.device_id not in all_device_extra_data
         ]
         if pcs_to_fetch_ids:
-            logger.logger.info(
-                f"Fetching supplementary power data for PCS devices: {pcs_to_fetch_ids}"
-            )
             try:
                 pcs_extra_data = await utility_expected(
                     device_ids=list(set(pcs_to_fetch_ids)),  # Ensure unique IDs
@@ -288,7 +604,6 @@ async def get_devices_in_viewport(
             met_station_data_values = await get_met_station_latest_values(
                 device_ids=list(set(met_station_to_fetch_ids)),  # Ensure unique IDs
                 project_db=project_db,
-                project=project,
             )
             # The met_station_data_values is already in the format {device_id:
             # {poa: val, ghi: val, ...}}
@@ -405,6 +720,11 @@ async def utility_expected(
     # --- Device Type Validation ---
     # Fetch devices once for validation and later use
     project_schema = utils.get_project_schema(project_db=project_db)
+    if project_schema is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Project database schema is not available.",
+        )
     devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -423,7 +743,9 @@ async def utility_expected(
         )
 
     # Store devices in a dict for easier access later
-    device_dict = {dev.device_id: dev for dev in devices}
+    device_dict: dict[int, typing.Any] = {
+        int(typing.cast(int, dev.device_id)): dev for dev in devices
+    }
 
     first_device_type_id = devices[0].device_type_id
     if not all(d.device_type_id == first_device_type_id for d in devices):
@@ -433,64 +755,59 @@ async def utility_expected(
         )
     # --- Handle Tracker Row Case ---
     if first_device_type_id == DeviceType.TRACKER_ROW:
-        sensor_type_ids = [SensorType.TRACKER_ROW_POSITION]
-        tags_pl = await core.crud.project.tags.get_project_tags_v2(
-            device_ids=device_ids,
-            sensor_type_ids=sensor_type_ids,
-        ).get_async(output_type=OutputType.POLARS, schema=project_schema)
-        if tags_pl.is_empty():
-            # Return empty dict if no tags found, endpoint will handle merging None
-            return {}
-
-        tags_df = tags_pl.to_pandas()
+        sensor_type_ids = [SensorType.TRACKER_ROW_POSITION.value]
 
         try:
-            data = await DataTimeseries(
-                project_name_short=project.name_short,
-                filter_method=FilterMethod.TAG_POLARS,
-                filter_values=tags_pl,
-                query_start=start - pd.Timedelta(hours=3),
-                query_end=end,
-                project_db=project_db,
-            ).get()
+            latest_query = (
+                core.crud.project.data_timeseries_last.get_data_timeseries_last(
+                    device_ids=device_ids,
+                    sensor_type_ids=sensor_type_ids,
+                    deep=True,
+                )
+            )
+            latest_df = await latest_query.get_async(
+                output_type=OutputType.PANDAS,
+                schema=project_schema,
+            )
 
-            df_latest = data.df.to_pandas()
-            df_latest = df_latest.set_index("time")
-            df_latest.columns = df_latest.columns.astype(int)
-
-        except Exception:
-            # Handle cases where data_latest_df might fail (e.g., no data at all)
+        except Exception as e:
+            logger.logger.exception(
+                "Tracker viewport latest query failed for device_ids=%s: %s",
+                device_ids,
+                e,
+            )
             return {}
 
-        if df_latest.empty:
+        if latest_df.empty:
+            logger.logger.info(
+                "Tracker viewport latest query returned no rows for device_ids=%s",
+                device_ids,
+            )
             return {}
 
-        # Structure the result
-        results = {}
-        tag_id_to_device_id = dict(
-            zip(
-                tags_df["tag_id"].astype(int),
-                tags_df["device_id"].astype(int),
-                strict=False,
-            ),
-        )
-        # data_latest_df returns a Series with tag_id as index
-        latest_values = df_latest.iloc[-1]  # Get the row of latest values
-
-        for tag_id, value in latest_values.items():
-            if isinstance(tag_id, (int, str, bytes, bytearray)):
-                tag_id_int = int(tag_id)
-            else:
+        tracker_results: dict[int, dict[str, typing.Any]] = {}
+        null_tracker_angles = 0
+        for row in latest_df.itertuples(index=False):
+            device_id = getattr(row, "device_id", None)
+            if pd.isna(device_id):
                 continue
-            dev_id = tag_id_to_device_id.get(tag_id_int)
-            if dev_id is not None:
-                results[dev_id] = {
-                    "tracker_angle": value if pd.notna(value) else None,
-                    # Add timestamp if needed, available from df_latest.index[0]
-                    # "timestamp": df_latest.index[0].isoformat()
-                }
 
-        return results
+            tracker_angle = _get_scaled_data_timeseries_last_value(row=row)
+            if tracker_angle is None:
+                null_tracker_angles += 1
+
+            tracker_results[int(device_id)] = {
+                "tracker_angle": tracker_angle,
+                "tracker_time": _get_row_timestamp_iso(row=row),
+            }
+
+        logger.logger.info(
+            "Tracker viewport mapped %s tracker rows for %s devices; null_angles=%s",
+            len(tracker_results),
+            len(device_ids),
+            null_tracker_angles,
+        )
+        return tracker_results
 
     # --- Existing Power Logic (for non-tracker types) ---
 
@@ -525,6 +842,44 @@ async def utility_expected(
             detail=f"Unsupported device type ID: {first_device_type_id}",
         )
 
+    use_latest_power_snapshot = first_device_type_id in {
+        DeviceType.PV_INVERTER,
+        DeviceType.PV_DC_COMBINER,
+    }
+    if use_latest_power_snapshot:
+        if first_device_type_id == DeviceType.PV_INVERTER:
+            actual_by_device = await _get_latest_scaled_sensor_values_by_device(
+                device_ids=device_ids,
+                sensor_type_ids=[SensorType.PV_INVERTER_AC_POWER.value],
+                project_schema=project_schema,
+                multiplier=1_000.0,
+            )
+        else:
+            actual_by_device = await _get_latest_combiner_power_by_device(
+                device_ids=device_ids,
+                device_dict=device_dict,
+                project_schema=project_schema,
+            )
+
+        (
+            expected_by_device,
+            unique_versions_by_device,
+        ) = await _get_latest_expected_power_by_device(
+            start=start,
+            end=end,
+            device_ids=expected_device_ids_for_query,
+            expected_metric_ids_fallback=expected_metric_ids_fallback,
+            project=project,
+            project_schema=project_schema,
+        )
+
+        return _build_single_point_power_results(
+            device_ids=device_ids,
+            actual_by_device=actual_by_device,
+            expected_by_device=expected_by_device,
+            unique_versions_by_device=unique_versions_by_device,
+        )
+
     # --- Query and Calculate Actual Device Data ---
     df_actual = pd.DataFrame()  # Initialize
 
@@ -534,20 +889,20 @@ async def utility_expected(
         # 1. Find parent PCS IDs from input combiners
         # Combiners can be children of either PCSs (type 2) or PCS Modules (type 3)
         # If parent is a module, we need to get the module's parent (the PCS)
-        parent_ids_with_none = {
+        parent_ids = {
             device_dict[dev_id].parent_device_id
             for dev_id in device_ids
             if device_dict[dev_id].parent_device_id is not None
         }
 
-        if not parent_ids_with_none:
+        if not parent_ids:
             raise HTTPException(
                 status_code=404,
                 detail="Could not determine parent device IDs for the given combiners.",
             )
 
         # Fetch parent devices to check their types
-        parent_device_ids = [pid for pid in parent_ids_with_none if pid is not None]
+        parent_device_ids = list(parent_ids)
         parent_devices_df = await core.crud.project.devices.get_project_devices(
             device_ids=[typing.cast(int, pid) for pid in parent_device_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -883,7 +1238,7 @@ async def utility_expected(
             df_expected_all = pd.DataFrame()  # Ensure it's empty if pivot fails
 
     # --- Structure Output ---
-    results = {}
+    results: dict[int, dict[str, typing.Any]] = {}
     # Convert index to ISO format strings for JSON serialization
     times_list_iso = [ts.isoformat() for ts in df_actual.index]
 
@@ -944,7 +1299,6 @@ async def get_met_station_latest_values(
     *,
     device_ids: list[int],
     project_db: Session,
-    project: models.Project,
 ) -> dict[int, dict[str, float]]:
     """Fetches the latest sensor values (POA, GHI, Ambient Temp, Wind Speed)
         for the given Met Station device IDs.
@@ -952,88 +1306,51 @@ async def get_met_station_latest_values(
     Args:
         device_ids: Description for device_ids.
         project_db: Description for project_db.
-        project: Description for project.
     """
     if not device_ids:
         return {}
 
-    met_sensor_type_names = [
-        "met_station_poa",
-        "met_station_ghi",
-        "met_station_ambient_temperature",
-        "met_station_wind_speed",
-    ]
+    met_sensor_type_to_field = {
+        SensorType.MET_STATION_POA.value: "poa",
+        SensorType.MET_STATION_GHI.value: "ghi",
+        SensorType.MET_STATION_AMBIENT_TEMPERATURE.value: "ambient_temp",
+        SensorType.MET_STATION_WIND_SPEED.value: "wind_speed",
+    }
     project_schema = utils.get_project_schema(project_db=project_db)
 
     try:
-        tags_pl = await core.crud.project.tags.get_project_tags_v2(
+        latest_query = core.crud.project.data_timeseries_last.get_data_timeseries_last(
             device_ids=device_ids,
-            sensor_type_name_shorts=met_sensor_type_names,  # Use names to find IDs
+            sensor_type_ids=list(met_sensor_type_to_field),
             deep=True,
-        ).get_async(output_type=OutputType.POLARS, schema=project_schema)
-        if tags_pl.is_empty():
+        )
+        latest_df = await latest_query.get_async(
+            output_type=OutputType.POLARS,
+            schema=project_schema,
+        )
+        if latest_df.is_empty():
             logger.logger.info(
                 f"No relevant Met Station tags found for devices: {device_ids}"
             )
             return {}
 
-        tags_df = tags_pl.to_pandas()
-
-        end_time = pd.Timestamp.utcnow().floor("5min")
-        start_time = end_time - pd.Timedelta(hours=3)
-
-        data = await DataTimeseries(
-            project_name_short=project.name_short,
-            filter_method=FilterMethod.TAG_POLARS,
-            filter_values=tags_pl,
-            query_start=start_time,
-            query_end=end_time,
-            project_db=project_db,
-        ).get()
-
-        df_met_data_raw = data.df.to_pandas()
-        df_met_data_raw = df_met_data_raw.set_index("time")
-
-        if df_met_data_raw.empty:
-            logger.logger.info(
-                f"No recent Met Station data found for devices: {device_ids}"
-            )
-            return {}
-
         latest_values: dict[int, dict[str, float]] = {}
-        tags_df = tags_df.copy()
-        tags_df["tag_id"] = tags_df["tag_id"].astype(int)
-        tags_df["device_id"] = tags_df["device_id"].astype(int)
-        tag_map = tags_df.set_index("tag_id")[
-            ["device_id", "sensor_type_name_short"]
-        ].to_dict("index")
+        for row in latest_df.to_dicts():
+            device_id = row.get("device_id")
+            sensor_type_id = row.get("sensor_type_id")
+            if pd.isna(device_id) or pd.isna(sensor_type_id):
+                continue
 
-        for tag_id_str in df_met_data_raw.columns:
-            tag_id = int(tag_id_str)
-            series = df_met_data_raw[tag_id_str].dropna()
-            if not series.empty:
-                tag_info = tag_map.get(tag_id)
-                if not tag_info:
-                    logger.logger.warning(
-                        f"Tag ID {tag_id} not found in tag_map. Skipping."
-                    )
-                    continue
+            field_name = met_sensor_type_to_field.get(int(sensor_type_id))
+            if field_name is None:
+                continue
 
-                device_id = tag_info["device_id"]
-                sensor_short_name = tag_info.get("sensor_type_name_short")
-                value = float(series.iloc[-1])  # Convert numpy float to Python float
+            value = _get_scaled_data_timeseries_last_value(row=row)
+            if value is None:
+                continue
 
-                if device_id not in latest_values:
-                    latest_values[device_id] = {}
+            latest_values.setdefault(int(device_id), {})[field_name] = value
 
-                if sensor_short_name == "met_station_poa":
-                    latest_values[device_id]["poa"] = value
-                elif sensor_short_name == "met_station_ghi":
-                    latest_values[device_id]["ghi"] = value
-                elif sensor_short_name == "met_station_ambient_temperature":
-                    latest_values[device_id]["ambient_temp"] = value
-                elif sensor_short_name == "met_station_wind_speed":
-                    latest_values[device_id]["wind_speed"] = value
         # Return the dictionary directly, FastAPI will handle JSON serialization
         return latest_values
 
