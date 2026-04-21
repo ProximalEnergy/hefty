@@ -798,6 +798,34 @@ class FailureMode(Base):
     __table_args__ = {"schema": "operational"}
 
 
+class IssueCategory(Base):
+    __tablename__ = "issue_categories"
+
+    issue_category_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_long: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "operational"}
+
+    def __str__(self):
+        """Return the human-readable issue category name."""
+        return self.name_long
+
+
+class IssueState(Base):
+    __tablename__ = "issue_states"
+
+    issue_state_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    name_long: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "operational"}
+
+    def __str__(self):
+        """Return the human-readable issue category name."""
+        return self.name_long
+
+
 class StatusLookup(Base):
     __tablename__ = "status_lookup"
 
