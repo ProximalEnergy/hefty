@@ -48,4 +48,4 @@ def get_users(
     if user_ids:
         query = query.where(models.User.user_id.in_(user_ids))
 
-    return DbQuery(query=query, use_scalars=False)
+    return DbQuery(query=query)

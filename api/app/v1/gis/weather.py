@@ -23,7 +23,7 @@ async def _get_project_lat_lon(*, project_id: UUID) -> tuple[float, float]:
     """
     project_query = core.crud.operational.projects.get_project(
         project_id=project_id,
-        deep=True,
+        columns=(core.models.Project.point,),
     )
     project_data = await project_query.get_async(
         output_type=OutputType.SQLALCHEMY,

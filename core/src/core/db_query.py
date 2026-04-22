@@ -12,7 +12,9 @@ from sqlalchemy import Select, TextClause
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.orm.strategy_options import Load, _LoadElement
+from sqlalchemy.sql.elements import Label
 from sqlalchemy.sql.expression import Executable
+from sqlalchemy.sql.functions import FunctionElement
 
 from core.database import async_engine, engine, with_db, with_db_async
 
@@ -60,7 +62,6 @@ class DbQuery[T, S]:
 
     query: TextClause | Select | Executable
     is_scalar: bool = False
-    use_scalars: bool = True
 
     def get(
         self,
@@ -225,13 +226,15 @@ class DbQuery[T, S]:
         if isinstance(self.query, Select):
             if self.is_scalar:
                 result = executor.execute(self.query)
+                if self._select_returns_rows() or self._select_returns_mapping():
+                    return result.mappings().one_or_none()
                 return result.scalars().unique().one_or_none()
 
             result = executor.execute(self.query.limit(_SQLALCHEMY_ROW_LIMIT))
-            if self.use_scalars:
-                items = result.scalars().all()  # ORM return
-            else:
+            if self._select_returns_rows():
                 items = result.all()  # Row return
+            else:
+                items = result.scalars().all()  # ORM or scalar return
 
             _raise_for_large_sqlalchemy_result(count=len(items))
             return items
@@ -247,6 +250,23 @@ class DbQuery[T, S]:
         items = result.mappings().fetchmany(_SQLALCHEMY_ROW_LIMIT)
         _raise_for_large_sqlalchemy_result(count=len(items))
         return items
+
+    def _select_returns_rows(self) -> bool:
+        """Determine whether SQLAlchemy output should return rows."""
+        return (
+            isinstance(self.query, Select) and len(self.query.column_descriptions) != 1
+        )
+
+    def _select_returns_mapping(self) -> bool:
+        """Determine whether a scalar SQLAlchemy read should return a mapping."""
+        if not isinstance(self.query, Select):
+            return False
+
+        if len(self.query.column_descriptions) != 1:
+            return False
+
+        expr = self.query.column_descriptions[0].get("expr")
+        return isinstance(expr, Label) and not isinstance(expr.element, FunctionElement)
 
     def _get_connection(self, *, executor):
         """Extract the underlying connection from a session or connection object."""

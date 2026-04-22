@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app import custom_types, dependencies, interfaces, utils
+from app import dependencies, interfaces, utils
 from app._crud.operational.kpi_instances import (
     get_kpi_instances as crud_get_kpi_instances,
 )
@@ -175,19 +175,16 @@ async def get_projects(
 )
 async def get_project(
     project_id: UUID,
-    deep: custom_types.AnnotatedDeep = False,
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     """todo
 
     Args:
         project_id: Description for project_id.
-        deep: Description for deep.
         user_data: Description for user_data.
     """
     project_query = core.crud.operational.projects.get_project(
         project_id=project_id,
-        deep=deep,
     )
     project_db_model = await project_query.get_async(
         output_type=OutputType.SQLALCHEMY,

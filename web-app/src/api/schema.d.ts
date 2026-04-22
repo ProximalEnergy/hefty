@@ -4787,7 +4787,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: Description for project_id.
-         *         deep: Description for deep.
          *         user_data: Description for user_data.
          */
         get: operations["get_project_by_id"];
@@ -19605,10 +19604,7 @@ export interface operations {
     };
     get_project_by_id: {
         parameters: {
-            query?: {
-                /** @description Load all related objects. */
-                deep?: boolean;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;

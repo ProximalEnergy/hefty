@@ -200,4 +200,4 @@ def get_data_timeseries_last_v2(
     if not include_ghost_tags:
         stmt = stmt.where(models.Tag.sensor_type_id > 0)
 
-    return DbQuery(query=stmt, use_scalars=False)
+    return DbQuery(query=stmt)

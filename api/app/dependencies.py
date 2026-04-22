@@ -52,7 +52,6 @@ async def get_project_api(*, project_id: UUID):
     """
     project_query = core.crud.operational.projects.get_project(
         project_id=project_id,
-        deep=True,
     )
     project_model = await project_query.get_async(
         output_type=OutputType.SQLALCHEMY,

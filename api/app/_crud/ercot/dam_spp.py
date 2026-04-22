@@ -31,4 +31,4 @@ def get_ercot_dam_spp(
     if end:
         query = query.where(models.DAMSPP.time < end)
 
-    return DbQuery(query=query, use_scalars=True)
+    return DbQuery(query=query)

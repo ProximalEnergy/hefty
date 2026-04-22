@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Generic, Literal, TypeVar, overload
+from typing import Any, Generic, Literal, TypeVar, overload
 
 import pandas as pd
 import polars as pl
@@ -22,10 +22,9 @@ _SQL_TO_MODEL_COL_MAP: Mapping[str, str]
 from core.enumerations import OutputType as OutputType
 
 class DbQuery(Generic[T, S]):
-    query: TextClause | Select | Executable
+    query: TextClause | Select[Any] | Executable
     sql_string: str
     is_scalar: S
-    use_scalars: bool
 
     @overload
     def __init__(
@@ -40,22 +39,34 @@ class DbQuery(Generic[T, S]):
         *,
         query: TextClause,
         is_scalar: Literal[False] = False,
-        use_scalars: bool = True,
     ) -> None: ...
     @overload
     def __init__(
         self: DbQuery[T, Literal[True]],
         *,
-        query: Select | Executable,
+        query: Select[tuple[T]],
         is_scalar: Literal[True],
     ) -> None: ...
     @overload
     def __init__(
         self: DbQuery[T, Literal[False]],
         *,
-        query: Select | Executable,
+        query: Select[tuple[T]],
         is_scalar: Literal[False] = False,
-        use_scalars: bool = True,
+    ) -> None: ...
+    @overload
+    def __init__(
+        self: DbQuery[T, Literal[True]],
+        *,
+        query: Executable,
+        is_scalar: Literal[True],
+    ) -> None: ...
+    @overload
+    def __init__(
+        self: DbQuery[T, Literal[False]],
+        *,
+        query: Executable,
+        is_scalar: Literal[False] = False,
     ) -> None: ...
     @overload
     def _read_data(

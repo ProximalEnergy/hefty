@@ -2,7 +2,6 @@ from typing import Literal
 
 from core.db_query import DbQuery
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, selectinload
 
 from core import models
@@ -36,17 +35,18 @@ def get_ercot_resources_options(*, deep: bool):
     return options
 
 
-async def get_ercot_resources(*, db: AsyncSession, deep: bool = False):
-    """Fetch ERCOT resources.
+def get_ercot_resources(
+    *,
+    deep: bool = False,
+) -> DbQuery[models.Resource, Literal[False]]:
+    """Build a query for ERCOT resources.
 
     Args:
-        db: Async SQLAlchemy session used for the query.
         deep: Whether to eager-load related objects.
     """
     options = get_ercot_resources_options(deep=deep)
     query = select(models.Resource).options(*options)
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query)
 
 
 def get_ercot_resource(
@@ -66,4 +66,4 @@ def get_ercot_resource(
         .options(*options)
         .where(models.Resource.resource_id == resource_id)
     )
-    return DbQuery(query=query, use_scalars=True)
+    return DbQuery(query=query)

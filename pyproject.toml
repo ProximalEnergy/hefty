@@ -109,15 +109,29 @@ ignore = ["COM812", "COM819", "FAST002", "FURB162", "ISC001"]
 external = []
 
 [tool.ruff.lint.extend-per-file-ignores]
+"**/test/**/*.py" = [
+    "S101", # asserts allowed in tests
+    "ARG",  # Unused function args -> fixtures are functionally relevant
+    "FBT",  # Don't care about booleans as positional arguments in tests
+    "T20",  # print statements allowed in tests
+]
 "**/tests/**/*.py" = [
     "S101", # asserts allowed in tests
     "ARG",  # Unused function args -> fixtures are functionally relevant
     "FBT",  # Don't care about booleans as positional arguments in tests
+    "T20",  # print statements allowed in tests
+]
+"**/_test/**/*.py" = [
+    "S101", # asserts allowed in tests
+    "ARG",  # Unused function args -> fixtures are functionally relevant
+    "FBT",  # Don't care about booleans as positional arguments in tests
+    "T20",  # print statements allowed in tests
 ]
 "**/_tests/**/*.py" = [
     "S101", # asserts allowed in tests
     "ARG",  # Unused function args -> fixtures are functionally relevant
     "FBT",  # Don't care about booleans as positional arguments in tests
+    "T20",  # print statements allowed in tests
 ]
 "api/_data_insert/**/*.py" = [
     "S608", # hardcoded-sql-expression allowed in data insert scripts

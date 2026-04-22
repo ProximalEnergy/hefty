@@ -26,8 +26,5 @@ def get_ercot_sced_load(
         .where(models.SCEDLoad.time >= start)
         .where(models.SCEDLoad.time < end)
     )
-    db_query: DbQuery[models.SCEDLoad, Literal[False]] = DbQuery(
-        query=query,
-        use_scalars=True,
-    )
+    db_query: DbQuery[models.SCEDLoad, Literal[False]] = DbQuery(query=query)
     return db_query

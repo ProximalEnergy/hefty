@@ -1,26 +1,34 @@
-from typing import Literal
+from dataclasses import dataclass
+from typing import Any, Literal
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, noload
-from sqlalchemy.orm.strategy_options import _AbstractLoad
+from sqlalchemy.orm import load_only, noload
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from core import enumerations, models
 from core.db_query import DbQuery
 
+ProjectAttribute = InstrumentedAttribute[Any]
+type ProjectColumns = tuple[ProjectAttribute, ...]
+_ALL_PROJECT_COLUMNS: ProjectColumns = tuple(
+    getattr(models.Project, column.name) for column in models.Project.__table__.columns
+)
 
-def get_project_options(*, deep: bool) -> _AbstractLoad:
-    """Return loader options for project queries.
 
-    Args:
-        deep: Whether to eager-load related project type data.
-    """
-    if deep:
-        options = joinedload(models.Project.project_type)
-    else:
-        options = noload(models.Project.project_type)
+@dataclass(frozen=True, kw_only=True)
+class JoinedProjectColumn:
+    column: InstrumentedAttribute[Any]
+    label: str
 
-    return options
+
+type JoinedProjectColumns = tuple[JoinedProjectColumn, ...]
+
+
+JOINED_PROJECT_TYPE = JoinedProjectColumn(
+    column=models.ProjectType.name_short,
+    label="project_type",
+)
 
 
 def get_projects(
@@ -70,18 +78,48 @@ def get_projects(
 
 
 def get_project(
-    *, project_id: UUID, deep: bool = False
-) -> DbQuery[models.Project, Literal[True]]:
+    *,
+    project_id: UUID,
+    columns: ProjectColumns | None = None,
+    joined_columns: JoinedProjectColumns = (),
+) -> DbQuery[Any, Literal[True]]:
     """Build a query for a single project by id.
 
     Args:
         project_id: Project id to fetch.
-        deep: Whether to eager-load related project type data.
+        columns: Optional subset of Project columns to load. ``None`` loads all
+            project columns. When projecting only joined columns, pass ``()``.
+        joined_columns: Optional configured joined columns to project. When
+            ``JOINED_PROJECT_TYPE`` is included, dataframe outputs expose
+            ``ProjectType.name_short`` as ``project_type`` and SQLAlchemy
+            output returns a projected row mapping.
     """
-    options = get_project_options(deep=deep)
-    stmt = (
-        select(models.Project)
-        .options(options)
-        .where(models.Project.project_id == project_id)
-    )
+    if not joined_columns:
+        if not columns:
+            stmt = (
+                select(models.Project)
+                .options(noload(models.Project.project_type))
+                .where(models.Project.project_id == project_id)
+            )
+        else:
+            stmt = (
+                select(models.Project)
+                .options(
+                    noload(models.Project.project_type),
+                    load_only(*columns),
+                )
+                .where(models.Project.project_id == project_id)
+            )
+    else:
+        projected_columns = []
+        for column in _ALL_PROJECT_COLUMNS if columns is None else columns:
+            projected_columns.append(column.label(column.key))
+        for joined_column in joined_columns:
+            projected_columns.append(joined_column.column.label(joined_column.label))
+
+        stmt = select(*projected_columns).select_from(models.Project)
+        for joined_column in joined_columns:
+            stmt = stmt.outerjoin(joined_column.column.class_)
+        stmt = stmt.where(models.Project.project_id == project_id)
+
     return DbQuery(query=stmt, is_scalar=True)

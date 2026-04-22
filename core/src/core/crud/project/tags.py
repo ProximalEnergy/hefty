@@ -153,7 +153,7 @@ def get_project_tags_v2(
     if not include_ghost_tags:
         stmt = stmt.where(models.Tag.device_id != 0)
         stmt = stmt.where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
-    return DbQuery(query=stmt, is_scalar=False, use_scalars=False)
+    return DbQuery(query=stmt, is_scalar=False)
 
 
 def get_unique_sensor_type_ids_from_tags(*, db: Session) -> list[int]:

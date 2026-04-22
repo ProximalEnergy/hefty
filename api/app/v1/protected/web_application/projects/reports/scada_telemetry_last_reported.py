@@ -44,9 +44,7 @@ async def get_scada_telemetry_last_reported(
     )
 
     # Execute query and get polars DataFrame
-    df: pl.DataFrame = await DbQuery(query=stmt, use_scalars=False).get_async(
-        schema=project.name_short
-    )
+    df: pl.DataFrame = await DbQuery(query=stmt).get_async(schema=project.name_short)
     if df.is_empty():
         raise HTTPException(
             status_code=404,

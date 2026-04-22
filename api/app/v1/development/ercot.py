@@ -53,7 +53,12 @@ async def get_resources(
         deep: Description for deep.
         db: Description for db.
     """
-    return await crud_get_ercot_resources(db=db, deep=deep)
+    return await crud_get_ercot_resources(
+        deep=deep,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
+    )
 
 
 @router.get(

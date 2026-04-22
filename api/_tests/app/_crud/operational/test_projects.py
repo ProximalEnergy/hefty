@@ -1,12 +1,17 @@
 # test_crud.py
 import datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock
 from uuid import UUID
 
-from core.crud.operational.projects import get_project
-from core.db_query import DbQuery
+import pandas as pd
+import polars as pl
+import pytest
+from core.crud.operational.projects import JOINED_PROJECT_TYPE, get_project
+from core.db_query import DbQuery, OutputType
 from core.enumerations import DeviceType, ProjectType, SensorType
-from sqlalchemy.orm import noload, selectinload
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import Load
+from sqlalchemy.orm.strategy_options import _LoadElement
 
 from core import models
 
@@ -191,71 +196,167 @@ EXPECTED_PROJECT_DATA = {
 }
 
 
-# Adjust the path 'core.crud.operational.projects.get_project_options' if needed
-@patch("core.crud.operational.projects.get_project_options")
-def test_get_project_found_deep(  # nosemgrep: python-enforce-keyword-only-args
-    mock_get_options,
-    mocker,
+def _extract_loader_strategies(
+    *, options: tuple[object, ...]
+) -> set[tuple[tuple[str, str], ...]]:
+    """Extract loader strategy tuples from SQLAlchemy Load options."""
+    strategies: set[tuple[tuple[str, str], ...]] = set()
+    for option in options:
+        if not isinstance(option, Load):
+            continue
+        for context_item in option.context:
+            if isinstance(context_item, _LoadElement):
+                strategies.add(context_item.strategy)
+    return strategies
+
+
+def test_get_project_accepts_project_columns():
+    """Ensure mapped Project columns are accepted."""
+    columns = (models.Project.project_id, models.Project.name_short)
+    result = get_project(project_id=TEST_PROJECT_ID, columns=columns)
+    strategies = _extract_loader_strategies(options=result.query._with_options)
+
+    assert len(result.query._with_options) == 2
+    assert (("lazy", "noload"),) in strategies
+
+
+def test_get_project_with_project_type_builds_projected_query():
+    """Project type should be projected as a single named column."""
+    columns = (models.Project.project_id,)
+    joined_columns = (JOINED_PROJECT_TYPE,)
+
+    result = get_project(
+        project_id=TEST_PROJECT_ID,
+        columns=columns,
+        joined_columns=joined_columns,
+    )
+    query_sql = str(result.query)
+
+    assert result.is_scalar is True
+    assert len(result.query.column_descriptions) == 2
+    assert "name_short AS project_type" in query_sql
+    assert "project_type_id_1" not in query_sql
+
+
+def test_get_project_with_joined_columns_defaults_to_all_project_columns():
+    """Joined projections should include all project columns by default."""
+    result = get_project(
+        project_id=TEST_PROJECT_ID,
+        joined_columns=(JOINED_PROJECT_TYPE,),
+    )
+
+    assert len(result.query.column_descriptions) == (
+        len(models.Project.__table__.columns) + 1
+    )
+
+
+def test_get_project_with_project_type_prints_output_shapes(
+    *,
+    monkeypatch: pytest.MonkeyPatch,
 ):
+    """Print the SQLAlchemy, pandas, and polars outputs for manual inspection."""
+    joined_columns = (JOINED_PROJECT_TYPE,)
+    db_query = get_project(
+        project_id=TEST_PROJECT_ID,
+        columns=(),
+        joined_columns=joined_columns,
+    )
+    expected_output = {
+        "project_type": "pvs",
+    }
+    compiled_queries: list[str] = []
+
+    fake_connection = MagicMock()
+    fake_connection.dialect = postgresql.dialect()
+    fake_connection.get_execution_options.return_value = {}
+
+    fake_result = MagicMock()
+    fake_result.mappings.return_value.one_or_none.return_value = expected_output
+
+    fake_executor = MagicMock()
+    fake_executor.execute.return_value = fake_result
+    fake_executor.connection.return_value = fake_connection
+
+    def fake_read_sql(*args: object, **kwargs: object) -> pd.DataFrame:
+        compiled_queries.append(str(args[0]))
+        return pd.DataFrame([expected_output])
+
+    def fake_read_database(*args: object, **kwargs: object) -> pl.DataFrame:
+        compiled_queries.append(str(args[0]))
+        return pl.DataFrame([expected_output])
+
+    monkeypatch.setattr("core.db_query.pd.read_sql", fake_read_sql)
+    monkeypatch.setattr("core.db_query.pl.read_database", fake_read_database)
+
+    sqlalchemy_output = db_query.get(
+        executor=fake_executor,
+        output_type=OutputType.SQLALCHEMY,
+    )
+    pandas_output = db_query.get(
+        executor=fake_executor,
+        output_type=OutputType.PANDAS,
+    )
+    polars_output = db_query.get(
+        executor=fake_executor,
+        output_type=OutputType.POLARS,
+    )
+
+    print("sqlalchemy:", sqlalchemy_output)
+    print("pandas:", pandas_output.to_dict(orient="records"))
+    print("polars:", polars_output.to_dicts())
+
+    assert sqlalchemy_output == expected_output
+    assert pandas_output.to_dict(orient="records") == [expected_output]
+    assert polars_output.to_dicts() == [expected_output]
+    assert compiled_queries
+    assert all("AS project_type" in query for query in compiled_queries)
+    assert all("project_type_id_1" not in query for query in compiled_queries)
+
+
+def test_get_project_found_default():
     """
-    Test get_project when the project is found with deep=True.
+    Test get_project when no explicit columns are requested.
     """
     test_id = TEST_PROJECT_ID
-    deep_load = True
-    mock_option = selectinload(models.Project.project_type)
-    mock_get_options.return_value = mock_option
 
-    result = get_project(project_id=test_id, deep=deep_load)
+    result = get_project(project_id=test_id)
+    strategies = _extract_loader_strategies(options=result.query._with_options)
 
     assert isinstance(result, DbQuery)
-    mock_get_options.assert_called_once_with(deep=deep_load)
-    assert mock_option in result.query._with_options
+    assert (("lazy", "noload"),) in strategies
     criteria = result.query._where_criteria
     assert len(criteria) == 1
     assert criteria[0].right.value == test_id
 
 
-@patch("core.crud.operational.projects.get_project_options")
-def test_get_project_found_shallow(  # nosemgrep: python-enforce-keyword-only-args
-    mock_get_options,
-    mocker,
-):
+def test_get_project_found_with_columns():
     """
-    Test get_project when the project is found with deep=False.
+    Test get_project when a subset of columns is requested.
     """
     test_id = TEST_PROJECT_ID
-    deep_load = False
-    mock_option = noload(models.Project.project_type)
-    mock_get_options.return_value = mock_option
+    columns = (models.Project.project_id, models.Project.name_short)
 
-    result = get_project(project_id=test_id, deep=deep_load)
+    result = get_project(project_id=test_id, columns=columns)
+    strategies = _extract_loader_strategies(options=result.query._with_options)
 
     assert isinstance(result, DbQuery)
-    mock_get_options.assert_called_once_with(deep=deep_load)
-    assert mock_option in result.query._with_options
+    assert (("lazy", "noload"),) in strategies
     criteria = result.query._where_criteria
     assert len(criteria) == 1
     assert criteria[0].right.value == test_id
 
 
-@patch("core.crud.operational.projects.get_project_options")
-def test_get_project_not_found(  # nosemgrep: python-enforce-keyword-only-args
-    mock_get_options,
-    mocker,
-):
+def test_get_project_not_found():
     """
     Test get_project query when the project is not found.
     """
     test_id = UUID("11111111-1111-1111-1111-111111111111")
-    deep_load = True
-    mock_option = selectinload(models.Project.project_type)
-    mock_get_options.return_value = mock_option
 
-    result = get_project(project_id=test_id, deep=deep_load)
+    result = get_project(project_id=test_id)
+    strategies = _extract_loader_strategies(options=result.query._with_options)
 
     assert isinstance(result, DbQuery)
-    mock_get_options.assert_called_once_with(deep=deep_load)
-    assert mock_option in result.query._with_options
+    assert (("lazy", "noload"),) in strategies
     criteria = result.query._where_criteria
     assert len(criteria) == 1
     assert criteria[0].right.value == test_id
