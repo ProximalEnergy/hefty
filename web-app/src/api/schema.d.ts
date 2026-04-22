@@ -5892,11 +5892,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
+         *         user: Description for user.
          *         start: Description for start.
          *         end: Description for end.
          *         project: Description for project.
          *         tps_token: Description for tps_token.
-         *         user: Description for user.
          *         db_async: Description for db_async.
          */
         get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
@@ -7269,9 +7269,9 @@ export interface paths {
          * @description Get the latest real-time settlement point price (RTSPP) for the project.
          *
          *     Args:
+         *         user: User authenticated by dependency injection.
          *         project: Project model provided by dependency injection.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
          *         db_async: Database session.
          *
          *     Returns:
@@ -7302,9 +7302,9 @@ export interface paths {
          *     needed for different endpoints.
          *
          *     Args:
+         *         user: User authenticated by dependency injection.
          *         project: Project model provided by dependency injection.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
          *         db_async: Database session.
          *
          *     Returns:

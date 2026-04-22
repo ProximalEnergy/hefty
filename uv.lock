@@ -145,7 +145,7 @@ wheels = [
 
 [[package]]
 name = "api"
-version = "0.10.1"
+version = "0.11.0"
 source = { editable = "api" }
 dependencies = [
     { name = "aiohttp" },
@@ -207,6 +207,7 @@ dev = [
     { name = "pytest-mock" },
     { name = "tomli" },
     { name = "types-psycopg2" },
+    { name = "types-pytz" },
     { name = "types-requests" },
     { name = "typing-extensions" },
 ]
@@ -233,7 +234,7 @@ requires-dist = [
     { name = "openai", specifier = "~=2.16" },
     { name = "openpyxl", specifier = ">=3.1.5,<4" },
     { name = "orjson", specifier = "~=3.11.3" },
-    { name = "pandas", specifier = "~=2.3" },
+    { name = "pandas" },
     { name = "plotly", specifier = ">=6.3.1,<7" },
     { name = "polars" },
     { name = "psycopg2-binary", specifier = "==2.9.11" },
@@ -263,7 +264,7 @@ dev = [
     { name = "botocore-stubs", specifier = ">=1.37.36,<2" },
     { name = "deptry", specifier = ">=0.23.1,<1" },
     { name = "ipykernel", specifier = ">=7.1,<8" },
-    { name = "pandas-stubs", specifier = "~=2.3" },
+    { name = "pandas-stubs" },
     { name = "pillow", specifier = "~=12.1" },
     { name = "plotly", specifier = ">=6.3.1,<7" },
     { name = "pre-commit", specifier = ">=4.2.0,<5" },
@@ -272,6 +273,7 @@ dev = [
     { name = "pytest-mock", specifier = ">=3.14.0,<4" },
     { name = "tomli", specifier = ">=2.0.2,<3" },
     { name = "types-psycopg2", specifier = ">=2.9.21.20250318,<3" },
+    { name = "types-pytz", specifier = ">=2026.1.1.20260408,<2027" },
     { name = "types-requests", specifier = ">=2.31.0.6,<3" },
     { name = "typing-extensions", specifier = ">=4.12.2,<5" },
 ]
@@ -739,7 +741,7 @@ dev = [
     { name = "deptry", specifier = ">=0.23.1,<1" },
     { name = "fastapi", specifier = "~=0.135.1" },
     { name = "packaging", specifier = "~=26.0" },
-    { name = "pandas-stubs", specifier = ">=2.3.0,<3" },
+    { name = "pandas-stubs" },
     { name = "plotly", specifier = ">=6.3.1,<7" },
     { name = "pytest", specifier = "~=9.0" },
 ]
@@ -1763,7 +1765,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1,<1" },
     { name = "jinja2", specifier = ">=3.1.0,<4" },
     { name = "numpy", specifier = ">=1.24.0,<3" },
-    { name = "pandas", specifier = "~=2.3" },
+    { name = "pandas", specifier = "~=3.0" },
     { name = "polars", specifier = "==1.39.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.11,<3" },
     { name = "pyarrow", specifier = "~=23.0" },
@@ -1778,7 +1780,7 @@ dev = [
     { name = "boto3-stubs", specifier = ">=1.37.36,<2" },
     { name = "botocore-stubs", specifier = ">=1.37.36,<2" },
     { name = "mypy", specifier = "==1.19.1" },
-    { name = "pandas-stubs", specifier = "~=2.3" },
+    { name = "pandas-stubs", specifier = "~=3.0" },
     { name = "pyarrow-stubs", specifier = ">=20.0.0.20250928,<21" },
     { name = "ruff", specifier = "==0.15.6" },
     { name = "types-psycopg2", specifier = ">=2.9.21.20250318,<3" },
@@ -1979,36 +1981,35 @@ wheels = [
 
 [[package]]
 name = "pandas"
-version = "2.3.3"
+version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "python-dateutil" },
-    { name = "pytz" },
-    { name = "tzdata" },
+    { name = "tzdata", marker = "sys_platform == 'emscripten' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/33/01/d40b85317f86cf08d853a4f495195c73815fdf205eef3993821720274518/pandas-2.3.3.tar.gz", hash = "sha256:e05e1af93b977f7eafa636d043f9f94c7ee3ac81af99c13508215942e64c993b", size = 4495223, upload-time = "2025-09-29T23:34:51.853Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/99/b342345300f13440fe9fe385c3c481e2d9a595ee3bab4d3219247ac94e9a/pandas-3.0.2.tar.gz", hash = "sha256:f4753e73e34c8d83221ba58f232433fca2748be8b18dbca02d242ed153945043", size = 4645855, upload-time = "2026-03-31T06:48:30.816Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/fb/231d89e8637c808b997d172b18e9d4a4bc7bf31296196c260526055d1ea0/pandas-2.3.3-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:6d21f6d74eb1725c2efaa71a2bfc661a0689579b58e9c0ca58a739ff0b002b53", size = 11597846, upload-time = "2025-09-29T23:19:48.856Z" },
-    { url = "https://files.pythonhosted.org/packages/5c/bd/bf8064d9cfa214294356c2d6702b716d3cf3bb24be59287a6a21e24cae6b/pandas-2.3.3-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:3fd2f887589c7aa868e02632612ba39acb0b8948faf5cc58f0850e165bd46f35", size = 10729618, upload-time = "2025-09-29T23:39:08.659Z" },
-    { url = "https://files.pythonhosted.org/packages/57/56/cf2dbe1a3f5271370669475ead12ce77c61726ffd19a35546e31aa8edf4e/pandas-2.3.3-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ecaf1e12bdc03c86ad4a7ea848d66c685cb6851d807a26aa245ca3d2017a1908", size = 11737212, upload-time = "2025-09-29T23:19:59.765Z" },
-    { url = "https://files.pythonhosted.org/packages/e5/63/cd7d615331b328e287d8233ba9fdf191a9c2d11b6af0c7a59cfcec23de68/pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b3d11d2fda7eb164ef27ffc14b4fcab16a80e1ce67e9f57e19ec0afaf715ba89", size = 12362693, upload-time = "2025-09-29T23:20:14.098Z" },
-    { url = "https://files.pythonhosted.org/packages/a6/de/8b1895b107277d52f2b42d3a6806e69cfef0d5cf1d0ba343470b9d8e0a04/pandas-2.3.3-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:a68e15f780eddf2b07d242e17a04aa187a7ee12b40b930bfdd78070556550e98", size = 12771002, upload-time = "2025-09-29T23:20:26.76Z" },
-    { url = "https://files.pythonhosted.org/packages/87/21/84072af3187a677c5893b170ba2c8fbe450a6ff911234916da889b698220/pandas-2.3.3-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:371a4ab48e950033bcf52b6527eccb564f52dc826c02afd9a1bc0ab731bba084", size = 13450971, upload-time = "2025-09-29T23:20:41.344Z" },
-    { url = "https://files.pythonhosted.org/packages/86/41/585a168330ff063014880a80d744219dbf1dd7a1c706e75ab3425a987384/pandas-2.3.3-cp312-cp312-win_amd64.whl", hash = "sha256:a16dcec078a01eeef8ee61bf64074b4e524a2a3f4b3be9326420cabe59c4778b", size = 10992722, upload-time = "2025-09-29T23:20:54.139Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/b0/c20bd4d6d3f736e6bd6b55794e9cd0a617b858eaad27c8f410ea05d953b7/pandas-3.0.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:232a70ebb568c0c4d2db4584f338c1577d81e3af63292208d615907b698a0f18", size = 10347921, upload-time = "2026-03-31T06:46:33.36Z" },
+    { url = "https://files.pythonhosted.org/packages/35/d0/4831af68ce30cc2d03c697bea8450e3225a835ef497d0d70f31b8cdde965/pandas-3.0.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:970762605cff1ca0d3f71ed4f3a769ea8f85fc8e6348f6e110b8fea7e6eb5a14", size = 9888127, upload-time = "2026-03-31T06:46:36.253Z" },
+    { url = "https://files.pythonhosted.org/packages/61/a9/16ea9346e1fc4a96e2896242d9bc674764fb9049b0044c0132502f7a771e/pandas-3.0.2-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:aff4e6f4d722e0652707d7bcb190c445fe58428500c6d16005b02401764b1b3d", size = 10399577, upload-time = "2026-03-31T06:46:39.224Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/a8/3a61a721472959ab0ce865ef05d10b0d6bfe27ce8801c99f33d4fa996e65/pandas-3.0.2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ef8b27695c3d3dc78403c9a7d5e59a62d5464a7e1123b4e0042763f7104dc74f", size = 10880030, upload-time = "2026-03-31T06:46:42.412Z" },
+    { url = "https://files.pythonhosted.org/packages/da/65/7225c0ea4d6ce9cb2160a7fb7f39804871049f016e74782e5dade4d14109/pandas-3.0.2-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:f8d68083e49e16b84734eb1a4dcae4259a75c90fb6e2251ab9a00b61120c06ab", size = 11409468, upload-time = "2026-03-31T06:46:45.2Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/5b/46e7c76032639f2132359b5cf4c785dd8cf9aea5ea64699eac752f02b9db/pandas-3.0.2-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:32cc41f310ebd4a296d93515fcac312216adfedb1894e879303987b8f1e2b97d", size = 11936381, upload-time = "2026-03-31T06:46:48.293Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/8b/721a9cff6fa6a91b162eb51019c6243b82b3226c71bb6c8ef4a9bd65cbc6/pandas-3.0.2-cp312-cp312-win_amd64.whl", hash = "sha256:a4785e1d6547d8427c5208b748ae2efb64659a21bd82bf440d4262d02bfa02a4", size = 9744993, upload-time = "2026-03-31T06:46:51.488Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/18/7f0bd34ae27b28159aa80f2a6799f47fda34f7fb938a76e20c7b7fe3b200/pandas-3.0.2-cp312-cp312-win_arm64.whl", hash = "sha256:08504503f7101300107ecdc8df73658e4347586db5cfdadabc1592e9d7e7a0fd", size = 9056118, upload-time = "2026-03-31T06:46:54.548Z" },
 ]
 
 [[package]]
 name = "pandas-stubs"
-version = "2.3.3.260113"
+version = "3.0.0.260204"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
-    { name = "types-pytz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/5d/be23854a73fda69f1dbdda7bc10fbd6f930bd1fa87aaec389f00c901c1e8/pandas_stubs-2.3.3.260113.tar.gz", hash = "sha256:076e3724bcaa73de78932b012ec64b3010463d377fa63116f4e6850643d93800", size = 116131, upload-time = "2026-01-13T22:30:16.704Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/1d/297ff2c7ea50a768a2247621d6451abb2a07c0e9be7ca6d36ebe371658e5/pandas_stubs-3.0.0.260204.tar.gz", hash = "sha256:bf9294b76352effcffa9cb85edf0bed1339a7ec0c30b8e1ac3d66b4228f1fbc3", size = 109383, upload-time = "2026-02-04T15:17:17.247Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/c6/df1fe324248424f77b89371116dab5243db7f052c32cc9fe7442ad9c5f75/pandas_stubs-2.3.3.260113-py3-none-any.whl", hash = "sha256:ec070b5c576e1badf12544ae50385872f0631fc35d99d00dc598c2954ec564d3", size = 168246, upload-time = "2026-01-13T22:30:15.244Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/2f/f91e4eee21585ff548e83358332d5632ee49f6b2dcd96cb5dca4e0468951/pandas_stubs-3.0.0.260204-py3-none-any.whl", hash = "sha256:5ab9e4d55a6e2752e9720828564af40d48c4f709e6a2c69b743014a6fcb6c241", size = 168540, upload-time = "2026-02-04T15:17:15.615Z" },
 ]
 
 [[package]]
@@ -2267,6 +2268,7 @@ source = { virtual = "pv-eem" }
 dependencies = [
     { name = "boto3" },
     { name = "core" },
+    { name = "pandas" },
     { name = "polars" },
     { name = "psycopg2-binary" },
     { name = "pvlib" },
@@ -2293,12 +2295,15 @@ dev = [
     { name = "plotly" },
     { name = "pymupdf" },
     { name = "pytest" },
+    { name = "types-psycopg2" },
+    { name = "types-pytz" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = "~=1.41" },
     { name = "core", editable = "core" },
+    { name = "pandas" },
     { name = "polars" },
     { name = "psycopg2-binary", specifier = "~=2.9.10" },
     { name = "pvlib", specifier = "~=0.15" },
@@ -2321,10 +2326,12 @@ dev = [
     { name = "json5", specifier = "~=0.12" },
     { name = "matplotlib", specifier = "~=3.10.5" },
     { name = "memray", specifier = "~=1.19" },
-    { name = "pandas-stubs", specifier = "~=2.3.3" },
+    { name = "pandas-stubs" },
     { name = "plotly", specifier = "~=6.5" },
     { name = "pymupdf", specifier = "~=1.26" },
     { name = "pytest", specifier = "~=9.0" },
+    { name = "types-psycopg2", specifier = ">=2.9.21.20260408,<3" },
+    { name = "types-pytz", specifier = ">=2026.1.1.20260408,<2027" },
 ]
 
 [[package]]

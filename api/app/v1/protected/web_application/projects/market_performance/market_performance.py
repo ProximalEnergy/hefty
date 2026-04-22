@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
-from typing import Any, cast
+from typing import Annotated, Any, cast
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -18,8 +18,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import core
 from app import dependencies, utils
+from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
+from app.interfaces import UserAuthed
 from app.v1.protected.web_application.projects.ptp_data.ptp_data import (
     _get_ptp_identifiers,
 )
@@ -110,8 +112,8 @@ def _project_tzinfo(*, tz: str | None) -> datetime.tzinfo:
 
 @router.get("/has-access")
 async def check_qse_access(
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: models.Project = Depends(dependencies.get_project_api),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ) -> dict[str, bool]:
     """Check if user has QSE market access for a project.
@@ -142,11 +144,11 @@ async def check_qse_access(
 
 @router.get("/debug/raw")
 async def get_market_performance_debug_raw(
+    user: Annotated[UserAuthed, Depends(get_user)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Debug endpoint to return raw PTP API response.
@@ -246,11 +248,11 @@ async def get_market_performance_debug_raw(
 
 @router.get("/realtime")
 async def get_market_performance_realtime(
+    user: Annotated[UserAuthed, Depends(get_user)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get real-time market performance data.
@@ -601,17 +603,17 @@ async def get_market_performance_realtime(
 
 @router.get("/realtime/price")
 async def get_realtime_price(
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get the latest real-time settlement point price (RTSPP) for the project.
 
     Args:
+        user: User authenticated by dependency injection.
         project: Project model provided by dependency injection.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
         db_async: Database session.
 
     Returns:
@@ -726,9 +728,9 @@ async def get_realtime_price(
 
 @router.get("/identifiers")
 async def get_project_identifiers(
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get all PTP identifiers (parent and children) for the project.
@@ -738,9 +740,9 @@ async def get_project_identifiers(
     needed for different endpoints.
 
     Args:
+        user: User authenticated by dependency injection.
         project: Project model provided by dependency injection.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
         db_async: Database session.
 
     Returns:

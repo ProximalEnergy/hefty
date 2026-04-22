@@ -12,8 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import core
 from app import dependencies, utils
+from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
+from app.interfaces import UserAuthed
 from core import models
 
 router = APIRouter(
@@ -191,9 +193,9 @@ async def _check_endpoint_has_data(
 
 @router.get("/endpoints")
 async def get_ptp_endpoints(
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: models.Project = Depends(dependencies.get_project_api),
     _tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get available PTP endpoints organized by category.
@@ -261,10 +263,10 @@ async def get_ptp_endpoints(
 
 @router.get("/endpoints/availability")
 async def get_ptp_endpoints_availability(
+    user: Annotated[UserAuthed, Depends(get_user)],
     category: str = Query(..., description="Category to check availability for"),
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Check data availability for endpoints in a specific category.
@@ -348,6 +350,7 @@ async def get_ptp_endpoints_availability(
 
 @router.get("/data")
 async def get_ptp_data(
+    user: Annotated[UserAuthed, Depends(get_user)],
     endpoint: str = Query(..., description="PTP endpoint name"),
     category: str = Query(..., description="Endpoint category"),
     start: datetime.datetime | None = Query(
@@ -362,7 +365,6 @@ async def get_ptp_data(
     data_points: Annotated[list[str] | None, Query()] = None,
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get PTP data for a specific endpoint.
@@ -866,9 +868,9 @@ def _determine_ticket_status(*, ticket: dict) -> bool:
 
 @router.get("/active-outage-tickets")
 async def get_active_outage_tickets(
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
     resource_name: str | None = Query(
         default=None,

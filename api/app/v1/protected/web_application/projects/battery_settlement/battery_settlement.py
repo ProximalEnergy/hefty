@@ -7,8 +7,10 @@ import numpy as np
 import pandas as pd
 import requests
 from app import dependencies, utils
+from app._dependencies.authentication import get_user
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.integrations.token_manager import TokenManager
+from app.interfaces import UserAuthed
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,23 +99,23 @@ def get_battery_settlement_details_dataframe(
 
 @router.get("")
 async def get_battery_settlement_details(
+    user: Annotated[UserAuthed, Depends(get_user)],
     start: Annotated[
         datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
     ],
     end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """todo
 
     Args:
+        user: Description for user.
         start: Description for start.
         end: Description for end.
         project: Description for project.
         tps_token: Description for tps_token.
-        user: Description for user.
         db_async: Description for db_async.
     """
     qse_integration_query = (
