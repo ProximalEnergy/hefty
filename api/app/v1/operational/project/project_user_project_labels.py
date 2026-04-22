@@ -6,10 +6,10 @@ from core.crud.operational.user_project_labels import (
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 
-from app.dependencies import get_project_api, get_user_data_async
-from app.interfaces import Project, UserData, UserProjectLabel
+from app._dependencies.authentication import get_user
+from app.dependencies import get_project_api
+from app.interfaces import Project, UserAuthed, UserProjectLabel
 from app.v1.operational.user_project_labels import (
-    UserProjectLabel,
     _build_user_project_labels,
     _validate_project_access,
 )
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/user-project-labels", tags=["user_project_labels"])
 @router.get("", response_model=list[UserProjectLabel])
 async def get_user_project_labels_by_project_id(
     project: Annotated[Project, Depends(get_project_api)],
-    user: Annotated[UserData, Depends(get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Get all labels for a specific project (for the requesting user).
 

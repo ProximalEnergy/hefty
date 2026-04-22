@@ -18,8 +18,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_async_db, get_user_data_async
-from app.interfaces import UserData, UserProjectLabel
+from app._dependencies.authentication import get_user
+from app.dependencies import get_async_db
+from app.interfaces import UserAuthed, UserProjectLabel
 from core import models
 
 router = APIRouter(prefix="/user-project-labels", tags=["user_project_labels"])
@@ -45,7 +46,7 @@ def _normalize_label_name(*, label_name: str) -> str:
     return normalized_name
 
 
-def _validate_project_access(*, user: UserData, project_ids: list[uuid.UUID]) -> None:
+def _validate_project_access(*, user: UserAuthed, project_ids: list[uuid.UUID]) -> None:
     """Validate that all requested projects are accessible by the user.
 
     Args:
@@ -104,7 +105,7 @@ async def _build_user_project_labels(
 
 @router.get("", response_model=list[UserProjectLabel])
 async def get_user_project_labels(
-    user: Annotated[UserData, Depends(get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Get project labels for the requesting user.
 
@@ -124,7 +125,7 @@ async def get_user_project_labels(
 async def create_user_project_label(
     user_project_label: UserProjectLabelCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    user: Annotated[UserData, Depends(get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Create a project label for the requesting user.
 
@@ -166,7 +167,7 @@ async def update_user_project_label(
     user_project_label_id: int,
     user_project_label: UserProjectLabelCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    user: Annotated[UserData, Depends(get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Update a project label for the requesting user.
 
@@ -211,7 +212,7 @@ async def update_user_project_label(
 async def delete_user_project_label(
     user_project_label_id: int,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    user: Annotated[UserData, Depends(get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Delete a project label for the requesting user.
 
