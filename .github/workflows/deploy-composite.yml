@@ -280,12 +280,8 @@ jobs:
         run: |
           echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
           echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
-          echo "UV_PUBLISH_URL=https://proximal-code-artifact-domain-\
-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/" \
-            >> $GITHUB_ENV
-          echo "UV_PUBLISH_CHECK_URL=https://proximal-code-artifact-domain-\
-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" \
-            >> $GITHUB_ENV
+          echo "UV_PUBLISH_URL=https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/" >> $GITHUB_ENV
+          echo "UV_PUBLISH_CHECK_URL=https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" >> $GITHUB_ENV
           echo "UV_PUBLISH_USERNAME=aws" >> $GITHUB_ENV
           echo "UV_PUBLISH_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
 
