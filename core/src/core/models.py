@@ -585,6 +585,9 @@ class DeviceModel(Base):
     device_type_id: Mapped[int] = mapped_column(
         sa.ForeignKey("operational.device_types.device_type_id"),
     )
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("admin.companies.company_id"),
+    )
     brand: Mapped[str]
     model: Mapped[str]
 
@@ -592,10 +595,10 @@ class DeviceModel(Base):
 
     __table_args__ = (
         sa.UniqueConstraint(
+            "company_id",
             "device_type_id",
-            "brand",
             "model",
-            name="uq_device_models_device_type_id_brand_model",
+            name="uq_device_models_company_id_device_type_id_model",
         ),
         {"schema": "operational"},
     )
