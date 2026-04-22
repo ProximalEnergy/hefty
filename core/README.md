@@ -27,20 +27,10 @@ uv sync
 ### Manually deploying to AWS code artifact
 
 ```bash
-# Get Auth Token
-AWS_CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
-  --domain proximal-code-artifact-domain \
-  --region us-east-2 \
-  --query authorizationToken \
-  --output text)
-
-# Build and Publish
+# Bump the version, then build and publish through the temp artifact flow.
+# The script handles CodeArtifact auth and injects root-managed dependency pins.
 uv version --bump alpha
-uv build
-uv publish \
-  --index proximal-package-index \
-  --username aws \
-  --password "$AWS_CODEARTIFACT_TOKEN"
+./_scripts/publish.sh
 
 ```
 

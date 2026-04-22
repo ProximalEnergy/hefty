@@ -444,9 +444,8 @@ def run_semgrep_scan(*, files: list[str], tmp_path: str) -> subprocess.Completed
         env = semgrep_env(tmp_dir=tmp_dir)
         return subprocess.run(
             [
-                "uv",
-                "run",
-                "semgrep",
+                "uvx",
+                "semgrep@1.160",
                 "scan",
                 "--config",
                 tmp_path,

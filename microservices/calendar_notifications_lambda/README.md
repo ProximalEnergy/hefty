@@ -82,17 +82,26 @@ aws codeartifact list-package-versions \
 
 The deployment script assumes:
 
-- Build context: `/Users/robvanhaaren/Desktop/Proximal/mono` (the `mono` directory)
-- Dockerfile location: `microservices/calendar_notifications_lambda/Dockerfile` (relative to build context)
+- Build context: `/Users/robvanhaaren/Desktop/Proximal/mono` (the `mono`
+  directory)
+- Dockerfile location:
+  `microservices/calendar_notifications_lambda/Dockerfile` (relative to build
+  context)
 - The Dockerfile:
-  - Always copies `microservices/calendar_notifications_lambda/calendar_notifications_lambda.py` → `./calendar_notifications_lambda.py` (Lambda handler)
-  - Conditionally handles `core`:
-    - If `CORE_VERSION` is set: Installs `core` from Code Artifact and removes the copied source
-    - If `CORE_VERSION` is not set: Copies `core/src/core` → `./core` (uses source code)
+  - Copies `core` and `microservices/calendar_notifications_lambda` into build paths
+  - Installs the Lambda from
+    `microservices/calendar_notifications_lambda/pyproject.toml`
+  - Conditionally resolves `core`:
+    - If `CORE_VERSION` is set: Installs `core` from Code Artifact and ignores
+      local `tool.uv.sources`
+    - If `CORE_VERSION` is not set: Resolves `core` from `../../core` via
+      project metadata while constraining shared dependencies with the repo
+      root `uv.lock`
 
 All paths are correct and relative to the build context.
 
-**Note:** The lambda only depends on `core`, not `api/app`. All calendar notifications functionality is in `core`:
+**Note:** The Lambda installs from local project metadata for local builds, and
+its app logic still lives in `core`, not `api/app`:
 
 - Notification CRUD: `core.crud.admin.notifications`
 - Notification type IDs: `core.enumerations.NotificationType` (no DB lookup by name)

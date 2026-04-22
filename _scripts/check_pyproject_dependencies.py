@@ -108,6 +108,17 @@ def has_upper_bound(
     return False
 
 
+def is_bare_requirement(*, requirement: str) -> bool:
+    stripped = requirement.strip()
+    if ";" in stripped:
+        return False
+    if " @" in stripped:
+        return False
+    if "[" in stripped or "]" in stripped:
+        return False
+    return NAME_RE.fullmatch(stripped) is not None
+
+
 def check_pyproject(
     *,
     path: Path,
@@ -139,6 +150,17 @@ def check_pyproject(
             errors=errors,
             allow_unbounded=allow_unbounded,
         )
+        if path.as_posix().endswith("core/pyproject.toml"):
+            for requirement in dependencies:
+                name = dependency_name(requirement=requirement)
+                if name not in allow_unbounded:
+                    continue
+                if is_bare_requirement(requirement=requirement):
+                    continue
+                errors.append(
+                    f"{path} [project.dependencies] must keep root-managed "
+                    f"dependency blank: {requirement}"
+                )
     elif dependencies:
         errors.append(f"{path} [project.dependencies] must be a list")
 
@@ -194,7 +216,7 @@ def discover_pyprojects_via_walk(*, root: Path) -> list[Path]:
     return sorted(paths)
 
 
-def workspace_root_dependencies(*, root: Path) -> set[str]:
+def workspace_root_bounded_dependencies(*, root: Path) -> set[str]:
     root_pyproject = root / "pyproject.toml"
     try:
         with root_pyproject.open("rb") as fh:
@@ -205,15 +227,30 @@ def workspace_root_dependencies(*, root: Path) -> set[str]:
     if not workspace:
         return set()
     deps = data.get("project", {}).get("dependencies", [])
-    return {dependency_name(requirement=dep) for dep in deps if isinstance(dep, str)}
+    if not isinstance(deps, list):
+        return set()
+    return {
+        dependency_name(requirement=dep)
+        for dep in deps
+        if isinstance(dep, str)
+        and has_upper_bound(requirement=dep, allow_unbounded=set())
+    }
 
 
 def main() -> int:
     root = Path.cwd()
-    root_managed = workspace_root_dependencies(root=root)
+    root_pyproject = root / "pyproject.toml"
+    root_bounded = workspace_root_bounded_dependencies(root=root)
     errors: list[str] = []
     for path in discover_pyprojects(root=root):
-        check_pyproject(path=path, errors=errors, extra_allow_unbounded=root_managed)
+        extra_allow_unbounded = None
+        if path != root_pyproject:
+            extra_allow_unbounded = root_bounded
+        check_pyproject(
+            path=path,
+            errors=errors,
+            extra_allow_unbounded=extra_allow_unbounded,
+        )
 
     if errors:
         print("Pyproject dependency checks failed:", file=sys.stderr)

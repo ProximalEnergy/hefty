@@ -33,6 +33,23 @@ class WeatherAlertsStack(Stack):
         # This assumes CDK is run from the mono directory
         repo_root = Path(__file__).parent.parent.parent.parent
 
+        core_version = os.getenv("CORE_VERSION")
+        codeartifact_token = os.getenv("CODEARTIFACT_TOKEN")
+        aws_region = self.region or "us-east-2"
+
+        build_args = {}
+        if core_version:
+            if not codeartifact_token:
+                raise ValueError(
+                    "CODEARTIFACT_TOKEN environment variable is required when "
+                    "CORE_VERSION is set"
+                )
+            build_args = {
+                "CORE_VERSION": core_version,
+                "CODEARTIFACT_TOKEN": codeartifact_token,
+                "AWS_REGION": aws_region,
+            }
+
         # Lambda function using Docker image
         # Note: DockerImageCode.from_image_asset will automatically create
         # an ECR repository for the image. If you want to use an existing
@@ -49,6 +66,7 @@ class WeatherAlertsStack(Stack):
                 directory=str(repo_root),
                 file="microservices/weather_alerts_lambda/Dockerfile",
                 platform=Platform.LINUX_ARM64,
+                build_args=build_args or None,
             ),
             architecture=Architecture.ARM_64,
             timeout=Duration.minutes(5),

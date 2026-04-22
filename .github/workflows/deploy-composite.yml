@@ -12,6 +12,10 @@ on:
       - "core/src/core/**"
       - "core/pyproject.toml"
       - "api/**"
+      - "pyproject.toml"
+      - "_scripts/pyproject_dependencies_changed.py"
+      - "_scripts/prepare_core_publish_artifact.py"
+      - "uv.lock"
       - "web-app/**"
       - ".github/workflows/deploy-composite.yml"
       - ".github/actions/setup-uv-python-from-pyproject/**"
@@ -45,7 +49,7 @@ jobs:
        github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main')
     outputs:
-      core: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.core || steps.filter.outputs.core }}
+      core: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.core || steps.core-change.outputs.core }}
       api: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.api || steps.filter.outputs.api }}
       web-app: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.web-app || steps.filter.outputs.web-app }}
     steps:
@@ -102,9 +106,36 @@ jobs:
               - 'core/pyproject.toml'
             api:
               - 'api/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
             web-app:
               - 'web-app/**'
               - 'amplify.yml'
+
+      - name: Detect root dependency changes for core release
+        id: root-core-deps
+        run: |
+          ROOT_CORE_DEPS_CHANGED="$(
+            python3 _scripts/pyproject_dependencies_changed.py \
+              --base "${{ steps.base-commit.outputs.base }}" \
+              --head HEAD \
+              --path pyproject.toml
+          )"
+          echo "changed=$ROOT_CORE_DEPS_CHANGED" >> $GITHUB_OUTPUT
+          echo "Root dependency changes affecting core: $ROOT_CORE_DEPS_CHANGED"
+
+      - name: Finalize core change detection
+        id: core-change
+        run: |
+          CORE_FILTER_CHANGED="${{ steps.filter.outputs.core }}"
+          ROOT_CORE_DEPS_CHANGED="${{ steps.root-core-deps.outputs.changed }}"
+
+          if [ "$CORE_FILTER_CHANGED" = "true" ] || \
+             [ "$ROOT_CORE_DEPS_CHANGED" = "true" ]; then
+            echo "core=true" >> $GITHUB_OUTPUT
+          else
+            echo "core=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Override change detection for manual triggers
         id: override
@@ -124,7 +155,8 @@ jobs:
             echo "  API: ${{ steps.override.outputs.api }} (manual trigger - forced)"
             echo "  Web-App: ${{ steps.override.outputs.web-app }} (manual trigger - forced)"
           else
-            echo "  Core: ${{ steps.filter.outputs.core }}"
+            echo "  Core: ${{ steps.core-change.outputs.core }}"
+            echo "  Root dependency changes: ${{ steps.root-core-deps.outputs.changed }}"
             echo "  API: ${{ steps.filter.outputs.api }}"
             echo "  Web-App: ${{ steps.filter.outputs.web-app }}"
           fi
@@ -215,26 +247,22 @@ jobs:
           echo "release_name=Core v${VERSION}" >> $GITHUB_OUTPUT
           echo "Final version: $VERSION"
 
-      - name: Update version in pyproject.toml
+      - name: Prepare temp core publish artifact
+        id: prepare-core
         run: |
-          python3 -c "
-          import re
+          BUILD_ROOT="$(mktemp -d)"
+          BUILD_DIR="$BUILD_ROOT/core"
+          cp -R core "$BUILD_DIR"
 
-          with open('core/pyproject.toml', 'r') as f:
-              content = f.read()
+          python3 _scripts/prepare_core_publish_artifact.py inject \
+            --root-pyproject pyproject.toml \
+            --core-pyproject core/pyproject.toml \
+            --build-pyproject "$BUILD_DIR/pyproject.toml" \
+            --version "${{ steps.version.outputs.version }}"
 
-          content = re.sub(
-              r'version = \"[^\"]+\"',
-              f'version = \"${{ steps.version.outputs.version }}\"',
-              content
-          )
-
-          with open('core/pyproject.toml', 'w') as f:
-              f.write(content)
-          "
-
-          echo "Updated version to ${{ steps.version.outputs.version }}"
-          cat core/pyproject.toml | grep "version ="
+          echo "build_dir=$BUILD_DIR" >> $GITHUB_OUTPUT
+          echo "Prepared temp publish artifact in $BUILD_DIR"
+          grep "version =" "$BUILD_DIR/pyproject.toml"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -252,6 +280,12 @@ jobs:
         run: |
           echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
           echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
+          echo "UV_PUBLISH_URL=https://proximal-code-artifact-domain-\
+016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/" \
+            >> $GITHUB_ENV
+          echo "UV_PUBLISH_CHECK_URL=https://proximal-code-artifact-domain-\
+016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" \
+            >> $GITHUB_ENV
           echo "UV_PUBLISH_USERNAME=aws" >> $GITHUB_ENV
           echo "UV_PUBLISH_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
 
@@ -262,11 +296,29 @@ jobs:
 
       - name: Build Wheel
         run: uv build --out-dir dist
-        working-directory: core
+        working-directory: ${{ steps.prepare-core.outputs.build_dir }}
+
+      - name: Verify built wheel metadata
+        run: |
+          shopt -s nullglob
+          wheels=("${{ steps.prepare-core.outputs.build_dir }}"/dist/*.whl)
+          if [ "${#wheels[@]}" -ne 1 ]; then
+            echo "Expected exactly one built wheel, found ${#wheels[@]}"
+            exit 1
+          fi
+
+          python3 _scripts/prepare_core_publish_artifact.py verify-wheel \
+            --root-pyproject pyproject.toml \
+            --core-pyproject core/pyproject.toml \
+            --wheel "${wheels[0]}"
 
       - name: Publish to AWS CodeArtifact
-        run: uv publish --index proximal-package-index dist/*
-        working-directory: core
+        run: |
+          uv publish \
+            --publish-url "$UV_PUBLISH_URL" \
+            --check-url "$UV_PUBLISH_CHECK_URL" \
+            dist/*
+        working-directory: ${{ steps.prepare-core.outputs.build_dir }}
 
   # Job 2: Create GitHub Release (depends on publish-core)
   create-release:
@@ -291,14 +343,21 @@ jobs:
             gh release create core-v${VERSION} --generate-notes --title "$RELEASE_NAME"
           fi
 
-  # Job 3: Deploy API (depends on publish-core - ATOMIC)
+  # Job 3: Deploy API (bundles workspace core)
   deploy-api:
     needs: [detect-changes, publish-core]
     runs-on: ubuntu-latest
-    # Only deploy API if core publish succeeded OR if only API files changed
+    # Deploy API when API or bundled core inputs change
     if: |
       !cancelled() &&
-      (needs.publish-core.result == 'success' || (needs.publish-core.result == 'skipped' && needs.detect-changes.outputs.api == 'true')) &&
+      (
+        needs.publish-core.result == 'success' ||
+        needs.publish-core.result == 'skipped'
+      ) &&
+      (
+        needs.detect-changes.outputs.api == 'true' ||
+        needs.detect-changes.outputs.core == 'true'
+      ) &&
       (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox' || github.ref_name == 'demo')
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
@@ -316,154 +375,166 @@ jobs:
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.PROD_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=production" >> $GITHUB_ENV
-            echo "CORE_VERSION_CONSTRAINT=stable" >> $GITHUB_ENV
             echo "environment=production" >> $GITHUB_OUTPUT
           elif [ "$BRANCH" = "staging" ]; then
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.STAGING_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=staging" >> $GITHUB_ENV
-            echo "CORE_VERSION_CONSTRAINT=rc" >> $GITHUB_ENV
             echo "environment=staging" >> $GITHUB_OUTPUT
           elif [ "$BRANCH" = "sandbox" ]; then
             echo "ENVIRONMENT=sandbox" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.SANDBOX_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=sandbox" >> $GITHUB_ENV
-            echo "CORE_VERSION_CONSTRAINT=rc" >> $GITHUB_ENV
             echo "environment=sandbox" >> $GITHUB_OUTPUT
           elif [ "$BRANCH" = "demo" ]; then
             echo "ENVIRONMENT=demo" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.DEMO_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=demo" >> $GITHUB_ENV
-            echo "CORE_VERSION_CONSTRAINT=alpha" >> $GITHUB_ENV
             echo "environment=demo" >> $GITHUB_OUTPUT
           fi
 
-      - name: Configure AWS credentials for CodeArtifact
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
-          aws-region: us-east-2
-
-      - name: Authenticate with AWS CodeArtifact
+      - name: Determine bundled core version
+        id: core-version
         run: |
-          AWS_CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token --domain proximal-code-artifact-domain --region us-east-2 --query authorizationToken --output text)
-          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
-          echo "AWS_CODEARTIFACT_TOKEN=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
+          VERSION="${{ needs.publish-core.outputs.version }}"
+
+          if [ -z "$VERSION" ]; then
+            VERSION="$(
+              python3 - <<'PY'
+import tomllib
+
+with open("core/pyproject.toml", "rb") as file_handle:
+    print(tomllib.load(file_handle)["project"]["version"])
+PY
+            )"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Bundled core version: $VERSION"
 
       - name: Install uv and set up python
         uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
           enable-cache: "false"
-          working-directory: api
+          working-directory: .
 
-      - name: Determine latest core version from CodeArtifact
-        id: core-version
+      - name: Generate requirements.txt without workspace packages
         run: |
-          echo "Querying CodeArtifact for available core versions..."
+          uv export --project . --package api --frozen --no-dev \
+            --no-emit-package api --no-emit-package core \
+            -o api/requirements.txt --no-hashes
 
-          # Get all package versions from CodeArtifact
-          VERSIONS=$(aws codeartifact list-package-versions \
-            --domain proximal-code-artifact-domain \
-            --repository proximal-hub \
-            --format pypi \
-            --package core \
-            --region us-east-2 \
-            --query 'versions[*].version' \
-            --output text | tr '\t' '\n')
-
-          echo "Available versions: $VERSIONS"
-
-          CONSTRAINT="${{ env.CORE_VERSION_CONSTRAINT }}"
-
-          if [ "$CONSTRAINT" = "stable" ]; then
-            # Find latest stable version (no pre-release suffix)
-            LATEST_VERSION=$(echo "$VERSIONS" | grep -v -E '(a|b|rc)' | sort -V | tail -1)
-            echo "Latest stable version: $LATEST_VERSION"
-          elif [ "$CONSTRAINT" = "rc" ]; then
-            # Find latest RC version
-            LATEST_VERSION=$(echo "$VERSIONS" | grep 'rc' | sort -V | tail -1)
-            echo "Latest RC version: $LATEST_VERSION"
-          elif [ "$CONSTRAINT" = "alpha" ]; then
-            # Find latest alpha version
-            LATEST_VERSION=$(echo "$VERSIONS" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+a[0-9]+$' | sort -V | tail -1)
-            echo "Latest alpha version: $LATEST_VERSION"
-          else
-            echo "Unknown constraint: $CONSTRAINT"
-            exit 1
-          fi
-
-          if [ -z "$LATEST_VERSION" ]; then
-            echo "ERROR: No matching version found for constraint: $CONSTRAINT"
-            exit 1
-          fi
-
-          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          echo "Selected core version: $LATEST_VERSION"
-
-      - name: Set core version constraint in pyproject.toml
-        run: |
-          echo "Pinning core to version: ${{ steps.core-version.outputs.version }}"
-
-          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws
-          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
-
-          python3 << 'EOF'
-          import re
-
-          with open('pyproject.toml', 'r') as f:
-              content = f.read()
-
-          version = "${{ steps.core-version.outputs.version }}"
-          version_spec = f'core=={version}'
-
-          content = re.sub(
-              r'"core[^"]*"',
-              f'"{version_spec}"',
-              content
-          )
-
-          # Replace local path dependency with index dependency
-          content = re.sub(
-              r'core = \{ path = "\.\./core", editable = true \}',
-              'core = { index = "proximal-package-index" }',
-              content
-          )
-
-          with open('pyproject.toml', 'w') as f:
-              f.write(content)
-
-          print(f"Updated core dependency to: {version_spec}")
-          EOF
-
-          echo "Updated pyproject.toml:"
-          grep -A 2 -B 2 "core" pyproject.toml | head -20
-        working-directory: api
-
-      - name: Generate requirements.txt with core from CodeArtifact
-        run: |
-          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws
-          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
-
-          uv lock --upgrade-package core
-
-          uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes
-
-          echo "Generated requirements.txt with core from CodeArtifact"
+          echo "Generated requirements.txt for bundled workspace deployment"
           echo ""
-          echo "Core dependency in requirements.txt:"
-          grep "^core" requirements.txt || echo "WARNING: Core not found in requirements.txt"
+          echo "Checking that workspace packages are omitted from requirements.txt:"
+          if grep -E -q \
+            '^(api|core)([<=>!~ ]|$)' \
+            api/requirements.txt; then
+            echo "ERROR: requirements.txt still contains workspace packages"
+            exit 1
+          fi
+          echo "Workspace packages are omitted"
+          echo ""
+          echo "Checking for local path requirements:"
+          if grep -E -q \
+            '(^(\.\.?/|/)|@ file:|^-[eE] )' \
+            api/requirements.txt; then
+            echo "ERROR: requirements.txt contains local path or editable refs"
+            exit 1
+          fi
+          echo "No local path or editable refs found"
           echo ""
           echo "Total dependencies:"
-          wc -l requirements.txt
-        working-directory: api
+          wc -l api/requirements.txt
+
+      - name: Bundle workspace core into API package
+        run: |
+          rm -rf api/core
+          find api -maxdepth 1 -type d -name 'core-*.dist-info' \
+            -exec rm -rf {} +
+          mkdir -p api/core
+          cp -R core/src/core/. api/core/
+
+          BUILD_ROOT="$(mktemp -d)"
+          BUILD_DIR="$BUILD_ROOT/core"
+          CORE_WHEEL_DIR="$(mktemp -d)"
+          trap 'rm -rf "$BUILD_ROOT" "$CORE_WHEEL_DIR"' EXIT
+
+          cp -R core "$BUILD_DIR"
+
+          python3 _scripts/prepare_core_publish_artifact.py inject \
+            --root-pyproject pyproject.toml \
+            --core-pyproject core/pyproject.toml \
+            --build-pyproject "$BUILD_DIR/pyproject.toml" \
+            --version "${{ steps.core-version.outputs.version }}"
+
+          (
+            cd "$BUILD_DIR"
+            uv build --wheel --out-dir "$CORE_WHEEL_DIR"
+          )
+
+          CORE_WHEEL_PATH="$(
+            find "$CORE_WHEEL_DIR" -maxdepth 1 -name 'core-*.whl' \
+              | head -n 1
+          )"
+          test -n "$CORE_WHEEL_PATH"
+
+          unzip -q "$CORE_WHEEL_PATH" 'core-*.dist-info/*' -d api
+
+          CORE_DIST_INFO_DIR="$(
+            find api -maxdepth 1 -type d -name 'core-*.dist-info' \
+              | head -n 1
+          )"
+          test -n "$CORE_DIST_INFO_DIR"
+          test -f "$CORE_DIST_INFO_DIR/METADATA"
+
+          METADATA_VERSION="$(
+            grep '^Version: ' "$CORE_DIST_INFO_DIR/METADATA" \
+              | sed 's/^Version: //'
+          )"
+          test "$METADATA_VERSION" = \
+            "${{ steps.core-version.outputs.version }}"
+
+          echo "Bundled core files:"
+          test -f api/core/__init__.py
+          test -f api/core/models.py
+          find api/core -maxdepth 1 -type f | sort | sed -n '1,20p'
+          echo ""
+          echo "Bundled core distribution metadata:"
+          echo "$CORE_DIST_INFO_DIR"
+          ls "$CORE_DIST_INFO_DIR" | sort | sed -n '1,20p'
 
       - name: Generate deployment package
         run: |
           cd api
+          CORE_DIST_INFO_DIR="$(
+            find . -maxdepth 1 -type d -name 'core-*.dist-info' \
+              | head -n 1
+          )"
+
+          test -f requirements.txt
+          test -d app
+          test -d core
+          test -f core/__init__.py
+          test -n "$CORE_DIST_INFO_DIR"
+          test -f "$CORE_DIST_INFO_DIR/METADATA"
+          test -f Procfile
+          test -d .platform
+
+          BUNDLED_CORE_VERSION="$(
+            python -c \
+              "import importlib.metadata as metadata; \
+              print(metadata.version('core'))"
+          )"
+          echo "Bundled core version: $BUNDLED_CORE_VERSION"
+          test "$BUNDLED_CORE_VERSION" = \
+            "${{ steps.core-version.outputs.version }}"
+
           echo "Files to be included in deployment:"
           echo "- requirements.txt: $(test -f requirements.txt && echo 'EXISTS' || echo 'MISSING')"
           echo "- app directory: $(test -d app && echo 'EXISTS' || echo 'MISSING')"
           echo "- Procfile: $(test -f Procfile && echo 'EXISTS' || echo 'MISSING')"
+          echo "- core dist-info: $(test -n "$CORE_DIST_INFO_DIR" && echo 'EXISTS' || echo 'MISSING')"
           echo "- .platform hooks: $(test -d .platform && echo 'EXISTS' || echo 'MISSING')"
           echo ""
 
@@ -474,7 +545,16 @@ jobs:
           echo ""
           echo "Verifying critical files in package:"
           echo "=== requirements.txt ==="
-          unzip -l deploy.zip | grep "requirements.txt" || echo "ERROR: requirements.txt not found in package!"
+          unzip -l deploy.zip | grep "requirements.txt"
+          echo ""
+          echo "=== Bundled core ==="
+          unzip -l deploy.zip | grep "core/__init__.py"
+          echo ""
+          echo "=== Bundled core metadata ==="
+          unzip -l deploy.zip | grep -E "core-.*dist-info/METADATA"
+          echo ""
+          echo "=== Procfile ==="
+          unzip -l deploy.zip | grep "Procfile"
           echo ""
           echo "=== Package size ==="
           ls -lh deploy.zip

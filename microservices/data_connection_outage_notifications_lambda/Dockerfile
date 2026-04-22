@@ -1,6 +1,3 @@
-# Install ``core`` from the monorepo via ``uv pip install /build/core`` (deps from
-# core/pyproject.toml). Root .dockerignore has ``!core/pyproject.toml`` and
-# ``!core/README.md`` so those files are in the context for this COPY.
 FROM public.ecr.aws/lambda/python:3.12-arm64
 
 WORKDIR /var/task
@@ -9,11 +6,12 @@ ARG CODEARTIFACT_TOKEN
 ARG AWS_REGION=us-east-2
 ARG CORE_VERSION
 
-COPY microservices/data_connection_outage_notifications_lambda/data_connection_outage_notifications_lambda.py ./data_connection_outage_notifications_lambda.py
-
 RUN pip install --no-cache-dir uv
 
+COPY pyproject.toml uv.lock /build/workspace/
 COPY core /build/core
+COPY microservices/data_connection_outage_notifications_lambda \
+  /build/microservices/data_connection_outage_notifications_lambda
 
 RUN if [ -n "$CORE_VERSION" ]; then \
       if [ -z "$CODEARTIFACT_TOKEN" ]; then \
@@ -26,12 +24,24 @@ RUN if [ -n "$CORE_VERSION" ]; then \
         --extra-index-url "https://pypi.org/simple" \
         --index-strategy unsafe-best-match \
         "core==${CORE_VERSION}" && \
-      rm -rf /build/core && \
-      echo "Installed core==${CORE_VERSION} from Code Artifact"; \
+      uv pip install --system --no-cache \
+        --no-sources-package core \
+        /build/microservices/data_connection_outage_notifications_lambda && \
+      echo \
+        "Installed data_connection_outage_notifications_lambda against core==${CORE_VERSION}"; \
     else \
-      uv pip install --system --no-cache /build/core && \
-      rm -rf /build/core && \
-      echo "Installed core from monorepo source"; \
-    fi
+      constraints_file="/tmp/root-constraints.txt" && \
+      uv export --project /build/workspace --frozen --no-dev --no-editable \
+        --no-emit-workspace --no-hashes -o "$constraints_file" && \
+      uv pip install --system --no-cache \
+        -c "$constraints_file" \
+        /build/microservices/data_connection_outage_notifications_lambda && \
+      rm -f "$constraints_file" && \
+      echo \
+        "Installed data_connection_outage_notifications_lambda from local" \
+        "project metadata using root uv.lock"; \
+    fi && \
+    rm -rf /build/workspace /build/core \
+      /build/microservices/data_connection_outage_notifications_lambda
 
 CMD ["data_connection_outage_notifications_lambda.lambda_handler"]

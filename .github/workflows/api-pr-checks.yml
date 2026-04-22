@@ -5,6 +5,9 @@ on:
     branches: [dev, staging, main]
     paths:
       - "api/**"
+      - "core/**"
+      - "pyproject.toml"
+      - "uv.lock"
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/api-pr-checks.yml"
       - ".github/actions/install-hurl/**"
@@ -66,14 +69,14 @@ jobs:
         with:
           enable-cache: true
       - name: Run Semgrep star-syntax check
-        run: uvx semgrep --error --config _scripts/rules/star-syntax.yaml api/app
+        run: uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml api/app
       - name: Run Semgrep sqlalchemy query/filter check
         run: >
-          uvx semgrep --error --config
+          uvx semgrep@1.160 --error --config
           _scripts/rules/sqlalchemy-query-filter.yaml api/app
       - name: Run Semgrep with-async-db check
         run: >
-          uvx semgrep --error --config
+          uvx semgrep@1.160 --error --config
           _scripts/rules/with-async-db.yaml api/app
           --exclude api/app/dependencies.py
 
@@ -169,7 +172,7 @@ jobs:
           enable-cache: true
       - name: Run Semgrep project access check
         run: >
-          uvx semgrep --error --config
+          uvx semgrep@1.160 --error --config
           _scripts/rules/fastapi-project-id-access.yaml api/app
 
   # smoke_test:

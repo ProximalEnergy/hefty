@@ -78,7 +78,7 @@ if [ "${#targets[@]}" -eq 0 ]; then
     exit 0
 fi
 
-uv run semgrep --error \
+uvx semgrep@1.160 --error \
     --disable-version-check \
     --config _scripts/rules/query-time-enum.yaml \
     "${baseline_args[@]}" \

@@ -25,51 +25,30 @@ When deploying to Elastic Beanstalk:
 
 ```bash
 # Test that the deployment package structure is correct
-mise run test_deploy
+mise run api:test_deploy
 ```
 
 ## Local Development with Core
 
 For **local development**, the `core` library is used as a workspace dependency (not bundled):
 
-### Quick Start: Install Core for Your Branch
+### Quick Start
 
 ```bash
-# Auto-detect your current branch and install the appropriate core version
-mise run core_auto
+# Install the workspace dependencies from the repo root
+uv sync
+
+# Run the API
+mise run api:run
 ```
 
-### Manual Core Version Selection
-
-```bash
-# Install latest beta version (for dev branch)
-mise run core_beta
-
-# Install latest RC version (for staging branch)
-mise run core_rc
-
-# Install latest stable version (for main/production branch)
-mise run core_stable
-
-# Install editable local core (for active core development)
-mise run e_core  # requires CORE_PATH in .env
-```
-
-### Core Package Versioning
-
-The `core` package is published in different versions based on the environment:
-
-- **Beta** (`0.2.43b1`) - Latest development version from `dev` branch
-- **Release Candidate** (`0.2.43rc1`) - Pre-release version from `staging` branch  
-- **Stable** (`0.2.43`) - Production version from `main` branch
-
-**Note**: These versioning commands are for local development and other services that consume core from CodeArtifact. The API deployment to Elastic Beanstalk uses the bundled approach described above.
-
-📖 For complete versioning documentation, see [VERSIONING.md](../VERSIONING.md)
+No separate core install step is needed for the API. Local development uses
+the workspace copy from `../core`.
 
 ## Local Development
 
-- To start the API locally, run `fastapi dev` or `uv run uvicorn app.main:app --reload` from the root of the project directory.
+- To start the API locally, run `mise run api:run` from the repo root.
+- To run the server manually, use `cd api && uv run uvicorn app.main:app --reload`.
 
 ### Environments
 
@@ -85,8 +64,10 @@ The `core` package is published in different versions based on the environment:
     - `--no-hashes`: No hashes
     - `--no-dev `: Don't include development dependencies
     - `--frozen`: Pin dependencies to a specifric version
-  - `mise run freeze` or `uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes`: For AWS environments
-  - `mise run types` or `uv run mypy --config-file pyproject.toml -p app`: Locally run type-checks (not included in pre-commit hook)
+  - `mise run api:freeze` or
+    `uv export --project . --package api --frozen --no-dev --no-emit-package api --no-emit-package core -o api/requirements.txt --no-hashes`:
+    For AWS environments
+  - `mise run api:types` or `uv run mypy --config-file pyproject.toml -p app`: Locally run type-checks (not included in pre-commit hook)
 
 Make sure to install PostgreSQL before running `uv sync` the first time.
 
@@ -118,7 +99,7 @@ Environment variables are stored in AWS Systems Manager Parameter Store as
 locally with
 
 ```
->>> mise run get_env
+>>> mise run api:get_env
 ```
 
 which creates a `.env.from_parameter_store` file whose contents can be copied

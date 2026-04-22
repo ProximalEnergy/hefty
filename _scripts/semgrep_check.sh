@@ -33,7 +33,7 @@ if [ "${#config_args[@]}" -eq 0 ]; then
     exit 1
 fi
 
-uv run semgrep \
+uvx semgrep@1.160 \
     --quiet \
     --disable-version-check \
     --error \

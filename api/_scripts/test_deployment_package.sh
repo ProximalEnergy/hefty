@@ -31,6 +31,14 @@ fi
 echo "✓ Core library found"
 echo ""
 
+if ! command -v uv >/dev/null 2>&1; then
+    echo "❌ Error: uv is required to build bundled core metadata"
+    exit 1
+fi
+
+echo "✓ uv is available"
+echo ""
+
 # Create a temporary directory for testing
 TEST_DIR=$(mktemp -d)
 trap "rm -rf $TEST_DIR" EXIT
@@ -49,10 +57,12 @@ if [ -d "core" ]; then
     rm -rf core
 fi
 
+find . -maxdepth 1 -type d -name 'core-*.dist-info' -exec rm -rf {} +
+
 # Copy core library source
 echo "2. Copying core library..."
 mkdir -p core
-cp -r "$CORE_DIR/src/core"/* core/
+cp -R "$CORE_DIR/src/core/." core/
 echo "   ✓ Core library copied to api/core/"
 
 # Check core structure
@@ -84,36 +94,69 @@ echo ""
 echo "Core library contents:"
 ls -la core/ | head -20
 
-# Generate requirements.txt (if uv is available)
 echo ""
-if command -v uv >/dev/null 2>&1; then
-    echo "4. Generating requirements.txt..."
-    cd "$API_DIR"
-    uv export --frozen --no-emit-workspace --no-dev --no-editable -o "$TEST_DIR/api/requirements.txt" --no-hashes 2>/dev/null || true
+echo "4. Building bundled core distribution metadata..."
+CORE_WHEEL_DIR="$TEST_DIR/core-dist"
+mkdir -p "$CORE_WHEEL_DIR"
+cd "$CORE_DIR"
+uv build --wheel --out-dir "$CORE_WHEEL_DIR"
+cd "$TEST_DIR/api"
 
-    if [ -f "$TEST_DIR/api/requirements.txt" ]; then
-        # Remove core from requirements
-        sed '/^core==/d' "$TEST_DIR/api/requirements.txt" > "$TEST_DIR/api/requirements.tmp"
-        mv "$TEST_DIR/api/requirements.tmp" "$TEST_DIR/api/requirements.txt"
+CORE_WHEEL_PATH="$(
+    find "$CORE_WHEEL_DIR" -maxdepth 1 -name 'core-*.whl' | head -n 1
+)"
+if [ -z "$CORE_WHEEL_PATH" ]; then
+    echo "   ❌ core wheel was not built"
+    exit 1
+fi
 
-        # Check that core is not in requirements
-        if grep -q "^core==" "$TEST_DIR/api/requirements.txt"; then
-            echo "   ❌ core still in requirements.txt!"
-            exit 1
-        else
-            echo "   ✓ requirements.txt generated without core dependency"
-        fi
+unzip -q "$CORE_WHEEL_PATH" 'core-*.dist-info/*' -d "$TEST_DIR/api"
 
-        echo ""
-        echo "   Requirements file size: $(wc -l < "$TEST_DIR/api/requirements.txt") lines"
-    fi
+CORE_DIST_INFO_DIR="$(
+    find . -maxdepth 1 -type d -name 'core-*.dist-info' | head -n 1
+)"
+if [ -n "$CORE_DIST_INFO_DIR" ] && [ -f "$CORE_DIST_INFO_DIR/METADATA" ]; then
+    echo "   ✓ core dist-info extracted to $CORE_DIST_INFO_DIR"
 else
-    echo "4. Skipping requirements.txt generation (uv not installed)"
+    echo "   ❌ core dist-info NOT found"
+    exit 1
+fi
+
+# Generate requirements.txt
+echo "5. Generating requirements.txt..."
+cd "$MONO_DIR"
+uv export --project . --package api --frozen --no-dev \
+  --no-emit-package api --no-emit-package core \
+  -o "$TEST_DIR/api/requirements.txt" \
+  --no-hashes 2>/dev/null || true
+
+if [ -f "$TEST_DIR/api/requirements.txt" ]; then
+    # Check that workspace packages are not emitted into requirements.txt.
+    if grep -E -q \
+      '^(api|core)([<=>!~ ]|$)' \
+      "$TEST_DIR/api/requirements.txt"; then
+        echo "   ❌ workspace packages still in requirements.txt!"
+        exit 1
+    else
+        echo "   ✓ requirements.txt omits workspace package dependencies"
+    fi
+
+    if grep -E -q \
+      '(^(\.\.?/|/)|@ file:|^-[eE] )' \
+      "$TEST_DIR/api/requirements.txt"; then
+        echo "   ❌ requirements.txt contains local path or editable refs!"
+        exit 1
+    else
+        echo "   ✓ requirements.txt contains only publishable dependencies"
+    fi
+
+    echo ""
+    echo "   Requirements file size: $(wc -l < "$TEST_DIR/api/requirements.txt") lines"
 fi
 
 # Create deployment package
 echo ""
-echo "5. Creating deployment package..."
+echo "6. Creating deployment package..."
 cd "$TEST_DIR/api"
 zip -r "$TEST_DIR/deploy.zip" . -x "*.git*" -x ".venv/*" -x "__pycache__/*" -x "*.pyc" >/dev/null 2>&1
 
@@ -127,7 +170,7 @@ fi
 
 # Verify package contents
 echo ""
-echo "6. Verifying package contents..."
+echo "7. Verifying package contents..."
 echo ""
 echo "   Checking for required files..."
 
@@ -149,6 +192,13 @@ for file in "${REQUIRED_FILES[@]}"; do
         exit 1
     fi
 done
+
+if unzip -l "$TEST_DIR/deploy.zip" | grep -E -q 'core-.*dist-info/METADATA'; then
+    echo "   ✓ core dist-info metadata"
+else
+    echo "   ❌ core dist-info metadata NOT FOUND"
+    exit 1
+fi
 
 echo ""
 echo "   Checking for excluded files..."
@@ -172,7 +222,7 @@ done
 
 # Show package summary
 echo ""
-echo "7. Package Summary:"
+echo "8. Package Summary:"
 echo ""
 unzip -l "$TEST_DIR/deploy.zip" | head -30
 echo "   ..."
@@ -183,7 +233,7 @@ echo "   Package size: $PACKAGE_SIZE"
 
 # Test Python structure (imports will fail without dependencies, which is expected)
 echo ""
-echo "8. Testing Python structure..."
+echo "9. Testing Python structure..."
 cd "$TEST_DIR/api"
 
 # Just verify the structure is valid Python
@@ -201,6 +251,14 @@ else
     exit 1
 fi
 
+if python3 -c "import importlib.metadata as m; m.version('core')" \
+  >/dev/null 2>&1; then
+    echo "   ✓ importlib.metadata.version('core') resolves"
+else
+    echo "   ❌ importlib.metadata.version('core') does not resolve"
+    exit 1
+fi
+
 echo "   ℹ️  Full import tests skipped (requires dependencies to be installed)"
 echo "      In production, pip will install all dependencies from requirements.txt"
 
@@ -212,6 +270,7 @@ echo ""
 echo "The deployment package is ready and contains:"
 echo "  • API application code (app/)"
 echo "  • Bundled core library (core/)"
+echo "  • Bundled core distribution metadata (core-*.dist-info/)"
 echo "  • Python dependencies (requirements.txt, without core)"
 echo "  • EB configuration (.ebextensions/)"
 echo ""

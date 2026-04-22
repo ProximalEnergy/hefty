@@ -36,6 +36,15 @@ The `WeatherAlertsStack` deploys:
 From the `mono` directory:
 
 ```bash
+export CORE_VERSION="$(
+  python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])"
+)"
+export CODEARTIFACT_TOKEN="$(aws codeartifact get-authorization-token \
+  --domain proximal-code-artifact-domain \
+  --domain-owner 016997484973 \
+  --query authorizationToken \
+  --output text)"
+
 # Activate venv and deploy the Lambda stack (disable telemetry). From mono/:
 source .venv/bin/activate && cd microservices/cdk && CDK_DISABLE_CLI_TELEMETRY=true npx --yes aws-cdk deploy WeatherAlertsLambdaStack
 ```
@@ -43,6 +52,15 @@ source .venv/bin/activate && cd microservices/cdk && CDK_DISABLE_CLI_TELEMETRY=t
 Or step by step:
 
 ```bash
+export CORE_VERSION="$(
+  python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])"
+)"
+export CODEARTIFACT_TOKEN="$(aws codeartifact get-authorization-token \
+  --domain proximal-code-artifact-domain \
+  --domain-owner 016997484973 \
+  --query authorizationToken \
+  --output text)"
+
 cd microservices/cdk
 
 # Synthesize CloudFormation template
@@ -52,7 +70,8 @@ cdk synth
 cdk deploy WeatherAlertsLambdaStack
 
 # Or deploy with specific environment variables
-NWS_SECRET_NAME=nws/weather/notifications ENVIRONMENT=production cdk deploy WeatherAlertsLambdaStack
+NWS_SECRET_NAME=nws/weather/notifications ENVIRONMENT=production \
+  cdk deploy WeatherAlertsLambdaStack
 ```
 
 ### What CDK Does
@@ -83,13 +102,25 @@ CDK will automatically rebuild the Docker image and update the Lambda function.
 
 ### Environment Variables
 
-The stack uses these environment variables (with defaults):
+The stack uses these environment variables:
 
-- `NWS_SECRET_NAME`: Secrets Manager secret name (default: `nws/weather/notifications`)
-- `ENVIRONMENT`: Environment name (default: `development`)
+- `CORE_VERSION`: required; pinned `core` package version for the Docker build
+- `CODEARTIFACT_TOKEN`: required; token used to install pinned `core`
+- `NWS_SECRET_NAME`: optional; defaults to `nws/weather/notifications`
+- `ENVIRONMENT`: optional; defaults to `development`
 
 Set them when deploying:
 
 ```bash
-NWS_SECRET_NAME=nws/weather/notifications ENVIRONMENT=production cdk deploy
+CORE_VERSION="$(
+  python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])"
+)" \
+CODEARTIFACT_TOKEN="$(aws codeartifact get-authorization-token \
+  --domain proximal-code-artifact-domain \
+  --domain-owner 016997484973 \
+  --query authorizationToken \
+  --output text)" \
+NWS_SECRET_NAME=nws/weather/notifications \
+ENVIRONMENT=production \
+cdk deploy WeatherAlertsLambdaStack
 ```

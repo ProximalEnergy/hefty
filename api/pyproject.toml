@@ -27,9 +27,7 @@ dependencies = [
     "orjson~=3.11.3",
     "pandas~=2.3",
     "plotly>=6.3.1,<7",
-    # Added strict version constraint to avoid breaking change introduced here:
-    # https://github.com/pola-rs/polars/pull/24027
-    "polars==1.39",
+    "polars",
     "psycopg2-binary==2.9.11",
     "pvlib~=0.14",
     "pyarrow~=23.0",
@@ -70,7 +68,7 @@ dev = [
     "typing-extensions>=4.12.2,<5",
 ]
 [tool.uv.sources]
-core = { path = "../core", editable = true }
+core = { workspace = true }
 
 [[tool.uv.index]]
 name = "proximal-package-index"

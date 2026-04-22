@@ -10,12 +10,22 @@ import asyncio
 import json
 import logging
 import os
+from importlib import import_module
+from typing import Any, cast
 
 import boto3
-import dotenv
 
-# Load environment variables (useful for local runs)
-dotenv.load_dotenv()
+
+def _load_local_dotenv() -> None:
+    """Load local environment variables when python-dotenv is installed."""
+    try:
+        dotenv = cast(Any, import_module("dotenv"))
+    except ModuleNotFoundError:
+        return
+    dotenv.load_dotenv()
+
+
+_load_local_dotenv()
 
 # Configure logging
 logging.basicConfig(

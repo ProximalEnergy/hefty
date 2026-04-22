@@ -562,7 +562,7 @@ init_check_ui_lines_up() {
             echo ""
             line_no=$((line_no + 1))
         fi
-        echo -e "${BOLD}${PURPLE}Warning-level Checks:${NC}"
+        echo -e "${BOLD}${PURPLE}Warnings:${NC}"
         line_no=$((line_no + 1))
         for i in "${warning_indices[@]}"; do
             render_check_ui_line \

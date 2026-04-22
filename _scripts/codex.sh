@@ -29,8 +29,8 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 export PATH="$HOME/.local/bin:$PATH"
 
-echo "Installing semgrep..."
-"$HOME/.local/bin/uv" tool install semgrep --force
+
+
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js not found. Install Node.js before running web-app commands."
@@ -42,7 +42,6 @@ if [ -d "$ROOT_DIR" ]; then
 
   uv sync
   uv sync --directory core
-  python3 _scripts/switch_core_source.py
   uv sync --directory api
   mise run web:install
   mise run web:plotly

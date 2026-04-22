@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# Script to verify the versioning setup is working correctly
-# This checks that all scripts, workflows, and configurations are properly set up
-
 set -e
 
-echo "🔍 Verifying Core and API Versioning Setup..."
+echo "🔍 Verifying Core and API deploy setup..."
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,14 +11,12 @@ MONO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ERRORS=0
 WARNINGS=0
 
-# Color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Helper functions
 error() {
     echo -e "${RED}✗ ERROR:${NC} $1"
     ((ERRORS++))
@@ -40,191 +35,139 @@ info() {
     echo -e "${BLUE}ℹ${NC} $1"
 }
 
-# Check 1: Core workflow file exists
-echo "📋 Checking Core workflow..."
-if [ -f "$MONO_ROOT/.github/workflows/core-publish.yml" ]; then
-    success "Core publish workflow exists"
+echo "📋 Checking deploy workflow..."
+DEPLOY_WORKFLOW="$MONO_ROOT/.github/workflows/deploy-composite.yml"
+if [ -f "$DEPLOY_WORKFLOW" ]; then
+    success "deploy-composite.yml exists"
 
-    # Check it has all three branches
-    if grep -q "\- dev" "$MONO_ROOT/.github/workflows/core-publish.yml" && \
-       grep -q "\- staging" "$MONO_ROOT/.github/workflows/core-publish.yml" && \
-       grep -q "\- main" "$MONO_ROOT/.github/workflows/core-publish.yml"; then
-        success "Core workflow configured for dev, staging, and main branches"
+    if grep -q -- "--no-emit-package core" "$DEPLOY_WORKFLOW"; then
+        success "API requirements export omits bundled core"
     else
-        error "Core workflow missing branch configurations"
+        error "Deploy workflow does not omit core from requirements.txt"
+    fi
+
+    if grep -q "cp -R core/src/core/. api/core/" "$DEPLOY_WORKFLOW"; then
+        success "Deploy workflow bundles workspace core into api/core"
+    else
+        error "Deploy workflow does not bundle workspace core"
+    fi
+
+    if grep -q "uv build --wheel --out-dir" "$DEPLOY_WORKFLOW" && \
+       grep -q "core-\\*\\.dist-info" "$DEPLOY_WORKFLOW"; then
+        success "Deploy workflow preserves core distribution metadata"
+    else
+        error "Deploy workflow does not preserve core dist-info metadata"
     fi
 else
-    error "Core publish workflow not found at .github/workflows/core-publish.yml"
+    error "Deploy workflow not found at .github/workflows/deploy-composite.yml"
 fi
 
-# Check 2: API deployment workflow
 echo ""
-echo "📋 Checking API deployment workflow..."
-if [ -f "$MONO_ROOT/.github/workflows/api-deploy.yml" ]; then
-    success "API deploy workflow exists"
-
-    # Check it has version type configuration
-    if grep -q "CORE_VERSION_TYPE=beta" "$MONO_ROOT/.github/workflows/api-deploy.yml" && \
-       grep -q "CORE_VERSION_TYPE=rc" "$MONO_ROOT/.github/workflows/api-deploy.yml" && \
-       grep -q "CORE_VERSION_TYPE=stable" "$MONO_ROOT/.github/workflows/api-deploy.yml"; then
-        success "API workflow configured with core version types"
-    else
-        error "API workflow missing CORE_VERSION_TYPE configurations"
-    fi
-else
-    error "API deploy workflow not found at .github/workflows/api-deploy.yml"
-fi
-
-# Check 3: Versioning scripts exist and are executable
-echo ""
-echo "📋 Checking versioning scripts..."
-SCRIPTS=(
+echo "📋 Checking obsolete API core scripts are removed..."
+OBSOLETE_SCRIPTS=(
+    "$MONO_ROOT/api/_scripts/update_core.sh"
+    "$MONO_ROOT/api/_scripts/aws_core_wrapper.py"
     "$MONO_ROOT/api/_scripts/update_core_version.sh"
     "$MONO_ROOT/api/_scripts/update_core_auto.sh"
-    "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
 )
 
-for script in "${SCRIPTS[@]}"; do
-    if [ -f "$script" ]; then
-        if [ -x "$script" ]; then
-            success "$(basename "$script") exists and is executable"
-        else
-            warning "$(basename "$script") exists but is not executable"
-            info "Run: chmod +x $script"
-        fi
+for script in "${OBSOLETE_SCRIPTS[@]}"; do
+    if [ -e "$script" ]; then
+        error "$(basename "$script") should be removed"
     else
-        error "$(basename "$script") not found"
+        success "$(basename "$script") is absent"
     fi
 done
 
-# Check 4: API .mise.toml has tasks
 echo ""
-echo "📋 Checking API mise tasks..."
-if [ -f "$MONO_ROOT/api/.mise.toml" ]; then
-    if grep -q "core_auto" "$MONO_ROOT/api/.mise.toml" && \
-       grep -q "core_beta" "$MONO_ROOT/api/.mise.toml" && \
-       grep -q "core_rc" "$MONO_ROOT/api/.mise.toml" && \
-       grep -q "core_stable" "$MONO_ROOT/api/.mise.toml"; then
-        success "API .mise.toml has core version tasks"
+echo "📋 Checking API tasks..."
+MISE_FILE="$MONO_ROOT/.mise.toml"
+if [ -f "$MISE_FILE" ]; then
+    if grep -q '\[tasks\."api:freeze"\]' "$MISE_FILE"; then
+        success "api:freeze task exists"
     else
-        error "API .mise.toml missing core version tasks"
+        error "api:freeze task missing from .mise.toml"
+    fi
+
+    if grep -q '\[tasks\."api:test_deploy"\]' "$MISE_FILE"; then
+        success "api:test_deploy task exists"
+    else
+        error "api:test_deploy task missing from .mise.toml"
     fi
 else
-    error "API .mise.toml not found"
+    error ".mise.toml not found"
 fi
 
-# Check 5: Core pyproject.toml has version
+echo ""
+echo "📋 Checking local test helper..."
+TEST_SCRIPT="$MONO_ROOT/api/_scripts/test_deployment_package.sh"
+if [ -f "$TEST_SCRIPT" ]; then
+    success "test_deployment_package.sh exists"
+    if [ -x "$TEST_SCRIPT" ]; then
+        success "test_deployment_package.sh is executable"
+    else
+        warning "test_deployment_package.sh is not executable"
+        info "Run: chmod +x $TEST_SCRIPT"
+    fi
+else
+    error "test_deployment_package.sh not found"
+fi
+
 echo ""
 echo "📋 Checking Core configuration..."
-if [ -f "$MONO_ROOT/core/pyproject.toml" ]; then
-    CORE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('$MONO_ROOT/core/pyproject.toml', 'rb'))['project']['version'])" 2>/dev/null)
+CORE_PYPROJECT="$MONO_ROOT/core/pyproject.toml"
+if [ -f "$CORE_PYPROJECT" ]; then
+    CORE_VERSION=$(
+        python3 -c \
+            "import tomllib; print(tomllib.load(open('$CORE_PYPROJECT', 'rb'))['project']['version'])" \
+            2>/dev/null
+    )
     if [ $? -eq 0 ] && [ -n "$CORE_VERSION" ]; then
         success "Core version: $CORE_VERSION"
     else
-        error "Could not read core version from pyproject.toml"
-    fi
-
-    # Check for bump task
-    if [ -f "$MONO_ROOT/core/.mise.toml" ] && grep -q "tasks.bump" "$MONO_ROOT/core/.mise.toml"; then
-        success "Core has version bump task"
-    else
-        warning "Core .mise.toml missing bump task"
+        error "Could not read core version from core/pyproject.toml"
     fi
 else
-    error "Core pyproject.toml not found"
+    error "core/pyproject.toml not found"
 fi
 
-# Check 6: Documentation exists
 echo ""
-echo "📋 Checking documentation..."
-DOCS=(
-    "$MONO_ROOT/VERSIONING.md"
-    "$MONO_ROOT/VERSIONING_QUICKREF.md"
-)
+echo "📋 Checking API documentation..."
+API_README="$MONO_ROOT/api/README.md"
+if [ -f "$API_README" ]; then
+    success "api/README.md exists"
 
-for doc in "${DOCS[@]}"; do
-    if [ -f "$doc" ]; then
-        success "$(basename "$doc") exists"
+    if grep -q "bundled directly" "$API_README"; then
+        success "README documents bundled-core deployment"
     else
-        warning "$(basename "$doc") not found"
+        warning "README does not mention bundled-core deployment"
     fi
-done
 
-# Check 7: Git branches exist
-echo ""
-echo "📋 Checking git branches..."
-cd "$MONO_ROOT"
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-if [ $? -eq 0 ]; then
-    success "Current branch: $CURRENT_BRANCH"
-
-    # Check if key branches exist
-    for branch in dev staging main; do
-        if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null || \
-           git show-ref --verify --quiet "refs/remotes/origin/$branch" 2>/dev/null; then
-            success "Branch '$branch' exists"
-        else
-            warning "Branch '$branch' not found (may be normal if not yet created)"
-        fi
-    done
-else
-    error "Not in a git repository"
-fi
-
-# Check 8: Test AWS authentication (if available)
-echo ""
-echo "📋 Testing AWS CodeArtifact authentication..."
-if command -v aws >/dev/null 2>&1; then
-    success "AWS CLI is installed"
-
-    # Try to authenticate (but don't fail if it doesn't work - might be expected locally)
-    if source "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh" 2>/dev/null; then
-        success "AWS CodeArtifact authentication successful"
+    if grep -q "workspace dependency" "$API_README"; then
+        success "README documents workspace core for local development"
     else
-        warning "AWS CodeArtifact authentication failed (this is normal if AWS credentials are not configured locally)"
-        info "Authentication will work in CI/CD environments"
+        warning "README does not mention workspace core for local development"
     fi
 else
-    warning "AWS CLI not installed (required for core version updates)"
-    info "Install with: brew install awscli"
+    warning "api/README.md not found"
 fi
 
-# Check 9: Test mise command availability
-echo ""
-echo "📋 Checking mise availability..."
-cd "$MONO_ROOT/api"
-if command -v mise >/dev/null 2>&1; then
-    success "mise is available"
-
-    # Try listing tasks
-    if mise tasks >/dev/null 2>&1; then
-        success "mise tasks are accessible"
-    else
-        warning "mise tasks might not be accessible"
-    fi
-else
-    warning "mise not found in PATH"
-    info "Install mise with: curl https://mise.run | sh"
-fi
-
-# Summary
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "                    VERIFICATION SUMMARY"
 echo "════════════════════════════════════════════════════════════"
 
 if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-    echo -e "${GREEN}🎉 All checks passed! Versioning setup is complete.${NC}"
+    echo -e "${GREEN}🎉 All checks passed.${NC}"
     echo ""
     echo "Next steps:"
-    echo "  1. Test locally: cd api && mise run core_auto"
-    echo "  2. Make a change and push to dev branch"
-    echo "  3. Verify core publishes as beta version"
-    echo "  4. Check API deployment uses beta core"
+    echo "  1. Run: mise run api:test_deploy"
+    echo "  2. Run: mise run api:freeze"
+    echo "  3. Confirm deploy-composite.yml packages bundled core metadata"
     exit 0
 elif [ $ERRORS -eq 0 ]; then
     echo -e "${YELLOW}⚠ Setup complete with $WARNINGS warning(s).${NC}"
-    echo "Review warnings above. Most are informational and may be expected."
+    echo "Review warnings above."
     exit 0
 else
     echo -e "${RED}✗ Found $ERRORS error(s) and $WARNINGS warning(s).${NC}"

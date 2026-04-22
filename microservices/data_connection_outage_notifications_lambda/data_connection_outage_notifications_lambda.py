@@ -4,14 +4,24 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any
+from importlib import import_module
+from typing import Any, cast
 from uuid import UUID
 
 import boto3
-import dotenv
 from botocore.exceptions import ClientError
 
-dotenv.load_dotenv()
+
+def _load_local_dotenv() -> None:
+    """Load local environment variables when python-dotenv is installed."""
+    try:
+        dotenv = cast(Any, import_module("dotenv"))
+    except ModuleNotFoundError:
+        return
+    dotenv.load_dotenv()
+
+
+_load_local_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,

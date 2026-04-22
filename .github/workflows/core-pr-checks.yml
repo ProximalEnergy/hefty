@@ -6,6 +6,9 @@ on:
     paths:
       - "core/**"
       - "pyproject.toml"
+      - "_scripts/auto_bump_core_version.py"
+      - "_scripts/prepare_core_publish_artifact.py"
+      - "_scripts/pyproject_dependencies_changed.py"
       - "_scripts/check_docstring_args.py"
       - ".github/actions/resolve-dev-requirement/**"
       - ".github/workflows/core-pr-checks.yml"
@@ -71,10 +74,10 @@ jobs:
         with:
           enable-cache: true
       - name: Run Semgrep star-syntax check
-        run: uvx semgrep --error --config _scripts/rules/star-syntax.yaml core/src
+        run: uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml core/src
       - name: Run Semgrep sqlalchemy query/filter check
         run: >
-          uvx semgrep --error --config
+          uvx semgrep@1.160 --error --config
           _scripts/rules/sqlalchemy-query-filter.yaml core/src
 
   mypy:
@@ -173,72 +176,49 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Compare with dev and bump patch if needed
-        id: version_check
+      - name: Detect release-relevant core inputs
+        id: release_inputs
         run: |
           git fetch origin dev
 
-          python - <<'PY'
-          import os
-          import re
-          import subprocess
-          import tomllib
-          from pathlib import Path
+          if git diff --quiet origin/dev...HEAD -- core/src/core; then
+            CORE_SOURCE_CHANGED="false"
+          else
+            CORE_SOURCE_CHANGED="true"
+          fi
 
-          pyproject_path = Path("core/pyproject.toml")
-          pr_version = tomllib.loads(
-              pyproject_path.read_text(encoding="utf-8")
-          )["project"]["version"]
+          if git diff --quiet origin/dev...HEAD -- core/pyproject.toml; then
+            CORE_PYPROJECT_CHANGED="false"
+          else
+            CORE_PYPROJECT_CHANGED="true"
+          fi
 
-          dev_toml = subprocess.run(
-              ["git", "show", "origin/dev:core/pyproject.toml"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          dev_version = tomllib.loads(dev_toml)["project"]["version"]
+          ROOT_DEP_CHANGED="$(
+            python3 _scripts/pyproject_dependencies_changed.py \
+              --base origin/dev \
+              --head HEAD \
+              --path pyproject.toml
+          )"
 
-          def parse_release(version: str) -> tuple[int, int, int]:
-              match = re.match(r"^(\d+)\.(\d+)\.(\d+)", version)
-              if match is None:
-                  raise ValueError(
-                      f"Unsupported version '{version}'. "
-                      "Expected major.minor.patch."
-                  )
-              return tuple(int(part) for part in match.groups())
+          if [ "$CORE_SOURCE_CHANGED" = "true" ] || \
+             [ "$CORE_PYPROJECT_CHANGED" = "true" ] || \
+             [ "$ROOT_DEP_CHANGED" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
-          pr_release = parse_release(pr_version)
-          dev_release = parse_release(dev_version)
+          echo "core_source_changed=$CORE_SOURCE_CHANGED" >> $GITHUB_OUTPUT
+          echo "core_pyproject_changed=$CORE_PYPROJECT_CHANGED" >> $GITHUB_OUTPUT
+          echo "root_dep_changed=$ROOT_DEP_CHANGED" >> $GITHUB_OUTPUT
 
-          print(f"PR version: {pr_version}")
-          print(f"dev version: {dev_version}")
-
-          bumped = "false"
-          new_version = pr_version
-
-          if pr_release < dev_release:
-              major, minor, patch = dev_release
-              new_version = f"{major}.{minor}.{patch + 1}"
-              updated_text = re.sub(
-                  r'(?m)^version\s*=\s*"[^"]+"\s*$',
-                  f'version = "{new_version}"',
-                  pyproject_path.read_text(encoding="utf-8"),
-                  count=1,
-              )
-              pyproject_path.write_text(updated_text, encoding="utf-8")
-              bumped = "true"
-              print(
-                  "PR version is lower than dev. "
-                  f"Bumping patch version to {new_version}."
-              )
-          else:
-              print("PR version is not lower than dev. No change needed.")
-
-          output_path = Path(os.environ["GITHUB_OUTPUT"])
-          with output_path.open("a", encoding="utf-8") as output_file:
-              output_file.write(f"bumped={bumped}\n")
-              output_file.write(f"new_version={new_version}\n")
-          PY
+      - name: Compare with dev and bump patch if needed
+        id: version_check
+        if: steps.release_inputs.outputs.changed == 'true'
+        run: |
+          python3 _scripts/auto_bump_core_version.py \
+            --base-revision origin/dev \
+            >> "$GITHUB_OUTPUT"
 
       - name: Commit and push patched version
         if: steps.version_check.outputs.bumped == 'true'
@@ -252,5 +232,13 @@ jobs:
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
 
       - name: Version status
-        if: steps.version_check.outputs.bumped != 'true'
+        if: |
+          steps.release_inputs.outputs.changed == 'true' &&
+          steps.version_check.outputs.bumped != 'true'
         run: echo "Version already >= dev, skipping patch bump."
+
+      - name: Version status for skipped changes
+        if: steps.release_inputs.outputs.changed != 'true'
+        run: |
+          echo "No release-relevant core inputs changed."
+          echo "Skipping auto-bump."

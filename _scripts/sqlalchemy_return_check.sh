@@ -78,7 +78,7 @@ skipping."
     exit 0
 fi
 
-uv run semgrep --error \
+uvx semgrep@1.160 --error \
     --disable-version-check \
     --config "${SCRIPT_DIR}/rules/sqlalchemy-return.yaml" \
     "${targets[@]}"

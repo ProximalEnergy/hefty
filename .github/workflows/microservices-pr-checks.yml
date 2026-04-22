@@ -106,7 +106,7 @@ jobs:
         with:
           enable-cache: true
       - name: Run Semgrep star-syntax check
-        run: uvx semgrep --error --config _scripts/rules/star-syntax.yaml microservices
+        run: uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml microservices
 
   mypy:
     runs-on: ubuntu-latest

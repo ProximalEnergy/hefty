@@ -1,0 +1,9 @@
+id: test-rule
+language: python
+rule:
+  any:
+    - pattern: "def $FUNC($$$ARGS): $$$BODY"
+  not:
+    any:
+      - pattern: "def $FUNC($$$A, *, $$$B): $$$BODY"
+      - pattern: "def $FUNC(*, $$$B): $$$BODY"

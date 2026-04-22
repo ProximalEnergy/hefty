@@ -74,6 +74,6 @@ if [ "${#targets[@]}" -eq 0 ]; then
     exit 0
 fi
 
-uv run semgrep --error \
+uvx semgrep@1.160 --error \
     --config web-app/_scripts/jsx-calculations.yaml \
     "${targets[@]}"

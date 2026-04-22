@@ -14,7 +14,7 @@ repos:
       - id: star-syntax-check
         name: Star Syntax Semgrep Check
         description: Ensures functions use keyword-only args when required.
-        entry: uv run semgrep --error --config ../_scripts/rules/star-syntax.yaml
+        entry: uvx semgrep@1.160 --error --config ../_scripts/rules/star-syntax.yaml
         language: system
         types: [python]
         pass_filenames: true

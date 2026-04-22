@@ -4,7 +4,6 @@ uv = "latest"
 gh = "latest"
 awscli = "latest"
 ripgrep = "latest"
-semgrep = "latest"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
@@ -17,7 +16,6 @@ brew install uv awscli hurl && \
 uv sync && \
 mise install && \
 uv sync --directory core && \
-mise run api:switch-core && \
 uv sync --directory api && \
 mise run web:install && \
 mise run web:plotly && \
@@ -39,7 +37,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh && \
 uv sync && \
 mise install && \
 uv sync --directory core && \
-mise run api:switch-core && \
 uv sync --directory api && \
 mise run web:install && \
 mise run web:plotly && \
@@ -57,7 +54,6 @@ run = """
 uv sync && \
 mise install && \
 uv sync --directory core && \
-mise run api:switch-core && \
 uv sync --directory api && \
 uv sync --directory kpi && \
 (
@@ -71,7 +67,7 @@ mise run sql-admin:install
 [tasks.sync-deps-if-lock-changed]
 description = "Run sync-deps when dependency manifests change"
 run = """
-LOCKFILE_PATTERN='^(uv\\.lock|core/uv\\.lock|api/uv\\.lock|sql-admin/uv\\.lock|\
+LOCKFILE_PATTERN='^(uv\\.lock|core/uv\\.lock|sql-admin/uv\\.lock|\
 web-app/package\\.json|web-app/pnpm-lock\\.yaml)$'
 
 BASE_REF=""
@@ -104,12 +100,10 @@ usage = '''
 '''
 run = """
 if [ "${usage_no_sync:-false}" = "true" ]; then
-  mise run api:switch-core && \
   mise run sync-deps-if-lock-changed && \
   ./_scripts/run_dev.sh
 else
   mise run sync && \
-  mise run api:switch-core && \
   mise run sync-deps-if-lock-changed && \
   ./_scripts/run_dev.sh
 fi
@@ -123,12 +117,11 @@ run = "./_scripts/prepare_pr.sh"
 
 [tasks.preview]
 description = "Run API and web-app preview servers concurrently"
-depends = ["sync", "api:switch-core"]
+depends = ["sync"]
 run = ["mise run web:install", "mise run web:build", "./_scripts/run_preview.sh"]
 
 [tasks.check]
 description = "Run quality checks based on the diff vs dev"
-depends = ["api:switch-core"]
 usage = '''
   flag "--static" help="Skip non-static tests"
   flag "--all" help="Run all checks without diff filtering"
@@ -308,12 +301,12 @@ run = "uv run --dev ruff format core/"
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml core/src"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml core/src"
 
 [tasks."core:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in core"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml core/src"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/sqlalchemy-query-filter.yaml core/src"
 
 [tasks."core:pytest"]
 description = "Run pytest for core"
@@ -555,12 +548,12 @@ run = "uv run --dev ruff format microservices/"
 [tasks."micro:star_syntax"]
 description = "Check for star syntax violations in microservices"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml microservices"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml microservices"
 
 [tasks."micro:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in micro"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml microservices"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/sqlalchemy-query-filter.yaml microservices"
 
 [tasks."micro:docstring_args"]
 description = "Check docstring Args sections in microservices"
@@ -571,22 +564,15 @@ run = "uv run _scripts/check_docstring_args.py microservices"
 # API TASKS (runs in ./api directory)
 # =============================================================================
 
-[tasks."api:switch-core"]
-description = "Switch core dependency source based on current git branch (staging/sandbox/main=CodeArtifact, others=editable)"
-run = "python3 _scripts/switch_core_source.py"
-
 [tasks."api:check-core-source"]
-description = "Check which core dependency source is currently configured"
+description = "Show the configured core source for API"
 dir = "api"
 run = "grep -A 1 '\\[tool.uv.sources\\]' pyproject.toml | grep core"
 
 [tasks."api:sync"]
 description = "Sync API dependencies and lockfile"
 dir = "."
-run = """
-mise run api:switch-core && \
-uv sync --directory api
-"""
+run = "uv sync --directory api"
 
 [tasks."kpi:switch-core:editable"]
 description = "Switch kpi core dependency to editable local path"
@@ -677,12 +663,12 @@ run = "uv run pytest"
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml api/app"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml api/app"
 
 [tasks."api:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in api"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml api/app"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/sqlalchemy-query-filter.yaml api/app"
 
 [tasks."api:hurl"]
 description = "Run hurl smoke tests for api"
@@ -707,7 +693,7 @@ run = """
 [tasks."api:with_async_db"]
 description = "Check for disallowed _with_async_db usage in api"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/with-async-db.yaml api/app --exclude api/app/dependencies.py"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/with-async-db.yaml api/app --exclude api/app/dependencies.py"
 
 [tasks."api:unused_routes"]
 description = "Check for API routes unused by the web-app (fast, OpenAPI-based)"
@@ -721,10 +707,11 @@ run = "uv run python _scripts/check_unused_routes.py --mode app"
 
 [tasks."api:freeze"]
 description = "Export requirements.txt for AWS deployment"
-dir = "api"
+dir = "."
 run = """
-uv export --frozen --no-emit-workspace --no-dev --no-editable \
-  -o requirements.txt --no-hashes --quiet
+uv export --project . --package api --frozen --no-dev \
+  --no-emit-package api --no-emit-package core \
+  -o api/requirements.txt --no-hashes --quiet
 """
 
 [tasks."api:run"]
@@ -867,7 +854,7 @@ run = "./_scripts/web_query_time_enum_check.sh"
 [tasks."web:default-query-options-no-explicit-type"]
 description = "Check for explicit type annotation on defaultQueryOptions"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/default-query-options-no-explicit-type.yaml"
+run = "uvx semgrep@1.160 --error --config _scripts/rules/default-query-options-no-explicit-type.yaml"
 
 [tasks."web:screenshot"]
 description = "Screenshot routes inferred from git diff vs dev into _screenshot/"

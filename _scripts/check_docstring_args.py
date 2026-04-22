@@ -70,9 +70,8 @@ def main(*, argv: Sequence[str] | None = None) -> int:
     rule_file = Path(__file__).parent / "rules" / "docstring-args.yaml"
 
     cmd = [
-        "uv",
-        "run",
-        "semgrep",
+        "uvx",
+        "semgrep@1.160",
         "--quiet",
         "--disable-version-check",
         "--config",

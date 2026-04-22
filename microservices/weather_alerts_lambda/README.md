@@ -8,38 +8,17 @@ The Lambda function runs on a schedule (every 30 minutes) to check NWS weather f
 
 ## Deployment
 
-### Deploy with Source Code (Default)
-
-To deploy the Lambda function using the current source code, run the following commands from the `mono` directory:
-
-```bash
-# Create and configure buildx builder (if it doesn't exist)
-docker buildx create --name lambda-builder --use >/dev/null 2>&1 || true
-docker buildx inspect --bootstrap
-
-# Build and push the Docker image to ECR
-docker buildx build --platform linux/arm64 \
-  -f microservices/weather_alerts_lambda/Dockerfile \
-  -t 016997484973.dkr.ecr.us-east-2.amazonaws.com/nws-weather-notifications:latest \
-  --push \
-  --provenance=false --sbom=false \
-  .
-
-# Update the Lambda function with the new image
-aws lambda update-function-code \
-  --function-name nws_weather_notifications_image \
-  --image-uri 016997484973.dkr.ecr.us-east-2.amazonaws.com/nws-weather-notifications:latest
-```
-
 ### Deploy with Pinned Core Version
 
-To pin a specific version of the `core` package from Code Artifact, you need to:
+Production deploys must set `CORE_VERSION` so the image installs a pinned
+`core` package from CodeArtifact instead of resolving unpinned transitive
+dependencies from local source.
 
-1. Get a Code Artifact token
-2. Build with the `CORE_VERSION` build argument
+To deploy the Lambda function from the `mono` directory:
 
 ```bash
-# Get Code Artifact token
+# Read the current core version from the repo and fetch a CodeArtifact token
+CORE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])")
 CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
   --domain proximal-code-artifact-domain \
   --domain-owner 016997484973 \
@@ -54,7 +33,7 @@ docker buildx inspect --bootstrap
 docker buildx build --platform linux/arm64 \
   -f microservices/weather_alerts_lambda/Dockerfile \
   -t 016997484973.dkr.ecr.us-east-2.amazonaws.com/nws-weather-notifications:latest \
-  --build-arg CORE_VERSION=0.3.38 \
+  --build-arg CORE_VERSION="$CORE_VERSION" \
   --build-arg CODEARTIFACT_TOKEN="$CODEARTIFACT_TOKEN" \
   --build-arg AWS_REGION=us-east-2 \
   --push \
@@ -67,7 +46,8 @@ aws lambda update-function-code \
   --image-uri 016997484973.dkr.ecr.us-east-2.amazonaws.com/nws-weather-notifications:latest
 ```
 
-**Note:** Replace `0.3.38` with the desired core version. You can list available versions with:
+**Note:** Replace the `CORE_VERSION` command if you need a different published
+core release. You can list available versions with:
 
 ```bash
 aws codeartifact list-package-versions \
@@ -78,24 +58,50 @@ aws codeartifact list-package-versions \
   --sort-by PUBLISHED_TIME
 ```
 
+### Build from Local Source
+
+For local-only testing, you can still omit `CORE_VERSION`. In that case the
+Dockerfile resolves `core` from `../../core` via project metadata while using
+the repo root `uv.lock` to pin shared dependencies.
+
+```bash
+docker buildx create --name lambda-builder --use >/dev/null 2>&1 || true
+docker buildx inspect --bootstrap
+
+docker buildx build --platform linux/arm64 \
+  -f microservices/weather_alerts_lambda/Dockerfile \
+  -t weather-alerts-test:local \
+  --load \
+  --provenance=false --sbom=false \
+  .
+```
+
 ## Path Verification
 
 The deployment script assumes:
 
-- Build context: `/Users/robvanhaaren/Desktop/Proximal/mono` (the `mono` directory)
-- Dockerfile location: `microservices/weather_alerts_lambda/Dockerfile` (relative to build context)
+- Build context: `/Users/robvanhaaren/Desktop/Proximal/mono` (the `mono`
+  directory)
+- Dockerfile location: `microservices/weather_alerts_lambda/Dockerfile`
+  (relative to build context)
 - The Dockerfile:
-  - Always copies `microservices/weather_alerts_lambda/weather_alerts_lambda.py` → `./weather_alerts_lambda.py` (Lambda handler)
-  - Conditionally handles `core`:
-    - If `CORE_VERSION` is set: Installs `core` from Code Artifact and removes the copied source
-    - If `CORE_VERSION` is not set: Copies `core/src/core` → `./core` (uses source code)
+  - Copies `core` and `microservices/weather_alerts_lambda` into build paths
+  - Installs the Lambda from `microservices/weather_alerts_lambda/pyproject.toml`
+  - Resolves `core` as follows:
+    - If `CORE_VERSION` is set: installs `core` from CodeArtifact and ignores
+      local `tool.uv.sources`
+    - If `CORE_VERSION` is not set: resolves `core` from `../../core` via
+      project metadata while constraining shared dependencies with the repo
+      root `uv.lock`
 
 All paths are correct and relative to the build context.
 
-**Note:** The lambda now only depends on `core`, not `api/app`. All weather alerts functionality has been moved to `core`:
+**Note:** The Lambda installs from local project metadata for local builds, and
+its app logic still lives in `core`, not `api/app`:
 
 - Notification CRUD: `core.crud.admin.notifications`
-- Notification type IDs: `core.enumerations.NotificationType` (no DB lookup by name)
+- Notification type IDs: `core.enumerations.NotificationType` (no DB lookup by
+  name)
 - Notification utilities: `core.utils.notifications`
 - Weather alerts domain: `core.domain.notifications.weather_alerts`
 - NWS provider: `core.domain.gis.providers.nws`
@@ -151,11 +157,13 @@ export ENVIRONMENT=development
 python microservices/weather_alerts_lambda/weather_alerts_lambda.py
 ```
 
-Note: Local testing requires database credentials and AWS credentials to be configured.
+Note: Local testing requires database credentials and AWS credentials to be
+configured.
 
 ## Notes
 
 - The Lambda uses ARM64 architecture (`linux/arm64`)
 - The image is pushed to ECR in the `us-east-2` region
 - The function name is `nws_weather_notifications_image`
-- After code changes, you must rebuild and redeploy the Lambda for changes to take effect
+- After code changes, you must rebuild and redeploy the Lambda for changes to
+  take effect
