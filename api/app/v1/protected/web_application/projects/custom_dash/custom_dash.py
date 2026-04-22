@@ -44,6 +44,8 @@ from app._crud.operational.custom_dashboards import (
 from app._crud.operational.custom_dashboards import (
     update_user_dashboard as crud_update_user_dashboard,
 )
+from app._dependencies.authentication import get_user
+from app.interfaces import UserAuthed
 from core import enumerations, models
 
 router = APIRouter(
@@ -753,7 +755,7 @@ async def get_scatter(
 @router.get("/user-dashboards")
 async def get_user_dashboards(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """todo
@@ -774,7 +776,7 @@ async def get_user_dashboards(
 @router.get("/shared-user-dashboards")
 async def get_shared_user_dashboards(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """todo
@@ -796,7 +798,7 @@ async def get_shared_user_dashboards(
 async def create_user_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: CreateDashboardRequest,
 ):
@@ -824,7 +826,7 @@ async def create_user_dashboard(
 async def duplicate_user_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     dashboard_id: str,
     request: DuplicateDashboardRequest | None = None,
@@ -958,7 +960,7 @@ async def duplicate_user_dashboard(
 async def update_user_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: UpdateDashboardRequest,
 ):
@@ -991,7 +993,7 @@ async def get_dashboard(
     dashboard_id: str,
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """todo
@@ -1024,7 +1026,7 @@ async def get_dashboard_shared_users_endpoint(
     dashboard_id: str,
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """Get all users who have share access to a dashboard.
@@ -1057,7 +1059,7 @@ async def share_dashboard(
     dashboard_id: str,
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: ShareDashboardRequest,
 ):
@@ -1093,7 +1095,7 @@ async def unshare_dashboard(
     dashboard_id: str,
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: ShareDashboardRequest,
 ):
@@ -1129,7 +1131,7 @@ async def delete_dashboard(
     dashboard_id: str,
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """todo
