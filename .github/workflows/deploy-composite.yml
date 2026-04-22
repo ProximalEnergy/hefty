@@ -441,8 +441,7 @@ jobs:
           rm -rf api/core
           find api -maxdepth 1 -type d -name 'core-*.dist-info' \
             -exec rm -rf {} +
-          mkdir -p api/core
-          cp -R core/src/core/. api/core/
+          rm -f api/core-*.whl
 
           BUILD_ROOT="$(mktemp -d)"
           BUILD_DIR="$BUILD_ROOT/core"
@@ -468,62 +467,35 @@ jobs:
           )"
           test -n "$CORE_WHEEL_PATH"
 
-          unzip -q "$CORE_WHEEL_PATH" 'core-*.dist-info/*' -d api
+          cp "$CORE_WHEEL_PATH" api/
+          CORE_WHEEL_NAME=$(basename "$CORE_WHEEL_PATH")
+          echo "./$CORE_WHEEL_NAME" >> api/requirements.txt
 
-          CORE_DIST_INFO_DIR="$(
-            find api -maxdepth 1 -type d -name 'core-*.dist-info' \
-              | head -n 1
-          )"
-          test -n "$CORE_DIST_INFO_DIR"
-          test -f "$CORE_DIST_INFO_DIR/METADATA"
+          echo "Bundled core wheel:"
+          ls -l "api/$CORE_WHEEL_NAME"
 
-          METADATA_VERSION="$(
-            grep '^Version: ' "$CORE_DIST_INFO_DIR/METADATA" \
-              | sed 's/^Version: //'
-          )"
-          test "$METADATA_VERSION" = \
-            "${{ steps.core-version.outputs.version }}"
-
-          echo "Bundled core files:"
-          test -f api/core/__init__.py
-          test -f api/core/models.py
-          find api/core -maxdepth 1 -type f | sort | sed -n '1,20p'
-          echo ""
-          echo "Bundled core distribution metadata:"
-          echo "$CORE_DIST_INFO_DIR"
-          ls "$CORE_DIST_INFO_DIR" | sort | sed -n '1,20p'
+          echo "Added to requirements.txt:"
+          tail -n 1 api/requirements.txt
 
       - name: Generate deployment package
         run: |
           cd api
-          CORE_DIST_INFO_DIR="$(
-            find . -maxdepth 1 -type d -name 'core-*.dist-info' \
+          CORE_WHEEL_PATH="$(
+            find . -maxdepth 1 -type f -name 'core-*.whl' \
               | head -n 1
           )"
 
           test -f requirements.txt
           test -d app
-          test -d core
-          test -f core/__init__.py
-          test -n "$CORE_DIST_INFO_DIR"
-          test -f "$CORE_DIST_INFO_DIR/METADATA"
+          test -n "$CORE_WHEEL_PATH"
           test -f Procfile
           test -d .platform
-
-          BUNDLED_CORE_VERSION="$(
-            python -c \
-              "import importlib.metadata as metadata; \
-              print(metadata.version('core'))"
-          )"
-          echo "Bundled core version: $BUNDLED_CORE_VERSION"
-          test "$BUNDLED_CORE_VERSION" = \
-            "${{ steps.core-version.outputs.version }}"
 
           echo "Files to be included in deployment:"
           echo "- requirements.txt: $(test -f requirements.txt && echo 'EXISTS' || echo 'MISSING')"
           echo "- app directory: $(test -d app && echo 'EXISTS' || echo 'MISSING')"
           echo "- Procfile: $(test -f Procfile && echo 'EXISTS' || echo 'MISSING')"
-          echo "- core dist-info: $(test -n "$CORE_DIST_INFO_DIR" && echo 'EXISTS' || echo 'MISSING')"
+          echo "- core wheel: $(test -n "$CORE_WHEEL_PATH" && echo 'EXISTS' || echo 'MISSING')"
           echo "- .platform hooks: $(test -d .platform && echo 'EXISTS' || echo 'MISSING')"
           echo ""
 
@@ -536,11 +508,8 @@ jobs:
           echo "=== requirements.txt ==="
           unzip -l deploy.zip | grep "requirements.txt"
           echo ""
-          echo "=== Bundled core ==="
-          unzip -l deploy.zip | grep "core/__init__.py"
-          echo ""
-          echo "=== Bundled core metadata ==="
-          unzip -l deploy.zip | grep -E "core-.*dist-info/METADATA"
+          echo "=== Bundled core wheel ==="
+          unzip -l deploy.zip | grep -E "core-.*\.whl"
           echo ""
           echo "=== Procfile ==="
           unzip -l deploy.zip | grep "Procfile"
