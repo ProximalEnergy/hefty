@@ -150,6 +150,7 @@ fi
 if [ "${usage_verbose:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --verbose"
 fi
+
 ./_scripts/run_checks.sh ${ALL_ARGS}
 """
 
@@ -224,6 +225,11 @@ echo "No JS manifests or lockfiles found in the root directory."
 description = "Check for undeclared or mismatched dependencies in pyproject.toml"
 dir = "."
 run = "uv run --no-sync python _scripts/check_pyproject_dependencies.py"
+
+[tasks."root:uv_lock_check"]
+description = "Check that workspace uv.lock matches pyproject.toml"
+dir = "."
+run = "uv lock --check"
 
 [tasks."root:codegen"]
 description = "Automatically generate interfaces"

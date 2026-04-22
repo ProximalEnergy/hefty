@@ -5,7 +5,9 @@ on:
     branches: [dev, staging, main]
     paths:
       - "**/pyproject.toml"
+      - "uv.lock"
       - "_scripts/check_pyproject_dependencies.py"
+      - ".github/actions/setup-uv-python-from-pyproject/**"
       - ".github/workflows/root-pr-checks.yml"
 
 concurrency:
@@ -16,6 +18,16 @@ permissions:
   contents: read
 
 jobs:
+  uv-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+      - name: Check workspace lockfile is up to date
+        run: uv lock --check
+
   pyproject-deps:
     runs-on: ubuntu-latest
     steps:

@@ -42,6 +42,10 @@ uv sync
 mise run api:run
 ```
 
+Because `api` is a `uv` workspace member, the lockfile used by CI and deploys
+is the repo-root `uv.lock`. After dependency changes, run `uv sync` from the
+repo root and commit that lockfile.
+
 No separate core install step is needed for the API. Local development uses
 the workspace copy from `../core`.
 
@@ -58,15 +62,16 @@ the workspace copy from `../core`.
   - `uv sync`: Update dependencies to be consistent with `pyproject.toml` file
   - `uv pip ...`: Uv is backwards compatible with pip
   - `uv run ...`: Preface for running any python command
-  - `uv add ...`: Add a requirement to pyproject.toml and uv.lock
-  - `uv remove ...`: Remove a requirement from pyproject.toml and uv.lock
+  - `uv add ...`: Add a requirement and update the repo-root `uv.lock`
+  - `uv remove ...`: Remove a requirement and update the repo-root `uv.lock`
   - `uv export > requirements.txt`: Create full requirements.txt
     - `--no-hashes`: No hashes
     - `--no-dev `: Don't include development dependencies
     - `--frozen`: Pin dependencies to a specifric version
   - `mise run api:freeze` or
     `uv export --project . --package api --frozen --no-dev --no-emit-package api --no-emit-package core -o api/requirements.txt --no-hashes`:
-    For AWS environments
+    For AWS environments; run from the repo root so `--frozen` uses the
+    workspace lockfile
   - `mise run api:types` or `uv run mypy --config-file pyproject.toml -p app`: Locally run type-checks (not included in pre-commit hook)
 
 Make sure to install PostgreSQL before running `uv sync` the first time.

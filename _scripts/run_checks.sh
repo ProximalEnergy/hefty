@@ -134,16 +134,42 @@ add_warning_check() {
     add_check "$name" "$cmd" "warning"
 }
 
+add_initial_check() {
+    local name="$1"
+    local cmd="$2"
+    local severity="${3:-error}"
+
+    add_check "$name" "$cmd" "$severity" "initial"
+}
+
+add_skipped_check() {
+    local name="$1"
+    local cmd="$2"
+    local skip_reason="$3"
+    local severity="${4:-error}"
+    local is_parallel="${5:-true}"
+    local check_index
+
+    add_check "$name" "$cmd" "$severity" "$is_parallel"
+    check_index=$((${#CHECKS_NAME[@]} - 1))
+    CHECKS_SKIP_REASON[$check_index]="$skip_reason"
+}
+
 add_skipped_warning_check() {
     local name="$1"
     local cmd="$2"
     local skip_reason="$3"
-    local check_index
 
-    add_check "$name" "$cmd" "warning"
-    check_index=$((${#CHECKS_NAME[@]} - 1))
-    CHECKS_IS_PARALLEL[$check_index]="skip"
-    CHECKS_SKIP_REASON[$check_index]="$skip_reason"
+    add_skipped_check "$name" "$cmd" "$skip_reason" "warning"
+}
+
+add_skipped_error_check() {
+    local name="$1"
+    local cmd="$2"
+    local skip_reason="$3"
+    local is_parallel="${4:-true}"
+
+    add_skipped_check "$name" "$cmd" "$skip_reason" "error" "$is_parallel"
 }
 
 add_db_check() {
@@ -203,6 +229,12 @@ cleanup_run_all_checks() {
     if [ -n "${RUN_CHECKS_LOG_DIR:-}" ] && [ -d "${RUN_CHECKS_LOG_DIR}" ]; then
         rm -rf "${RUN_CHECKS_LOG_DIR}"
     fi
+}
+
+is_check_skipped() {
+    local check_index="$1"
+
+    [ -n "${CHECKS_SKIP_REASON[$check_index]:-}" ]
 }
 
 codex_cli_available() {
@@ -646,6 +678,78 @@ get_compact_check_ui_label() {
     get_check_ui_label "$check_index"
 }
 
+CHECK_EXECUTION_STATUS=0
+CHECK_EXECUTION_ELAPSED_SECONDS=0
+
+execute_check_to_log() {
+    local check_index="$1"
+    local log_file="$2"
+    local status_file="${3:-}"
+    local cmd="${CHECKS_CMD[$check_index]}"
+    local check_started_at="$SECONDS"
+    local status
+    local elapsed_seconds
+
+    if eval "$cmd" >"$log_file" 2>&1; then
+        status=0
+    else
+        status=$?
+    fi
+
+    elapsed_seconds=$((SECONDS - check_started_at))
+    CHECK_EXECUTION_STATUS="$status"
+    CHECK_EXECUTION_ELAPSED_SECONDS="$elapsed_seconds"
+
+    if [ -n "$status_file" ]; then
+        printf "%s:%s\n" "$status" "$elapsed_seconds" >"$status_file"
+    fi
+}
+
+record_check_result() {
+    local check_index="$1"
+    local status="$2"
+    local elapsed_seconds="${3:-0}"
+    local log_file="${RUN_CHECKS_LOG_DIR}/check_${check_index}.log"
+    local error_count=0
+
+    if [ "$status" -ne 0 ]; then
+        error_count=$(count_errors_in_log "$log_file")
+    fi
+
+    update_check_ui_status \
+        "$check_index" \
+        "$status" \
+        "$error_count" \
+        "$elapsed_seconds"
+
+    if [ "$status" -eq 0 ]; then
+        PASSED_CHECKS+=("${CHECKS_NAME[$check_index]}")
+        return
+    fi
+
+    if [ "${CHECKS_SEVERITY[$check_index]}" = "warning" ]; then
+        FAILED_WARNING_CHECKS+=(
+            "${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}"
+        )
+        failed_warning_indices+=("$check_index")
+        return
+    fi
+
+    FAILED_ERROR_CHECKS+=("${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}")
+    failed_error_indices+=("$check_index")
+}
+
+run_sync_check() {
+    local check_index="$1"
+    local log_file="${RUN_CHECKS_LOG_DIR}/check_${check_index}.log"
+
+    execute_check_to_log "$check_index" "$log_file"
+    record_check_result \
+        "$check_index" \
+        "$CHECK_EXECUTION_STATUS" \
+        "$CHECK_EXECUTION_ELAPSED_SECONDS"
+}
+
 # Function to run all registered checks
 run_all_checks() {
     local total_checks="${#CHECKS_NAME[@]}"
@@ -657,15 +761,13 @@ run_all_checks() {
     local parallel_done=0
     local parallel_total=0
     local i
-    local cmd
     local log_file
     local status_file
     local status_payload
     local status
     local elapsed_seconds
-    local error_count
-    local show_logs_mode="none"
     local check_started_at
+    local show_logs_mode="none"
     local allow_prompt_errors="false"
     local allow_prompt_warnings="false"
     local allow_prompt_codex="false"
@@ -690,28 +792,33 @@ run_all_checks() {
     tput civis 2>/dev/null || true
 
     for i in "${!CHECKS_NAME[@]}"; do
-        if [ "${CHECKS_IS_PARALLEL[$i]}" = "skip" ]; then
+        if is_check_skipped "$i"; then
             update_check_ui_status "$i" 0 0 0
+        fi
+    done
+
+    # Phase 0: Run initial checks before any parallel work starts.
+    for i in "${!CHECKS_NAME[@]}"; do
+        if is_check_skipped "$i"; then
+            continue
+        fi
+        if [ "${CHECKS_IS_PARALLEL[$i]}" = "initial" ]; then
+            run_sync_check "$i"
         fi
     done
 
     # Phase 1: Kick off all parallel checks in the background.
     for i in "${!CHECKS_NAME[@]}"; do
+        if is_check_skipped "$i"; then
+            continue
+        fi
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "true" ]; then
-            cmd="${CHECKS_CMD[$i]}"
             log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
             status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
             parallel_indices+=("$i")
             check_start_seconds_by_index[$i]="$SECONDS"
             (
-                check_started_at="$SECONDS"
-                if eval "$cmd" >"$log_file" 2>&1; then
-                    status=0
-                else
-                    status=$?
-                fi
-                elapsed_seconds=$((SECONDS - check_started_at))
-                echo "${status}:${elapsed_seconds}" >"$status_file"
+                execute_check_to_log "$i" "$log_file" "$status_file"
             ) &
         fi
     done
@@ -742,28 +849,7 @@ run_all_checks() {
                 parallel_done_by_index[$i]=1
                 parallel_done=$((parallel_done + 1))
 
-                if [ "$status" -eq 0 ]; then
-                    error_count=0
-                else
-                    log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
-                    error_count=$(count_errors_in_log "$log_file")
-                fi
-                update_check_ui_status \
-                    "$i" \
-                    "$status" \
-                    "$error_count" \
-                    "$elapsed_seconds"
-                if [ "$status" -eq 0 ]; then
-                    PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
-                elif [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
-                    FAILED_WARNING_CHECKS+=(
-                        "${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}"
-                    )
-                    failed_warning_indices+=("$i")
-                else
-                    FAILED_ERROR_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
-                    failed_error_indices+=("$i")
-                fi
+                record_check_result "$i" "$status" "$elapsed_seconds"
             fi
         done
 
@@ -774,33 +860,11 @@ run_all_checks() {
 
     # Phase 2: Run sequential checks one at a time, then update in-place.
     for i in "${!CHECKS_NAME[@]}"; do
+        if is_check_skipped "$i"; then
+            continue
+        fi
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
-            cmd="${CHECKS_CMD[$i]}"
-            log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
-            check_started_at="$SECONDS"
-            if eval "$cmd" >"$log_file" 2>&1; then
-                status=0
-                error_count=0
-                PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
-            else
-                status=$?
-                error_count=$(count_errors_in_log "$log_file")
-                if [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
-                    FAILED_WARNING_CHECKS+=(
-                        "${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}"
-                    )
-                    failed_warning_indices+=("$i")
-                else
-                    FAILED_ERROR_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
-                    failed_error_indices+=("$i")
-                fi
-            fi
-            elapsed_seconds=$((SECONDS - check_started_at))
-            update_check_ui_status \
-                "$i" \
-                "$status" \
-                "$error_count" \
-                "$elapsed_seconds"
+            run_sync_check "$i"
         fi
     done
 
@@ -1100,6 +1164,18 @@ if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
     || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ] \
     || [ "${ALL_WARNINGS}" = "true" ]; then
     RUN_GLOBAL_WARNINGS=true
+fi
+
+if [ "${OFFLINE}" = "true" ]; then
+    add_skipped_error_check \
+        "Root: uv.lock Check" \
+        "mise run root:uv_lock_check" \
+        "offline mode" \
+        "initial"
+else
+    add_initial_check \
+        "Root: uv.lock Check" \
+        "mise run root:uv_lock_check"
 fi
 
 # Register all checks
