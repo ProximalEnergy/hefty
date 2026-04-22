@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.144"
+version = "0.3.145"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
