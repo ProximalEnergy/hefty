@@ -155,7 +155,7 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.3.144"
+version = "0.3.145"
 source = { editable = "../../core" }
 dependencies = [
     { name = "async-lru" },
@@ -209,7 +209,7 @@ dev = [
     { name = "deptry", specifier = ">=0.23.1,<1" },
     { name = "fastapi", specifier = "~=0.135.1" },
     { name = "packaging", specifier = "~=26.0" },
-    { name = "pandas-stubs", specifier = ">=2.3.0,<3" },
+    { name = "pandas-stubs" },
     { name = "plotly", specifier = ">=6.3.1,<7" },
     { name = "pytest", specifier = "~=9.0" },
 ]

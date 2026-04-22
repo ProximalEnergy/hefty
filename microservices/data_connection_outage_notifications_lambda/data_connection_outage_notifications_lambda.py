@@ -125,7 +125,7 @@ async def _run_data_connection_outage_notifications() -> dict:
         raw = data.get("project_name_long")
         if isinstance(raw, str) and raw.strip():
             return raw.strip()
-        project_model = await get_project(project_id=project_id, deep=False).get_async(
+        project_model = await get_project(project_id=project_id).get_async(
             schema="operational", output_type=OutputType.SQLALCHEMY
         )
         if project_model is None:
@@ -134,7 +134,7 @@ async def _run_data_connection_outage_notifications() -> dict:
                 project_id,
             )
             return "Unknown project"
-        return project_model.name_long
+        return str(project_model.name_long)
 
     async def deliver_data_connection_outage(
         *,
