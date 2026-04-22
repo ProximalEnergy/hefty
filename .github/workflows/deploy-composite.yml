@@ -395,14 +395,7 @@ jobs:
           VERSION="${{ needs.publish-core.outputs.version }}"
 
           if [ -z "$VERSION" ]; then
-            VERSION="$(
-              python3 - <<'PY'
-import tomllib
-
-with open("core/pyproject.toml", "rb") as file_handle:
-    print(tomllib.load(file_handle)["project"]["version"])
-PY
-            )"
+            VERSION="$(python3 -c 'import tomllib; print(tomllib.load(open("core/pyproject.toml", "rb"))["project"]["version"])')"
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
