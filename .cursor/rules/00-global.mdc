@@ -9,7 +9,6 @@ globs: **/*
 - `api/` - FastAPI backend application
 - `web-app/` - React/TypeScript frontend with Mantine UI
 - `microservices/` - AWS Lambda functions
-- `sql-admin/` - Database admin tools
 
 # Code Style
 

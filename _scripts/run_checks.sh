@@ -1091,7 +1091,6 @@ diff_has() {
 RUN_CORE=false
 RUN_API=false
 RUN_MICRO=false
-RUN_SQL_ADMIN=false
 RUN_KPI=false
 RUN_WEB=false
 RUN_PVEEM=false
@@ -1118,9 +1117,6 @@ if [ "${RUN_ALL}" = "false" ]; then
     if diff_has '^microservices/'; then
         RUN_MICRO=true
     fi
-    if diff_has '^sql-admin/'; then
-        RUN_SQL_ADMIN=true
-    fi
     if diff_has '^kpi/'; then
         RUN_KPI=true
     fi
@@ -1144,7 +1140,6 @@ if [ "${RUN_ALL}" = "true" ]; then
     RUN_CORE=true
     RUN_API=true
     RUN_MICRO=true
-    RUN_SQL_ADMIN=true
     RUN_KPI=true
     RUN_WEB=true
     RUN_PVEEM=true
@@ -1161,7 +1156,7 @@ fi
 
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
     || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] \
-    || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ] \
+    || [ "${RUN_WEB}" = "true" ] \
     || [ "${ALL_WARNINGS}" = "true" ]; then
     RUN_GLOBAL_WARNINGS=true
 fi
@@ -1212,10 +1207,6 @@ if [ "${RUN_MICRO}" = "true" ]; then
     add_check "Micro: Type Checking (mypy)" "mise run micro:types"
 fi
 
-if [ "${RUN_SQL_ADMIN}" = "true" ]; then
-    # We'll handle SQL-Admin linting in the global Ruff check
-    :
-fi
 
 if [ "${RUN_KPI}" = "true" ]; then
     add_check "KPI: Mypy" "mise run kpi:mypy"
@@ -1263,7 +1254,7 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
         "${SQLALCHEMY_RETURN_CHECK_CMD}"
 fi
 
-if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
+if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
     add_check "Global: Semgrep" "mise run root:semgrep"
     add_check "Global: Ruff Linting" "mise run root:ruff"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
