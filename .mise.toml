@@ -276,13 +276,8 @@ depends = [
 
 [tasks."core:types"]
 description = "Run mypy type checking for core"
-dir = "."
-run = """
-ROOT_DIR="$(pwd)"
-uv run --project "${ROOT_DIR}" --directory core --dev \
-  --with-editable "${ROOT_DIR}/core" \
-  mypy --config-file ../pyproject.toml src/
-"""
+dir = "core"
+run = "python3 ../_scripts/run_root_pinned_mypy.py src/"
 
 [tasks."core:deptry"]
 description = "Run deptry for core"

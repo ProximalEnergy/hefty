@@ -32,7 +32,7 @@ async def get_equipment_analysis_combiner_data(
     mean = False
     if start is None and end is None:
         # Define start and end times
-        end = pd.Timestamp.utcnow().floor("5min")
+        end = pd.Timestamp.now("UTC").floor("5min")
         start = end - pd.Timedelta(minutes=15)
     elif start and end:
         mean = True

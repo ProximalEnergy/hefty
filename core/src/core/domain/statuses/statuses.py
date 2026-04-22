@@ -594,7 +594,7 @@ def interpret_string_sparse(
     defs["status_string_id"] = defs["status_string_id"].astype("int64", copy=False)
 
     # Longify observations (this is the one place we "stack"; it’s still vectorized)
-    stacked_strings = cast(pd.Series, string_df.astype("string").stack(dropna=True))
+    stacked_strings = cast(pd.Series, string_df.astype("string").stack()).dropna()
     obs = (
         stacked_strings.rename("string_trigger")
         .reset_index()

@@ -43,7 +43,7 @@ async def get_combiner_block_performance(
         project: Description for project.
     """
     _ = project_id
-    end = pd.Timestamp.utcnow().floor("5min")
+    end = pd.Timestamp.now("UTC").floor("5min")
     start = end - pd.Timedelta(minutes=30)
 
     # Get requested pv_block device

@@ -7,6 +7,7 @@ requires-python = ">=3.12.8,<3.13"
 dependencies = [
     "boto3~=1.41", # for reading pyproject.toml version
     "core",
+    "pandas",
     "polars", # for database read interactions (faster than pandas)
     "psycopg2-binary~=2.9.10", # used under the hood by sqlalchemy
     "pvlib~=0.15", # main performance modeling library
@@ -29,10 +30,12 @@ dev = [ # for debugging
     "json5~=0.12", # for reading project_configs.json5 in CDK code
     "matplotlib~=3.10.5",
     "memray~=1.19",
-    "pandas-stubs~=2.3.3",
+    "pandas-stubs",
     "plotly~=6.5", # graphing test results
     "pymupdf~=1.26", # for verification plots
     "pytest~=9.0", # for testing
+    "types-psycopg2>=2.9.21.20260408,<3",
+    "types-pytz>=2026.1.1.20260408,<2027",
 ]
 
 [tool.uv.sources]

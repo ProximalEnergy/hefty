@@ -220,9 +220,9 @@ async def get_heatmap(
         raise HTTPException(status_code=404, detail="No tags found")
 
     if start is None:
-        start = pd.Timestamp.utcnow().floor("5min") - pd.DateOffset(days=1)
+        start = pd.Timestamp.now("UTC").floor("5min") - pd.DateOffset(days=1)
     if end is None:
-        end = pd.Timestamp.utcnow().floor("5min")
+        end = pd.Timestamp.now("UTC").floor("5min")
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,

@@ -56,7 +56,7 @@ async def get_sensor_types(
         unit=unit,
     ).get_async(output_type=OutputType.PANDAS)
 
-    return df.to_dict(orient="records")
+    return interfaces.normalize_pandas_nullable(content=df.to_dict(orient="records"))
 
 
 @router.get(

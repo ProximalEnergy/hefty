@@ -112,7 +112,7 @@ async def get_expected_power_by_device_type_id(
         return {"device_ids": device_ids, "expected_power": {}}
 
     # Get time range (last hour, same as utility_expected default)
-    end = pd.Timestamp.utcnow().floor("5min")
+    end = pd.Timestamp.now("UTC").floor("5min")
     start = end - pd.Timedelta(hours=1)
     start_query = pd.Timestamp(start).tz_convert(project.time_zone)
     end_query = pd.Timestamp(end).tz_convert(project.time_zone)

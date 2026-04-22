@@ -380,7 +380,7 @@ async def get_tag_pattern_samples(
             start_date = pd.Timestamp(start)
             end_date = pd.Timestamp(end)
         else:
-            end_date = pd.Timestamp.utcnow()
+            end_date = pd.Timestamp.now("UTC")
             start_date = end_date - pd.Timedelta(days=1)
 
         # Fetch timeseries for all sample tags in one call, then split per tag.

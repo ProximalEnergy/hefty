@@ -711,7 +711,7 @@ async def utility_expected(
     """
     # Handle optional start/end dates (only relevant for power types now)
     if start is None or end is None:
-        end = pd.Timestamp.utcnow().floor("5min")
+        end = pd.Timestamp.now("UTC").floor("5min")
         start = end - pd.Timedelta(hours=1)
 
     if not device_ids:

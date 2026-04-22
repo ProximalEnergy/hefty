@@ -108,6 +108,27 @@ def has_upper_bound(
     return False
 
 
+def managed_dependency_names(
+    *,
+    dependencies: object,
+    allow_unbounded: set[str],
+) -> set[str]:
+    if not isinstance(dependencies, list):
+        return set()
+
+    managed_names: set[str] = set()
+    for requirement in dependencies:
+        if not isinstance(requirement, str):
+            continue
+        if not has_upper_bound(
+            requirement=requirement,
+            allow_unbounded=allow_unbounded,
+        ):
+            continue
+        managed_names.add(dependency_name(requirement=requirement))
+    return managed_names
+
+
 def is_bare_requirement(*, requirement: str) -> bool:
     stripped = requirement.strip()
     if ";" in stripped:
@@ -124,6 +145,7 @@ def check_pyproject(
     path: Path,
     errors: list[str],
     extra_allow_unbounded: set[str] | None = None,
+    extra_group_allow_unbounded: dict[str, set[str]] | None = None,
 ) -> None:
     try:
         with path.open("rb") as file_handle:
@@ -170,11 +192,16 @@ def check_pyproject(
             if not isinstance(group_deps, list):
                 errors.append(f"{path} [dependency-groups.{group_name}] must be a list")
                 continue
+            group_allow_unbounded = set(allow_unbounded)
+            if extra_group_allow_unbounded is not None:
+                group_allow_unbounded.update(
+                    extra_group_allow_unbounded.get(group_name, set())
+                )
             check_list(
                 dependencies=group_deps,
                 label=f"{path} [dependency-groups.{group_name}]",
                 errors=errors,
-                allow_unbounded=allow_unbounded,
+                allow_unbounded=group_allow_unbounded,
             )
     elif groups:
         errors.append(f"{path} [dependency-groups] must be a table")
@@ -216,40 +243,65 @@ def discover_pyprojects_via_walk(*, root: Path) -> list[Path]:
     return sorted(paths)
 
 
-def workspace_root_bounded_dependencies(*, root: Path) -> set[str]:
+def workspace_root_dependencies(
+    *,
+    root: Path,
+) -> tuple[set[str], dict[str, set[str]]]:
     root_pyproject = root / "pyproject.toml"
     try:
         with root_pyproject.open("rb") as fh:
             data = tomllib.load(fh)
     except (FileNotFoundError, tomllib.TOMLDecodeError):
-        return set()
+        return set(), {}
+
     workspace = data.get("tool", {}).get("uv", {}).get("workspace", {})
     if not workspace:
-        return set()
-    deps = data.get("project", {}).get("dependencies", [])
-    if not isinstance(deps, list):
-        return set()
-    return {
-        dependency_name(requirement=dep)
-        for dep in deps
-        if isinstance(dep, str)
-        and has_upper_bound(requirement=dep, allow_unbounded=set())
-    }
+        return set(), {}
+
+    uv = data.get("tool", {}).get("uv", {})
+    sources = uv.get("sources", {})
+    allow_unbounded: set[str] = set()
+    if isinstance(sources, dict):
+        allow_unbounded.update(name.lower().replace("_", "-") for name in sources)
+
+    managed_dependencies = managed_dependency_names(
+        dependencies=data.get("project", {}).get("dependencies", []),
+        allow_unbounded=allow_unbounded,
+    )
+
+    managed_groups: dict[str, set[str]] = {}
+    groups = data.get("dependency-groups", {})
+    if isinstance(groups, dict):
+        for group_name, group_deps in groups.items():
+            managed_groups[group_name] = managed_dependency_names(
+                dependencies=group_deps,
+                allow_unbounded=allow_unbounded,
+            )
+
+    return managed_dependencies, managed_groups
+
+
+def workspace_root_bounded_dependencies(*, root: Path) -> set[str]:
+    managed_dependencies, _ = workspace_root_dependencies(root=root)
+    return managed_dependencies
 
 
 def main() -> int:
     root = Path.cwd()
     root_pyproject = root / "pyproject.toml"
-    root_bounded = workspace_root_bounded_dependencies(root=root)
+    root_bounded, root_group_bounded = workspace_root_dependencies(root=root)
     errors: list[str] = []
     for path in discover_pyprojects(root=root):
         extra_allow_unbounded = None
+        extra_group_allow_unbounded = None
         if path != root_pyproject:
             extra_allow_unbounded = root_bounded
+            extra_group_allow_unbounded = root_group_bounded
         check_pyproject(
             path=path,
             errors=errors,
             extra_allow_unbounded=extra_allow_unbounded,
+            extra_group_allow_unbounded=extra_group_allow_unbounded,
         )
 
     if errors:

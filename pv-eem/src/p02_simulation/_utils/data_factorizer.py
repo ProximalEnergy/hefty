@@ -51,20 +51,21 @@ def factorize(
     >>> result['unique_id'].tolist()
     [1, 2, 1, 3]
     """
-    df = dataframe.copy()
-
     # Extract the specified columns
-    selected_columns = df[columns]
+    selected_columns = dataframe.loc[:, columns]
 
     # Apply rounding if specified
     if rounding_precision is not None:
         selected_columns = selected_columns.round(rounding_precision)
 
-    # Convert to string and join with separator
-    combination_key = selected_columns.astype(str).agg(separator.join, axis=1)
+    # Use pandas' vectorized string conversion and normalize missing values to
+    # a single sentinel before joining row combinations.
+    combination_key = (
+        selected_columns.astype("string").fillna("<NA>").agg(separator.join, axis=1)
+    )
 
     # Create group IDs using factorize
     offset = 1
-    df["_unique_id"] = pd.factorize(combination_key)[0] + offset
-
-    return df
+    return dataframe.assign(
+        _unique_id=pd.factorize(combination_key)[0] + offset,
+    )

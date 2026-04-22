@@ -10,15 +10,33 @@ you should create a child interface in the corresponding _crud file.
 """
 
 import datetime
+import math
 import uuid
+from collections.abc import Callable
 from typing import Annotated, Any, cast
 
+import numpy as np
+import pandas as pd
 from core.enumerations import NotificationSeverity, UserTypeEnum
+from fastapi.encoders import jsonable_encoder
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
 from pydantic.config import ConfigDict
 from shapely import wkb, wkt
 from shapely.geometry import mapping
+
+PANDAS_NULL_ENCODERS: dict[Any, Callable[[Any], Any]] = {
+    float: lambda value: None if math.isnan(value) else value,
+    type(pd.NA): lambda _: None,
+    type(pd.NaT): lambda _: None,
+    np.integer: lambda value: int(value),
+    np.floating: lambda value: None if np.isnan(value) else float(value),
+}
+
+
+def normalize_pandas_nullable(*, content: Any) -> Any:
+    """Convert pandas nullable scalars into JSON-safe Python values."""
+    return jsonable_encoder(content, custom_encoder=PANDAS_NULL_ENCODERS)
 
 
 class APIKey(BaseModel):

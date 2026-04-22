@@ -250,7 +250,7 @@ async def get_portfolio_home_short_term(
     ].index.tolist()
 
     # end equal to current time in utc
-    end = pd.Timestamp.utcnow().floor("5min")
+    end = pd.Timestamp.now("UTC").floor("5min")
 
     # start equal to end minus 1 day
     start = end - pd.Timedelta(days=1)
@@ -516,10 +516,10 @@ async def get_portfolio_home_long_term(
     ]
 
     # end equal to current date in UTC
-    end_date = pd.Timestamp.utcnow().floor("D").date()
+    end_date = pd.Timestamp.now("UTC").floor("D").date()
 
     # start equal to end minus 30 days
-    start_date = (pd.Timestamp.utcnow().floor("D") - pd.Timedelta(days=30)).date()
+    start_date = (pd.Timestamp.now("UTC").floor("D") - pd.Timedelta(days=30)).date()
 
     # Query KPI data
     kpi_df = await get_kpi_data_async(

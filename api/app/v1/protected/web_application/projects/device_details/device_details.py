@@ -19,6 +19,7 @@ import core
 from app import dependencies, utils
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app._utils.arrow import polars_to_arrow_response
+from app.interfaces import normalize_pandas_nullable
 from core import models
 
 router = APIRouter(
@@ -124,9 +125,10 @@ async def get_horizontal_bess(
 
     tag_ids = tags["tag_id"].astype(int)
     tag_sensor_type_ids = tags["sensor_type_id"].fillna(-1).astype(int)
-    tag_id_to_device_name_long = dict(
-        zip(tag_ids, tags["device_name_long"], strict=True)
+    device_name_long = normalize_pandas_nullable(
+        content=tags["device_name_long"].tolist()
     )
+    tag_id_to_device_name_long = dict(zip(tag_ids, device_name_long, strict=True))
     tag_id_to_category = dict(
         zip(tag_ids, tag_sensor_type_ids.map(category_mapping), strict=True)
     )
@@ -240,9 +242,10 @@ async def get_horizontal_pv(
 
     tag_ids = tags["tag_id"].astype(int)
     tag_sensor_type_ids = tags["sensor_type_id"].fillna(-1).astype(int)
-    tag_id_to_device_name_long = dict(
-        zip(tag_ids, tags["device_name_long"], strict=True)
+    device_name_long = normalize_pandas_nullable(
+        content=tags["device_name_long"].tolist()
     )
+    tag_id_to_device_name_long = dict(zip(tag_ids, device_name_long, strict=True))
     tag_id_to_category = dict(
         zip(tag_ids, tag_sensor_type_ids.map(category_mapping), strict=True)
     )
