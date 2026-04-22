@@ -823,7 +823,7 @@ export interface paths {
          * @description Get all favorited KPI types for the authenticated user
          *
          *     Args:
-         *         user_data: Authenticated user data.
+         *         user: Authenticated user data.
          *         db: Database session.
          */
         get: operations["get_user_favorited_kpi_types_route_v1_admin_user_kpi_types_favorite_get"];
@@ -838,7 +838,7 @@ export interface paths {
          *
          *     Args:
          *         favorite_update: Update data with kpi_type_id and is_favorited.
-         *         user_data: Authenticated user data.
+         *         user: Authenticated user data.
          *         db: Database session.
          */
         patch: operations["update_kpi_type_favorite_v1_admin_user_kpi_types_favorite_patch"];
