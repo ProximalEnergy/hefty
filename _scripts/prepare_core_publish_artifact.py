@@ -182,13 +182,16 @@ def verify_wheel(
         core_pyproject=core_pyproject,
     )
     expected_by_name = {
-        name: specifiers for name, specifiers in map(requirement_specifiers, expected)
+        name: specifiers
+        for name, specifiers in (
+            requirement_specifiers(requirement=r) for r in expected
+        )
     }
     actual_by_name = {
         name: specifiers
-        for name, specifiers in map(
-            requirement_specifiers,
-            metadata_requirements(wheel_path=wheel_path),
+        for name, specifiers in (
+            requirement_specifiers(requirement=r)
+            for r in metadata_requirements(wheel_path=wheel_path)
         )
     }
 
