@@ -1,11 +1,12 @@
 from typing import Any, Literal
 
-import jwt
 import sentry_sdk
 from clerk_backend_api import Clerk
 from clerk_backend_api.models import ClerkErrors
+from clerk_backend_api.security import authenticate_request_async
+from clerk_backend_api.security.types import AuthenticateRequestOptions, AuthStatus
 from core.models import User, UserProject
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -26,18 +27,18 @@ header_scheme = APIKeyHeader(
 
 async def get_user(
     *,
+    request: Request,
     api_key: str = Depends(header_scheme),
-    authorization: str = Header(None),
     db: AsyncSession = Depends(get_async_db),
 ) -> UserAuthed:
     """Get the user from the database using the API key or JWT token.
 
     Args:
+        request: Incoming HTTP request used for Clerk JWT verification.
         api_key: API key from the x-api-key header, if provided.
-        authorization: Authorization header that may contain a bearer token.
         db: Database session used to look up the user.
     """
-    jwt_token = _get_jwt_token(authorization=authorization)
+    jwt_token = _get_jwt_token(request=request)
 
     # If no API key or JWT token is provided, raise an error
     if not api_key and not jwt_token:
@@ -52,7 +53,7 @@ async def get_user(
 
         # JWT token
         elif jwt_token:
-            return await _get_jwt_user(db=db, jwt_token=jwt_token)
+            return await _get_jwt_user(db=db, request=request)
 
         # Although this else block should never be reached
         # (assuming the if/elif above are exhaustive), we include it to
@@ -108,22 +109,36 @@ async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
     )
 
 
-async def _get_jwt_user(*, db: AsyncSession, jwt_token: str) -> UserAuthed:
+async def _get_jwt_user(
+    *,
+    db: AsyncSession,
+    request: Request,
+) -> UserAuthed:
     """Look up and validate a user using a JWT bearer token.
 
     Args:
         db: Database session used to look up the user.
-        jwt_token: Bearer token extracted from the Authorization header.
+        request: Incoming HTTP request used for Clerk request authentication.
     """
-    clerk_url_jwks = _get_clerk_url_jwks()
+    clerk_secret_key = _get_clerk_secret_key()
 
-    # Verify and decode the JWT
-    jwt_client = jwt.PyJWKClient(clerk_url_jwks)
-    signing_key = jwt_client.get_signing_key_from_jwt(jwt_token).key
-    payload = jwt.decode(jwt_token, signing_key, algorithms=["RS256"])
+    request_state = await authenticate_request_async(
+        request,
+        AuthenticateRequestOptions(secret_key=clerk_secret_key),
+    )
+
+    if request_state.status != AuthStatus.SIGNED_IN or request_state.payload is None:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Authentication failed: {request_state.status.value}",
+        )
+
+    payload = request_state.payload
 
     # Get the Clerk user ID from the JWT
     user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid JWT token")
 
     # Query the database for a user with the given Clerk user ID
     query = select(User).where(User.user_id == user_id)
@@ -174,14 +189,15 @@ async def _generate_user_data(
     )
 
 
-def _get_jwt_token(*, authorization: str) -> str | None:
-    """Extract a bearer token from the Authorization header.
+def _get_jwt_token(*, request: Request) -> str | None:
+    """Extract a bearer token from the incoming request's Authorization header.
 
     Args:
-        authorization: Authorization header value.
+        request: Incoming HTTP request containing the Authorization header.
     """
-    if authorization and authorization.startswith("Bearer "):
-        return authorization.replace("Bearer ", "")
+    authorization = request.headers.get("Authorization")
+    if authorization and authorization.lower().startswith("bearer "):
+        return authorization.partition(" ")[2].strip()
     else:
         return None
 
@@ -203,25 +219,6 @@ def _get_clerk_secret_key() -> str:
         raise HTTPException(status_code=500, detail="Authentication secret not found")
 
     return clerk_secret_key
-
-
-def _get_clerk_url_jwks() -> str:
-    # Get the Clerk application based on the environment
-    """Return the Clerk JWKS URL for the active environment."""
-    clerk_application = _get_clerk_application()
-
-    # Get the Clerk URL JWKS based on the application
-    clerk_url_jwks = (
-        settings.URL_JWKS
-        if clerk_application == "production"
-        else settings.URL_JWKS_DEVELOPMENT
-    )
-
-    # If the Clerk URL JWKS is not found, raise an error
-    if not clerk_url_jwks:
-        raise HTTPException(status_code=500, detail="Authentication secret not found")
-
-    return clerk_url_jwks
 
 
 def _get_clerk_application() -> Literal["development", "production"]:
