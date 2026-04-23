@@ -82,7 +82,9 @@ class PipelinePlan(BaseModel):
         return self
 
 
-def get_plan[P: PlanProtocol](schema: SchemaProtocol[P], outputs: set[str]) -> P:
+def get_plan[P: PlanProtocol](
+    *, schema: SchemaProtocol[P], outputs: set[str], delete: bool = True
+) -> P:
     plan = schema.full_plan()
-    _ = plan.trim(outputs)
+    _ = plan.trim(outputs, delete=delete)
     return plan

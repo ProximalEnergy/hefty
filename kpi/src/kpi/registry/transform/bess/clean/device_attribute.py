@@ -10,9 +10,9 @@ from kpi.registry.download.device.bess.attribute import (
 class TransformBessCleanDeviceAttribute(FieldRegistry[CalcProtocol]):
     # mv circuit
 
-    circuit_power_capacity_kw = unary_field(
+    circuit_energy_capacity_kwh = unary_field(
         verify_positive,
-        field=Download.circuit_power_capacity_raw_kw,
+        field=Download.circuit_energy_capacity_raw_kwh,
     )
 
     # pcs
@@ -29,9 +29,9 @@ class TransformBessCleanDeviceAttribute(FieldRegistry[CalcProtocol]):
 
     # pcs module
 
-    pcs_module_power_capacity_kw = unary_field(
+    pcs_module_energy_capacity_kwh = unary_field(
         verify_positive,
-        field=Download.pcs_module_power_capacity_raw_kw,
+        field=Download.pcs_module_energy_capacity_raw_kwh,
     )
 
     # string

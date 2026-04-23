@@ -4,14 +4,19 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.enumeration import TimeCoords
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
-from kpi.domain.bess import daily_energy, maximum_continuous_discharged_energy
-from kpi.domain.util import filter_mask
+from kpi.domain.bess import maximum_continuous_discharged_energy
+from kpi.domain.util import date_local, diff, filter_mask
+from kpi.op.field import MakeField
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.method import Input, Optional, method_calc
+from kpi.op.transform.class_calc import DailyEnergy
+from kpi.op.transform.method import method_calc, optional, required
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
+
+field = MakeField[CalcProtocol].infer_doc
 
 
 class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
@@ -20,45 +25,33 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_STRING_ENERGY_CHARGED (37)
-    @method_calc
-    def string_energy_charged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.string_total_energy_charged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.string_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    string_energy_charged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.string_total_energy_charged_filled_kwh_5m,
+            energy_capacity=Clean.string_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_string_energy_charged_kwh_d(
-        energy: xr.DataArray = Input(string_energy_charged_kwh_d),
+        energy: xr.DataArray = required(string_energy_charged_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_STRING), min_count=1)
 
     # BESS_STRING_ENERGY_DISCHARGED (41)
 
-    @method_calc
-    def string_energy_discharged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.string_total_energy_discharged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.string_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    string_energy_discharged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.string_total_energy_discharged_filled_kwh_5m,
+            energy_capacity=Clean.string_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_string_energy_discharged_kwh_d(
-        energy: xr.DataArray = Input(string_energy_discharged_kwh_d),
+        energy: xr.DataArray = required(string_energy_discharged_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_STRING), min_count=1)
 
@@ -68,45 +61,33 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_PCS_MODULE_ENERGY_CHARGED (113)
 
-    @method_calc
-    def pcs_module_energy_charged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.pcs_module_total_energy_charged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.pcs_module_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    pcs_module_energy_charged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.pcs_module_total_energy_charged_filled_kwh_5m,
+            energy_capacity=Clean.pcs_module_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_pcs_module_energy_charged_kwh_d(
-        energy: xr.DataArray = Input(pcs_module_energy_charged_kwh_d),
+        energy: xr.DataArray = required(pcs_module_energy_charged_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_PCS_MODULE), min_count=1)
 
     # BESS_PCS_MODULE_ENERGY_DISCHARGED (114)
 
-    @method_calc
-    def pcs_module_energy_discharged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.pcs_module_total_energy_discharged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.pcs_module_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    pcs_module_energy_discharged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.pcs_module_total_energy_discharged_filled_kwh_5m,
+            energy_capacity=Clean.pcs_module_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_pcs_module_energy_discharged_kwh_d(
-        energy: xr.DataArray = Input(pcs_module_energy_discharged_kwh_d),
+        energy: xr.DataArray = required(pcs_module_energy_discharged_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_PCS_MODULE), min_count=1)
 
@@ -115,51 +96,41 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_PCS_ENERGY_CHARGED_DC (87)
-    @method_calc
-    def pcs_energy_charged_dc_kwh_d(
-        total_energy: xr.DataArray = Input(Eval.pcs_total_energy_charged_filled_kwh_5m),
-        power_capacity: xr.DataArray = Input(Clean.pcs_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    pcs_energy_charged_dc_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.pcs_total_energy_charged_filled_kwh_5m,
+            energy_capacity=Clean.pcs_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_pcs_energy_charged_dc_kwh_d(
-        energy: xr.DataArray = Input(pcs_energy_charged_dc_kwh_d),
+        energy: xr.DataArray = required(pcs_energy_charged_dc_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
 
     # BESS_PCS_ENERGY_DISCHARGED_DC (88)
-    @method_calc
-    def pcs_energy_discharged_dc_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.pcs_total_energy_discharged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.pcs_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    pcs_energy_discharged_dc_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.pcs_total_energy_discharged_filled_kwh_5m,
+            energy_capacity=Clean.pcs_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_pcs_energy_discharged_dc_kwh_d(
-        energy: xr.DataArray = Input(pcs_energy_discharged_dc_kwh_d),
+        energy: xr.DataArray = required(pcs_energy_discharged_dc_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
 
     @method_calc
     def pcs_maximum_continuous_discharged_energy_kwh_d(
-        discharge_5m: xr.DataArray = Input(Eval.pcs_energy_discharged_dc_kwh_5m),
-        charge_5m: xr.DataArray = Input(Eval.pcs_energy_charged_dc_kwh_5m),
-        energy_capacity: xr.DataArray | None = Optional(Clean.pcs_energy_capacity_kwh),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+        discharge_5m: xr.DataArray = required(Eval.pcs_energy_discharged_dc_kwh_5m),
+        charge_5m: xr.DataArray = required(Eval.pcs_energy_charged_dc_kwh_5m),
+        energy_capacity: xr.DataArray | None = optional(Clean.pcs_energy_capacity_kwh),
+        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
     ) -> xr.DataArray:
         """
         PCS Maximum Continuous Discharged Energy (kWh) Per Day
@@ -175,11 +146,11 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_pcs_maximum_continuous_discharged_energy_kwh_d(
-        pcs_discharge_5m: xr.DataArray = Input(Eval.pcs_energy_discharged_dc_kwh_5m),
-        pcs_charge_5m: xr.DataArray = Input(Eval.pcs_energy_charged_dc_kwh_5m),
-        project_charge_5m: xr.DataArray = Input(Eval.project_energy_charged_kwh_5m),
-        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+        pcs_discharge_5m: xr.DataArray = required(Eval.pcs_energy_discharged_dc_kwh_5m),
+        pcs_charge_5m: xr.DataArray = required(Eval.pcs_energy_charged_dc_kwh_5m),
+        project_charge_5m: xr.DataArray = required(Eval.project_energy_charged_kwh_5m),
+        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
+        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
     ) -> xr.DataArray:
         """
         Project PCS Maximum Continuous Discharged Energy (kWh) Per Day
@@ -204,46 +175,34 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_CIRCUIT_ENERGY_CHARGED (111)
-    @method_calc
-    def circuit_energy_charged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.circuit_total_energy_charged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.circuit_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    circuit_energy_charged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.circuit_total_energy_charged_filled_kwh_5m,
+            energy_capacity=Clean.circuit_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_circuit_energy_charged_kwh_d(
-        energy: xr.DataArray = Input(circuit_energy_charged_kwh_d),
+        energy: xr.DataArray = required(circuit_energy_charged_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(
             dim=coord(DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
         )
 
     # BESS_CIRCUIT_ENERGY_DISCHARGED (112)
-    @method_calc
-    def circuit_energy_discharged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.circuit_total_energy_discharged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.circuit_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    circuit_energy_discharged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.circuit_total_energy_discharged_filled_kwh_5m,
+            energy_capacity=Clean.circuit_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     @method_calc
     def project_circuit_energy_discharged_kwh_d(
-        energy: xr.DataArray = Input(circuit_energy_discharged_kwh_d),
+        energy: xr.DataArray = required(circuit_energy_discharged_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(
             dim=coord(DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
@@ -254,65 +213,63 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_PROJECT_ENERGY_CHARGED (35)
-    @method_calc
-    def project_energy_charged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.project_total_energy_charged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        # charging at full power for 12 hours
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    project_energy_charged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.project_total_energy_charged_filled_kwh_5m,
+            energy_capacity=Clean.project_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     # PROJECT_ENERGY_DISCHARGED (39)
-    @method_calc
-    def project_energy_discharged_kwh_d(
-        total_energy: xr.DataArray = Input(
-            Eval.project_total_energy_discharged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
-    ) -> xr.DataArray:
-        # discharging at full power for 12 hours
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
+    project_energy_discharged_kwh_d = field(
+        DailyEnergy(
+            total_energy_5m=Eval.project_total_energy_discharged_filled_kwh_5m,
+            energy_capacity=Clean.project_energy_capacity_kwh,
+            date_local_5m=Eval.date_local_5m,
         )
+    )
 
     # BESS_MV_AUX_METER_ENERGY (93)
     @method_calc
     def project_aux_energy_kwh_d(
-        total_energy: xr.DataArray = Input(Eval.project_total_aux_energy_filled_kwh_5m),
-        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+        total_energy_5m: xr.DataArray = required(
+            Eval.project_total_aux_energy_filled_kwh_5m
+        ),
+        power_capacity: xr.DataArray = required(Clean.project_power_capacity_kw),
+        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
     ) -> xr.DataArray:
-        # 10% aux power all day
-        return daily_energy(
-            total_energy_5m=total_energy,
-            power_capacity=power_capacity,
-            date_local_5m=date_local_5m,
-            max_capacity_factor=24 * 0.1,
+        """
+        Project Auxiliary Energy Per Day
+        Takes the accumulator differences between midnight and midnight the next day
+        and filters out any negatives values or days where the aux energy is greater
+        than the equivalent of 24 hours of 10% of the project's power capacity.
+        """
+        total_energy_d = total_energy_5m.groupby(date_local(date_local_5m)).first()
+        difference = diff(total_energy_d, time_dim=TimeCoords.DATE_LOCAL)
+        epsilon = 1e-6
+        difference = difference.where(
+            filter_mask(
+                filter_by=difference / power_capacity,
+                min_value=-epsilon,
+                max_value=24 * 0.1,
+            )
         )
+        return difference
 
     # BESS_PROJECT_ENERGY_CHARGED_NO_AUX (115)
     @method_calc
     def project_energy_charged_no_aux_kwh_d(
-        energy_charged: xr.DataArray = Input(project_energy_charged_kwh_d),
-        aux_energy: xr.DataArray = Input(project_aux_energy_kwh_d),
+        energy_charged: xr.DataArray = required(project_energy_charged_kwh_d),
+        aux_energy: xr.DataArray = required(project_aux_energy_kwh_d),
     ) -> xr.DataArray:
         return energy_charged - aux_energy
 
     @method_calc
     def project_pcs_module_charge_efficiency_d(
-        source: xr.DataArray = Input(project_energy_charged_kwh_d),
-        sink: xr.DataArray = Input(project_pcs_module_energy_charged_kwh_d),
-        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
+        source: xr.DataArray = required(project_energy_charged_kwh_d),
+        sink: xr.DataArray = required(project_pcs_module_energy_charged_kwh_d),
+        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
     ) -> xr.DataArray:
         """
         Project PCS Module Charge Efficiency Per Day
@@ -330,9 +287,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_pcs_module_discharge_efficiency_d(
-        source: xr.DataArray = Input(project_pcs_module_energy_discharged_kwh_d),
-        sink: xr.DataArray = Input(project_energy_discharged_kwh_d),
-        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
+        source: xr.DataArray = required(project_pcs_module_energy_discharged_kwh_d),
+        sink: xr.DataArray = required(project_energy_discharged_kwh_d),
+        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
     ) -> xr.DataArray:
         """
         Project PCS Module Discharge Efficiency Per Day
@@ -352,10 +309,10 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY (106)
     @method_calc
     def project_maximum_continuous_discharged_energy_kwh_d(
-        discharge_5m: xr.DataArray = Input(Eval.project_energy_discharged_kwh_5m),
-        charge_5m: xr.DataArray = Input(Eval.project_energy_charged_kwh_5m),
-        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
+        discharge_5m: xr.DataArray = required(Eval.project_energy_discharged_kwh_5m),
+        charge_5m: xr.DataArray = required(Eval.project_energy_charged_kwh_5m),
+        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
+        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
     ) -> xr.DataArray:
         return maximum_continuous_discharged_energy(
             energy=discharge_5m - charge_5m,

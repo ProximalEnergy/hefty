@@ -23,7 +23,12 @@ import warnings
 
 from asyncpg.exceptions import ProtocolViolationError  # type: ignore[import-untyped]
 from core.enumerations import KPIType
-from kpi.base.exception import KpiError
+from kpi.base.exception import (
+    DatasetAccessError,
+    MissingDataError,
+    NoDownloadedDataError,
+    ValidationError,
+)
 from kpi.base.warning import UnimplementedWarning
 from kpi.infra.util import get_project_from_database
 from kpi.op.create import create_dataset
@@ -50,7 +55,15 @@ set_global_observer(
         # so I will ignore the validation warnings for now
         # and turn this on later
         capture_warnings=(),
-        ignore_errors=(KpiError, ProtocolViolationError, DBAPIError, OperationalError),
+        ignore_errors=(
+            DatasetAccessError,
+            MissingDataError,
+            NoDownloadedDataError,
+            ValidationError,
+            ProtocolViolationError,
+            DBAPIError,
+            OperationalError,
+        ),
     )
 )
 
@@ -85,7 +98,7 @@ def lambda_handler(event, _context):
             )
     output_kpis = output_kpis.intersection(implemented_kpis)
 
-    plan = get_plan(pipeline, outputs=output_kpis)
+    plan = get_plan(schema=pipeline, outputs=output_kpis)
 
     dataset = create_dataset(
         project_name_short=project.name_short,

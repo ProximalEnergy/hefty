@@ -3,7 +3,7 @@ from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import clean_cell_voltage, clean_soc, clean_soh, clean_temperature
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.method import Input, method_calc
+from kpi.op.transform.method import method_calc, required
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess as Sensor
 from kpi.registry.transform.bess.clean.device_attribute import (
@@ -23,8 +23,8 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def bess_project_power_kw_5m(
-        power: xr.DataArray = Input(Sensor.project_power_raw_kw_5m),
-        capacity: xr.DataArray = Input(Project.project_power_capacity_kw),
+        power: xr.DataArray = required(Sensor.project_power_raw_kw_5m),
+        capacity: xr.DataArray = required(Project.project_power_capacity_kw),
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1, max_value=1)
@@ -34,8 +34,8 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def pcs_power_kw_5m(
-        power: xr.DataArray = Input(Sensor.pcs_power_raw_kw_5m),
-        capacity: xr.DataArray = Input(Device.pcs_power_capacity_kw),
+        power: xr.DataArray = required(Sensor.pcs_power_raw_kw_5m),
+        capacity: xr.DataArray = required(Device.pcs_power_capacity_kw),
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1, max_value=1)
@@ -45,8 +45,8 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def string_power_kw_5m(
-        power: xr.DataArray = Input(Sensor.string_power_raw_kw_5m),
-        capacity: xr.DataArray = Input(Device.string_power_capacity_kw),
+        power: xr.DataArray = required(Sensor.string_power_raw_kw_5m),
+        capacity: xr.DataArray = required(Device.string_power_capacity_kw),
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1, max_value=1)
@@ -96,7 +96,7 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def string_current_amps_5m(
-        current: xr.DataArray = Input(Sensor.string_current_raw_amps_5m),
+        current: xr.DataArray = required(Sensor.string_current_raw_amps_5m),
     ) -> xr.DataArray:
         return current.where(
             filter_mask(filter_by=current, min_value=-1000, max_value=1000)

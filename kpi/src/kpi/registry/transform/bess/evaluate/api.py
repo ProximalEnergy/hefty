@@ -7,7 +7,7 @@ from kpi.op.field import MakeField
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.time import DateLocal5m
 from kpi.op.transform.class_calc import Energy5mFromAccumulator
-from kpi.op.transform.method import Input, method_calc
+from kpi.op.transform.method import method_calc, required
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
@@ -131,8 +131,8 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_c_rate_5m(
-        power: xr.DataArray = Input(Clean.bess_project_power_kw_5m),
-        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
+        power: xr.DataArray = required(Clean.bess_project_power_kw_5m),
+        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
     ) -> xr.DataArray:
         return power / energy_capacity
 
@@ -140,8 +140,8 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def pcs_c_rate_5m(
-        power: xr.DataArray = Input(Clean.pcs_power_kw_5m),
-        energy_capacity: xr.DataArray = Input(Clean.pcs_energy_capacity_kwh),
+        power: xr.DataArray = required(Clean.pcs_power_kw_5m),
+        energy_capacity: xr.DataArray = required(Clean.pcs_energy_capacity_kwh),
     ) -> xr.DataArray:
         return power / energy_capacity
 
@@ -149,8 +149,8 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def string_c_rate_5m(
-        power: xr.DataArray = Input(Clean.string_power_kw_5m),
-        energy_capacity: xr.DataArray = Input(Clean.string_energy_capacity_kwh),
+        power: xr.DataArray = required(Clean.string_power_kw_5m),
+        energy_capacity: xr.DataArray = required(Clean.string_energy_capacity_kwh),
     ) -> xr.DataArray:
         return power / energy_capacity
 
@@ -191,7 +191,7 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_soh_5m(
-        soh: xr.DataArray = Input(Clean.string_soh_5m),
+        soh: xr.DataArray = required(Clean.string_soh_5m),
     ) -> xr.DataArray:
         """
         Project SOH Per 5-Minute Interval
@@ -206,7 +206,9 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def pcs_offline_event_5m(
-        offline_event_change: xr.DataArray = Input(Clean.pcs_offline_event_change_5m),
+        offline_event_change: xr.DataArray = required(
+            Clean.pcs_offline_event_change_5m
+        ),
     ) -> xr.DataArray:
         """
         PCS Offline Event Per 5-Minute Interval
@@ -215,7 +217,7 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def pcs_module_offline_event_5m(
-        offline_event_change: xr.DataArray = Input(
+        offline_event_change: xr.DataArray = required(
             Clean.pcs_module_offline_event_change_5m
         ),
     ) -> xr.DataArray:
@@ -226,7 +228,7 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def pcs_availability_5m(
-        offline_event: xr.DataArray = Input(pcs_offline_event_5m),
+        offline_event: xr.DataArray = required(pcs_offline_event_5m),
     ) -> xr.DataArray:
         """
         PCS Availability Per 5-Minute Interval
@@ -236,7 +238,7 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_pcs_availability_5m(
-        availability: xr.DataArray = Input(pcs_availability_5m),
+        availability: xr.DataArray = required(pcs_availability_5m),
     ) -> xr.DataArray:
         """
         Project PCS Availability Per 5-Minute Interval
@@ -246,9 +248,9 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_energy_availability_5m(
-        availability: xr.DataArray = Input(project_pcs_availability_5m),
-        soh: xr.DataArray = Input(project_soh_5m),
-        energy_capacity: xr.DataArray = Input(Clean.project_energy_capacity_kwh),
+        availability: xr.DataArray = required(project_pcs_availability_5m),
+        soh: xr.DataArray = required(project_soh_5m),
+        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
     ) -> xr.DataArray:
         """
         Project Energy Availability Per 5-Minute Interval
@@ -258,9 +260,9 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc
     def project_power_availability_5m(
-        availability: xr.DataArray = Input(project_pcs_availability_5m),
-        power_capacity: xr.DataArray = Input(Clean.project_power_capacity_kw),
-        poi_capacity: xr.DataArray = Input(Clean.project_poi_limit_kw),
+        availability: xr.DataArray = required(project_pcs_availability_5m),
+        power_capacity: xr.DataArray = required(Clean.project_power_capacity_kw),
+        poi_capacity: xr.DataArray = required(Clean.project_poi_limit_kw),
     ) -> xr.DataArray:
         """
         Project Power Availability Per 5-Minute Interval

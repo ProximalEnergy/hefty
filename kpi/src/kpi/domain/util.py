@@ -203,9 +203,9 @@ def scale_offset(
     if value is None:
         return None
     if scale is not None:
-        value *= scale
+        value = value * scale
     if offset is not None:
-        value += offset
+        value = value + offset
     return value
 
 

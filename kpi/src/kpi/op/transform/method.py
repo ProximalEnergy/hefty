@@ -5,21 +5,15 @@ from typing import Any
 import xarray as xr
 from kpi.base.protocol import CalcProtocol
 from kpi.op.field import Field, MakeField
-from kpi.op.util import select_optional, select_var
+from kpi.op.transform.input import InputType, Optional, Required
 
 
-class InputType:
-    def __init__(self, name: str, optional: bool = False) -> None:
-        self.name = name
-        self.optional = optional
+def required(field: Field[Any]) -> xr.DataArray:
+    return Required(field.name)  # type: ignore
 
 
-def Input(field: Field[Any]) -> xr.DataArray:
-    return InputType(field.name)  # type: ignore
-
-
-def Optional(field: Field[Any]) -> xr.DataArray | None:
-    return InputType(field.name, optional=True)  # type: ignore
+def optional(field: Field[Any]) -> xr.DataArray | None:
+    return Optional(field.name)  # type: ignore
 
 
 MethodFn = Callable[..., xr.DataArray]
@@ -30,16 +24,10 @@ def extract_input_mapping(fn: MethodFn) -> dict[str, InputType]:
     mapping: dict[str, InputType] = {}
     for name, param in inspect.signature(fn).parameters.items():
         if param.default is inspect.Parameter.empty:
-            msg = (
-                f"{fn.__name__}: parameter {name!r} must have an "
-                "Input(...) or Optional(...) default"
-            )
+            msg = f"{fn.__name__}: parameter {name!r} must have an InputType default"
             raise TypeError(msg)
         if not isinstance(param.default, InputType):
-            msg = (
-                f"{fn.__name__}: parameter {name!r} default must be "
-                "Input(...) or Optional(...)"
-            )
+            msg = f"{fn.__name__}: parameter {name!r} default must be InputType"
             raise TypeError(msg)
         mapping[name] = param.default
     return mapping
@@ -61,11 +49,7 @@ class MethodCalc:
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
         inputs = {}
         for name, input_type in self._inputs_map.items():
-            value = None
-            if input_type.optional:
-                value = select_optional(dataset, input_type.name)
-            else:
-                value = select_var(dataset, input_type.name)
+            value = input_type.get(dataset)
             inputs[name] = value
         return self._fn(**inputs)
 
