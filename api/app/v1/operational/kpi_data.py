@@ -17,6 +17,7 @@ import core
 from app import interfaces, utils
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
+from app._dependencies.authentication import get_user
 from app._dependencies.filtering import (
     filter_start_date_to_projects_data_access_start_date,
 )
@@ -24,7 +25,6 @@ from app.dependencies import (
     check_project_access_async,
     get_project_api,
     get_project_db,
-    get_user_data_async,
 )
 from core import models
 
@@ -37,6 +37,7 @@ router = APIRouter(prefix="/kpi-data", tags=["kpi_data"])
     response_model=list[interfaces.OperationalKPIData],
 )
 def get_kpi_data(
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     start: Annotated[
         datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)
     ],
@@ -45,7 +46,6 @@ def get_kpi_data(
     kpi_type_ids: Annotated[list[int], Query()] = [],
     include_device_data: bool = True,
     db: Session = Depends(get_db),
-    user_data: interfaces.UserData = Depends(get_user_data_async),
     include_all_dates: bool = True,
 ):
     # Ensure that user has access to all requested projects

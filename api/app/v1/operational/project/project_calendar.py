@@ -19,6 +19,7 @@ from app._crud.operational.calendar import (
 from app._crud.operational.calendar import (
     update_calendar_item as crud_update_calendar_item,
 )
+from app._dependencies.authentication import get_user
 from app.interfaces import (
     CalendarItem,
     CalendarItemCategory,
@@ -58,7 +59,7 @@ async def create_calendar_item_endpoint(
     project_id: uuid.UUID,
     item: CalendarItemCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: interfaces.UserAuthed = Depends(get_user),
 ):
     """Create a new calendar item for a project.
 
@@ -78,7 +79,7 @@ async def create_calendar_item_endpoint(
 async def get_calendar_items(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: interfaces.UserAuthed = Depends(get_user),
 ):
     """Retrieve all calendar items for the specified project, including category color.
 
@@ -168,7 +169,7 @@ async def update_calendar_item_endpoint(
     calendar_item_id: uuid.UUID,
     item: CalendarItemCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: interfaces.UserAuthed = Depends(get_user),
 ):
     """Update a calendar item.
 

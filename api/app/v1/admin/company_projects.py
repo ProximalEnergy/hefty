@@ -8,6 +8,7 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 
 from app import dependencies, interfaces
+from app._dependencies.authentication import get_user
 
 router = APIRouter(prefix="/company-projects", tags=["company-projects"])
 
@@ -19,9 +20,7 @@ router = APIRouter(prefix="/company-projects", tags=["company-projects"])
 )
 async def get_company_projects(
     project_id: UUID,
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ) -> list[interfaces.CompanyProject]:
     """Get company-project records for the requesting user's company.
 

@@ -45,6 +45,7 @@ dependencies = [
     "sqlalchemy>=2.0.44,<3",
     "starlette~=0.51",
     "timezonefinder~=8.2",
+    "typing-extensions>=4.12.2,<5",
     "uvicorn~=0.40",
     "xlsxwriter~=3.2.9",
 ]
@@ -66,7 +67,6 @@ dev = [
     "types-psycopg2>=2.9.21.20250318,<3",
     "types-pytz>=2026.1.1.20260408,<2027",
     "types-requests>=2.31.0.6,<3",
-    "typing-extensions>=4.12.2,<5",
 ]
 [tool.uv.sources]
 core = { workspace = true }

@@ -6,7 +6,7 @@ from core.crud.admin.users import get_user
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
-from app import dependencies
+from app._dependencies.authentication import get_user as get_user_auth
 from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_feedback_notification,
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/feedback",
     tags=["feedback"],
-    dependencies=[Depends(dependencies.get_user_data_async)],
+    dependencies=[Depends(get_user_auth)],
 )
 
 

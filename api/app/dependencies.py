@@ -15,6 +15,7 @@ from core.dependencies import (
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing_extensions import deprecated
 
 import core
 from app import interfaces, settings
@@ -291,6 +292,7 @@ async def get_api_user_data_async(
     return user_data
 
 
+@deprecated("Use app._dependencies.authentication.get_user instead.")
 async def get_user_data_async(
     db: AsyncSession = Depends(get_async_db),
     *,

@@ -5,7 +5,9 @@ from core.crud.operational.cmms_permissions import get_cmms_permissions_by_proje
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 
-from app import dependencies, interfaces
+from app import interfaces
+from app._dependencies.authentication import get_user
+from app.interfaces import UserAuthed
 
 router = APIRouter(
     prefix="/cmms-permissions",
@@ -16,7 +18,7 @@ router = APIRouter(
 @router.get("", response_model=list[interfaces.CMMSPermission])
 async def get_cmms_permissions(
     project_id: UUID,
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ) -> list[interfaces.CMMSPermission]:
     """Get CMMS permissions for the project for the current user's company.
 

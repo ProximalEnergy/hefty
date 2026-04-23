@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 
 from app import dependencies, interfaces
 from app._crud.projects import pv_budgeted as crud
+from app._dependencies.authentication import get_user
+from app.interfaces import UserAuthed
 
 router = APIRouter(
     prefix="/pv-budgeted",
@@ -48,9 +50,7 @@ def create_pv_budgeted_series(
     payload: interfaces.PVBudgetedSeriesIn,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project_id: uuid.UUID,
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ):
     """todo
 
@@ -156,9 +156,7 @@ def bulk_upsert_pv_budgeted_data(
     payload: interfaces.PVBudgetedBulkUpsertRequest,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project_id: uuid.UUID,
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ):
     """todo
 

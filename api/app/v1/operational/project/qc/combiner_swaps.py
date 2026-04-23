@@ -2,7 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from app import dependencies, interfaces, logger
+from app import dependencies, logger
 from app.utils import get_include_in_schema
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
@@ -27,7 +27,6 @@ async def validate_combiner_data(
     device_ids: Annotated[list[int] | None, Query()] = None,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),  # noqa: ARG001
     _access: None = Depends(dependencies.check_project_access_async),
 ):
     """This function is used in combiner swaps functionality to figure out

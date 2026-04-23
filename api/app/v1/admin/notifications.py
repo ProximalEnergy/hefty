@@ -26,6 +26,7 @@ from app._crud.admin.notifications import (
 from app._crud.admin.notifications import (
     mark_notification_as_unread as crud_mark_notification_as_unread,
 )
+from app._dependencies.authentication import get_user
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -37,9 +38,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 )
 async def get_user_notifications(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     limit: Annotated[int, Query(ge=1, le=500)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
@@ -85,9 +84,7 @@ async def get_user_notifications(
     description="Get count of unread IN_APP notifications for the requesting user.",
 )
 async def get_unread_notification_count(
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Return the unread IN_APP notification count for the requesting user.
 
@@ -110,9 +107,7 @@ async def get_unread_notification_count(
 )
 async def delete_all_notifications(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Mark all IN_APP notifications as deleted for the requesting user.
 
@@ -131,9 +126,7 @@ async def delete_all_notifications(
 async def mark_notification_read(
     notification_id: Annotated[int, Path(...)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Mark a notification as read for the requesting user.
 
@@ -192,9 +185,7 @@ async def mark_notification_read(
 async def mark_notification_unread(
     notification_id: Annotated[int, Path(...)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Mark a notification as unread for the requesting user.
 
@@ -253,9 +244,7 @@ async def mark_notification_unread(
 async def delete_notification(
     notification_id: Annotated[int, Path(...)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Delete a notification for the requesting user (mark as deleted).
 
@@ -289,9 +278,7 @@ async def delete_notification(
 )
 async def mark_all_notifications_read(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Mark all IN_APP notifications as read for the requesting user.
 

@@ -10,8 +10,9 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces, utils
-from app.dependencies import get_project_api, get_project_db_async, get_user_data_async
-from app.interfaces import UserData
+from app._dependencies.authentication import get_user
+from app.dependencies import get_project_api, get_project_db_async
+from app.interfaces import UserAuthed
 
 router = APIRouter(
     prefix="/event-cmms-tickets",
@@ -101,7 +102,7 @@ async def lookup_event_cmms_tickets_by_event_ids(
 async def create_event_cmms_ticket(
     *,
     project_db: AsyncSession = Depends(get_project_db_async),
-    user_data: Annotated[UserData, Depends(get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
     request: _CreateEventCMMSTicketRequest = Body(...),
 ):
     """Create a new event-CMMS ticket relationship.

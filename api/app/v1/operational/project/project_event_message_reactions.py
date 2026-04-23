@@ -11,9 +11,11 @@ from app._crud.projects import (
     event_message_reactions as crud_event_message_reactions,
 )
 from app._crud.projects import event_messages as crud_event_messages
+from app._dependencies.authentication import get_user
 from app.dependencies import (
     get_project_name_short_async,
 )
+from app.interfaces import UserAuthed
 from core import enumerations
 
 router = APIRouter(
@@ -123,9 +125,7 @@ async def toggle_event_message_reaction(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     reaction: EventMessageReactionCreate,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> EventMessageReaction:
     """Toggle a reaction on a message (add if not exists, remove if exists).
 

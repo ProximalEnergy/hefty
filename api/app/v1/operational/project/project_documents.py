@@ -30,6 +30,7 @@ from app._crud.operational.documents import (
 from app._crud.operational.documents import (
     get_project_documents as crud_get_project_documents,
 )
+from app._dependencies.authentication import get_user
 from core import models
 
 BUCKET_NAME = "proximal-am-documents"
@@ -67,7 +68,7 @@ def generate_presigned_url(*, file_key: str) -> str:
 async def get_project_documents(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ) -> list[interfaces.Document]:
     """todo
 
@@ -109,7 +110,7 @@ async def get_project_documents(
 @router.post("", response_model=interfaces.Document)
 async def upload_project_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[interfaces.UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     file: UploadFile,
 ) -> interfaces.Document:

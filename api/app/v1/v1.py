@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.dependencies import get_user_data_async
+from app._dependencies.authentication import get_user
 from app.v1.admin import admin
 from app.v1.ai.battery_settlement_analysis import (
     router as battery_settlement_analysis_router,
@@ -19,7 +19,7 @@ from app.v1.protected import protected
 from app.v1.trackers import trackers
 from app.v1.ui import ui
 
-router = APIRouter(prefix="/v1", dependencies=[Depends(get_user_data_async)])
+router = APIRouter(prefix="/v1", dependencies=[Depends(get_user)])
 router.include_router(admin.router)
 router.include_router(battery_settlement_analysis_router)
 router.include_router(daily_performance_summary_router)

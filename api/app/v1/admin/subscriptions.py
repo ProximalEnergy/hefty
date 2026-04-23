@@ -16,6 +16,7 @@ from app._crud.admin.user_subscriptions import (
 from app._crud.admin.user_subscriptions import (
     update_user_report_subscription as crud_update_user_report_subscription,
 )
+from app._dependencies.authentication import get_user
 from core import models
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -58,9 +59,7 @@ async def get_email_from_clerk(*, user_id: str, api_prod: bool):
 )
 async def get_requesting_user_subscriptions(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Get subscription settings for the requesting user.
 
@@ -138,9 +137,7 @@ async def update_report_subscription(
     project_id: UUID,
     data: interfaces.UserSubscriptionUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Update report subscription for the requesting user.
 

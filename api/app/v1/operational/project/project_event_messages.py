@@ -45,9 +45,11 @@ from app._crud.projects import (
 from app._crud.projects import (
     event_messages as crud_event_messages,
 )
+from app._dependencies.authentication import get_user
 from app.dependencies import (
     get_project_name_short_async,
 )
+from app.interfaces import UserAuthed
 from core import enumerations, models
 
 logger = logging.getLogger(__name__)
@@ -780,9 +782,7 @@ async def create_event_message(
     project_id: Annotated[UUID, Path(...)],
     message: EventMessageCreate,
     background_tasks: BackgroundTasks,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> EventMessage:
     """Create a new event message.
 
@@ -885,9 +885,7 @@ async def update_event_message(
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     event_message_id: int,
     message: EventMessageUpdate,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> EventMessage:
     """Update an existing event message.
 
@@ -1011,9 +1009,7 @@ async def delete_event_message(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> EventMessage:
     """Delete an existing event message (soft delete).
 
@@ -1072,9 +1068,7 @@ async def toggle_event_chat_mute(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> dict:
     """Toggle mute status for an event chat.
 
@@ -1100,9 +1094,7 @@ async def get_event_chat_mute_status(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     _: Annotated[None, Depends(dependencies.check_project_access_async)],
     event_id: int,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> dict:
     """Get mute status for an event chat.
 

@@ -29,7 +29,6 @@ DEFAULT_IGNORED_DEPS = {
     "get_project_db",
     "get_project_api",
     "get_async_db",
-    "get_user_data_async",
 }
 
 

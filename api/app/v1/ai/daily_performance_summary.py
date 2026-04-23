@@ -14,7 +14,9 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app import dependencies, interfaces
+from app import interfaces
+from app._dependencies.authentication import get_user
+from app.interfaces import UserAuthed
 from app.logger import logger
 
 try:
@@ -245,7 +247,7 @@ def _infer_report_kind(*, stats: DailyPerformanceStats) -> str:
 
 async def _load_cmms_ticket_prompt_rows(
     *,
-    user: interfaces.UserData,
+    user: interfaces.UserAuthed,
     project_id: UUID,
     period_start: datetime,
     period_end: datetime,
@@ -359,7 +361,7 @@ async def _load_cmms_ticket_prompt_rows(
 async def generate_daily_performance_summary(
     *,
     request: DailyPerformanceSummaryRequest,
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Generate an AI-written summary of daily project performance.
 

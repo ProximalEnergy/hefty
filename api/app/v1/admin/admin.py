@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, settings
+from app._dependencies.authentication import get_user
 from app.v1.admin import (
     api_key,
     companies,
@@ -44,9 +45,7 @@ router.include_router(notifications.router)
 )
 async def get_user_type(
     _db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Get the requesting user's type.
 

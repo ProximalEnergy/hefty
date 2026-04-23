@@ -21,6 +21,7 @@ from app._crud.operational.contracts import (
 )
 from app._crud.operational.documents import get_project_documents
 from app._dependencies import authentication
+from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
 from core import models
 
@@ -66,9 +67,7 @@ async def create_contract(
     project_id: UUID,
     contract: interfaces.ContractCreate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     # Create contract data
     """todo
@@ -547,7 +546,7 @@ async def analyze_contract_document(
     document_id: UUID,
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Analyze a contract document using OpenAI File Search to extract contract
     fields. This endpoint uses the document's OpenAI file_id to perform semantic

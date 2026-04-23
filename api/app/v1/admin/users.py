@@ -13,6 +13,7 @@ from app import dependencies, interfaces
 from app._crud.admin.users import create_user as create_user_crud
 from app._crud.admin.users import delete_user as delete_user_crud
 from app._dependencies import authorization
+from app._dependencies.authentication import get_user
 from app._utils.user_management import (
     create_clerk_user,
     delete_clerk_user,
@@ -21,7 +22,7 @@ from app._utils.user_management import (
     update_clerk_user_demo_mode,
     update_clerk_user_theme,
 )
-from app.interfaces import User, UserCreate, UserData
+from app.interfaces import User, UserAuthed, UserCreate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -32,7 +33,7 @@ router = APIRouter(prefix="/users", tags=["users"])
     response_model=list[interfaces.UserWithProjects],
 )
 async def get_users(
-    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
     company_ids: list[uuid.UUID] | None = Query(default=None),
     user_ids: list[str] | None = Query(default=None),
     include_image_urls: bool = Query(
@@ -72,10 +73,10 @@ async def get_users(
 
 @router.get(
     "/self",
-    response_model=interfaces.UserData,
+    response_model=interfaces.UserAuthed,
 )
 async def get_self(
-    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Return the authenticated user's data.
 
@@ -90,7 +91,7 @@ async def get_self(
     response_model=list[interfaces.UserWithProjects],
 )
 async def get_self_company(
-    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Return all users in the authenticated user's company.
 
@@ -177,9 +178,7 @@ class ThemeUpdateRequest(BaseModel):
     dependencies=[Depends(dependencies.requires_superadmin_async)],
 )
 async def update_self_clerk_theme(
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
     request: ThemeUpdateRequest,
 ):
     """Update the current user's theme in Clerk.
@@ -208,9 +207,7 @@ class DemoModeUpdateRequest(BaseModel):
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
 async def update_self_clerk_demo_mode(
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
     request: DemoModeUpdateRequest,
 ):
     """Update the current user's demo mode in Clerk.

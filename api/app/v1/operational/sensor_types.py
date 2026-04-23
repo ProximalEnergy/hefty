@@ -22,7 +22,7 @@ from app._crud.operational.sensor_types import (
 from app._crud.operational.sensor_types import (
     update_sensor_type as crud_update_sensor_type,
 )
-from app.dependencies import get_user_data_async
+from app._dependencies.authentication import get_user
 
 DESCRIPTION_404 = "Sensor type not found"
 
@@ -85,7 +85,7 @@ async def get_sensor_type(sensor_type_id: int):
 )
 def create_sensor_type(
     sensor_type: interfaces.SensorType,
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """Create a new sensor type. Only superadmins can create sensor types.
@@ -121,7 +121,7 @@ def create_sensor_type(
 def update_sensor_type(
     sensor_type_id: int,
     sensor_type: interfaces.SensorType,
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """Update an existing sensor type. Only superadmins can update sensor types.

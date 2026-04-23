@@ -20,6 +20,8 @@ from app._crud.operational.projects import create_project as crud_create_project
 from app._crud.operational.report_instances import (
     get_report_instances as crud_get_report_instances,
 )
+from app._dependencies.authentication import get_user
+from app.interfaces import UserAuthed
 from app.logger import logger
 from core import enumerations, models
 
@@ -44,7 +46,7 @@ async def get_projects(
     kpi_instance_kpi_type_ids: Annotated[list[int] | None, Query()] = None,
     report_instance_report_type_ids: Annotated[list[int] | None, Query()] = None,
     db: Session = Depends(get_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ):
     # Get project IDs permitted for the user
     """todo
@@ -175,7 +177,7 @@ async def get_projects(
 )
 async def get_project(
     project_id: UUID,
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ):
     """todo
 
@@ -210,7 +212,7 @@ async def get_project(
 async def create_project(
     project_in: interfaces.ProjectCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ):
     """Create a new project.
 

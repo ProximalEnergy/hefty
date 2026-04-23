@@ -11,6 +11,7 @@ from app._crud.admin.notification_preferences import (
 from app._crud.admin.notification_preferences import (
     update_notification_preference as crud_update_notification_preference,
 )
+from app._dependencies.authentication import get_user
 
 router = APIRouter(
     prefix="/notification-preferences",
@@ -26,9 +27,7 @@ router = APIRouter(
 )
 async def get_user_notification_preferences(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     project_ids: list[UUID] | None = Query(None, description="Filter by project IDs"),
 ):
     """Get notification preferences for the requesting user.
@@ -60,9 +59,7 @@ async def get_user_notification_preferences(
 async def update_notification_preference(
     data: interfaces.NotificationPreferenceUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Update a notification preference.
 

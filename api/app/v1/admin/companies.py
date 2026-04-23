@@ -10,6 +10,7 @@ from app._crud.admin.companies import get_companies as crud_get_companies
 from app._crud.admin.companies import (
     get_companies_with_projects as crud_get_companies_with_projects,
 )
+from app._dependencies.authentication import get_user
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
@@ -57,9 +58,7 @@ async def get_companies(
 )
 async def get_companies_with_projects(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Get companies with aggregated project IDs accessible to the user.
 

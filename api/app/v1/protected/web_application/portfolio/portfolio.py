@@ -22,9 +22,10 @@ from app._crud.operational.kpi_data import get_kpi_data_async
 from app._crud.operational.portfolio_bess_power_availability import (
     get_portfolio_bess_power_availability_metrics,
 )
+from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
-from app.interfaces import CalendarItem, UserData
+from app.interfaces import CalendarItem, UserAuthed
 
 logger = logging.getLogger(__name__)
 
@@ -620,7 +621,7 @@ async def get_portfolio_home_long_term(
 async def get_portfolio_bess_power_availability_route(
     project_ids: Annotated[list[UUID] | None, Query()] = None,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ):
     """Return latest PCS power availability for many projects in one query.
 
@@ -692,7 +693,7 @@ async def get_portfolio_bess_power_availability_route(
 async def post_portfolio_market_performance_has_access(
     body: PortfolioMarketPerformanceHasAccessRequest,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ) -> list[PortfolioMarketPerformanceHasAccessRow]:
     """Return QSE market access for many projects in one request.
 
@@ -747,7 +748,7 @@ async def post_portfolio_bess_revenue_summary(
     body: PortfolioBessRevenueSummaryRequest,
     db: AsyncSession = Depends(dependencies.get_async_db),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ) -> list[PortfolioBessRevenueSummaryRow]:
     """Batch fetch QSE settlement revenue for multiple BESS projects.
 
@@ -875,7 +876,7 @@ async def post_portfolio_bess_revenue_summary(
 async def get_home(
     project_ids: Annotated[list[UUID] | None, Query()] = None,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
     time: TimeFrame = Query(default=TimeFrame.H24),  # new parameter
 ):
     # If project_ids is not provided, default to all projects the user has access to
@@ -958,7 +959,7 @@ async def get_home(
 )
 async def get_portfolio_calendar_events(
     project_ids: Annotated[list[UUID] | None, Query()] = None,
-    user_data: UserData = Depends(dependencies.get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get all calendar events for all projects in the user's portfolio.

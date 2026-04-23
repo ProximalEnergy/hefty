@@ -9,13 +9,13 @@ from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
 from sqlalchemy import case, select
 
-from app import interfaces
+from app._dependencies.authentication import get_user
 from app._dependencies.filtering import get_company_project_data_access_start_time
 from app.dependencies import (
     get_is_superadmin_async,
     get_project_api,
-    get_user_data_async,
 )
+from app.interfaces import UserAuthed
 from core import models
 
 router = APIRouter()
@@ -85,7 +85,7 @@ class KPISummaryTable(BaseModel):
 
 @router.get("/kpi-summary-table", response_model=KPISummaryTable)
 async def get_project_kpi_summary_table(
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     project: Annotated[models.Project, Depends(get_project_api)],
     data_access_start_time: Annotated[

@@ -25,6 +25,7 @@ from app._crud.admin.user_permissions import (
 from app._crud.admin.user_projects import (
     get_users_with_project_access as crud_get_users_with_project_access,
 )
+from app._dependencies.authentication import get_user
 from core import models
 
 router = APIRouter(prefix="/permissions", tags=["permissions"])
@@ -56,9 +57,7 @@ async def get_all_permissions():
 )
 async def get_user_permissions(
     project_id: uuid.UUID,
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Get all permissions for the requesting user at a given project.
 
@@ -172,9 +171,7 @@ async def delete_user_permission(
 )
 async def get_company_permissions(
     project_id: uuid.UUID,
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Get all permissions for the requesting user's company at a given project.
 
@@ -218,9 +215,7 @@ async def get_company_permissions(
 async def get_users_permissions(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Get all users, and their permissions, with access to a given project
         for the requesting user's company. Requires admin access.

@@ -29,6 +29,7 @@ from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
 )
+from app._dependencies.authentication import get_user
 from app._dependencies.filtering import (
     filter_start_date_or_none_to_projects_data_access_start_date,
 )
@@ -36,8 +37,8 @@ from app.dependencies import (
     get_async_db,
     get_is_superadmin_async,
     get_project_api,
-    get_user_data_async,
 )
+from app.interfaces import UserAuthed
 from app.v1.operational.kpi_instances import get_kpi_instances_helper
 from app.v1.operational.project.project_documents import generate_presigned_url
 from core import models
@@ -94,7 +95,7 @@ async def get_project_aggregated_kpi_data_freq(
     frequency: Literal["month", "year"] | None = None,
     aggregation: Literal["avg", "sum"] | None = None,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    user_data: interfaces.UserData = Depends(get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ):
     """
     Get aggregated KPI data for a project with optional frequency binning.
@@ -150,7 +151,7 @@ async def get_project_aggregated_kpi_data(
     end: datetime.date | None = None,
     aggregation: Literal["avg", "sum"] | None = None,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    user_data: interfaces.UserData = Depends(get_user_data_async),
+    user_data: UserAuthed = Depends(get_user),
 ):
     """
     Get single aggregated KPI value for a project across entire date range.

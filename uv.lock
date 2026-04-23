@@ -188,6 +188,7 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "starlette" },
     { name = "timezonefinder" },
+    { name = "typing-extensions" },
     { name = "uvicorn" },
     { name = "xlsxwriter" },
 ]
@@ -209,7 +210,6 @@ dev = [
     { name = "types-psycopg2" },
     { name = "types-pytz" },
     { name = "types-requests" },
-    { name = "typing-extensions" },
 ]
 
 [package.metadata]
@@ -254,6 +254,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.44,<3" },
     { name = "starlette", specifier = "~=0.51" },
     { name = "timezonefinder", specifier = "~=8.2" },
+    { name = "typing-extensions", specifier = ">=4.12.2,<5" },
     { name = "uvicorn", specifier = "~=0.40" },
     { name = "xlsxwriter", specifier = "~=3.2.9" },
 ]
@@ -275,7 +276,6 @@ dev = [
     { name = "types-psycopg2", specifier = ">=2.9.21.20250318,<3" },
     { name = "types-pytz", specifier = ">=2026.1.1.20260408,<2027" },
     { name = "types-requests", specifier = ">=2.31.0.6,<3" },
-    { name = "typing-extensions", specifier = ">=4.12.2,<5" },
 ]
 
 [[package]]

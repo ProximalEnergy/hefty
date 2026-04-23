@@ -6,8 +6,7 @@ from clerk_backend_api.models import ClerkErrors
 from clerk_backend_api.security import authenticate_request_async
 from clerk_backend_api.security.types import AuthenticateRequestOptions, AuthStatus
 from core.models import User, UserProject
-from fastapi import Depends, HTTPException, Request
-from fastapi.security import APIKeyHeader
+from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
@@ -15,41 +14,32 @@ from app import settings
 from app.dependencies import get_async_db
 from app.interfaces import UserAuthed
 
-# API key authentication using a header
-# https://fastapi.tiangolo.com/reference/security/#fastapi.security.APIKeyHeader
-header_scheme = APIKeyHeader(
-    name="x-api-key",
-    scheme_name="API Key",
-    description="Enter your API key to use the interactive documentation.",
-    auto_error=False,
-)
-
 
 async def get_user(
     *,
     request: Request,
-    api_key: str = Depends(header_scheme),
+    x_api_key: str = Header(None),
     db: AsyncSession = Depends(get_async_db),
 ) -> UserAuthed:
     """Get the user from the database using the API key or JWT token.
 
     Args:
-        request: Incoming HTTP request used for Clerk JWT verification.
-        api_key: API key from the x-api-key header, if provided.
+        request: Incoming HTTP request containing the x-api-key header.
+        x_api_key: API key from the x-api-key header, if provided.
         db: Database session used to look up the user.
     """
     jwt_token = _get_jwt_token(request=request)
 
     # If no API key or JWT token is provided, raise an error
-    if not api_key and not jwt_token:
+    if not x_api_key and not jwt_token:
         raise HTTPException(status_code=401, detail="No API key or JWT token provided")
 
     # Try to authenticate using either the API key or the JWT token
     # NOTE: At this point, we know at least one of the two is provided
     try:
         # API key
-        if api_key:
-            return await _get_api_user(db=db, api_key=api_key)
+        if x_api_key:
+            return await _get_api_user(db=db, x_api_key=x_api_key)
 
         # JWT token
         elif jwt_token:
@@ -74,15 +64,15 @@ async def get_user(
         )
 
 
-async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
+async def _get_api_user(*, db: AsyncSession, x_api_key: str) -> UserAuthed:
     # Query the database for a user with the given API key
     """Look up and validate a user using an API key.
 
     Args:
         db: Database session used to look up the user.
-        api_key: API key provided in the request headers.
+        x_api_key: API key provided in the request headers.
     """
-    query = select(User).where(User.api_key == api_key)
+    query = select(User).where(User.api_key == x_api_key)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
 

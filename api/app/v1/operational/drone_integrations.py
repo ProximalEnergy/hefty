@@ -17,10 +17,10 @@ from app._crud.operational.drone_integrations import (
     get_drone_integrations,
     update_drone_integration,
 )
+from app._dependencies.authentication import get_user as get_user_auth
 from app._utils.user_management import send_drone_inspection_order_email
 from app.dependencies import (
     get_async_db,
-    get_user_data_async,
     requires_superadmin_async,
 )
 from app.domain.drones.zeitview_parser import ZeitviewAPI
@@ -28,7 +28,7 @@ from app.interfaces import (
     DroneIntegration,
     DroneIntegrationCreate,
     DroneIntegrationUpdate,
-    UserData,
+    UserAuthed,
 )
 
 logger = logging.getLogger(__name__)
@@ -135,7 +135,7 @@ async def delete_drone_integration_(
 @router.post("/order-inspection")
 async def order_drone_inspection(
     request: DroneInspectionOrderRequest,
-    user_data: Annotated[UserData, Depends(get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user_auth)],
     db: AsyncSession = Depends(get_async_db),
 ):
     """Send a drone inspection order email to the provider.

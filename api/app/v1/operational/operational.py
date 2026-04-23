@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app import dependencies
+from app._dependencies.authentication import get_user
 from app.v1.operational import (
     aws,
     cec_pv_modules,
@@ -29,12 +29,10 @@ from app.v1.operational import (
 )
 from app.v1.operational.project import project
 
-get_user_data_async = [Depends(dependencies.get_user_data_async)]
-
 router = APIRouter(
     prefix="/operational",
     tags=["operational"],
-    dependencies=get_user_data_async,
+    dependencies=[Depends(get_user)],
 )
 router.include_router(aws.router)
 router.include_router(cec_pv_modules.router)

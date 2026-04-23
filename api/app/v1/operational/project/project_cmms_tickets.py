@@ -16,6 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces
 from app._crud.operational.cmms_permissions import get_cmms_permissions_by_project_id
+from app._dependencies.authentication import get_user
+from app.interfaces import UserAuthed
 from core import models
 
 router = APIRouter(
@@ -68,7 +70,7 @@ async def get_cmms_tickets(
         AsyncSession,
         Depends(dependencies.get_project_db_async),
     ],  # will be needed when incorperating device data
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     device_ids: Annotated[list[int] | None, Query()] = None,
     device_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
@@ -82,7 +84,7 @@ async def get_cmms_tickets(
             Database session
         project_db : AsyncSession
             Project database session
-        user : interfaces.UserData
+        user : UserAuthed
             To get the company id
         device_ids : Optional[List[int]]
             The list of device ids to filter the tickets by
@@ -220,7 +222,7 @@ class CMMSTicketV2(BaseModel):
 @router.get("/v2", response_model=CMMSTicketV2)
 async def get_cmms_tickets_v2(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    user: Annotated[UserAuthed, Depends(get_user)],
     cmms_ticket_ids: Annotated[list[int] | None, Query()] = None,
     cmms_integration_ids: Annotated[list[int] | None, Query()] = None,
     max_results: Annotated[int | None, Query()] = 50,

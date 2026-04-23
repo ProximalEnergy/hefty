@@ -19,13 +19,14 @@ from app._crud.admin.teams import (
 )
 from app._crud.admin.teams import remove_team_member as crud_remove_team_member
 from app._crud.admin.teams import rename_team as crud_rename_team
+from app._dependencies.authentication import get_user
 from app.interfaces import (
     Team,
     TeamCreate,
     TeamMemberAdd,
     TeamUpdate,
     TeamWithMembers,
-    UserData,
+    UserAuthed,
 )
 
 router = APIRouter(prefix="/teams", tags=["teams"])
@@ -55,7 +56,7 @@ async def get_teams(
 )
 async def get_company_teams(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Get teams for the current user's company. No admin required.
 
@@ -72,7 +73,7 @@ async def get_company_teams(
 )
 async def get_company_teams_with_members(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Get teams with members for the current user's company. No admin required.
 
@@ -91,7 +92,7 @@ async def get_company_teams_with_members(
 )
 async def create_team(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserAuthed, Depends(get_user)],
     team: TeamCreate,
 ):
     """Create a team for the current user's company (admin only).
