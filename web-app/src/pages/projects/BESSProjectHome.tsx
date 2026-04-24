@@ -1198,106 +1198,71 @@ const BatteryHealth = () => {
       <Stack gap="md">
         {/* SOH Degradation Chart */}
         {sohData && (
-          <Box>
-            <Center>
-              <Box w="100%">
-                <PlotlyPlot
-                  data={sohChartData}
-                  layout={{
-                    height: 200,
-                    margin: { l: 40, r: 100, t: 20, b: 20 },
-                    dragmode: 'zoom',
-                    xaxis: {
-                      type: 'date',
-                      showgrid: true,
-                      gridcolor: theme.colors.gray[2],
-                      rangeslider: { visible: false },
-                      range: defaultZoomRange,
-                      fixedrange: false,
-                    },
-                    yaxis: {
-                      title: { text: 'SOH (%)' },
-                      range: [80, 100],
-                      showgrid: true,
-                      gridcolor: theme.colors.gray[2],
-                      tickformat: '.2f',
+          <PlotlyPlot
+            data={sohChartData}
+            layout={{
+              height: 200,
+              margin: { l: 40, r: 100, t: 20, b: 20 },
+              dragmode: 'zoom',
+              xaxis: {
+                type: 'date',
+                showgrid: true,
+                gridcolor: theme.colors.gray[2],
+                rangeslider: { visible: false },
+                range: defaultZoomRange,
+                fixedrange: false,
+              },
+              yaxis: {
+                title: { text: 'SOH (%)' },
+                range: [80, 100],
+                showgrid: true,
+                gridcolor: theme.colors.gray[2],
+                tickformat: '.2f',
+                fixedrange: true,
+              },
+              yaxis2:
+                showCycleData || showSocData || showRestSocData
+                  ? {
+                      title: {
+                        text: showCycleData
+                          ? 'Cycle Count'
+                          : showSocData
+                            ? 'String SOC (%)'
+                            : 'String Rest SOC (%)',
+                        font: {
+                          color: showCycleData
+                            ? theme.colors.gray[6]
+                            : showSocData
+                              ? theme.colors.green[6]
+                              : theme.colors.violet[6],
+                        },
+                      },
+                      overlaying: 'y',
+                      side: 'right',
+                      showgrid: false,
+                      range: showCycleData ? [0, 2] : [0, 100],
+                      tickformat: showCycleData ? '.1f' : '.1f',
                       fixedrange: true,
-                    },
-                    yaxis2:
-                      showCycleData || showSocData || showRestSocData
-                        ? {
-                            title: {
-                              text: showCycleData
-                                ? 'Cycle Count'
-                                : showSocData
-                                  ? 'String SOC (%)'
-                                  : 'String Rest SOC (%)',
-                              font: {
-                                color: showCycleData
-                                  ? theme.colors.gray[6]
-                                  : showSocData
-                                    ? theme.colors.green[6]
-                                    : theme.colors.violet[6],
-                              },
-                            },
-                            overlaying: 'y',
-                            side: 'right',
-                            showgrid: false,
-                            range: showCycleData ? [0, 2] : [0, 100],
-                            tickformat: showCycleData ? '.1f' : '.1f',
-                            fixedrange: true,
-                            tickfont: {
-                              color: showCycleData
-                                ? theme.colors.gray[6]
-                                : showSocData
-                                  ? theme.colors.green[6]
-                                  : theme.colors.violet[6],
-                            },
-                          }
-                        : undefined,
-                    showlegend: false,
-                    plot_bgcolor: 'transparent',
-                    paper_bgcolor: 'transparent',
-                  }}
-                  config={{
-                    scrollZoom: true,
-                    displayModeBar: false,
-                  }}
-                  isLoading={kpiData.isLoading}
-                  error={kpiData.error}
-                />
-              </Box>
-            </Center>
-
-            {/* Custom Legend Overlay */}
-            <Group justify="center" gap="lg" mt={-10} mb={10}>
-              <Group gap="xs" align="center">
-                <Box
-                  w={16}
-                  h={2}
-                  style={{
-                    backgroundColor: theme.colors.gray[4],
-                    borderTop: `2px dashed ${theme.colors.gray[4]}`,
-                  }}
-                />
-                <Text size="xs" c="dimmed">
-                  Expected SOH
-                </Text>
-              </Group>
-              <Group gap="xs" align="center">
-                <Box
-                  w={16}
-                  h={2}
-                  style={{
-                    backgroundColor: theme.colors.blue[6],
-                  }}
-                />
-                <Text size="xs" c="dimmed">
-                  Actual SOH
-                </Text>
-              </Group>
-            </Group>
-          </Box>
+                      tickfont: {
+                        color: showCycleData
+                          ? theme.colors.gray[6]
+                          : showSocData
+                            ? theme.colors.green[6]
+                            : theme.colors.violet[6],
+                      },
+                    }
+                  : undefined,
+              showlegend: true,
+              plot_bgcolor: 'transparent',
+              paper_bgcolor: 'transparent',
+            }}
+            config={{
+              scrollZoom: true,
+              displayModeBar: false,
+            }}
+            isLoading={kpiData.isLoading}
+            error={kpiData.error}
+          />
         )}
 
         {/* Key Metrics Grid */}
