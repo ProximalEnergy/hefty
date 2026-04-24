@@ -1,20 +1,20 @@
 import datetime
 from typing import Annotated, Any, Literal
 
-import core.models as models
 import pandas as pd
-from core.db_query import OutputType
-from core.enumerations import DeviceType
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import core
+import core.models as models
 from app import utils
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
+from core.db_query import OutputType
+from core.enumerations import DeviceType
 
 router = APIRouter(
     prefix="/events",
@@ -177,13 +177,18 @@ async def get_meta_analysis(
     df["capacity_ac"] = df["device_id"].map(capacity_ac_map)
     df["capacity_dc"] = df["device_id"].map(capacity_dc_map)
     df["device_type_id"] = df["device_id"].map(dtype_map)
+    canonical_project_type = int(DeviceType.METER)
+    project_type_aliases = [DeviceType.PROJECT, DeviceType.METER]
+    df["device_type_bucket_id"] = df["device_type_id"].replace(
+        {DeviceType.PROJECT: DeviceType.METER}
+    )
 
     project_cap = project.capacity_ac * 1000
     if project_cap == 0:
         project_cap = project.poi * 1000
 
     # Override capacity for project-level events
-    df.loc[df["device_type_id"] == DeviceType.METER, "capacity_ac"] = project_cap
+    df.loc[df["device_type_id"].isin(project_type_aliases), "capacity_ac"] = project_cap
 
     # -----------------------
     # Durations & unavailability (default)
@@ -198,39 +203,45 @@ async def get_meta_analysis(
     # -----------------------
     agg = (
         df.reset_index(drop=False)
-        .groupby(["device_type_id", "device_id"], as_index=False)
+        .groupby(["device_type_bucket_id", "device_id"], as_index=False)
         .agg(total_failures=("event_id", "count"), total_hours=("hours_elapsed", "sum"))
-        .sort_values(["device_type_id", "device_id"])
+        .sort_values(["device_type_bucket_id", "device_id"])
     )
 
     device_totals: list[DeviceTotals] = []
 
     # Types present in aggregation
-    types_present = pd.Index(agg["device_type_id"].unique())
+    types_present = pd.Index(agg["device_type_bucket_id"].unique())
 
     # Device list for those types
-    devs = devices.reset_index().loc[
-        lambda d: d["device_type_id"].isin(types_present),
-        ["device_id", "device_type_id"],
+    devs = devices.reset_index()
+    devs["device_type_bucket_id"] = devs["device_type_id"].replace(
+        {DeviceType.PROJECT: DeviceType.METER}
+    )
+    devs = devs.loc[
+        lambda d: d["device_type_bucket_id"].isin(types_present),
+        ["device_id", "device_type_bucket_id"],
     ]
 
     # Complete (device_type_id, device_id) grid for those types
-    full_idx = pd.MultiIndex.from_frame(devs[["device_type_id", "device_id"]])
+    full_idx = pd.MultiIndex.from_frame(devs[["device_type_bucket_id", "device_id"]])
 
     completed_agg = (
-        agg.set_index(["device_type_id", "device_id"])
+        agg.set_index(["device_type_bucket_id", "device_id"])
         .reindex(full_idx, fill_value=0)
         .reset_index()
         .astype({"total_failures": "int64", "total_hours": "float64"})
-        .sort_values(["device_type_id", "device_id"])
+        .sort_values(["device_type_bucket_id", "device_id"])
     )
 
     # Device names (with 'Project' override for type 5)
     name_map = devices["name_long"].to_dict()
     completed_agg["device_name"] = completed_agg["device_id"].map(name_map)
-    completed_agg.loc[completed_agg["device_type_id"] == 5, "device_name"] = "Project"
+    completed_agg.loc[
+        completed_agg["device_type_bucket_id"] == canonical_project_type, "device_name"
+    ] = "Project"
 
-    for dtid, sub in completed_agg.groupby("device_type_id", sort=True):
+    for dtid, sub in completed_agg.groupby("device_type_bucket_id", sort=True):
         dtid_int = _to_int(value=dtid)
         device_totals.append(
             DeviceTotals(
@@ -277,7 +288,9 @@ async def get_meta_analysis(
     df["time_diff"] = df.groupby("device_id")["time_start"].diff()
     mtbf = df.groupby("device_id", as_index=False).agg(MTBF=("time_diff", "mean"))
     mtbf["MTBF_hours"] = mtbf["MTBF"].dt.total_seconds() / 3600
-    mtbf["device_type_id"] = mtbf["device_id"].map(dtype_map)
+    mtbf["device_type_id"] = (
+        mtbf["device_id"].map(dtype_map).replace({DeviceType.PROJECT: DeviceType.METER})
+    )
     mtbf_by_type = mtbf.groupby("device_type_id", as_index=False)["MTBF_hours"].mean()
 
     # -----------------------
@@ -290,18 +303,26 @@ async def get_meta_analysis(
     mttr = df_mttr.groupby("device_id", as_index=False).agg(
         MTTR_hours=("repair_time", "mean")
     )
-    mttr["device_type_id"] = mttr["device_id"].map(dtype_map)
+    mttr["device_type_id"] = (
+        mttr["device_id"].map(dtype_map).replace({DeviceType.PROJECT: DeviceType.METER})
+    )
     mttr_by_type = mttr.groupby("device_type_id", as_index=False)["MTTR_hours"].mean()
 
     # -----------------------
     # Failure counts & unavailability by type (post-<1h filter)
     # -----------------------
     failure_count_by_type = (
-        df.groupby("device_type_id").size().reset_index(name="failure_count")
+        df.groupby("device_type_bucket_id")
+        .size()
+        .reset_index(name="failure_count")
+        .rename(columns={"device_type_bucket_id": "device_type_id"})
     )
-    unavail_by_type = df.groupby("device_type_id", as_index=False)[
-        "unavailability_contribution"
-    ].sum()
+    unavail_by_type = (
+        df.groupby("device_type_bucket_id")["unavailability_contribution"]
+        .sum()
+        .reset_index()
+        .rename(columns={"device_type_bucket_id": "device_type_id"})
+    )
 
     # -----------------------
     # Combine aggregates on device_type_id
@@ -336,9 +357,12 @@ async def get_meta_analysis(
     metrics: list[EventMetrics] = []
     for _, row in agg_types.iterrows():
         dt_id = int(row["device_type_id"])
-        device_type_name = (
-            "Project" if dt_id == 5 else str(device_types.at[dt_id, "name_long"])
-        )
+        if dt_id == canonical_project_type:
+            device_type_name = "Project"
+        elif dt_id in device_types.index:
+            device_type_name = str(device_types.at[dt_id, "name_long"])
+        else:
+            device_type_name = f"Device Type {dt_id}"
         metrics.append(
             EventMetrics(
                 device_type_id=dt_id,
