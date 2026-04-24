@@ -280,3 +280,6 @@ rollup-plugin-visualizer-stats.html
 
 # Issues sample data
 issues/sample_data/*
+
+# Fallow
+web-app/.fallow

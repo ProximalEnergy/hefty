@@ -1,20 +1,20 @@
 import datetime
 from typing import Annotated, Any, Literal
 
+import core.models as models
 import pandas as pd
+from core.db_query import OutputType
+from core.enumerations import DeviceType
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import core
-import core.models as models
 from app import utils
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
-from core.db_query import OutputType
-from core.enumerations import DeviceType
 
 router = APIRouter(
     prefix="/events",

@@ -40,7 +40,7 @@ import {
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { FeatureCollection } from 'geojson'
-import { groupBy } from 'lodash'
+import groupBy from 'lodash/groupBy'
 import { Data, Layout, PlotData, Shape } from 'plotly.js'
 import React, {
   memo,

@@ -11,7 +11,7 @@ import {
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
 import chroma from 'chroma-js'
-import { merge } from 'lodash'
+import merge from 'lodash/merge'
 import { Annotations, Shape, YAxisName } from 'plotly.js'
 import Plotly, {
   Config,
