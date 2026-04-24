@@ -11,6 +11,7 @@ resolution-markers = [
 members = [
     "api",
     "core",
+    "issues",
     "mono",
     "pv-expected-energy",
 ]
@@ -675,7 +676,7 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.3.147"
+version = "0.3.148"
 source = { editable = "core" }
 dependencies = [
     { name = "async-lru" },
@@ -1317,6 +1318,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ef/4c/5dd1d8af08107f88c7f741ead7a40854b8ac24ddf9ae850afbcf698aa552/ipython_pygments_lexers-1.1.1.tar.gz", hash = "sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81", size = 8393, upload-time = "2025-01-17T11:24:34.505Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/33/1f075bf72b0b747cb3288d011319aaf64083cf2efef8354174e3ed4540e2/ipython_pygments_lexers-1.1.1-py3-none-any.whl", hash = "sha256:a9462224a505ade19a605f71f8fa63c2048833ce50abc86768a0d81d876dc81c", size = 8074, upload-time = "2025-01-17T11:24:33.271Z" },
+]
+
+[[package]]
+name = "issues"
+version = "0.1.0"
+source = { virtual = "issues" }
+dependencies = [
+    { name = "core" },
+    { name = "geoalchemy2" },
+    { name = "psycopg2-binary" },
+    { name = "sqlalchemy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "core", editable = "core" },
+    { name = "geoalchemy2", specifier = ">=0.18,<0.19" },
+    { name = "psycopg2-binary", specifier = ">=2.9.11,<3" },
+    { name = "sqlalchemy", specifier = ">=2.0.45,<3" },
 ]
 
 [[package]]

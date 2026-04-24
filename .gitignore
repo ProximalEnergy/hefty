@@ -277,3 +277,6 @@ rollup-plugin-visualizer-stats.html
 
 # Route Tree
 .route-tree.html
+
+# Issues sample data
+issues/sample_data/*

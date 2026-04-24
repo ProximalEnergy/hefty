@@ -28,9 +28,7 @@ from sqlalchemy import exc as sa_exc
 from sqlalchemy.orm import Session
 
 from core import settings
-from core.crud.project.query_metadata_cache import (
-    get_project_query_metadata_cached,
-)
+from core.crud.project.query_metadata_cache import get_project_query_metadata_cached
 from core.crud.project.tags import get_project_tags_v2
 from core.db_query import DbQuery, OutputType
 from core.enumerations import (
