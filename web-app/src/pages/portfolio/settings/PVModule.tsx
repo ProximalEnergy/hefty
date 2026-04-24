@@ -180,6 +180,12 @@ const Page = () => {
   const [uploadedPANData, setUploadedPANData] =
     useState<PVModuleFromPAN | null>(null)
 
+  const clearPANUploadState = () => {
+    setPanFile(null)
+    setPanUploadError(null)
+    setUploadedPANData(null)
+  }
+
   // --- State for EquipmentFilter (not part of the form) ---
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('')
   const [selectedModel, setSelectedModel] = useState<string>('')
@@ -268,7 +274,10 @@ const Page = () => {
   })
 
   const handlePANFileUpload = (file: File | null) => {
-    if (!file) return
+    if (!file) {
+      clearPANUploadState()
+      return
+    }
 
     setPanFile(file)
     setPanUploadError(null)
@@ -479,9 +488,7 @@ const Page = () => {
     setHasManualEdits(false)
 
     // Reset PAN file related states
-    setPanFile(null)
-    setPanUploadError(null)
-    setUploadedPANData(null)
+    clearPANUploadState()
 
     // Clear validation errors
     setValidationError(null)
@@ -745,6 +752,8 @@ const Page = () => {
     setValidationError(null)
     try {
       setFormSubmitting(true)
+      const submitManufacturer = selectedManufacturer
+      const submitModel = selectedModel
 
       if (!userCompanyId) {
         throw new Error('Company ID is required')
@@ -824,11 +833,16 @@ const Page = () => {
 
       // Update the module ID if this was a new creation
       if (!isExistingCompanyModule && result.pv_module_id) {
-        if (dataSource === 'cec') {
+        if (dataSource === 'pan') {
+          clearForm()
+        } else if (dataSource === 'cec') {
           setDataSource('proximal')
+          setSelectedModuleId(result.pv_module_id)
+          setHasManualEdits(false)
+        } else {
+          setSelectedModuleId(result.pv_module_id)
+          setHasManualEdits(false)
         }
-        setSelectedModuleId(result.pv_module_id)
-        setHasManualEdits(false)
       }
 
       // Show success notification
@@ -836,7 +850,7 @@ const Page = () => {
         title: isExistingCompanyModule ? 'Module Updated' : 'Module Created',
         message: `Successfully ${
           isExistingCompanyModule ? 'updated' : 'created'
-        } PV module for ${selectedManufacturer} - ${selectedModel}`,
+        } PV module for ${submitManufacturer} - ${submitModel}`,
         color: 'green',
         icon: <IconCheck size="1.1rem" />,
       })
@@ -921,9 +935,7 @@ const Page = () => {
               setSelectedModuleId(null)
               setHasManualEdits(false)
               resetModuleFields()
-              setPanFile(null)
-              setPanUploadError(null)
-              setUploadedPANData(null)
+              clearPANUploadState()
             }}
             clearable={false}
             required={true}
@@ -968,10 +980,7 @@ const Page = () => {
                 accept=".pan,.PAN"
                 leftSection={<IconUpload size="1rem" />}
                 value={panFile}
-                onChange={(value) => {
-                  setPanFile(value)
-                  if (value) handlePANFileUpload(value)
-                }}
+                onChange={handlePANFileUpload}
                 error={panUploadError}
                 required={true}
                 style={{ width: '100%' }}
@@ -983,6 +992,7 @@ const Page = () => {
                   color="red"
                   mt="sm"
                   withCloseButton
+                  onClose={clearPANUploadState}
                 >
                   {panUploadError}
                 </Alert>

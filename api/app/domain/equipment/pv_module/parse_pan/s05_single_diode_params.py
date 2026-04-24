@@ -1,11 +1,10 @@
 import math
-from typing import Any, cast
+from typing import Any
 
 
 def solve_stc_parameters(
     *,
     pv_module_data: dict[str, Any],
-    pan_data: dict[str, Any],
 ) -> dict[str, Any]:
     """
     Solves for Iph and Io at Standard Test Conditions (STC) using the
@@ -15,8 +14,6 @@ def solve_stc_parameters(
     Args:
         pv_module_data: Parsed module parameters used to solve STC values and
             updated in place with the calculated outputs.
-        pan_data: Parsed `.pan` metadata used to read supplemental values such
-            as `D2MuTau`.
 
     Returns:
         The updated module parameter mapping including the calculated single
@@ -42,15 +39,7 @@ def solve_stc_parameters(
         keys=("cells_in_series", "NCelS"),
         source=pv_module_data,
     )
-
-    d2mutau: object | None = pan_data.get("D2MuTau")
-    pv_object = pan_data.get("PVObject_")
-    if d2mutau in (None, "") and isinstance(pv_object, dict):
-        d2mutau = pv_object.get("D2MuTau")
-
-    if d2mutau in (None, ""):
-        raise ValueError("Missing required parameter: D2MuTau")
-    d2mutau = float(cast(str | float | int, d2mutau))
+    d2mutau = _get_param(keys=("d2mutau", "D2MuTau"), source=pv_module_data)
 
     # 2. Defined Constants
     v_t = 0.02569

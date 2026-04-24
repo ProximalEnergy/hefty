@@ -48,7 +48,6 @@ def parse_pan(*, file_content: bytes) -> dict[str, Any]:
     )
     pv_module_data = solve_stc_parameters(
         pv_module_data=pv_module_data,
-        pan_data=pan_data,
     )
 
     return dict(pv_module_data)

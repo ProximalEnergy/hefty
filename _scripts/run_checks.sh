@@ -322,6 +322,43 @@ prompt_failure_action() {
     done
 }
 
+prompt_post_log_codex_action() {
+    local codex_mode="$1"
+    local prompt_subject="failures"
+    local codex_input
+
+    case "$codex_mode" in
+        errors)
+            prompt_subject="errors"
+            ;;
+        warnings)
+            prompt_subject="warnings"
+            ;;
+    esac
+
+    while true; do
+        read -r -p \
+            "Pass displayed ${prompt_subject} to Codex? [(c)odex/(n)one]: " \
+            codex_input
+        codex_input=$(
+            printf '%s' "$codex_input" | tr '[:upper:]' '[:lower:]'
+        )
+        case "$codex_input" in
+            c|codex)
+                echo "codex"
+                return 0
+                ;;
+            n|none)
+                echo "none"
+                return 0
+                ;;
+            *)
+                echo "Please enter one of: c, n."
+                ;;
+        esac
+    done
+}
+
 send_failures_to_codex() {
     local codex_mode="$1"
     local codex_context_file
@@ -768,6 +805,8 @@ run_all_checks() {
     local elapsed_seconds
     local check_started_at
     local show_logs_mode="none"
+    local post_log_codex_action="none"
+    local displayed_failure_mode=""
     local allow_prompt_errors="false"
     local allow_prompt_warnings="false"
     local allow_prompt_codex="false"
@@ -928,6 +967,7 @@ run_all_checks() {
         fi
         if [ "$show_logs_mode" = "errors" ] \
             || [ "$show_logs_mode" = "all" ]; then
+            displayed_failure_mode="$show_logs_mode"
             echo ""
             if [ "${#failed_error_indices[@]}" -gt 0 ]; then
                 echo -e "${RED}Error failure logs:${NC}"
@@ -946,6 +986,7 @@ run_all_checks() {
         fi
         if [ "$show_logs_mode" = "warnings" ] \
             || [ "$show_logs_mode" = "all" ]; then
+            displayed_failure_mode="$show_logs_mode"
             echo ""
             if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
                 echo -e "${PURPLE}Warning failure logs:${NC}"
@@ -960,6 +1001,16 @@ run_all_checks() {
                     fi
                     echo ""
                 done
+            fi
+        fi
+        if [ "$allow_prompt_codex" = "true" ] \
+            && [ -n "$displayed_failure_mode" ]; then
+            echo ""
+            post_log_codex_action=$(
+                prompt_post_log_codex_action "$displayed_failure_mode"
+            )
+            if [ "$post_log_codex_action" = "codex" ]; then
+                send_failures_to_codex "$displayed_failure_mode"
             fi
         fi
     elif [ "${QUIET}" = "true" ]; then
