@@ -271,14 +271,11 @@ function AdaptiveGisBESS() {
     ? (lockedDeviceTypeIds ?? dynamicDeviceTypeIds)
     : dynamicDeviceTypeIds
 
-  // For power data enrichment from backend, request the power device type
-  const powerDeviceTypeIdToFetch = useMemo(() => DeviceTypeEnum.BESS_PCS, [])
-
   const viewportDevices = useGetDevicesInViewport({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       device_type_ids: deviceTypeIdsToFetch,
-      power_device_type_id: powerDeviceTypeIdToFetch,
+      power_device_type_id: DeviceTypeEnum.BESS_PCS,
     },
     queryOptions: {
       enabled: !!project.data,

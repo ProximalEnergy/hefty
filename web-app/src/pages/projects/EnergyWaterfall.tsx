@@ -73,15 +73,11 @@ const EnergyWaterfall = () => {
 
   const [showEfficiency, setShowEfficiency] = useState(true)
 
-  const lossesTableCardInfo = useMemo(
-    () =>
-      `Detailed breakdown of energy losses with percentages. Bold rows are subtotals, red italic rows exceed expected losses. ${
-        showEfficiency
-          ? 'Efficiency % shows remaining efficiency after losses'
-          : 'Loss % shows change from previous step'
-      }.`,
-    [showEfficiency],
-  )
+  const lossesTableCardInfo = `Detailed breakdown of energy losses with percentages. Bold rows are subtotals, red italic rows exceed expected losses. ${
+    showEfficiency
+      ? 'Efficiency % shows remaining efficiency after losses'
+      : 'Loss % shows change from previous step'
+  }.`
 
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme()

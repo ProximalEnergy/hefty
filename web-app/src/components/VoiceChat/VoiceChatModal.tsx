@@ -766,7 +766,7 @@ const VoiceChatModal = ({
                       fw={600}
                       c="white"
                       style={{
-                        animation: 'pulse 1.5s ease-in-out infinite',
+                        animation: 'pulse 1s ease-in-out infinite',
                       }}
                     >
                       Gathering Document...

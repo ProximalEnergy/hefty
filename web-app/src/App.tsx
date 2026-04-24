@@ -45,7 +45,6 @@ import { usePageViewTracking } from './hooks/usePageViewTracking'
 import AccountSettings from './pages/AccountSettings'
 import Api from './pages/Api'
 import ApplicationSettings from './pages/ApplicationSettings'
-import LoomTesting from './pages/LoomTesting'
 import NotFound from './pages/NotFound'
 import { SignIn } from './pages/SignIn'
 import DroneIntegrations from './pages/admin/DroneIntegrations'
@@ -316,7 +315,6 @@ const ClerkProviderWithRoutes = () => {
               element={<ApplicationSettings />}
             />
             <Route path="/api" element={<Api />} />
-            <Route path="/loom-testing" element={<LoomTesting />} />
 
             {/* Portfolio */}
             <Route path="/portfolio">
