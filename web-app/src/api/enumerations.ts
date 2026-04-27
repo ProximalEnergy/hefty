@@ -6,9 +6,6 @@ export const AggregationMethodEnum = {
   AVERAGE: "avg",
 } as const;
 
-export const BaseIntEnumEnum = {
-} as const;
-
 export const ClaimStatusEnum = {
   DRAFT: "draft",
   SUBMITTED: "submitted",
@@ -285,6 +282,64 @@ export const ProjectDataIntervalEnum = {
 export const ProjectDatabaseProviderEnum = {
   TIMESCALE: "timescale",
   CLICKHOUSE: "clickhouse",
+} as const;
+
+export const ProjectIDEnum = {
+  ASSEMBLY_1: "b102379c-eadb-4cc4-808b-a3d4b3f3ea5a",
+  ASSEMBLY_2: "32fac373-1dd6-465a-bb06-d3cc6b268c7b",
+  ASSEMBLY_3: "23bd9f17-07b0-4a15-be56-bc676f9b7463",
+  BEXAR: "3b63ea38-cf28-4880-810e-41a81209d640",
+  CARRIZO_SPRINGS: "2824c119-35fb-48a3-82e9-854c8e331c5e",
+  CENTENNIAL_FLATS: "bee3f2dc-995e-4f2c-b409-ff66f51c97eb",
+  CONTINENTAL: "75c901ca-fa81-49cb-ab2b-de50c1c0eb65",
+  CONTINENTAL_V2: "5662003f-4d3a-4ed1-ba7c-781981a0f0b1",
+  CRANE: "c4eb9ee4-e943-450e-914a-a92ae60994f9",
+  DOUBLE_BLACK_DIAMOND: "6970fba7-6462-475f-805a-2357ee4ababb",
+  ESCONDIDO: "36c23224-9b26-4bb0-9569-87d98d0eb217",
+  EXCELSIOR_DOCUMENTS: "37f66167-d10a-4262-9651-bc416f574961",
+  FALFURRIAS: "1e86f87d-da60-40b9-b21e-6a6700801c32",
+  FALFURRIAS_INDIE: "8560c515-3b29-426a-88ed-05abb1a7d13b",
+  FIDDLERS_CANYON_1: "7988693d-5fbe-491f-90ed-fb48b9e1d099",
+  FIDDLERS_CANYON_2: "5e5c8458-1c17-4b2c-907b-fb9bed045884",
+  FIDDLERS_CANYON_3: "3a8c68a6-7176-48f9-a27c-aa9669d443bc",
+  GEARS_HARRIS: "ba9e5acc-e8be-4c8b-b976-3100a921e6c6",
+  GOODWIN: "7da47737-5587-4beb-b614-d9b434b95a80",
+  GREGORY: "623ddc81-ed4c-4e56-b9ca-a4a9be238a8b",
+  GREGORY_INDIE: "c947895b-e067-4e21-9972-6c2aed17b52a",
+  HEADCAMP: "56a117c4-e045-45f1-aa52-e2e862d18cb0",
+  HEARN_ROAD: "9d74f427-1f30-4090-b3bc-03cae8be0bd4",
+  HIDDEN_VALLEY: "4a457efc-99aa-4961-a5b0-d25f477adf01",
+  LANCASTER: "3028d2ee-c924-4c6e-a133-9938926bc4b6",
+  LAURELES: "69c1e2b9-87e7-44a5-9ee1-a69650084090",
+  LEAKY: "68bb58e2-e9b2-4081-aa56-e60dc33d9ecd",
+  LYSSY: "f4852649-0284-4463-b2e2-f7a756e36741",
+  MASON: "85e02759-1033-4e1d-a1a6-ad86f5200aaf",
+  MASON_INDIE: "0da615ac-5364-49bc-a577-dda3866e34cb",
+  MEADOW_PARK: "69a3055f-2422-4eee-902f-5eaca158491d",
+  MEDINA: "86ab9305-76ac-4434-b1d3-2c54f5c33287",
+  MEDINA_LAKE: "16a37540-e21f-4619-8724-ad02be05ffd2",
+  MILFORD_2: "f4ba3efd-01b7-45aa-8c74-9f07447e9d85",
+  MILTON: "200fb929-04d2-4bc2-ad84-774837db517a",
+  MONTE_CRISTO: "38d93404-f79f-4ea9-8c08-f2d2c4f370b6",
+  MONTE_CRISTO_INDIE: "f4427a0c-2d70-436c-ab28-facb1c4b4d1f",
+  MUENSTER: "1c1c945f-97af-4eb3-afe6-0acbb3409b82",
+  MUENSTER_INDIE: "f90c2f87-1700-41c8-858e-fcf793ae1e4e",
+  NORTH_STAR: "e69ddc19-e2c6-4537-a236-93849c4bc847",
+  PALACIOS: "cba2690a-03cf-4878-bf0b-dd3801da6fb2",
+  PALACIOS_INDIE: "ea902794-4670-4a95-b2bd-cf700a6ca460",
+  PROJECT_DEFAULT: "e8434ff5-b6da-46fc-b057-f9f84b13b61b",
+  ROSAMOND_SOUTH_1: "838e5fe1-7d20-47e2-a438-d34e8e081a19",
+  SERRANO: "043fecf7-6cce-4228-acda-b1f23fd6d5f5",
+  SIGURD: "83e51c6e-22ff-4ea2-8b3b-5bf89185409d",
+  SINTON_PIRATE: "fe1f0db0-c492-49a0-8502-ffc6eee22e55",
+  SINTON_PIRATE_INDIE: "e34b7e5b-b2f8-4b50-9127-953144021889",
+  SNIPESVILLE_2: "679f8f19-af11-43e0-9a60-64fc706f92a4",
+  SOUTH_MILFORD: "f1f18240-41f5-4c3c-8602-77526dbbbd1f",
+  SUN_POND: "3f9d3a72-8322-4d5a-8f37-1eac89f9ee59",
+  SUN_STREAMS_3: "fa8c717a-9a9f-4759-ada9-de845fa9b59f",
+  SUN_STREAMS_4: "3e3a98c1-3172-407e-b730-827f389c294d",
+  TILDEN: "2d9cb07b-bb1c-4e05-bc52-2bbd416ebf0b",
+  UTOPIA: "755836fa-c3ec-4ec9-8362-648709df30f7",
 } as const;
 
 export const ProjectStatusTypeEnum = {

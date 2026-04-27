@@ -1,6 +1,7 @@
 from collections.abc import Sequence
-from enum import IntEnum, StrEnum, nonmember
-from typing import TYPE_CHECKING, Any
+from enum import Enum, IntEnum, StrEnum, nonmember
+from typing import TYPE_CHECKING, Any, cast
+from uuid import UUID
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -8,19 +9,64 @@ if TYPE_CHECKING:
 from sqlalchemy import text
 
 
-class BaseIntEnum(IntEnum):
-    _db_table = nonmember(None)
-    _db_id_column = nonmember(None)
-    _db_name_column = nonmember(None)
+class BaseDatabaseEnum[DatabaseEnumValueT]:
+    _db_table: str | None = None
+    _db_id_column: str | None = None
+    _db_name_column: str | None = None
 
     @classmethod
-    def extract_values(cls, *, enum_list: Sequence["BaseIntEnum"]) -> list[int]:
-        """Extract integer values from a list of BaseEnum enums for database queries.
+    def _database_id_type(cls) -> type[Any] | None:
+        if not issubclass(cls, Enum):
+            return None
+
+        enum_cls = cast(type[Enum], cls)
+        members = list(enum_cls)
+        if not members:
+            return None
+
+        return type(members[0].value)
+
+    @classmethod
+    def _coerce_database_id(cls, *, value: Any) -> DatabaseEnumValueT:
+        if cls._database_id_type() is UUID:
+            return cast(DatabaseEnumValueT, UUID(str(value)))
+
+        return cast(DatabaseEnumValueT, value)
+
+    @classmethod
+    def _db_order_column(cls) -> str | None:
+        if cls._database_id_type() is UUID:
+            return cls._db_name_column
+
+        return cls._db_id_column
+
+    @classmethod
+    def _enum_subclasses(cls) -> list[type["BaseDatabaseEnum[Any]"]]:
+        enum_subclasses: list[type[BaseDatabaseEnum[Any]]] = []
+        for subclass in cls.__subclasses__():
+            if not issubclass(subclass, BaseDatabaseEnum):
+                continue
+            if issubclass(subclass, Enum):
+                enum_subclasses.append(subclass)
+            enum_subclasses.extend(subclass._enum_subclasses())
+
+        return enum_subclasses
+
+    @classmethod
+    def extract_values(
+        cls,
+        *,
+        enum_list: Sequence["BaseDatabaseEnum[DatabaseEnumValueT]"],
+    ) -> list[DatabaseEnumValueT]:
+        """Extract enum values from a list of enums for database queries.
 
         Args:
             enum_list: Sequence of enum members to extract ids from.
         """
-        return [status.value for status in enum_list]
+        return [
+            cls._coerce_database_id(value=cast(Enum, member).value)
+            for member in enum_list
+        ]
 
     @classmethod
     def validate_against_database(cls, *, session: "Session") -> dict[str, Any]:
@@ -32,9 +78,19 @@ class BaseIntEnum(IntEnum):
         table = cls._db_table
         id_column = cls._db_id_column
         name_column = cls._db_name_column
-        enum_data = {member.value: member.name for member in cls}
+        order_column = cls._db_order_column()
+        enum_cls = cast(type[Enum], cls)
+        enum_data = {
+            cls._coerce_database_id(value=member.value): member.name
+            for member in enum_cls
+        }
 
-        if table is None or id_column is None or name_column is None:
+        if (
+            table is None
+            or id_column is None
+            or name_column is None
+            or order_column is None
+        ):
             return {
                 "missing_in_db": "Un-monitored",
                 "extra_in_db": "None",
@@ -44,17 +100,18 @@ class BaseIntEnum(IntEnum):
                 "total_db_count": 0,
             }
 
-        if not table or not id_column or not name_column:
+        if not table or not id_column or not name_column or not order_column:
             raise ValueError("Database table and column names must be defined")
 
         # SQL injection risk, but this library is not exposed to anybody
         # outside of Proximal
         query = text(
-            f"SELECT {id_column}, {name_column} FROM {table} ORDER BY {id_column}"  # noqa: S608
+            f"SELECT {id_column}, {name_column} "  # noqa: S608
+            f"FROM {table} ORDER BY {order_column}"
         )
 
         result = session.execute(query).fetchall()
-        db_data = {row[0]: row[1] for row in result}
+        db_data = {cls._coerce_database_id(value=row[0]): row[1] for row in result}
 
         # Find discrepancies
         enum_ids = set(enum_data.keys())
@@ -72,7 +129,7 @@ class BaseIntEnum(IntEnum):
         for common_id in enum_ids & db_ids:
             enum_name = enum_data[common_id]
             db_name = db_data[common_id]
-            names_match = enum_name.lower() == db_name.lower()
+            names_match = enum_name.lower() == str(db_name).lower()
             if not names_match:
                 name_mismatches.append(
                     {"id": common_id, "enum_name": enum_name, "db_name": db_name}
@@ -100,16 +157,13 @@ class BaseIntEnum(IntEnum):
 
         Args:
             session: Database session to use for validation
-            case_sensitive: Whether to perform case-sensitive name comparison
-                (default: True)
 
         Returns:
             Dictionary mapping enum class names to their validation results
         """
         results: dict[str, dict[str, Any]] = {}
 
-        # Find all BaseIntEnum subclasses
-        for subclass in cls.__subclasses__():
+        for subclass in cls._enum_subclasses():
             if (
                 subclass._db_table
                 and subclass._db_id_column
@@ -123,40 +177,104 @@ class BaseIntEnum(IntEnum):
 
 
 # --- Database Enums ---
-class ProjectStatusType(BaseIntEnum):
-    _db_table = nonmember("operational.project_status_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("project_status_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class ProjectStatusType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember(  # type: ignore[misc]
+        "operational.project_status_types"
+    )
+    _db_id_column = nonmember("project_status_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     ACTIVE = 1
     ONBOARDING = 2
     ARCHIVED = 3
 
 
-class ProjectType(BaseIntEnum):
-    _db_table = nonmember("operational.project_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("project_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class ProjectType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("operational.project_types")  # type: ignore[misc]
+    _db_id_column = nonmember("project_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     PV = 1
     BESS = 2
     PVS = 3
 
 
-class UserTypeEnum(BaseIntEnum):
-    _db_table = nonmember("admin.user_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("user_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class ProjectID(BaseDatabaseEnum[UUID], Enum):
+    _db_table = nonmember("operational.projects")  # type: ignore[misc]
+    _db_id_column = nonmember("project_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
+
+    ASSEMBLY_1 = UUID("b102379c-eadb-4cc4-808b-a3d4b3f3ea5a")
+    ASSEMBLY_2 = UUID("32fac373-1dd6-465a-bb06-d3cc6b268c7b")
+    ASSEMBLY_3 = UUID("23bd9f17-07b0-4a15-be56-bc676f9b7463")
+    BEXAR = UUID("3b63ea38-cf28-4880-810e-41a81209d640")
+    CARRIZO_SPRINGS = UUID("2824c119-35fb-48a3-82e9-854c8e331c5e")
+    CENTENNIAL_FLATS = UUID("bee3f2dc-995e-4f2c-b409-ff66f51c97eb")
+    CONTINENTAL = UUID("75c901ca-fa81-49cb-ab2b-de50c1c0eb65")
+    CONTINENTAL_V2 = UUID("5662003f-4d3a-4ed1-ba7c-781981a0f0b1")
+    CRANE = UUID("c4eb9ee4-e943-450e-914a-a92ae60994f9")
+    DOUBLE_BLACK_DIAMOND = UUID("6970fba7-6462-475f-805a-2357ee4ababb")
+    ESCONDIDO = UUID("36c23224-9b26-4bb0-9569-87d98d0eb217")
+    EXCELSIOR_DOCUMENTS = UUID("37f66167-d10a-4262-9651-bc416f574961")
+    FALFURRIAS = UUID("1e86f87d-da60-40b9-b21e-6a6700801c32")
+    FALFURRIAS_INDIE = UUID("8560c515-3b29-426a-88ed-05abb1a7d13b")
+    FIDDLERS_CANYON_1 = UUID("7988693d-5fbe-491f-90ed-fb48b9e1d099")
+    FIDDLERS_CANYON_2 = UUID("5e5c8458-1c17-4b2c-907b-fb9bed045884")
+    FIDDLERS_CANYON_3 = UUID("3a8c68a6-7176-48f9-a27c-aa9669d443bc")
+    GEARS_HARRIS = UUID("ba9e5acc-e8be-4c8b-b976-3100a921e6c6")
+    GOODWIN = UUID("7da47737-5587-4beb-b614-d9b434b95a80")
+    GREGORY = UUID("623ddc81-ed4c-4e56-b9ca-a4a9be238a8b")
+    GREGORY_INDIE = UUID("c947895b-e067-4e21-9972-6c2aed17b52a")
+    HEADCAMP = UUID("56a117c4-e045-45f1-aa52-e2e862d18cb0")
+    HEARN_ROAD = UUID("9d74f427-1f30-4090-b3bc-03cae8be0bd4")
+    HIDDEN_VALLEY = UUID("4a457efc-99aa-4961-a5b0-d25f477adf01")
+    LANCASTER = UUID("3028d2ee-c924-4c6e-a133-9938926bc4b6")
+    LAURELES = UUID("69c1e2b9-87e7-44a5-9ee1-a69650084090")
+    LEAKY = UUID("68bb58e2-e9b2-4081-aa56-e60dc33d9ecd")
+    LYSSY = UUID("f4852649-0284-4463-b2e2-f7a756e36741")
+    MASON = UUID("85e02759-1033-4e1d-a1a6-ad86f5200aaf")
+    MASON_INDIE = UUID("0da615ac-5364-49bc-a577-dda3866e34cb")
+    MEADOW_PARK = UUID("69a3055f-2422-4eee-902f-5eaca158491d")
+    MEDINA = UUID("86ab9305-76ac-4434-b1d3-2c54f5c33287")
+    MEDINA_LAKE = UUID("16a37540-e21f-4619-8724-ad02be05ffd2")
+    MILFORD_2 = UUID("f4ba3efd-01b7-45aa-8c74-9f07447e9d85")
+    MILTON = UUID("200fb929-04d2-4bc2-ad84-774837db517a")
+    MONTE_CRISTO = UUID("38d93404-f79f-4ea9-8c08-f2d2c4f370b6")
+    MONTE_CRISTO_INDIE = UUID("f4427a0c-2d70-436c-ab28-facb1c4b4d1f")
+    MUENSTER = UUID("1c1c945f-97af-4eb3-afe6-0acbb3409b82")
+    MUENSTER_INDIE = UUID("f90c2f87-1700-41c8-858e-fcf793ae1e4e")
+    NORTH_STAR = UUID("e69ddc19-e2c6-4537-a236-93849c4bc847")
+    PALACIOS = UUID("cba2690a-03cf-4878-bf0b-dd3801da6fb2")
+    PALACIOS_INDIE = UUID("ea902794-4670-4a95-b2bd-cf700a6ca460")
+    PROJECT_DEFAULT = UUID("e8434ff5-b6da-46fc-b057-f9f84b13b61b")
+    ROSAMOND_SOUTH_1 = UUID("838e5fe1-7d20-47e2-a438-d34e8e081a19")
+    SERRANO = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
+    SIGURD = UUID("83e51c6e-22ff-4ea2-8b3b-5bf89185409d")
+    SINTON_PIRATE = UUID("fe1f0db0-c492-49a0-8502-ffc6eee22e55")
+    SINTON_PIRATE_INDIE = UUID("e34b7e5b-b2f8-4b50-9127-953144021889")
+    SNIPESVILLE_2 = UUID("679f8f19-af11-43e0-9a60-64fc706f92a4")
+    SOUTH_MILFORD = UUID("f1f18240-41f5-4c3c-8602-77526dbbbd1f")
+    SUN_POND = UUID("3f9d3a72-8322-4d5a-8f37-1eac89f9ee59")
+    SUN_STREAMS_3 = UUID("fa8c717a-9a9f-4759-ada9-de845fa9b59f")
+    SUN_STREAMS_4 = UUID("3e3a98c1-3172-407e-b730-827f389c294d")
+    TILDEN = UUID("2d9cb07b-bb1c-4e05-bc52-2bbd416ebf0b")
+    UTOPIA = UUID("755836fa-c3ec-4ec9-8362-648709df30f7")
+
+
+class UserTypeEnum(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("admin.user_types")  # type: ignore[misc]
+    _db_id_column = nonmember("user_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     SUPERADMIN = 1
     ADMIN = 2
     USER = 3
 
 
-class DeviceType(BaseIntEnum):
-    _db_table = nonmember("operational.device_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("device_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class DeviceType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("operational.device_types")  # type: ignore[misc]
+    _db_id_column = nonmember("device_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     GHOST = 0
     PROJECT = 1
@@ -192,10 +310,10 @@ class DeviceType(BaseIntEnum):
     BESS_DC_SKID = 36
 
 
-class SensorType(BaseIntEnum):
-    _db_table = nonmember("operational.sensor_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("sensor_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class SensorType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("operational.sensor_types")  # type: ignore[misc]
+    _db_id_column = nonmember("sensor_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     GHOST_UNKNOWN = 0
     METER_ACTIVE_POWER = 1
@@ -417,10 +535,10 @@ class SensorType(BaseIntEnum):
     PROJECT_RECLOSER_STATUS = 219
 
 
-class KPIType(BaseIntEnum):
-    _db_table = nonmember("operational.kpi_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("kpi_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class KPIType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("operational.kpi_types")  # type: ignore[misc]
+    _db_id_column = nonmember("kpi_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     PV_INVERTER_MECHANICAL_AVAILABILITY = 1
     PV_INVERTER_ENERGY_PRODUCTION = 2
@@ -547,20 +665,22 @@ class KPIType(BaseIntEnum):
     BESS_PROJECT_NER_AVAILABILITY = 125
 
 
-class EventLossType(BaseIntEnum):
-    _db_table = nonmember("operational.event_loss_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("event_loss_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class EventLossType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember(  # type: ignore[misc]
+        "operational.event_loss_types"
+    )
+    _db_id_column = nonmember("event_loss_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     PROXIMAL_ENERGY = 1
     PROXIMAL_FINANCIAL = 2
     PROXIMAL_PV_DC_CAPACITY = 3
 
 
-class ReportType(BaseIntEnum):
-    _db_table = nonmember("operational.report_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("report_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class ReportType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("operational.report_types")  # type: ignore[misc]
+    _db_id_column = nonmember("report_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     PERFORMANCE_SUMMARY = 1
     DC_AMPERAGE = 2
@@ -681,10 +801,10 @@ class NotificationSeverity(StrEnum):
     CRITICAL = "critical"
 
 
-class NotificationType(BaseIntEnum):
-    _db_table = nonmember("admin.notification_types")  # type: ignore[misc,assignment]
-    _db_id_column = nonmember("notification_type_id")  # type: ignore[misc,assignment]
-    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+class NotificationType(BaseDatabaseEnum[int], IntEnum):
+    _db_table = nonmember("admin.notification_types")  # type: ignore[misc]
+    _db_id_column = nonmember("notification_type_id")  # type: ignore[misc]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc]
 
     HAIL = 1
     FIRE = 2

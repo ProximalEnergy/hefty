@@ -32,6 +32,12 @@ rules:
           pattern: |
             def $FUNC(self):
                 ...
+      # Exclude class methods that only have 'cls'
+      - pattern-not:
+          pattern: |
+            @classmethod
+            def $FUNC(cls):
+                ...
 
       # Exclude FastAPI route decorators (app.get, router.post, etc.)
       - pattern-not-inside: |

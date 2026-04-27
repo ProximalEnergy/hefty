@@ -1,7 +1,7 @@
 """
 Standalone enum validation script.
 
-This script validates all BaseIntEnum subclasses against their database tables
+This script validates all database enum subclasses against their database tables
 without import conflicts that can occur when running the enumerations module directly.
 It can also automatically update the enumerations.py file with missing entries.
 """
@@ -9,16 +9,20 @@ It can also automatically update the enumerations.py file with missing entries.
 import re
 import sys
 from pathlib import Path
+from uuid import UUID
 
 # Add the src directory to the path to allow imports
 src_dir = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_dir))
 
 from core.database import get_db_session  # noqa: E402
-from core.enumerations import BaseIntEnum  # noqa: E402
+from core.enumerations import BaseDatabaseEnum  # noqa: E402
+
+EnumMemberValue = int | UUID
+EnumUpdate = dict[str, int | str | UUID]
 
 
-def db_name_to_enum_name(db_name: str) -> str:
+def db_name_to_enum_name(*, db_name: str) -> str:
     """Convert database name to valid Python enum name (UPPER_CASE).
 
     Args:
@@ -44,9 +48,65 @@ def db_name_to_enum_name(db_name: str) -> str:
     return name
 
 
+def class_update_info(*, line: str) -> tuple[str, str] | None:
+    """Return enum class name and database id type for updateable classes."""
+    class_match = re.match(
+        r"^class (\w+)\(BaseDatabaseEnum\[(int|UUID)\], (IntEnum|Enum)\):",
+        line,
+    )
+    if class_match is None:
+        return None
+
+    return class_match.group(1), class_match.group(2)
+
+
+def coerce_update_value(*, value: int | str | UUID, value_type: str) -> EnumMemberValue:
+    """Coerce database ids from validation output to enum member values."""
+    if value_type == "UUID":
+        return UUID(str(value))
+
+    return int(value)
+
+
+def parse_enum_member(
+    *,
+    stripped_line: str,
+    original_line: str,
+    value_type: str,
+) -> tuple[EnumMemberValue, tuple[str, str]] | None:
+    """Parse an enum member assignment from enumerations.py."""
+    if value_type == "UUID":
+        member_match = re.match(
+            r'^(\w+)\s*=\s*UUID\("([0-9a-fA-F-]+)"\)\s*(.*)$',
+            stripped_line,
+        )
+        if member_match is None:
+            return None
+        name = member_match.group(1)
+        value = UUID(member_match.group(2))
+        return value, (name, original_line)
+
+    member_match = re.match(r"^(\w+)\s*=\s*(\d+)\s*(.*)$", stripped_line)
+    if member_match is None:
+        return None
+
+    name = member_match.group(1)
+    value = int(member_match.group(2))
+    return value, (name, original_line)
+
+
+def format_enum_value(*, value: EnumMemberValue, value_type: str) -> str:
+    """Format an enum value as a Python assignment value."""
+    if value_type == "UUID":
+        return f'UUID("{value}")'
+
+    return str(value)
+
+
 def update_enumerations_file(
+    *,
     enum_file_path: Path,
-    updates: dict[str, list[dict[str, int | str]]],
+    updates: dict[str, list[EnumUpdate]],
 ) -> bool:
     """Update enumerations.py file with new enum members.
 
@@ -71,9 +131,9 @@ def update_enumerations_file(
         new_lines.append(line)
 
         # Check if this is a class definition for an enum we need to update
-        class_match = re.match(r"^class (\w+)\(BaseIntEnum\):", line)
-        if class_match:
-            enum_class_name = class_match.group(1)
+        update_info = class_update_info(line=line)
+        if update_info is not None:
+            enum_class_name, value_type = update_info
             if enum_class_name in updates:
                 # Skip the class definition line
                 i += 1
@@ -88,20 +148,21 @@ def update_enumerations_file(
                         break
 
                 # Collect existing enum members with their original lines
-                existing_members: dict[
-                    int, tuple[str, str]
-                ] = {}  # value -> (name, original_line)
+                existing_members: dict[EnumMemberValue, tuple[str, str]] = {}
                 while i < len(lines):
                     stripped = lines[i].strip()
                     # Stop if we hit another class definition
                     if stripped.startswith("class "):
                         break
                     # Check if it's an enum member (NAME = VALUE)
-                    member_match = re.match(r"^(\w+)\s*=\s*(\d+)\s*(.*)$", stripped)
-                    if member_match:
-                        name = member_match.group(1)
-                        value = int(member_match.group(2))
-                        existing_members[value] = (name, lines[i])
+                    enum_member = parse_enum_member(
+                        stripped_line=stripped,
+                        original_line=lines[i],
+                        value_type=value_type,
+                    )
+                    if enum_member is not None:
+                        value, member = enum_member
+                        existing_members[value] = member
                         i += 1
                     elif not stripped:
                         # Blank line - stop collecting enum members
@@ -114,39 +175,38 @@ def update_enumerations_file(
                         i += 1
 
                 # Create new members from updates
-                new_members: list[tuple[int, str, str]] = []  # (value, name, db_name)
+                new_members: list[tuple[EnumMemberValue, str]] = []
                 for extra in updates[enum_class_name]:
                     db_name = str(extra["db_name"])
-                    enum_id = int(extra["id"])
-                    enum_name = db_name_to_enum_name(db_name)
+                    enum_id = coerce_update_value(
+                        value=extra["id"],
+                        value_type=value_type,
+                    )
+                    enum_name = db_name_to_enum_name(db_name=db_name)
                     if enum_id not in existing_members:
-                        new_members.append((enum_id, enum_name, db_name))
+                        new_members.append((enum_id, enum_name))
 
-                # Merge existing and new members, sort by value
+                # Merge existing and new members into each enum's file order.
                 all_members: list[
-                    tuple[int, str, str | None, bool]
+                    tuple[EnumMemberValue, str, str | None, bool]
                 ] = []  # (value, name, original_line, is_new)
                 for value, (name, orig_line) in existing_members.items():
                     all_members.append((value, name, orig_line, False))
-                for value, name, db_name in new_members:
+                for value, name in new_members:
                     all_members.append((value, name, None, True))
 
-                # Sort by value
-                all_members.sort(key=lambda x: x[0])
+                if value_type == "UUID":
+                    all_members.sort(key=lambda x: x[1])
+                else:
+                    all_members.sort(key=lambda x: int(x[0]))
 
                 # Write enum members
                 for value, name, orig_line, is_new in all_members:
                     if is_new:
-                        # Find the db_name for this member
-                        db_name = next(
-                            (
-                                str(extra["db_name"])
-                                for extra in updates[enum_class_name]
-                                if int(extra["id"]) == value
-                            ),
-                            "",
+                        new_lines.append(
+                            f"    {name} = "
+                            f"{format_enum_value(value=value, value_type=value_type)}"
                         )
-                        new_lines.append(f"    {name} = {value}")
                     else:
                         # Preserve original line
                         new_lines.append(orig_line)
@@ -172,12 +232,16 @@ def main() -> None:
     try:
         # Run validation with case-insensitive comparison since enum names are
         # UPPER_CASE and database names are typically lower_case
-        results = BaseIntEnum.validate_all_enums(session=session)
+        results = BaseDatabaseEnum.validate_all_enums(session=session)
+        updateable_enum_names: set[str] = set()
+        for subclass in BaseDatabaseEnum._enum_subclasses():
+            if subclass._database_id_type() in (int, UUID):
+                updateable_enum_names.add(subclass.__name__)
 
         print("\n=== Enum Validation Results ===\n")  # noqa: T201
 
         # Collect updates for enums with extra_in_db entries
-        updates: dict[str, list[dict[str, int | str]]] = {}
+        updates: dict[str, list[EnumUpdate]] = {}
 
         for enum_name, result in results.items():
             print(f"{enum_name}:")  # noqa: T201
@@ -191,13 +255,16 @@ def main() -> None:
             if result["extra_in_db"]:
                 print("  Extra in DB:")  # noqa: T201
                 for extra in result["extra_in_db"]:
-                    enum_name_upper = db_name_to_enum_name(str(extra["db_name"]))
+                    enum_name_upper = db_name_to_enum_name(
+                        db_name=str(extra["db_name"])
+                    )
                     print(  # noqa: T201
                         f"    {enum_name_upper} = {extra['id']} "
                         f"(from DB: {extra['db_name']})"
                     )
-                # Collect for update
-                updates[enum_name] = result["extra_in_db"]
+                # Collect enums with supported database id types for updates.
+                if enum_name in updateable_enum_names:
+                    updates[enum_name] = result["extra_in_db"]
 
             if result["name_mismatches"]:
                 print(f"  Name mismatches: {result['name_mismatches']}")  # noqa: T201
@@ -215,13 +282,20 @@ def main() -> None:
                 Path(__file__).parent.parent / "src" / "core" / "enumerations.py"
             )
             print("\n=== Updating enumerations.py ===\n")  # noqa: T201
-            updated = update_enumerations_file(enum_file_path, updates)
+            updated = update_enumerations_file(
+                enum_file_path=enum_file_path,
+                updates=updates,
+            )
             if updated:
-                print("Successfully updated enumerations.py with new enum members:\n")  # noqa: T201
+                print(  # noqa: T201
+                    "Successfully updated enumerations.py with new enum members:\n"
+                )
                 for enum_name, extra_list in updates.items():
                     print(f"  {enum_name}:")  # noqa: T201
                     for extra in extra_list:
-                        enum_name_upper = db_name_to_enum_name(str(extra["db_name"]))
+                        enum_name_upper = db_name_to_enum_name(
+                            db_name=str(extra["db_name"])
+                        )
                         print(  # noqa: T201
                             f"    + {enum_name_upper} = {extra['id']} "
                             f"(from DB: {extra['db_name']})"

@@ -6,6 +6,7 @@ import inspect
 from enum import Enum, IntEnum
 from types import ModuleType
 from typing import Any
+from uuid import UUID
 
 
 def load_module_from_path(path: str) -> ModuleType:
@@ -32,7 +33,7 @@ def is_enum_class(obj: Any) -> bool:
 
 
 def enum_members_in_order(enum_cls: type[Enum]) -> list[Enum]:
-    # For IntEnum (and your BaseIntEnum), sort numerically by value.
+    # For IntEnum, sort numerically by value.
     # For others (e.g., StrEnum), preserve definition order (the class'
     # __members__.values()).
     """Handle enum members in order.
@@ -52,9 +53,9 @@ def ts_literal(value: Any) -> str:
     Args:
         value: Value to encode as a TypeScript literal.
     """
-    if isinstance(value, str):
+    if isinstance(value, (str, UUID)):
         # Escape basic characters for TS string literal
-        s = value.replace("\\", "\\\\").replace('"', '\\"')
+        s = str(value).replace("\\", "\\\\").replace('"', '\\"')
         return f'"{s}"'
     if isinstance(value, bool):
         return "true" if value else "false"
@@ -90,8 +91,9 @@ def generate_ts_enums_file():
         if obj.__module__ != mod.__name__:
             continue  # skip imported classes
         if is_enum_class(obj):
-            # skip the base class itself (e.g., BaseIntEnum) if you don't want
-            # it emitted
+            # Skip base classes and other empty enum containers.
+            if not obj.__members__:
+                continue
             if obj.__name__.startswith("_"):
                 continue
             enums.append(obj)
