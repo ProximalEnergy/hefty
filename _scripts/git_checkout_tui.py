@@ -253,7 +253,7 @@ def merge_file(*, branch, file_path):
         return False
 
 
-def main(*, stdscr, branch):
+def run_git_checkout_tui(*, stdscr, branch):
     """Main curses flow for selecting branch and files to merge."""
     if not branch:
         branches = get_branches()
@@ -313,7 +313,10 @@ if __name__ == "__main__":
 
     try:
         result = curses.wrapper(
-            lambda stdscr: main(stdscr=stdscr, branch=branch_arg),
+            lambda stdscr: run_git_checkout_tui(
+                stdscr=stdscr,
+                branch=branch_arg,
+            ),
         )
         # Restore terminal newline translation
         os.system("stty onlcr")

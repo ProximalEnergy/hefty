@@ -72,7 +72,7 @@ const numericEquals: ColumnDef<DeviceData>['filterFn'] = (
   return Number(row.getValue(columnId)) === Number(filterValue)
 }
 
-const Page = () => {
+const DataAvailabilityPage = () => {
   const theme = useMantineTheme()
   const { colorScheme } = useMantineColorScheme()
   const { projectId } = useParams<{ projectId: string }>()
@@ -888,4 +888,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default DataAvailabilityPage

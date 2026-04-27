@@ -88,7 +88,7 @@ async def get_kpi_type_by_name(
 
 
 @router.get("", response_model=list[interfaces.KPIType], operation_id="get_kpi_types")
-def get_kpi_types(
+def get_kpi_types_route(
     db: Annotated[Session, Depends(get_db)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
 ):

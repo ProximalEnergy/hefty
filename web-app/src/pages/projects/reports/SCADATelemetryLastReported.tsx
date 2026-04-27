@@ -7,7 +7,7 @@ import { notifications } from '@mantine/notifications'
 import { IconDownload } from '@tabler/icons-react'
 import { useParams } from 'react-router'
 
-const Page = () => {
+const SCADATelemetryLastReportedPage = () => {
   useProjectFilter({
     reportTypeId: ReportTypeEnum.SCADA_TELEMETRY_LAST_REPORTED,
   })
@@ -79,4 +79,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default SCADATelemetryLastReportedPage

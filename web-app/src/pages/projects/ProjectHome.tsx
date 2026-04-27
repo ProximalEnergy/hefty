@@ -1,6 +1,6 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
-import { useGetContractKPIs } from '@/api/v1/operational/kpi_data'
+import { useGetProjectContractualKPIs } from '@/api/v1/operational/kpi_data'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetUserProjectLabelsByProjectId } from '@/api/v1/operational/project/project_user_project_labels'
@@ -338,7 +338,7 @@ const ContractualKPIOverview = ({
   }, [isExpanded, onExpandedChange, projectId])
 
   // Get contract KPI data with thresholds first (lightweight query)
-  const contractKPIData = useGetContractKPIs({
+  const contractKPIData = useGetProjectContractualKPIs({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
@@ -415,7 +415,7 @@ const ContractualKPIOverview = ({
   }
 
   // Function to format value with unit
-  const formatValue = (
+  const formatProjectContractKpiValue = (
     value: number | null | undefined,
     unit?: string | null,
     isThreshold: boolean = false,
@@ -685,10 +685,14 @@ const ContractualKPIOverview = ({
                         <Text size="sm">{counterparty}</Text>
                       </Table.Td>
                       <Table.Td style={{ textAlign: 'center' }}>
-                        {formatValue(kpi.ytd_value, kpi.unit)}
+                        {formatProjectContractKpiValue(kpi.ytd_value, kpi.unit)}
                       </Table.Td>
                       <Table.Td style={{ textAlign: 'center' }}>
-                        {formatValue(threshold, kpi.unit, true)}
+                        {formatProjectContractKpiValue(
+                          threshold,
+                          kpi.unit,
+                          true,
+                        )}
                       </Table.Td>
                       <Table.Td style={{ textAlign: 'center' }}>
                         <Box

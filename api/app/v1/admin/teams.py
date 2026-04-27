@@ -35,9 +35,10 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 @router.get(
     "",
     response_model=list[Team],
+    operation_id="get_teams",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
-async def get_teams(
+async def get_teams_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_id: uuid.UUID = Query(...),
 ):
@@ -88,9 +89,10 @@ async def get_company_teams_with_members(
     "",
     response_model=Team,
     status_code=201,
+    operation_id="create_team",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
-async def create_team(
+async def create_team_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[UserAuthed, Depends(get_user)],
     team: TeamCreate,

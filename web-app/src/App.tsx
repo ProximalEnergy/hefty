@@ -73,13 +73,13 @@ import PortfolioHome from './pages/portfolio/PortfolioHome'
 import PortfolioKPIHome from './pages/portfolio/PortfolioKPIHome'
 import PortfolioList from './pages/portfolio/PortfolioList'
 import PortfolioMap from './pages/portfolio/PortfolioMap'
-import PortfolioSettings from './pages/portfolio/settings/PortfolioSettings'
+import PortfolioSettingsPage from './pages/portfolio/settings/PortfolioSettings'
 import BESSOperation from './pages/projects/BESSOperation'
 // Battery Health
 import BatteryHealth from './pages/projects/BatteryHealth'
 import EnergyWaterfall from './pages/projects/EnergyWaterfall'
 // Project Admin
-import ProjectAdmin from './pages/projects/ProjectAdmin'
+import ProjectAdminPage from './pages/projects/ProjectAdmin'
 // In Development
 import ProjectAvailabilityAnalysis from './pages/projects/ProjectAvailabilityAnalysis'
 import ProjectEvents from './pages/projects/ProjectEvents'
@@ -87,72 +87,72 @@ import ProjectEvents from './pages/projects/ProjectEvents'
 import ProjectHomeRouter from './pages/projects/ProjectHomeRouter'
 import ProjectLossWaterfall from './pages/projects/ProjectLossWaterfall'
 // Reports
-import ProjectReports from './pages/projects/ProjectReports'
+import ProjectReportsPage from './pages/projects/ProjectReports'
 // Project Settings
 import ProjectSettings from './pages/projects/ProjectSettings'
 // Calendar
 import { ProjectCalendar } from './pages/projects/calendar/ProjectCalendar'
 // CMMS
-import TicketDisplay from './pages/projects/cmms/TicketDisplay'
+import TicketDisplayPage from './pages/projects/cmms/TicketDisplay'
 // KPIs
 import ProjectContract from './pages/projects/contracts/ProjectContract'
-import ProjectContracts from './pages/projects/contracts/ProjectContracts'
-import CustomDash from './pages/projects/custom_dash/CustomDash'
+import ProjectContractsPage from './pages/projects/contracts/ProjectContracts'
+import CustomDashPage from './pages/projects/custom_dash/CustomDash'
 import CustomDashMenu from './pages/projects/custom_dash/CustomDashMenu'
 // Data Browsing
 import DataBrowsing from './pages/projects/data_browsing/DataBrowsing'
-import DataAvailability from './pages/projects/device_details/DataAvailability'
+import DataAvailabilityPage from './pages/projects/device_details/DataAvailability'
 import RealTime from './pages/projects/device_details/RealTime'
-import VerticalDeviceDetails from './pages/projects/device_details/VerticalDeviceDetails'
+import { default as VerticalDeviceDetails } from './pages/projects/device_details/VerticalDeviceDetails'
 // Device Details
-import DeviceDetailsBESS from './pages/projects/device_details/horizontal/bess'
-import DeviceDetailsPV from './pages/projects/device_details/horizontal/pv'
-import DeviceDetailsSingle from './pages/projects/device_details/single'
+import DeviceDetailsBESSPage from './pages/projects/device_details/horizontal/bess'
+import DeviceDetailsPVPage from './pages/projects/device_details/horizontal/pv'
+import SingleDeviceDetailsPage from './pages/projects/device_details/single'
 import TrackerRowDetail from './pages/projects/device_details/tracker-row/page'
 // DroneInspections
 import DroneInspections from './pages/projects/drone_inspections/DroneInspections'
 // Current Day
 import EquipmentAnalysis from './pages/projects/equipment_analysis'
-import EquipmentAnalysisBESS from './pages/projects/equipment_analysis/bess/page'
-import EquipmentAnalysisBESSPCS from './pages/projects/equipment_analysis/bess_pcs/page'
+import EquipmentAnalysisBESSPage from './pages/projects/equipment_analysis/bess/page'
+import { default as EquipmentAnalysisBESSPCSPage } from './pages/projects/equipment_analysis/bess_pcs/page'
 import EquipmentAnalysisCircuit from './pages/projects/equipment_analysis/circuit/page'
-import EquipmentAnalysisMetStation from './pages/projects/equipment_analysis/met_station/page'
-import EquipmentAnalysisPVDCCombinerBlock from './pages/projects/equipment_analysis/pv_dc_combiner/block/page'
-import EquipmentAnalysisPVDCCombiner from './pages/projects/equipment_analysis/pv_dc_combiner/page'
-import EquipmentAnalysisPVPCS from './pages/projects/equipment_analysis/pv_inverter/page'
-import EquipmentAnalysisSingleLineDiagram from './pages/projects/equipment_analysis/single_line_diagram/SnapshotSLD'
+import { default as EquipmentAnalysisMetStationPage } from './pages/projects/equipment_analysis/met_station/page'
+import { default as EquipmentAnalysisPVDCCombinerBlockPage } from './pages/projects/equipment_analysis/pv_dc_combiner/block/page'
+import { default as EquipmentAnalysisPVDCCombinerPage } from './pages/projects/equipment_analysis/pv_dc_combiner/page'
+import { default as EquipmentAnalysisPVPCS } from './pages/projects/equipment_analysis/pv_inverter/page'
+import { default as EquipmentAnalysisSingleLineDiagram } from './pages/projects/equipment_analysis/single_line_diagram/SnapshotSLD'
 import EquipmentAnalysisSystem from './pages/projects/equipment_analysis/system/page'
-import EquipmentAnalysisTrackerBlock from './pages/projects/equipment_analysis/tracker/block/page'
+import { default as EquipmentAnalysisTrackerBlockPage } from './pages/projects/equipment_analysis/tracker/block/page'
 import EquipmentAnalysisTracker from './pages/projects/equipment_analysis/tracker/page'
 // Events
 import EventRouter from './pages/projects/events/EventRouter'
-import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
+import EventsMetaAnalysisPage from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
-import BatterySettlement from './pages/projects/finances/BatterySettlement'
+import BatterySettlementPage from './pages/projects/finances/BatterySettlement'
 import MarketPerformance from './pages/projects/finances/MarketPerformance'
-import PTPData from './pages/projects/finances/PTPData'
+import PTPDataPage from './pages/projects/finances/PTPData'
 // GIS
-import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
+import BessEnclosureGISPage from './pages/projects/gis/bess-enclosure-gis'
 import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
-import ProjectKPITemplate from './pages/projects/kpis/ProjectKPITemplate'
+import ProjectKPITemplatePage from './pages/projects/kpis/ProjectKPITemplate'
 import ProjectKPIHome from './pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import SparePartsPage from './pages/projects/maintenance/SpareParts'
 import BESSMonthlyReport from './pages/projects/reports/BESSMonthlyReport'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
 import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
-import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
+import { default as InverterAvailabilityReport } from './pages/projects/reports/InverterAvailabilityReport'
 import ModuleDegradation from './pages/projects/reports/ModuleDegradation'
 import MonthlyPerformanceReport from './pages/projects/reports/MonthlyPerformanceReport'
 import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageReport'
-import SCADATelemetryLastReported from './pages/projects/reports/SCADATelemetryLastReported'
-import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabilityReport'
+import { default as SCADATelemetryLastReportedPage } from './pages/projects/reports/SCADATelemetryLastReported'
+import { default as TrackerAvailabilityReport } from './pages/projects/reports/TrackerAvailabilityReport'
 import WeeklyPerformanceReport from './pages/projects/reports/WeeklyPerformanceReport'
 // Utility
-import Backfill from './pages/projects/utility/Backfill'
+import BackfillPage from './pages/projects/utility/Backfill'
 import CompanyView from './pages/projects/utility/CompanyView'
-import ExpectedPlotting from './pages/projects/utility/ExpectedPlotting'
+import ExpectedPlottingPage from './pages/projects/utility/ExpectedPlotting'
 
-// import CustomDash from './pages/projects/custom_dash/CustomDash'
+// import CustomDashPage from './pages/projects/custom_dash/CustomDash'
 
 const URL_SIGN_IN = '/sign-in'
 const MFA_EXEMPT_EMAILS = new Set(['bot@proximal.energy'])
@@ -322,7 +322,7 @@ const ClerkProviderWithRoutes = () => {
               <Route path="list" element={<PortfolioList />} />
               <Route path="map" element={<PortfolioMap />} />
               <Route path="kpis" element={<PortfolioKPIHome />} />
-              <Route path="settings" element={<PortfolioSettings />} />
+              <Route path="settings" element={<PortfolioSettingsPage />} />
               <Route path="calendar" element={<PortfolioCalendar />} />
             </Route>
 
@@ -331,8 +331,8 @@ const ClerkProviderWithRoutes = () => {
               <Route index element={<ProjectHomeRouter />} />
               <Route path="custom-dash">
                 <Route index element={<CustomDashMenu />} />
-                <Route path="new" element={<CustomDash />} />
-                <Route path=":dashboardId" element={<CustomDash />} />
+                <Route path="new" element={<CustomDashPage />} />
+                <Route path=":dashboardId" element={<CustomDashPage />} />
               </Route>
 
               <Route path="real-time" element={<RealTime />} />
@@ -348,7 +348,10 @@ const ClerkProviderWithRoutes = () => {
 
               {/* GIS */}
               <Route path="gis">
-                <Route path="bess-enclosure" element={<BessEnclosureGIS />} />
+                <Route
+                  path="bess-enclosure"
+                  element={<BessEnclosureGISPage />}
+                />
               </Route>
 
               {/* Current Day */}
@@ -358,23 +361,29 @@ const ClerkProviderWithRoutes = () => {
                 <Route path="pv-pcs" element={<EquipmentAnalysisPVPCS />} />
                 <Route
                   path="pv-dc-combiner"
-                  element={<EquipmentAnalysisPVDCCombiner />}
+                  element={<EquipmentAnalysisPVDCCombinerPage />}
                 />
                 <Route path="pv-dc-combiner/block">
                   <Route
                     index
-                    element={<EquipmentAnalysisPVDCCombinerBlock />}
+                    element={<EquipmentAnalysisPVDCCombinerBlockPage />}
                   />
                 </Route>
                 <Route path="tracker" element={<EquipmentAnalysisTracker />} />
                 <Route path="tracker/block">
-                  <Route index element={<EquipmentAnalysisTrackerBlock />} />
+                  <Route
+                    index
+                    element={<EquipmentAnalysisTrackerBlockPage />}
+                  />
                 </Route>
-                <Route path="bess" element={<EquipmentAnalysisBESS />} />
-                <Route path="bess-pcs" element={<EquipmentAnalysisBESSPCS />} />
+                <Route path="bess" element={<EquipmentAnalysisBESSPage />} />
+                <Route
+                  path="bess-pcs"
+                  element={<EquipmentAnalysisBESSPCSPage />}
+                />
                 <Route
                   path="met-station"
-                  element={<EquipmentAnalysisMetStation />}
+                  element={<EquipmentAnalysisMetStationPage />}
                 />
                 <Route path="circuit" element={<EquipmentAnalysisCircuit />} />
                 <Route
@@ -387,14 +396,17 @@ const ClerkProviderWithRoutes = () => {
               <Route path="device-details">
                 <Route
                   path="data-availability"
-                  element={<DataAvailability />}
+                  element={<DataAvailabilityPage />}
                 />
                 <Route path="horizontal">
-                  <Route path="bess" element={<DeviceDetailsBESS />} />
-                  <Route path="pv" element={<DeviceDetailsPV />} />
+                  <Route path="bess" element={<DeviceDetailsBESSPage />} />
+                  <Route path="pv" element={<DeviceDetailsPVPage />} />
                 </Route>
                 <Route path="single">
-                  <Route path=":deviceId" element={<DeviceDetailsSingle />} />
+                  <Route
+                    path=":deviceId"
+                    element={<SingleDeviceDetailsPage />}
+                  />
                 </Route>
                 <Route path="vertical" element={<VerticalDeviceDetails />} />
                 <Route
@@ -408,12 +420,15 @@ const ClerkProviderWithRoutes = () => {
                 <Route index element={<ProjectEvents />} />
                 <Route path="event" element={<EventRouter />} />
                 <Route path="uptime" element={<UptimeTable />} />
-                <Route path="meta-analysis" element={<EventsMetaAnalysis />} />
+                <Route
+                  path="meta-analysis"
+                  element={<EventsMetaAnalysisPage />}
+                />
               </Route>
 
               {/* CMMS */}
               <Route path="cmms">
-                <Route path="ticket-display" element={<TicketDisplay />} />
+                <Route path="ticket-display" element={<TicketDisplayPage />} />
               </Route>
 
               {/* Maintenance */}
@@ -430,12 +445,12 @@ const ClerkProviderWithRoutes = () => {
                 />
                 <Route
                   path="type/:kpiTypeId"
-                  element={<ProjectKPITemplate />}
+                  element={<ProjectKPITemplatePage />}
                 />
               </Route>
 
               {/* Reports */}
-              <Route path="reports" element={<ProjectReports />} />
+              <Route path="reports" element={<ProjectReportsPage />} />
               <Route
                 path="reports/dc-amperage"
                 element={<DCAmperageReport />}
@@ -470,7 +485,7 @@ const ClerkProviderWithRoutes = () => {
               />
               <Route
                 path="reports/scada-telemetry-last-reported"
-                element={<SCADATelemetryLastReported />}
+                element={<SCADATelemetryLastReportedPage />}
               />
               <Route
                 path="reports/eec-bess-monthly-report"
@@ -479,7 +494,7 @@ const ClerkProviderWithRoutes = () => {
 
               {/* Contracts */}
               <Route path="contracts">
-                <Route index element={<ProjectContracts />} />
+                <Route index element={<ProjectContractsPage />} />
                 <Route path=":contractId" element={<ProjectContract />} />
                 {/* <Route path="create" element={<CreateContract />} /> */}
               </Route>
@@ -498,7 +513,7 @@ const ClerkProviderWithRoutes = () => {
                 path="admin"
                 element={
                   <RequiresUserType requiredUserType="admin">
-                    <ProjectAdmin />
+                    <ProjectAdminPage />
                   </RequiresUserType>
                 }
               />
@@ -512,7 +527,7 @@ const ClerkProviderWithRoutes = () => {
                   path="expected"
                   element={
                     <RequiresUserType requiredUserType="superadmin">
-                      <ExpectedPlotting />
+                      <ExpectedPlottingPage />
                     </RequiresUserType>
                   }
                 />
@@ -520,7 +535,7 @@ const ClerkProviderWithRoutes = () => {
                   path="backfill"
                   element={
                     <RequiresUserType requiredUserType="superadmin">
-                      <Backfill />
+                      <BackfillPage />
                     </RequiresUserType>
                   }
                 />
@@ -538,7 +553,7 @@ const ClerkProviderWithRoutes = () => {
               <Route path="finances">
                 <Route
                   path="battery-settlement"
-                  element={<BatterySettlement />}
+                  element={<BatterySettlementPage />}
                 />
                 <Route
                   path="market-performance"
@@ -548,7 +563,7 @@ const ClerkProviderWithRoutes = () => {
                   path="ptp-data"
                   element={
                     <RequiresUserType requiredUserType="superadmin">
-                      <PTPData />
+                      <PTPDataPage />
                     </RequiresUserType>
                   }
                 />

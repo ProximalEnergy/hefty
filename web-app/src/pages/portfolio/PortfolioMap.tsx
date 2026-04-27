@@ -289,7 +289,7 @@ const getLayerName = (layerId: string | null): string => {
 }
 
 // Helper function to format the value based on layer type
-const formatValue = (
+const formatWeatherLayerValue = (
   layerId: string | null,
   dn: number | undefined,
 ): string => {
@@ -1409,7 +1409,7 @@ const PortfolioMap = () => {
                 </Text>
                 <Text size="xs">
                   Value:{' '}
-                  {formatValue(
+                  {formatWeatherLayerValue(
                     item.layerId,
                     item.feature?.properties?.dn as number | undefined,
                   )}

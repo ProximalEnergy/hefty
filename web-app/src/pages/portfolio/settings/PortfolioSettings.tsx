@@ -7,12 +7,12 @@ import { Stack, Tabs, Text } from '@mantine/core'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 
-import PVInverter from './PVInverter'
-import PVModule from './PVModule'
-import PVRack from './PVRack'
+import PVInverterSettings from './PVInverter'
+import PVModuleSettings from './PVModule'
+import PVRackSettings from './PVRack'
 import System from './System'
 
-const PortfolioSettings = () => {
+const PortfolioSettingsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Get all company projects to check if any have PV or PV+S (project_type_id 1 or 3)
@@ -102,16 +102,16 @@ const PortfolioSettings = () => {
         </Tabs.List>
 
         <Tabs.Panel value="PV Inverters" h="100%">
-          <PVInverter />
+          <PVInverterSettings />
         </Tabs.Panel>
 
         <Tabs.Panel value="PV Rackings" h="100%">
-          <PVRack />
+          <PVRackSettings />
         </Tabs.Panel>
 
         {isUserSuperadmin && (
           <Tabs.Panel value="PV Modules" h="100%">
-            <PVModule />
+            <PVModuleSettings />
           </Tabs.Panel>
         )}
 
@@ -125,4 +125,4 @@ const PortfolioSettings = () => {
   )
 }
 
-export default PortfolioSettings
+export default PortfolioSettingsPage

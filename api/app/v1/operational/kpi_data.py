@@ -36,7 +36,7 @@ router = APIRouter(prefix="/kpi-data", tags=["kpi_data"])
     operation_id="get_kpi_data",
     response_model=list[interfaces.OperationalKPIData],
 )
-def get_kpi_data(
+def get_kpi_data_route(
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     start: Annotated[
         datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)

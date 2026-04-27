@@ -17,7 +17,7 @@ import {
 } from '@mantine/core'
 import { useParams } from 'react-router'
 
-const Page = () => {
+const ProjectAdminPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const updatePermission = useUpdateUserPermissionMutation()
 
@@ -123,4 +123,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default ProjectAdminPage

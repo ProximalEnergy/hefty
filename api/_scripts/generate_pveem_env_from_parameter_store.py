@@ -45,7 +45,7 @@ def _get_parameter_store_paths(*, override: str | None) -> list[str]:
     return DEFAULT_PARAMETER_STORE_PATHS
 
 
-def generate_env_file() -> None:
+def generate_pveem_env_file() -> None:
     """Generate pv-eem env values from AWS Parameter Store."""
     override_path = os.getenv("PVEEM_PARAMETER_STORE_PATH")
     parameters: dict[str, str] = {}
@@ -133,4 +133,4 @@ def generate_env_file() -> None:
 
 
 if __name__ == "__main__":
-    generate_env_file()
+    generate_pveem_env_file()

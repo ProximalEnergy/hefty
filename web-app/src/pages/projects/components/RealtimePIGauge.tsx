@@ -1,10 +1,6 @@
 import { RingProgress, Text, Tooltip } from '@mantine/core'
 
-const getColor = (pct: number) => {
-  if (pct >= 90) return 'green'
-  if (pct >= 70) return 'yellow'
-  return 'red'
-}
+import { getRealtimeGaugeColor } from './realtimeGaugeUtils'
 
 const DASH = 8
 const GAP = 1
@@ -45,7 +41,8 @@ export const RealtimePIGauge = ({
 }) => {
   const cappedValue = value != null ? Math.min(100, value) : null
   const sectionValue = cappedValue ?? 0
-  const color = value != null ? getColor(cappedValue ?? value) : 'gray'
+  const color =
+    cappedValue != null ? getRealtimeGaugeColor(cappedValue) : 'gray'
   const period = isNighttime ? 'last 24h' : 'last hour'
 
   const sections = isNighttime

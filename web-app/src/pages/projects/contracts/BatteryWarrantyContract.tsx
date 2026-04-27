@@ -2,7 +2,7 @@ import { KPITypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import {
   Contract,
-  useGetContractKPIs,
+  useGetProjectContractKPIs,
 } from '@/api/v1/operational/project/contracts'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { VoiceChatModal } from '@/components/VoiceChat'
@@ -57,7 +57,7 @@ export const BatteryWarrantyContract = ({
   })
 
   const { data: contractKpis, isLoading: contractKpisLoading } =
-    useGetContractKPIs({
+    useGetProjectContractKPIs({
       pathParams: {
         projectId: projectId || '-1',
         contractId: contract.contract_id,

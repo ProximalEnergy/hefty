@@ -20,7 +20,7 @@ interface ActivePowerChartProps {
   hasExpectedEnergyIntegration?: boolean
 }
 
-export const ActivePowerChart = ({
+export const ActivePowerChartPvPcs = ({
   realtimeData,
   maxCapacityMWac,
   hasExpectedEnergyIntegration,

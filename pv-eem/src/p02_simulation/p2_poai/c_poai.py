@@ -188,8 +188,8 @@ class PlaneOfArrayIrradiance:
         self.tier = horizontal_irradiance.tier
         self.tier_codes = horizontal_irradiance.tier_codes
 
-    def to_df(self):
-        """Run to_df."""
+    def to_poai_df(self):
+        """Convert POAI values to a DataFrame."""
         return pd.concat(
             [
                 self.time,
@@ -204,11 +204,11 @@ class PlaneOfArrayIrradiance:
             axis=1,
         )
 
-    def to_csv(
+    def to_poai_csv(
         self,
         target_string_id: int,
     ):
-        """Run to_csv."""
-        df = self.to_df()
+        """Write POAI values to CSV for one string."""
+        df = self.to_poai_df()
         filtered_df = df[df["string_id"] == target_string_id]
         filtered_df.to_csv("poia.csv")

@@ -213,8 +213,9 @@ def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
 @router.get(
     "/kpi-summary-cards",
     response_model=list[interfaces.KPISummary],
+    operation_id="get_project_kpi_summary",
 )
-def get_project_kpi_summary(
+def get_project_kpi_summary_route(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
@@ -434,7 +435,7 @@ def get_project_kpi_summary(
     response_model=list[interfaces.ContractKPIs],
     operation_id="get_project_contract_kpis",
 )
-def get_contract_kpis(
+def get_contract_kpis_route(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
 ):

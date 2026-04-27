@@ -15,7 +15,7 @@ router = APIRouter(prefix="/report-types", tags=["report_types"])
     response_model=list[interfaces.ReportType],
     operation_id="get_report_types",
 )
-async def get_report_types(
+async def get_report_types_route(
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
     """todo
@@ -31,7 +31,7 @@ async def get_report_types(
     response_model=interfaces.ReportType,
     operation_id="get_report_type_by_id",
 )
-async def get_report_type(
+async def get_report_type_route(
     report_type_id: int, db: Annotated[AsyncSession, Depends(get_async_db)]
 ):
     """todo

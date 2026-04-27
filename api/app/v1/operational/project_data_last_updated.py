@@ -22,7 +22,7 @@ router = APIRouter(
     response_model=list[interfaces.ProjectDataLastUpdated],
     dependencies=[Depends(require_user_projects)],
 )
-async def get_project_data_last_updated_endpoint(
+async def get_project_data_last_updated_endpoint_route(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     project_ids: Annotated[list[UUID], Query()] = [],
 ):

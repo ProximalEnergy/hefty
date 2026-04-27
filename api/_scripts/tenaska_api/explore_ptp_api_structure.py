@@ -610,8 +610,8 @@ async def comprehensive_exploration(token: str, bexar_info: dict | None = None):
     return all_results
 
 
-async def main():
-    """Main function."""
+async def run_ptp_api_structure_explorer():
+    """Run the PTP API structure exploration CLI."""
     print("=" * 80)
     print("PTP API STRUCTURE EXPLORATION FOR BEXAR PROJECT")
     print("=" * 80)
@@ -643,5 +643,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    success = asyncio.run(main())
+    success = asyncio.run(run_ptp_api_structure_explorer())
     sys.exit(0 if success else 1)

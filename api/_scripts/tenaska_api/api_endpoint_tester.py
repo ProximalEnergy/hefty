@@ -566,8 +566,8 @@ class APIEndpointTester:
         print("\n" + "=" * 80)
 
 
-async def main():
-    """Main function to run the endpoint tester."""
+async def run_api_endpoint_tester_cli():
+    """Run the endpoint tester CLI."""
     parser = argparse.ArgumentParser(
         description="Test API endpoints using OpenAPI specs or direct testing"
     )
@@ -701,4 +701,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_api_endpoint_tester_cli())

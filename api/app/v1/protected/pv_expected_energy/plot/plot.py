@@ -34,8 +34,9 @@ class UtilityExpectedResponse(BaseModel):
 @router.get(
     "",
     response_model=UtilityExpectedResponse,
+    operation_id="utility_expected",
 )
-async def utility_expected(
+async def utility_expected_route(
     device_id: int,
     start: datetime.datetime,
     end: datetime.datetime,

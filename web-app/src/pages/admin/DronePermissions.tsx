@@ -1,4 +1,4 @@
-import { useGetCompanies } from '@/api/admin'
+import { useGetCompanies } from '@/api/v1/admin/companies'
 import {
   DronePermission,
   useCreateDronePermission,
@@ -32,7 +32,7 @@ const DronePermissions: React.FC = () => {
     useGetDronePermissions()
   const { data: integrations, isLoading: integrationsLoading } =
     useGetDroneIntegrations()
-  const { data: companies, isLoading: companiesLoading } = useGetCompanies({})
+  const { data: companies, isLoading: companiesLoading } = useGetCompanies()
   const { data: providers, isLoading: providersLoading } =
     useGetDroneProviders()
   const { data: projects, isLoading: projectsLoading } = useGetProjects({

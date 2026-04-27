@@ -62,8 +62,12 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=interfaces.Contract)
-async def create_contract(
+@router.post(
+    "",
+    response_model=interfaces.Contract,
+    operation_id="create_contract",
+)
+async def create_contract_route(
     project_id: UUID,
     contract: interfaces.ContractCreate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -110,8 +114,12 @@ async def create_contract(
     )
 
 
-@router.get("", response_model=list[interfaces.ContractWithCompany])
-async def get_project_contracts(
+@router.get(
+    "",
+    response_model=list[interfaces.ContractWithCompany],
+    operation_id="get_project_contracts",
+)
+async def get_project_contracts_route(
     project_id: UUID,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[UserAuthed, Depends(authentication.get_user)],

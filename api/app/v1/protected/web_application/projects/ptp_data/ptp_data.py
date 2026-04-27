@@ -192,7 +192,7 @@ async def _check_endpoint_has_data(
 
 
 @router.get("/endpoints")
-async def get_ptp_endpoints(
+async def get_ptp_endpoints_route(
     user: Annotated[UserAuthed, Depends(get_user)],
     project: models.Project = Depends(dependencies.get_project_api),
     _tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),

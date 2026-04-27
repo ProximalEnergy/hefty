@@ -1,5 +1,6 @@
 # General
 - code lines are shorter than 88 characters
+- write descriptive function names
 
 # Plans
 - Make the plan extremely concise. Sacrifice grammar for the sake of concision.

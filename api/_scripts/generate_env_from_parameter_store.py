@@ -22,7 +22,7 @@ PERSONAL_ENV_VARS = [
 ]
 
 
-def generate_env_file():
+def generate_api_env_file() -> None:
     """Handle generate env file."""
     try:
         parameters = get_parameters_by_path(
@@ -67,4 +67,4 @@ def generate_env_file():
 
 
 if __name__ == "__main__":
-    generate_env_file()
+    generate_api_env_file()

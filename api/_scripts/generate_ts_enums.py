@@ -76,9 +76,9 @@ def enum_to_ts_constant(enum_cls: type[Enum]) -> str:
     return "\n".join(lines)
 
 
-def main():
+def generate_ts_enums_file():
+    """Generate the TypeScript enum file."""
     # Hardcoded paths
-    """Handle main."""
     input_path = "../core/src/core/enumerations.py"
     output_path = "../web-app/src/api/enumerations.ts"
 
@@ -116,4 +116,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    generate_ts_enums_file()

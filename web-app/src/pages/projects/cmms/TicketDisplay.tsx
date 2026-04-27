@@ -24,7 +24,7 @@ import { useParams } from 'react-router'
 import CMMSTicketCard from './CMMSTicketCard'
 import PlaceholderTicket from './PlaceholderTicket'
 
-const Page = () => {
+const TicketDisplayPage = () => {
   const { projectId } = useParams()
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [showClosed, setShowClosed] = useState(false)
@@ -162,4 +162,4 @@ maintenance data to improve your asset performance."
   )
 }
 
-export default Page
+export default TicketDisplayPage

@@ -1518,7 +1518,7 @@ const RenderComponent = ({
   }
 }
 
-const Page = () => {
+const CustomDashPage = () => {
   const { projectId, dashboardId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -2829,4 +2829,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default CustomDashPage

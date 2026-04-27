@@ -125,7 +125,7 @@ async def get_expected_energy(
             ENVIRONMENT=simulation_inputs.ENVIRONMENT,
         )
         # DEBUGGING
-        # poai.to_csv(target_string_id=0)
+        # poai.to_poai_csv(target_string_id=0)
 
         combiners: PowerAtCombiner = cast(PowerAtCombiner, next(simulation))
         export_simulation_results(

@@ -2,10 +2,10 @@ import { useGetUserType } from '@/api/admin'
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { Project } from '@/api/v1/operational/projects'
+import { useTableSort } from '@/hooks/useTableSort'
 import { Paper, Stack, Table } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconCircle } from '@tabler/icons-react'
-import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 interface OnboardingProjectsTabProps {
@@ -27,10 +27,7 @@ export function OnboardingProjectsTab({
 }: OnboardingProjectsTabProps) {
   const navigate = useNavigate()
   const userType = useGetUserType({})
-  const [sortConfig, setSortConfig] = useState<{
-    key: string
-    direction: 'asc' | 'desc'
-  } | null>(null)
+  const { sortConfig, handleSort } = useTableSort()
 
   const onboardingProjects =
     projects?.filter(
@@ -71,18 +68,6 @@ export function OnboardingProjectsTab({
       getCellText(project, 'project_type_id').toLowerCase().includes(term)
     )
   })
-
-  const handleSort = (key: string) => {
-    setSortConfig((current) => {
-      if (!current || current.key !== key) {
-        return { key, direction: 'asc' }
-      }
-      if (current.direction === 'asc') {
-        return { key, direction: 'desc' }
-      }
-      return null
-    })
-  }
 
   const sortedData = sortConfig
     ? [...filteredData].sort((a, b) => {

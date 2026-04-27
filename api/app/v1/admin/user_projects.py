@@ -17,7 +17,7 @@ router = APIRouter(prefix="/user-projects", tags=["user-projects"])
 
 # TODO:  Make this route more secure
 @router.post("/update-user-projects")
-async def update_user_projects(
+async def update_user_projects_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_ids: list[str],
     operational_project_ids: list[list[uuid.UUID]],

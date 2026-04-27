@@ -21,7 +21,7 @@ pl.Config.set_tbl_cols(-1)
 pl.Config.set_tbl_rows(-1)
 
 
-def test_zero_output(monkeypatch):
+def test_nuisance_alarm_zero_output(monkeypatch):
     """Tests to make sure that given a set of inputs, the outputs
     do not contain zeros
     """

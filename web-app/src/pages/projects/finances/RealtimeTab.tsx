@@ -37,6 +37,13 @@ interface RealtimeTabProps {
   projectId: string
 }
 
+const formatCurrency = (value: number) => {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })
+}
+
 export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
   const project = useSelectProject(projectId)
   const theme = useMantineTheme()
@@ -636,12 +643,6 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
       return 'N/A'
     }
     // Format realized revenue with unrealized in parentheses
-    const formatCurrency = (value: number) => {
-      return value.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })
-    }
     const realizedStr = `$${formatCurrency(realizedRevenue)}`
     if (unrealizedRevenue > 0) {
       const unrealizedStr = `+$${formatCurrency(unrealizedRevenue)}`
@@ -669,12 +670,6 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
       daRevenue === undefined
     ) {
       return null
-    }
-    const formatCurrency = (value: number) => {
-      return value.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })
     }
     const daASValue =
       daASRevenue !== null && daASRevenue !== undefined ? daASRevenue : 0

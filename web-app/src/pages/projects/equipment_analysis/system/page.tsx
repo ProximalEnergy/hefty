@@ -11,6 +11,7 @@ import LossWaterfall from '@/components/plots/LossWaterfall'
 import { LossWaterfallCardInfo } from '@/components/plots/LossWaterfallCardInfo'
 import POIMeter from '@/components/plots/POIMeter'
 import PowerPlantController from '@/components/plots/PowerPlantController'
+import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import {
   ActionIcon,
   Group,
@@ -24,8 +25,7 @@ import {
 } from '@mantine/core'
 import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
-import Plotly from 'plotly.js/dist/plotly-custom.min.js'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 
 const SystemPerformance = () => {
@@ -86,56 +86,11 @@ const SystemPerformance = () => {
     }
   }
 
-  // Resize Plotly charts when tab becomes active
-  // Must be before early return to follow React hooks rules
-  useEffect(() => {
-    if (!tabPanelRef.current || activeTab !== 'current-day') return
-
-    const resizeCharts = () => {
-      // Find all Plotly plot elements within the active tab panel
-      const plotElements = tabPanelRef.current?.querySelectorAll(
-        '.js-plotly-plot',
-      ) as NodeListOf<HTMLElement>
-
-      if (plotElements && plotElements.length > 0) {
-        // Resize each plot after a short delay to ensure container has dimensions
-        setTimeout(() => {
-          plotElements.forEach((plotElement) => {
-            const rect = plotElement.getBoundingClientRect()
-            // Only resize if the plot element has actual dimensions
-            if (rect.width > 0 && rect.height > 0) {
-              Plotly.Plots.resize(plotElement)
-            }
-          })
-        }, 150)
-      }
-    }
-
-    // Initial resize when tab becomes active
-    resizeCharts()
-
-    // Also set up an IntersectionObserver to detect when the tab panel becomes visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0) {
-            resizeCharts()
-          }
-        })
-      },
-      {
-        threshold: 0.01,
-      },
-    )
-
-    if (tabPanelRef.current) {
-      observer.observe(tabPanelRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [activeTab])
+  // Must stay before early returns to satisfy hooks rules.
+  useResizePlotlyCharts({
+    containerRef: tabPanelRef,
+    enabled: activeTab === 'current-day',
+  })
 
   if (project.isLoading) return <PageLoader />
 

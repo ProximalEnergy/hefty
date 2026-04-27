@@ -1,5 +1,5 @@
-import { ACVoltageChart as SharedACVoltageChart } from '@/components/bess-pcs/ACVoltageChart'
+import { ACVoltageChartBessPcs } from '@/components/bess-pcs/ACVoltageChart'
 
-export function ACVoltageChart() {
-  return <SharedACVoltageChart />
+export function ACVoltageChartBessPcsRealtime() {
+  return <ACVoltageChartBessPcs />
 }

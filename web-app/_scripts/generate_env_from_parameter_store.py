@@ -30,7 +30,7 @@ def _get_parameter_store_paths(*, override: str | None) -> list[str]:
     return DEFAULT_PARAMETER_STORE_PATHS
 
 
-def generate_env_file():
+def generate_web_app_env_file() -> None:
     """Handle generate env file."""
     override_path = os.getenv("WEB_APP_PARAMETER_STORE_PATH")
     parameters: dict[str, str] = {}
@@ -89,4 +89,4 @@ def generate_env_file():
 
 
 if __name__ == "__main__":
-    generate_env_file()
+    generate_web_app_env_file()

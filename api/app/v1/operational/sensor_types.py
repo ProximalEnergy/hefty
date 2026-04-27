@@ -83,7 +83,7 @@ async def get_sensor_type(sensor_type_id: int):
     response_model=interfaces.SensorType,
     operation_id="create_sensor_type",
 )
-def create_sensor_type(
+def create_sensor_type_route(
     sensor_type: interfaces.SensorType,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
@@ -118,7 +118,7 @@ def create_sensor_type(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="update_sensor_type",
 )
-def update_sensor_type(
+def update_sensor_type_route(
     sensor_type_id: int,
     sensor_type: interfaces.SensorType,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],

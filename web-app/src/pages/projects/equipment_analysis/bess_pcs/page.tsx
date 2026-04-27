@@ -10,10 +10,10 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
+import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
-import Plotly from 'plotly.js/dist/plotly-custom.min.js'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 
 import { EquipmentHeader } from './equipment-header'
@@ -32,7 +32,7 @@ const PAGE_INFO_BY_TAB = {
     'BESS PCS performance trends.',
 } as const
 
-const Page = () => {
+const EquipmentAnalysisBESSPCSPage = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
@@ -90,49 +90,10 @@ const Page = () => {
     },
   })
 
-  useEffect(() => {
-    if (!tabPanelRef.current || activeTab !== 'current-day') {
-      return
-    }
-
-    const resizeCharts = () => {
-      const plotElements = tabPanelRef.current?.querySelectorAll(
-        '.js-plotly-plot',
-      ) as NodeListOf<HTMLElement>
-
-      if (!plotElements || plotElements.length === 0) {
-        return
-      }
-
-      setTimeout(() => {
-        plotElements.forEach((plotElement) => {
-          const rect = plotElement.getBoundingClientRect()
-          if (rect.width > 0 && rect.height > 0) {
-            Plotly.Plots.resize(plotElement)
-          }
-        })
-      }, 150)
-    }
-
-    resizeCharts()
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0) {
-            resizeCharts()
-          }
-        })
-      },
-      { threshold: 0.01 },
-    )
-
-    observer.observe(tabPanelRef.current)
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [activeTab])
+  useResizePlotlyCharts({
+    containerRef: tabPanelRef,
+    enabled: activeTab === 'current-day',
+  })
 
   const currentDayInfo =
     'Positive values indicate discharging, negative values indicate charging.'
@@ -259,4 +220,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default EquipmentAnalysisBESSPCSPage

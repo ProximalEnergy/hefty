@@ -22,7 +22,7 @@ const MODULE_GROUP_VOLTAGE_SENSORS: number[] = [
   SensorTypeEnum.BESS_PCS_MODULE_GROUP_VOLTAGE_LL_CA,
 ]
 
-export const ACVoltageChart = () => {
+export const ACVoltageChartBessPcs = () => {
   const { projectId } = useParams<{
     projectId: string
   }>()

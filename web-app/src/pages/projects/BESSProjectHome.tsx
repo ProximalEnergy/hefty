@@ -1,8 +1,8 @@
 import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import {
-  useGetContractKPIs,
   useGetOperationalKPIData,
+  useGetProjectContractualKPIs,
 } from '@/api/v1/operational/kpi_data'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
@@ -24,7 +24,11 @@ import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { MarketStatsGrid } from '@/components/stats/MarketStatsGrid'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
-import { getInterval, roundTime } from '@/utils/interval'
+import {
+  getInterval,
+  getLast24HourTimeRange,
+  roundTime,
+} from '@/utils/interval'
 import { projectDescription } from '@/utils/projectDescription'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
@@ -103,18 +107,15 @@ const PowerPlotBESS = () => {
   const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
 
   const handleDefaultView = () => {
-    const newEndTime = dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .toISOString()
-    const newStartTime = dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .subtract(24, 'hours')
-      .toISOString()
+    const {
+      startTime: newStartTime,
+      endTime: newEndTime,
+      interval: newInterval,
+    } = getLast24HourTimeRange()
+
     setEndTime(newEndTime)
     setStartTime(newStartTime)
-    setInterval(getInterval(newStartTime, newEndTime))
+    setInterval(newInterval)
     setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
   }
 
@@ -196,20 +197,15 @@ const PowerPlotBESS = () => {
     if (!isAutoUpdating) return
 
     const updateTimeRange = () => {
-      const now = dayjs()
-      const newEndTime = now
-        .minute(Math.floor(now.minute() / 5) * 5)
-        .second(0)
-        .toISOString()
-      const newStartTime = now
-        .minute(Math.floor(now.minute() / 5) * 5)
-        .second(0)
-        .subtract(24, 'hours')
-        .toISOString()
+      const {
+        startTime: newStartTime,
+        endTime: newEndTime,
+        interval: newInterval,
+      } = getLast24HourTimeRange()
 
       setEndTime(newEndTime)
       setStartTime(newStartTime)
-      setInterval(getInterval(newStartTime, newEndTime))
+      setInterval(newInterval)
     }
 
     // Update immediately
@@ -1137,7 +1133,10 @@ const BatteryHealth = () => {
     )
   }
 
-  const formatValue = (value: number | null | undefined, unit: string = '') => {
+  const formatBatteryHealthValue = (
+    value: number | null | undefined,
+    unit: string = '',
+  ) => {
     if (value === null || value === undefined) return 'N/A'
     return `${value.toFixed(2)}${unit}`
   }
@@ -1289,7 +1288,7 @@ const BatteryHealth = () => {
                         setShowRestSocData(false)
                       }}
                     >
-                      {formatValue(currentSoh, '%')}
+                      {formatBatteryHealthValue(currentSoh, '%')}
                     </Text>
                     <Tooltip label={sohData.info || ''} withArrow>
                       <Text
@@ -1357,7 +1356,10 @@ const BatteryHealth = () => {
                     setShowRestSocData(false)
                   }}
                 >
-                  {formatValue(cycleData?.ytd_value || cycleData?.value, '')}
+                  {formatBatteryHealthValue(
+                    cycleData?.ytd_value || cycleData?.value,
+                    '',
+                  )}
                 </Text>
                 <Tooltip label={cycleData?.info || ''} withArrow>
                   <Text
@@ -1397,7 +1399,7 @@ const BatteryHealth = () => {
                   }
                 >
                   <IconActivity size={12} style={{ marginRight: 4 }} />
-                  {formatValue(
+                  {formatBatteryHealthValue(
                     avgDodData.ytd_value || avgDodData.value,
                     '%',
                   )}{' '}
@@ -1427,7 +1429,10 @@ const BatteryHealth = () => {
                     setShowRestSocData(false)
                   }}
                 >
-                  {formatValue(avgSocData?.ytd_value || avgSocData?.value, '%')}
+                  {formatBatteryHealthValue(
+                    avgSocData?.ytd_value || avgSocData?.value,
+                    '%',
+                  )}
                 </Text>
                 <Tooltip label={avgSocData?.info || ''} withArrow>
                   <Text
@@ -1467,7 +1472,7 @@ const BatteryHealth = () => {
                       setShowSocData(false)
                     }}
                   >
-                    {formatValue(
+                    {formatBatteryHealthValue(
                       restSocData.ytd_value || restSocData.value,
                       '%',
                     )}
@@ -1549,7 +1554,7 @@ const ContractualKPIOverview = ({
   }, [isExpanded, onExpandedChange, projectId])
 
   // Get contract KPI data with thresholds first (lightweight query)
-  const contractKPIData = useGetContractKPIs({
+  const contractKPIData = useGetProjectContractualKPIs({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
@@ -1626,7 +1631,7 @@ const ContractualKPIOverview = ({
   }
 
   // Function to format value with unit
-  const formatValue = (
+  const formatBessContractKpiValue = (
     value: number | null | undefined,
     unit?: string | null,
     isThreshold: boolean = false,
@@ -1896,10 +1901,10 @@ const ContractualKPIOverview = ({
                         <Text size="sm">{counterparty}</Text>
                       </Table.Td>
                       <Table.Td style={{ textAlign: 'center' }}>
-                        {formatValue(kpi.ytd_value, kpi.unit)}
+                        {formatBessContractKpiValue(kpi.ytd_value, kpi.unit)}
                       </Table.Td>
                       <Table.Td style={{ textAlign: 'center' }}>
-                        {formatValue(threshold, kpi.unit, true)}
+                        {formatBessContractKpiValue(threshold, kpi.unit, true)}
                       </Table.Td>
                       <Table.Td style={{ textAlign: 'center' }}>
                         <Box

@@ -1139,6 +1139,35 @@ diff_has() {
     echo "${DIFF_FILES}" | grep -E -q "${pattern}"
 }
 
+check_duplicate_functions_for_diff() {
+    local changed_files_file
+    local file
+    local status
+    local -a changed_code_files=()
+
+    while IFS= read -r file; do
+        if [ -f "$file" ] && [[ "$file" =~ \.(py|ts|tsx)$ ]]; then
+            changed_code_files+=("$file")
+        fi
+    done <<< "${DIFF_FILES}"
+
+    if [ "${#changed_code_files[@]}" -eq 0 ]; then
+        echo "No changed Python/TypeScript files for duplicate function check;" \
+            "skipping."
+        return 0
+    fi
+
+    changed_files_file=$(mktemp)
+    printf '%s\n' "${changed_code_files[@]}" >"${changed_files_file}"
+
+    ./_scripts/check_duplicate_functions.sh \
+        --changed-files-from "${changed_files_file}"
+    status=$?
+
+    rm -f "${changed_files_file}"
+    return "$status"
+}
+
 RUN_CORE=false
 RUN_API=false
 RUN_MICRO=false
@@ -1303,6 +1332,13 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
     fi
     add_warning_check "Global: SQLAlchemy Return Methods" \
         "${SQLALCHEMY_RETURN_CHECK_CMD}"
+    if [ -n "${DIFF_FILES}" ]; then
+        add_warning_check "Global: Duplicate Function Names" \
+            "check_duplicate_functions_for_diff"
+    else
+        add_warning_check "Global: Duplicate Function Names" \
+            "mise run root:duplicate_functions"
+    fi
 fi
 
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then

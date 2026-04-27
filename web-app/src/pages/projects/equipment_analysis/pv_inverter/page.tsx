@@ -20,6 +20,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2, useGetHeatmap } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import * as types from '@/hooks/types'
+import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import {
   getDeviceModelImagePublicUrl,
   getDeviceModelImageUrl,
@@ -54,7 +55,7 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import Plotly, { PlotType } from 'plotly.js/dist/plotly-custom.min.js'
+import { PlotType } from 'plotly.js'
 import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
@@ -511,105 +512,16 @@ const PCSEquipmentAnalysis = () => {
     }
   }, [isPlaying, dataLength])
 
-  // Resize Plotly charts when tab becomes active
-  useEffect(() => {
-    if (!tabPanelRef.current || activeTab !== 'current-day') return
+  useResizePlotlyCharts({
+    containerRef: tabPanelRef,
+    enabled: activeTab === 'current-day',
+  })
 
-    const resizeCharts = () => {
-      // Find all Plotly plot elements within the active tab panel
-      const plotElements = tabPanelRef.current?.querySelectorAll(
-        '.js-plotly-plot',
-      ) as NodeListOf<HTMLElement>
-
-      if (plotElements && plotElements.length > 0) {
-        // Resize each plot after a short delay to ensure container has dimensions
-        setTimeout(() => {
-          plotElements.forEach((plotElement) => {
-            const rect = plotElement.getBoundingClientRect()
-            // Only resize if the plot element has actual dimensions
-            if (rect.width > 0 && rect.height > 0) {
-              Plotly.Plots.resize(plotElement)
-            }
-          })
-        }, 150)
-      }
-    }
-
-    // Initial resize when tab becomes active
-    resizeCharts()
-
-    // Also set up an IntersectionObserver to detect when the tab panel becomes visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0) {
-            resizeCharts()
-          }
-        })
-      },
-      {
-        threshold: 0.01,
-      },
-    )
-
-    if (tabPanelRef.current) {
-      observer.observe(tabPanelRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [activeTab])
-
-  // Resize Plotly charts in modal when modal opens or tab changes
-  useEffect(() => {
-    if (!imageModalOpened || !modalContentRef.current) return
-
-    const resizeModalCharts = () => {
-      // Find all Plotly plot elements within the modal
-      const plotElements = modalContentRef.current?.querySelectorAll(
-        '.js-plotly-plot',
-      ) as NodeListOf<HTMLElement>
-
-      if (plotElements && plotElements.length > 0) {
-        // Resize each plot after a short delay to ensure modal container has dimensions
-        setTimeout(() => {
-          plotElements.forEach((plotElement) => {
-            const rect = plotElement.getBoundingClientRect()
-            // Only resize if the plot element has actual dimensions
-            if (rect.width > 0 && rect.height > 0) {
-              Plotly.Plots.resize(plotElement)
-            }
-          })
-        }, 150)
-      }
-    }
-
-    // Initial resize when modal opens or tab changes
-    resizeModalCharts()
-
-    // Also set up an IntersectionObserver to detect when the modal content becomes visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0) {
-            resizeModalCharts()
-          }
-        })
-      },
-      {
-        threshold: 0.01,
-      },
-    )
-
-    if (modalContentRef.current) {
-      observer.observe(modalContentRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [imageModalOpened, modalActiveTab])
+  useResizePlotlyCharts({
+    containerRef: modalContentRef,
+    enabled: imageModalOpened,
+    dependency: modalActiveTab,
+  })
 
   const togglePlay = () => {
     setIsPlaying((prev) => !prev)

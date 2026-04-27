@@ -1,15 +1,13 @@
 import CustomCard from '@/components/CustomCard'
 import { useGetResources } from '@/hooks/api'
 import { Resource } from '@/hooks/types'
+import { useTableSort } from '@/hooks/useTableSort'
 import { ScrollArea, Stack, Table } from '@mantine/core'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router'
 
 const Home = () => {
-  const [sortConfig, setSortConfig] = useState<{
-    key: string
-    direction: 'asc' | 'desc'
-  } | null>(null)
+  const { sortConfig, handleSort } = useTableSort()
 
   const columns = useMemo(
     () => [
@@ -55,18 +53,6 @@ const Home = () => {
       return sortConfig.direction === 'asc' ? cmp : -cmp
     })
   }, [data, sortConfig])
-
-  const handleSort = (key: string) => {
-    setSortConfig((current) => {
-      if (!current || current.key !== key) {
-        return { key, direction: 'asc' }
-      }
-      if (current.direction === 'asc') {
-        return { key, direction: 'desc' }
-      }
-      return null
-    })
-  }
 
   const renderCell = (
     resource: Resource,

@@ -15,7 +15,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
-const Page = () => {
+const DeviceDetailsPVPage = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
@@ -238,4 +238,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default DeviceDetailsPVPage

@@ -40,7 +40,7 @@ type LossGroupEntry = {
   groupDeviceId: number | null
 }
 
-const Page = () => {
+const ExpectedPlottingPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const deviceId = searchParams.get('deviceId')
@@ -408,4 +408,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default ExpectedPlottingPage

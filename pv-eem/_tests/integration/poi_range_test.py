@@ -18,7 +18,7 @@ from _tests.snapshot_test_helpers import (
 )
 
 SNAPSHOT_NAME = Path(__file__).stem
-TEST_NAME = "test_simulation"
+TEST_NAME = "test_poi_simulation_range"
 OUTPUT_NAMESPACE = f"{SNAPSHOT_NAME}_{TEST_NAME}"
 PROJECT_NAME_SHORT = "double_black_diamond"
 SIMULATION_START = "2024-10-20 00:00:00"
@@ -31,7 +31,7 @@ OUTPUT_FILE_PATH = build_output_file_path(
 )
 
 
-def test_simulation(monkeypatch):
+def test_poi_simulation_range(monkeypatch):
     # --- Constants ---
     os.environ["ENVIRONMENT"] = "DEV"
 

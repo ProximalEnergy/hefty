@@ -156,8 +156,8 @@ class EffectivePlaneOfArrayIrradiance:
             .rename("global")
         )
 
-    def to_df(self, indeces):
-        """Run to_df."""
+    def to_epoai_df(self, indeces):
+        """Convert EPOAI values to a DataFrame."""
         return pd.DataFrame(
             {
                 "time": indeces.string_met_time_index.loc[:, "time"],
@@ -173,7 +173,7 @@ class EffectivePlaneOfArrayIrradiance:
             }
         )
 
-    def to_csv(self, indeces):
-        """Run to_csv."""
-        df = self.to_df(indeces)
+    def to_epoai_csv(self, indeces):
+        """Write EPOAI values to CSV."""
+        df = self.to_epoai_df(indeces)
         df.to_csv("epoai.csv", index=False)

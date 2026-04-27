@@ -15,8 +15,12 @@ from app._dependencies.authentication import get_user
 router = APIRouter(prefix="/companies", tags=["companies"])
 
 
-@router.post("", response_model=interfaces.Company)
-async def create_company(
+@router.post(
+    "",
+    response_model=interfaces.Company,
+    operation_id="create_company",
+)
+async def create_company_route(
     *,
     company: interfaces.CompanyCreate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -30,8 +34,11 @@ async def create_company(
     return await crud_create_company(db=db, company=company)
 
 
-@router.get("")
-async def get_companies(
+@router.get(
+    "",
+    operation_id="get_companies",
+)
+async def get_companies_route(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_ids: list[uuid.UUID] | None = Query(default=None),

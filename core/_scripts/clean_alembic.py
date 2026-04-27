@@ -256,7 +256,7 @@ class MigrationCleaner:
             print(f"\nCleaning complete. {cleaned_count} files were modified.")  # noqa: T201
 
 
-def main():
+def run_clean_alembic_cli():
     parser = argparse.ArgumentParser(
         description="Clean Alembic migration files by removing unnecessary "
         "for_each_project decorators"
@@ -290,4 +290,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    exit(run_clean_alembic_cli())

@@ -13,6 +13,24 @@ export const getInterval = (start: string, end: string): string => {
   }
 }
 
+export const getLast24HourTimeRange = () => {
+  const endDate = new Date()
+  endDate.setMinutes(Math.floor(endDate.getMinutes() / 5) * 5)
+  endDate.setSeconds(0)
+  endDate.setMilliseconds(0)
+
+  const endTime = endDate.toISOString()
+  const startTime = new Date(
+    endDate.getTime() - 24 * 60 * 60 * 1000,
+  ).toISOString()
+
+  return {
+    startTime,
+    endTime,
+    interval: getInterval(startTime, endTime),
+  }
+}
+
 export const roundTime = (
   time: string,
   interval: string,

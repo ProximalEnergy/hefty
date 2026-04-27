@@ -30,7 +30,7 @@ pl.Config.set_tbl_rows(-1)
 logger = logging.getLogger(__name__)
 
 SNAPSHOT_NAME = Path(__file__).stem
-TEST_NAME = "test_zero_output"
+TEST_NAME = "test_changed_module_zero_output"
 OUTPUT_NAMESPACE = f"{SNAPSHOT_NAME}_{TEST_NAME}"
 PROJECT_NAME_SHORT = "double_black_diamond"
 SIMULATION_LEVELS = [
@@ -60,7 +60,7 @@ SIMULATION_CASES = [
 ]
 
 
-def test_zero_output(monkeypatch):
+def test_changed_module_zero_output(monkeypatch):
     """Tests to make sure that given a set of inputs, the outputs
     do not contain zeros
     """

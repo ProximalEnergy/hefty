@@ -16,7 +16,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
-const Page = () => {
+const EquipmentAnalysisTrackerBlockPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -165,4 +165,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default EquipmentAnalysisTrackerBlockPage

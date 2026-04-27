@@ -17,7 +17,7 @@ type EquipmentHeaderProps = {
   poi: number | null
 }
 
-const formatNumber = (value: number | null) => {
+const formatFixedDecimal = (value: number | null) => {
   if (value === null) {
     return 'N/A'
   }
@@ -52,11 +52,11 @@ export function EquipmentHeader({
   const summaryStats: EquipmentSummaryStat[] = [
     {
       label: 'MWac per device',
-      value: showPcsValues ? formatNumber(summary.mwacPerDevice) : 'N/A',
+      value: showPcsValues ? formatFixedDecimal(summary.mwacPerDevice) : 'N/A',
     },
     {
       label: 'Total MWac',
-      value: showPcsValues ? formatNumber(summary.totalMwac) : 'N/A',
+      value: showPcsValues ? formatFixedDecimal(summary.totalMwac) : 'N/A',
       detail:
         showPcsValues && poi !== null && summary.totalMwac !== null
           ? `POI limit: ${poi.toFixed(2)} MWac`
@@ -82,11 +82,11 @@ export function EquipmentHeader({
     },
     {
       label: 'MWac per device',
-      value: showPcsValues ? formatNumber(summary.mwacPerDevice) : 'N/A',
+      value: showPcsValues ? formatFixedDecimal(summary.mwacPerDevice) : 'N/A',
     },
     {
       label: 'Total MWac',
-      value: showPcsValues ? formatNumber(summary.totalMwac) : 'N/A',
+      value: showPcsValues ? formatFixedDecimal(summary.totalMwac) : 'N/A',
     },
   ]
 

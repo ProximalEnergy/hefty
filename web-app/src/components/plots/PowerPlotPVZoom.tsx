@@ -15,7 +15,11 @@ import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { DataTimeSeries } from '@/hooks/types'
 import { alignLossSeries, parseIntervalMinutes } from '@/utils/alignLossSeries'
-import { getInterval, roundTime } from '@/utils/interval'
+import {
+  getInterval,
+  getLast24HourTimeRange,
+  roundTime,
+} from '@/utils/interval'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,
@@ -67,18 +71,15 @@ const PowerPlotPVZoom = () => {
   const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
 
   const handleDefaultView = () => {
-    const newEndTime = dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .toISOString()
-    const newStartTime = dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .subtract(24, 'hours')
-      .toISOString()
+    const {
+      startTime: newStartTime,
+      endTime: newEndTime,
+      interval: newInterval,
+    } = getLast24HourTimeRange()
+
     setEndTime(newEndTime)
     setStartTime(newStartTime)
-    setInterval(getInterval(newStartTime, newEndTime))
+    setInterval(newInterval)
     setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
   }
 
@@ -121,20 +122,15 @@ const PowerPlotPVZoom = () => {
     if (!isAutoUpdating) return
 
     const updateTimeRange = () => {
-      const now = dayjs()
-      const newEndTime = now
-        .minute(Math.floor(now.minute() / 5) * 5)
-        .second(0)
-        .toISOString()
-      const newStartTime = now
-        .minute(Math.floor(now.minute() / 5) * 5)
-        .second(0)
-        .subtract(24, 'hours')
-        .toISOString()
+      const {
+        startTime: newStartTime,
+        endTime: newEndTime,
+        interval: newInterval,
+      } = getLast24HourTimeRange()
 
       setEndTime(newEndTime)
       setStartTime(newStartTime)
-      setInterval(getInterval(newStartTime, newEndTime))
+      setInterval(newInterval)
     }
 
     // Update immediately

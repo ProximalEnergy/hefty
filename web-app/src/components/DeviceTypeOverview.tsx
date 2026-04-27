@@ -557,7 +557,7 @@ const DeviceTypeOverview = ({
     })
 
     // Generic calculation function for sensor data
-    const calculateSensorValues = (
+    const calculateSensorStatsByType = (
       data: DataTimeSeriesLast[],
       tags: Tag[],
       sensorTypeIds: number[],
@@ -609,7 +609,7 @@ const DeviceTypeOverview = ({
       const sensorTypeIds =
         DEVICE_TYPE_CONFIG[deviceTypeId]?.sensorTypes.pcs || []
       const conversions = { 2: 1000, 136: 1000, 144: 1 } // kW->MW, kVAR->MVAR, V->V
-      const values = calculateSensorValues(
+      const values = calculateSensorStatsByType(
         pcsData.data || [],
         pcsTags.data || [],
         sensorTypeIds,
@@ -684,7 +684,7 @@ const DeviceTypeOverview = ({
     const calculateCombinerValues = () => {
       const sensorTypeIds =
         DEVICE_TYPE_CONFIG[deviceTypeId]?.sensorTypes.combiner || []
-      const values = calculateSensorValues(
+      const values = calculateSensorStatsByType(
         combinerData.data || [],
         combinerTags.data || [],
         sensorTypeIds,
@@ -699,7 +699,7 @@ const DeviceTypeOverview = ({
       const sensorTypeIds =
         DEVICE_TYPE_CONFIG[deviceTypeId]?.sensorTypes.bessCircuit || []
       const conversions = { 41: 1000 } // kW->MW
-      const values = calculateSensorValues(
+      const values = calculateSensorStatsByType(
         bessCircuitData.data || [],
         bessCircuitTags.data || [],
         sensorTypeIds,
@@ -754,7 +754,7 @@ const DeviceTypeOverview = ({
         }
       })
 
-      const calculateSensorValues = (sensorTypeId: number) => {
+      const getSensorTypeStats = (sensorTypeId: number) => {
         const values = dataBySensorType[sensorTypeId] || []
         return values.length > 0
           ? {
@@ -800,11 +800,11 @@ const DeviceTypeOverview = ({
       return {
         meterActivePower: summarize(rtActiveValues),
         apparentPower: summarize(rtApparentValues),
-        ppcActiveSetpoint: calculateSensorValues(21),
-        ppcReactiveSetpoint: calculateSensorValues(22),
-        ppcActivePower: calculateSensorValues(17),
-        ppcReactivePower: calculateSensorValues(18),
-        ppcVoltage: calculateSensorValues(94),
+        ppcActiveSetpoint: getSensorTypeStats(21),
+        ppcReactiveSetpoint: getSensorTypeStats(22),
+        ppcActivePower: getSensorTypeStats(17),
+        ppcReactivePower: getSensorTypeStats(18),
+        ppcVoltage: getSensorTypeStats(94),
       }
     }
 

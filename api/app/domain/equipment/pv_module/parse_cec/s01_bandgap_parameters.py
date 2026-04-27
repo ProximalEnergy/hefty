@@ -1,4 +1,4 @@
-def assign_bandgap_parameters(
+def assign_bandgap_parameters_cec(
     *,
     cec_pv_module: dict,
 ):

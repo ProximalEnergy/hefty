@@ -437,7 +437,7 @@ async def get_paginated_events(
 
 
 @router.put("/{event_id}/root-cause")
-async def update_event_root_cause(
+async def update_event_root_cause_route(
     root_cause: Annotated[interfaces.RootCauseUpdate, Body()],
     event_id: Annotated[int, Path(title="The ID of the event to update")],
     project_db: AsyncSession = Depends(get_project_db_async),
@@ -1570,7 +1570,7 @@ async def get_event_losses_summary(
 
 
 @router.get("/5min-event-losses")
-async def get_5min_event_losses(
+async def get_5min_event_losses_route(
     project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime,
     end: datetime.datetime,

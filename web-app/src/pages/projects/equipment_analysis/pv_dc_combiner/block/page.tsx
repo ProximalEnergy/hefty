@@ -215,7 +215,7 @@ const formatCombinerPower = (powerKw: number, useGrouping = true): string =>
     useGrouping,
   })
 
-const Page = () => {
+const EquipmentAnalysisPVDCCombinerBlockPage = () => {
   const context = useContext(GISContext)
   const theme = useMantineTheme()
   const computedColorScheme = useComputedColorScheme('dark')
@@ -993,4 +993,4 @@ const SortableRow = ({
   )
 }
 
-export default Page
+export default EquipmentAnalysisPVDCCombinerBlockPage

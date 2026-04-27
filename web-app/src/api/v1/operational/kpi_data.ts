@@ -63,7 +63,7 @@ export const useGetOperationalKPIData = ({
 }
 
 // Add this interface near your other interfaces
-interface ContractKPI {
+interface ProjectContractualKPI {
   contract_id: number
   kpi_type_id: number
   threshold?: {
@@ -76,7 +76,7 @@ interface ContractKPI {
   provider_responsible?: boolean
 }
 
-export const useGetContractKPIs = ({
+export const useGetProjectContractualKPIs = ({
   pathParams,
   queryOptions = {},
 }: {
@@ -92,9 +92,9 @@ export const useGetContractKPIs = ({
     staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes
   }
 
-  return useCustomQuery<ContractKPI[]>({
+  return useCustomQuery<ProjectContractualKPI[]>({
     axiosConfig,
-    queryName: 'getContractKPIs',
+    queryName: 'getProjectContractualKPIs',
     pathParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

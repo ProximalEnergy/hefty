@@ -1,3 +1,4 @@
+import { useTableSort } from '@/hooks/useTableSort'
 import { Paper, Table, TextInput } from '@mantine/core'
 import { useState } from 'react'
 
@@ -22,26 +23,11 @@ const columns = [
 ]
 
 export function DeviceListTable({ data }: DeviceListTableProps) {
-  const [sortConfig, setSortConfig] = useState<{
-    key: string
-    direction: 'asc' | 'desc'
-  } | null>(null)
+  const { sortConfig, handleSort } = useTableSort()
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
 
   const getCellText = (row: DeviceData, key: string): string =>
     String(row[key as keyof DeviceData] ?? '')
-
-  const handleSort = (key: string) => {
-    setSortConfig((current) => {
-      if (!current || current.key !== key) {
-        return { key, direction: 'asc' }
-      }
-      if (current.direction === 'asc') {
-        return { key, direction: 'desc' }
-      }
-      return null
-    })
-  }
 
   const filtered = data.filter((row) =>
     columns.every((col) => {

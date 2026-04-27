@@ -1,4 +1,4 @@
-def assign_bandgap_parameters(
+def assign_bandgap_parameters_pan(
     *,
     pv_module: dict,
 ):

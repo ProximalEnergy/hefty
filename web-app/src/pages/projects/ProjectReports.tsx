@@ -134,7 +134,7 @@ const reportsPageInfo =
   'This page provides access to various project reports. Click on a report ' +
   'to view more details.'
 
-const Page = () => {
+const ProjectReportsPage = () => {
   // Get the project ID from the URL
   const { projectId } = useParams<{ projectId: string }>()
   const [configModalOpened, setConfigModalOpened] = useState(false)
@@ -476,4 +476,4 @@ const ReportInstanceCard = ({
   )
 }
 
-export default Page
+export default ProjectReportsPage

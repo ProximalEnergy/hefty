@@ -10,8 +10,8 @@ from p03_export.s02_to_file import (
 def plot(*, results: Any) -> Any:
     """Import Plotly export only when explicitly requested."""
     _plot = cast(
-        Callable[[Any], Any],
-        import_module("p03_export.s03_to_plotly").plot,
+        Callable[..., Any],
+        import_module("p03_export.s03_to_plotly").plot_results_to_plotly,
     )
 
-    return _plot(results)
+    return _plot(results=results)

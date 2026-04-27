@@ -15,7 +15,7 @@ router = APIRouter(prefix="/project-types", tags=["project_types"])
 @router.get(
     "", response_model=list[interfaces.ProjectType], operation_id="get_project_types"
 )
-def get_project_types(
+def get_project_types_route(
     project_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",

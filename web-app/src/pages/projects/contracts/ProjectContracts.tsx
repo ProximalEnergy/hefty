@@ -2,7 +2,7 @@ import { ProjectTypeEnum } from '@/api/enumerations'
 import {
   Contract,
   useDeleteContract,
-  useGetContractKPIs,
+  useGetProjectContractKPIs,
   useGetProjectContracts,
 } from '@/api/v1/operational/project/contracts'
 import {
@@ -175,7 +175,7 @@ const ContractCard = ({
     }
   }
 
-  const { data: kpis } = useGetContractKPIs({
+  const { data: kpis } = useGetProjectContractKPIs({
     pathParams: {
       projectId: contract.project_id,
       contractId: contract.contract_id,
@@ -275,7 +275,7 @@ const ContractCard = ({
   }
 
   // Function to format value with unit
-  const formatValue = (
+  const formatContractCardValue = (
     value: number | null | undefined,
     unit?: string | null,
     isThreshold: boolean = false,
@@ -633,10 +633,13 @@ const ContractCard = ({
                                     </Text>
                                   </Table.Td>
                                   <Table.Td style={{ textAlign: 'center' }}>
-                                    {formatValue(row.ytd_value, row.unit)}
+                                    {formatContractCardValue(
+                                      row.ytd_value,
+                                      row.unit,
+                                    )}
                                   </Table.Td>
                                   <Table.Td style={{ textAlign: 'center' }}>
-                                    {formatValue(
+                                    {formatContractCardValue(
                                       getCurrentThreshold(row.kpi_type_id),
                                       row.unit,
                                       true,
@@ -708,7 +711,7 @@ const ContractCard = ({
   )
 }
 
-const Page = () => {
+const ProjectContractsPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [modalOpen, setModalOpen] = useState(false)
@@ -912,4 +915,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default ProjectContractsPage

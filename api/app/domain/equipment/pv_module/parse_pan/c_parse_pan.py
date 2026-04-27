@@ -9,7 +9,7 @@ from app.domain.equipment.pv_module.parse_pan.s02_column_mapping import (
     format_pan_to_pvmodule,
 )
 from app.domain.equipment.pv_module.parse_pan.s03_bandgap_parameters import (
-    assign_bandgap_parameters,
+    assign_bandgap_parameters_pan,
 )
 from app.domain.equipment.pv_module.parse_pan.s04_absolute_temp_coefficients import (
     calc_absolute_temp_coefficients,
@@ -40,7 +40,7 @@ def parse_pan(*, file_content: bytes) -> dict[str, Any]:
         pan_data=pan_data,
         pan_format=pan_format,
     )
-    pv_module_data = assign_bandgap_parameters(
+    pv_module_data = assign_bandgap_parameters_pan(
         pv_module=pv_module_data,
     )
     pv_module_data = calc_absolute_temp_coefficients(

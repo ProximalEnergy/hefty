@@ -33,8 +33,12 @@ async def get_api_key(
     return {"api_key": user.api_key}
 
 
-@router.post("", summary="Create API Key")
-async def create_api_key(
+@router.post(
+    "",
+    summary="Create API Key",
+    operation_id="create_api_key",
+)
+async def create_api_key_route(
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_jwt_user_data_async)
     ],
@@ -50,7 +54,7 @@ async def create_api_key(
 
 
 @router.delete("", summary="Delete API Key")
-async def delete_api_key(
+async def delete_api_key_route(
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):

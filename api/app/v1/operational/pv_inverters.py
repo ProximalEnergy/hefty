@@ -35,7 +35,7 @@ router = APIRouter(prefix="/pv-inverters", tags=["pv_inverters"])
     response_model=list[interfaces.Inverter],
     operation_id="get_inverters",
 )
-async def get_inverters(
+async def get_inverters_route(
     *,
     inverter_ids: Annotated[list[int], Query()] = [],
     device_model_ids: Annotated[list[int], Query()] = [],
@@ -60,7 +60,7 @@ async def get_inverters(
     response_model=list[int],
     operation_id="get_inverter_ids",
 )
-async def get_inverter_ids(
+async def get_inverter_ids_route(
     *,
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     inverter_manufacturer: Annotated[list[str], Query()] = [],
@@ -176,8 +176,9 @@ async def get_inverter_ids_by_manufacturer_and_model(
     "",
     response_model=interfaces.Inverter,
     summary="Create or update a PV inverter",
+    operation_id="create_inverter",
 )
-async def create_inverter(
+async def create_inverter_route(
     *,
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     inverter: interfaces.Inverter,

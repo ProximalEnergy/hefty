@@ -14,7 +14,7 @@ interface ActivePowerChartProps {
   maxCapacityMWac: number | null
 }
 
-export const ActivePowerChart = ({
+export const ActivePowerChartBessPcs = ({
   realtimeData,
   maxCapacityMWac,
 }: ActivePowerChartProps) => {

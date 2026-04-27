@@ -1,10 +1,10 @@
 import {
   useCreateUser,
   useDeleteUser,
-  useGetCompanies,
   useUpdateUserProjects,
 } from '@/api/admin'
 import { UserTypeEnumEnum } from '@/api/enumerations'
+import { useGetCompanies } from '@/api/v1/admin/companies'
 import { useGetUserSelf, useGetUsers } from '@/api/v1/admin/users'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'

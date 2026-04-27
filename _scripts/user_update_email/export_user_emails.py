@@ -161,8 +161,8 @@ def export_user_emails(output_file: str = "user_emails.txt", api_prod: bool = Tr
     )
 
 
-def main():
-    """Main entry point."""
+def export_user_emails_cli():
+    """Run the email export CLI."""
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -191,4 +191,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    export_user_emails_cli()

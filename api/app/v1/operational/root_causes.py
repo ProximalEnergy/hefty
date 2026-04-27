@@ -12,7 +12,7 @@ router = APIRouter(prefix="/root-causes", tags=["root-causes"])
 
 
 @router.get("", operation_id="get_root_causes")
-async def get_root_causes(
+async def get_root_causes_route(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     *,
     root_cause_ids: Annotated[list[int], Query()] = [],

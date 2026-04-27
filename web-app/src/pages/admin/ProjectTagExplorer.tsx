@@ -72,6 +72,8 @@ import utc from 'dayjs/plugin/utc'
 import React, { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
+import { getUniqueUnits } from './sensorTypeUnits'
+
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -581,15 +583,6 @@ const ProjectTagExplorer = () => {
     },
   })
 
-  // Get unique units from existing sensor types
-  const getUniqueUnits = () => {
-    if (!sensorTypes.data) return []
-    const units = sensorTypes.data
-      .map((sensorType) => sensorType.unit)
-      .filter((unit) => unit !== null && unit !== '')
-    return [...new Set(units)]
-  }
-
   const uniqueTagTypes = useGetUniqueTagTypes({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
@@ -598,6 +591,7 @@ const ProjectTagExplorer = () => {
   })
 
   const sensorTypes = useGetSensorTypes({})
+  const uniqueUnits = getUniqueUnits(sensorTypes.data)
   const deviceTypes = useGetDeviceTypes({})
   const project = useSelectProject(projectId!)
 
@@ -2045,8 +2039,8 @@ const ProjectTagExplorer = () => {
                     Existing units:
                   </Text>
                   <Text size="xs">
-                    {getUniqueUnits().length > 0
-                      ? getUniqueUnits().join(', ')
+                    {uniqueUnits.length > 0
+                      ? uniqueUnits.join(', ')
                       : 'No existing units found'}
                   </Text>
                   <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>

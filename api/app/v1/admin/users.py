@@ -109,9 +109,10 @@ async def get_self_company(
 
 @router.post(
     "/create-with-clerk",
+    operation_id="create_user",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
-async def create_user(
+async def create_user_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: UserCreate,
 ):
@@ -151,8 +152,12 @@ async def create_user(
     )
 
 
-@router.delete("/{user_id}", status_code=204)
-async def delete_user(
+@router.delete(
+    "/{user_id}",
+    status_code=204,
+    operation_id="delete_user",
+)
+async def delete_user_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_id: str,
 ):

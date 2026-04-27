@@ -28,7 +28,7 @@ export interface paths {
          *         user_data: Requesting user context.
          *         db: Async database session.
          */
-        post: operations["create_api_key_v1_admin_api_key_post"];
+        post: operations["create_api_key"];
         /**
          * Delete API Key
          * @description Delete the API key for the requesting user.
@@ -37,7 +37,7 @@ export interface paths {
          *         user_data: Requesting user context.
          *         db: Async database session.
          */
-        delete: operations["delete_api_key_v1_admin_api_key_delete"];
+        delete: operations["delete_api_key_route_v1_admin_api_key_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -111,7 +111,7 @@ export interface paths {
          */
         post: operations["add_user_permission_v1_admin_permissions_projects__project_id__users__user_id__post"];
         /**
-         * Delete User Permission
+         * Delete User Permission Route
          * @description Delete a user permission for a user at a project. Requires admin access.
          *
          *     Args:
@@ -120,7 +120,7 @@ export interface paths {
          *         user_permission: Permission payload.
          *         db: Async database session.
          */
-        delete: operations["delete_user_permission_v1_admin_permissions_projects__project_id__users__user_id__delete"];
+        delete: operations["delete_user_permission"];
         options?: never;
         head?: never;
         patch?: never;
@@ -328,7 +328,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Companies
+         * Get Companies Route
          * @description Get companies filtered by IDs or short names.
          *
          *     Args:
@@ -336,17 +336,17 @@ export interface paths {
          *         company_ids: Optional company UUID filters.
          *         name_shorts: Optional short name filters.
          */
-        get: operations["get_companies_v1_admin_companies_get"];
+        get: operations["get_companies"];
         put?: never;
         /**
-         * Create Company
+         * Create Company Route
          * @description Create a company.
          *
          *     Args:
          *         company: Company payload to create.
          *         db: Async database session.
          */
-        post: operations["create_company_v1_admin_companies_post"];
+        post: operations["create_company"];
         delete?: never;
         options?: never;
         head?: never;
@@ -388,17 +388,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Teams
+         * Get Teams Route
          * @description Get teams for a company (admin only).
          *
          *     Args:
          *         db: Database session.
          *         company_id: Company identifier to filter teams.
          */
-        get: operations["get_teams_v1_admin_teams_get"];
+        get: operations["get_teams"];
         put?: never;
         /**
-         * Create Team
+         * Create Team Route
          * @description Create a team for the current user's company (admin only).
          *
          *     Args:
@@ -406,7 +406,7 @@ export interface paths {
          *         user_data: Authenticated user context.
          *         team: Team payload to create.
          */
-        post: operations["create_team_v1_admin_teams_post"];
+        post: operations["create_team"];
         delete?: never;
         options?: never;
         head?: never;
@@ -650,14 +650,14 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Create User
+         * Create User Route
          * @description Create a user in Clerk and persist metadata in the admin database.
          *
          *     Args:
          *         db: Async session for admin persistence actions.
          *         user: UserCreate payload containing Clerk and company details.
          */
-        post: operations["create_user_v1_admin_users_create_with_clerk_post"];
+        post: operations["create_user"];
         delete?: never;
         options?: never;
         head?: never;
@@ -675,14 +675,14 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete User
+         * Delete User Route
          * @description Delete a user from Clerk and the database.
          *
          *     Args:
          *         db: Async database session.
          *         user_id: Clerk user ID to delete.
          */
-        delete: operations["delete_user_v1_admin_users__user_id__delete"];
+        delete: operations["delete_user"];
         options?: never;
         head?: never;
         patch?: never;
@@ -746,7 +746,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Update User Projects
+         * Update User Projects Route
          * @description Update user-project associations in bulk.
          *
          *     Args:
@@ -754,7 +754,7 @@ export interface paths {
          *         user_ids: User ids to update.
          *         operational_project_ids: Project id lists aligned with user ids.
          */
-        post: operations["update_user_projects_v1_admin_user_projects_update_user_projects_post"];
+        post: operations["update_user_projects_route_v1_admin_user_projects_update_user_projects_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1523,7 +1523,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Create Feedback
+         * Create Feedback Route
          * @description todo
          *
          *     Args:
@@ -1534,7 +1534,7 @@ export interface paths {
          *         comment: Description for comment.
          *         screenshot: Description for screenshot.
          */
-        post: operations["create_feedback_v1_feedback_post"];
+        post: operations["create_feedback"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1767,14 +1767,14 @@ export interface paths {
         get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules_get"];
         put?: never;
         /**
-         * Upsert Cec Pv Modules Bulk
+         * Upsert Cec Pv Modules Bulk Route
          * @description todo
          *
          *     Args:
          *         modules: Description for modules.
          *         db: Description for db.
          */
-        post: operations["upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules_post"];
+        post: operations["upsert_cec_pv_modules_bulk_route_v1_operational_cec_pv_modules_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2251,7 +2251,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Kpi Data
+         * Get Kpi Data Route
          * @description todo
          *
          *     Args:
@@ -2338,7 +2338,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Kpi Instances
+         * Get Kpi Instances Route
          * @description todo
          *
          *     Args:
@@ -2348,7 +2348,7 @@ export interface paths {
          *         kpi_type_ids: Description for kpi_type_ids.
          *         deep: Description for deep.
          */
-        get: operations["get_kpi_instances_v1_operational_kpi_instances_get"];
+        get: operations["get_kpi_instances"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2389,7 +2389,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Kpi Types
+         * Get Kpi Types Route
          * @description todo
          *
          *     Args:
@@ -2692,7 +2692,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Contracts
+         * Get Project Contracts Route
          * @description todo
          *
          *     Args:
@@ -2700,10 +2700,10 @@ export interface paths {
          *         project_db: Description for project_db.
          *         user: Description for user.
          */
-        get: operations["get_project_contracts_v1_operational_projects__project_id__contracts_get"];
+        get: operations["get_project_contracts"];
         put?: never;
         /**
-         * Create Contract
+         * Create Contract Route
          * @description todo
          *
          *     Args:
@@ -2712,7 +2712,7 @@ export interface paths {
          *         db: Description for db.
          *         user_data: Description for user_data.
          */
-        post: operations["create_contract_v1_operational_projects__project_id__contracts_post"];
+        post: operations["create_contract"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3579,7 +3579,7 @@ export interface paths {
         };
         get?: never;
         /**
-         * Update Event Root Cause
+         * Update Event Root Cause Route
          * @description Update the root cause assigned to an event.
          *
          *     Args:
@@ -3587,7 +3587,7 @@ export interface paths {
          *         event_id: ID of the event to update.
          *         project_db: Project database session.
          */
-        put: operations["update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put"];
+        put: operations["update_event_root_cause_route_v1_operational_projects__project_id__events__event_id__root_cause_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3814,10 +3814,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get 5Min Event Losses
+         * Get 5Min Event Losses Route
          * @description Get 5-minute event losses for a project.
          */
-        get: operations["get_5min_event_losses_v1_operational_projects__project_id__events_5min_event_losses_get"];
+        get: operations["get_5min_event_losses_route_v1_operational_projects__project_id__events_5min_event_losses_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3920,7 +3920,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Kpi Summary
+         * Get Project Kpi Summary Route
          * @description todo
          *
          *     Args:
@@ -3933,7 +3933,7 @@ export interface paths {
          *         contract_id: Description for contract_id.
          *         start: Description for start.
          */
-        get: operations["get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get"];
+        get: operations["get_project_kpi_summary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3950,7 +3950,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Contract Kpis
+         * Get Contract Kpis Route
          * @description Get all contract KPIs for a project with counterparty information
          *
          *     Args:
@@ -4163,7 +4163,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Pv Budgeted Data
+         * Get Pv Budgeted Data Project Route
          * @description todo
          *
          *     Args:
@@ -4172,7 +4172,7 @@ export interface paths {
          *         start: Description for start.
          *         end: Description for end.
          */
-        get: operations["get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get"];
+        get: operations["get_pv_budgeted_data_project_route_v1_operational_projects__project_id__pv_budgeted_data_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4484,7 +4484,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Last Known Statuses
+         * Get Last Known Statuses Route
          * @description Returns the human-readable interpretation of
          *     last known status values for the project.
          *     Returns data in the form:
@@ -4520,7 +4520,7 @@ export interface paths {
          *         alert_only: If True, only return statuses that are in alert (non-nominal) state.
          *         If False, return all statuses. WARNING: False may return a lot of data.
          */
-        get: operations["get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get"];
+        get: operations["get_last_known_statuses_route_v1_operational_projects__project_id__status_last_known_statuses_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4688,14 +4688,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Data Last Updated Endpoint
+         * Get Project Data Last Updated Endpoint Route
          * @description todo
          *
          *     Args:
          *         db: Description for db.
          *         project_ids: Description for project_ids.
          */
-        get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
+        get: operations["get_project_data_last_updated_endpoint_route_v1_operational_project_data_last_updated_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4712,7 +4712,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Types
+         * Get Project Types Route
          * @description todo
          *
          *     Args:
@@ -4816,7 +4816,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Pv Budgeted Series
+         * Get Pv Budgeted Series Route
          * @description Get all budgeted series for a project.
          *
          *     Args:
@@ -4840,7 +4840,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Pv Budgeted Data
+         * Get Pv Budgeted Data Route
          * @description Get PV budgeted data for a project (all series).
          *
          *     Args:
@@ -4893,7 +4893,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Pv Budgeted Series Daily Data
+         * Get Pv Budgeted Series Daily Data Route
          * @description Get daily aggregated budgeted data for a specific series within a date range.
          *     This aggregates hourly data to daily values and applies degradation adjustment.
          *
@@ -4922,7 +4922,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Inverters
+         * Get Inverters Route
          * @description todo
          *
          *     Args:
@@ -4944,7 +4944,7 @@ export interface paths {
          *         inverter: Description for inverter.
          *         db: Description for db.
          */
-        post: operations["create_inverter_v1_operational_pv_inverters_post"];
+        post: operations["create_inverter"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4959,7 +4959,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Inverter Ids
+         * Get Inverter Ids Route
          * @description todo
          *
          *     Args:
@@ -5130,7 +5130,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Pv Modules
+         * Get Pv Modules Route
          * @description todo
          *
          *     Args:
@@ -5151,7 +5151,7 @@ export interface paths {
          *         pv_module: Description for pv_module.
          *         db: Description for db.
          */
-        post: operations["create_pv_module_v1_operational_pv_modules_post"];
+        post: operations["create_pv_module"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5166,7 +5166,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Pv Module Ids
+         * Get Pv Module Ids Route
          * @description todo
          *
          *     Args:
@@ -5330,7 +5330,7 @@ export interface paths {
          *         racking: Description for racking.
          *         db: Description for db.
          */
-        post: operations["create_racking_v1_operational_pv_rackings_post"];
+        post: operations["create_racking"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5451,7 +5451,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Types
+         * Get Report Types Route
          * @description todo
          *
          *     Args:
@@ -5474,7 +5474,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Type
+         * Get Report Type Route
          * @description todo
          *
          *     Args:
@@ -5498,7 +5498,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Root Causes
+         * Get Root Causes Route
          * @description Retrieve root causes with optional filtering by IDs and device types.
          *
          *     This endpoint returns a list of root causes, optionally filtered by
@@ -5548,7 +5548,7 @@ export interface paths {
         get: operations["get_sensor_types"];
         put?: never;
         /**
-         * Create Sensor Type
+         * Create Sensor Type Route
          * @description Create a new sensor type. Only superadmins can create sensor types.
          *
          *     Args:
@@ -5579,7 +5579,7 @@ export interface paths {
          */
         get: operations["get_sensor_type"];
         /**
-         * Update Sensor Type
+         * Update Sensor Type Route
          * @description Update an existing sensor type. Only superadmins can update sensor types.
          *
          *     Args:
@@ -6061,7 +6061,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get User Dashboards
+         * Get User Dashboards Route
          * @description todo
          *
          *     Args:
@@ -6069,7 +6069,7 @@ export interface paths {
          *         user: Description for user.
          *         project: Description for project.
          */
-        get: operations["get_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_user_dashboards_get"];
+        get: operations["get_user_dashboards"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6086,7 +6086,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Shared User Dashboards
+         * Get Shared User Dashboards Route
          * @description todo
          *
          *     Args:
@@ -6094,7 +6094,7 @@ export interface paths {
          *         user: Description for user.
          *         project: Description for project.
          */
-        get: operations["get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get"];
+        get: operations["get_shared_user_dashboards"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6113,7 +6113,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Create User Dashboard
+         * Create User Dashboard Route
          * @description todo
          *
          *     Args:
@@ -6122,7 +6122,7 @@ export interface paths {
          *         project: Description for project.
          *         request: Description for request.
          */
-        post: operations["create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post"];
+        post: operations["create_user_dashboard"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6165,7 +6165,7 @@ export interface paths {
         };
         get?: never;
         /**
-         * Update User Dashboard
+         * Update User Dashboard Route
          * @description todo
          *
          *     Args:
@@ -6174,7 +6174,7 @@ export interface paths {
          *         project: Description for project.
          *         request: Description for request.
          */
-        put: operations["update_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put"];
+        put: operations["update_user_dashboard_route_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -7328,7 +7328,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Ptp Endpoints
+         * Get Ptp Endpoints Route
          * @description Get available PTP endpoints organized by category.
          *
          *     Args:
@@ -7340,7 +7340,7 @@ export interface paths {
          *     Returns:
          *         Dictionary of endpoints organized by category.
          */
-        get: operations["get_ptp_endpoints_v1_protected_web_application_projects__project_id__ptp_data_endpoints_get"];
+        get: operations["get_ptp_endpoints_route_v1_protected_web_application_projects__project_id__ptp_data_endpoints_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7542,7 +7542,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Utility Expected
+         * Utility Expected Route
          * @description This function facilitates all backend data required for the Superadmin
          *     Utility Expected Plotting page. Data returned includes parent device tree
          *     up to root, expected power data, and actual power data. This data is visible
@@ -7558,7 +7558,7 @@ export interface paths {
          *         project_db: Description for project_db.
          *         project: Description for project.
          */
-        get: operations["utility_expected_v1_protected__project_id__pv_expected_energy_plot_get"];
+        get: operations["utility_expected"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7991,8 +7991,8 @@ export interface components {
             /** Name Full */
             name_full: string;
         };
-        /** Body_create_feedback_v1_feedback_post */
-        Body_create_feedback_v1_feedback_post: {
+        /** Body_create_feedback */
+        Body_create_feedback: {
             /** User Id */
             user_id: string;
             /** Email */
@@ -8016,8 +8016,8 @@ export interface components {
             /** File */
             file: string;
         };
-        /** Body_update_user_projects_v1_admin_user_projects_update_user_projects_post */
-        Body_update_user_projects_v1_admin_user_projects_update_user_projects_post: {
+        /** Body_update_user_projects_route_v1_admin_user_projects_update_user_projects_post */
+        Body_update_user_projects_route_v1_admin_user_projects_update_user_projects_post: {
             /** User Ids */
             user_ids: string[];
             /** Operational Project Ids */
@@ -12411,7 +12411,7 @@ export interface operations {
             };
         };
     };
-    create_api_key_v1_admin_api_key_post: {
+    create_api_key: {
         parameters: {
             query?: never;
             header?: {
@@ -12443,7 +12443,7 @@ export interface operations {
             };
         };
     };
-    delete_api_key_v1_admin_api_key_delete: {
+    delete_api_key_route_v1_admin_api_key_delete: {
         parameters: {
             query?: never;
             header?: {
@@ -12579,7 +12579,7 @@ export interface operations {
             };
         };
     };
-    delete_user_permission_v1_admin_permissions_projects__project_id__users__user_id__delete: {
+    delete_user_permission: {
         parameters: {
             query?: never;
             header?: {
@@ -12957,7 +12957,7 @@ export interface operations {
             };
         };
     };
-    get_companies_v1_admin_companies_get: {
+    get_companies: {
         parameters: {
             query?: {
                 company_ids?: string[] | null;
@@ -12991,7 +12991,7 @@ export interface operations {
             };
         };
     };
-    create_company_v1_admin_companies_post: {
+    create_company: {
         parameters: {
             query?: never;
             header?: {
@@ -13057,7 +13057,7 @@ export interface operations {
             };
         };
     };
-    get_teams_v1_admin_teams_get: {
+    get_teams: {
         parameters: {
             query: {
                 company_id: string;
@@ -13091,7 +13091,7 @@ export interface operations {
             };
         };
     };
-    create_team_v1_admin_teams_post: {
+    create_team: {
         parameters: {
             query?: never;
             header?: {
@@ -13460,7 +13460,7 @@ export interface operations {
             };
         };
     };
-    create_user_v1_admin_users_create_with_clerk_post: {
+    create_user: {
         parameters: {
             query?: never;
             header?: {
@@ -13496,7 +13496,7 @@ export interface operations {
             };
         };
     };
-    delete_user_v1_admin_users__user_id__delete: {
+    delete_user: {
         parameters: {
             query?: never;
             header?: {
@@ -13599,7 +13599,7 @@ export interface operations {
             };
         };
     };
-    update_user_projects_v1_admin_user_projects_update_user_projects_post: {
+    update_user_projects_route_v1_admin_user_projects_update_user_projects_post: {
         parameters: {
             query?: never;
             header?: {
@@ -13610,7 +13610,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_update_user_projects_v1_admin_user_projects_update_user_projects_post"];
+                "application/json": components["schemas"]["Body_update_user_projects_route_v1_admin_user_projects_update_user_projects_post"];
             };
         };
         responses: {
@@ -14719,7 +14719,7 @@ export interface operations {
             };
         };
     };
-    create_feedback_v1_feedback_post: {
+    create_feedback: {
         parameters: {
             query?: never;
             header?: {
@@ -14730,7 +14730,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_create_feedback_v1_feedback_post"];
+                "multipart/form-data": components["schemas"]["Body_create_feedback"];
             };
         };
         responses: {
@@ -15068,7 +15068,7 @@ export interface operations {
             };
         };
     };
-    upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules_post: {
+    upsert_cec_pv_modules_bulk_route_v1_operational_cec_pv_modules_post: {
         parameters: {
             query?: never;
             header?: {
@@ -16016,7 +16016,7 @@ export interface operations {
             };
         };
     };
-    get_kpi_instances_v1_operational_kpi_instances_get: {
+    get_kpi_instances: {
         parameters: {
             query?: {
                 project_ids?: string[] | null;
@@ -16526,7 +16526,7 @@ export interface operations {
             };
         };
     };
-    get_project_contracts_v1_operational_projects__project_id__contracts_get: {
+    get_project_contracts: {
         parameters: {
             query?: never;
             header?: {
@@ -16560,7 +16560,7 @@ export interface operations {
             };
         };
     };
-    create_contract_v1_operational_projects__project_id__contracts_post: {
+    create_contract: {
         parameters: {
             query?: never;
             header?: {
@@ -17771,7 +17771,7 @@ export interface operations {
             };
         };
     };
-    update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put: {
+    update_event_root_cause_route_v1_operational_projects__project_id__events__event_id__root_cause_put: {
         parameters: {
             query?: never;
             header?: {
@@ -18106,7 +18106,7 @@ export interface operations {
             };
         };
     };
-    get_5min_event_losses_v1_operational_projects__project_id__events_5min_event_losses_get: {
+    get_5min_event_losses_route_v1_operational_projects__project_id__events_5min_event_losses_get: {
         parameters: {
             query: {
                 start: string;
@@ -18264,7 +18264,7 @@ export interface operations {
             };
         };
     };
-    get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get: {
+    get_project_kpi_summary: {
         parameters: {
             query?: {
                 kpi_type_ids?: number[] | null;
@@ -18678,7 +18678,7 @@ export interface operations {
             };
         };
     };
-    get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get: {
+    get_pv_budgeted_data_project_route_v1_operational_projects__project_id__pv_budgeted_data_get: {
         parameters: {
             query: {
                 pv_budgeted_series_id: number;
@@ -19145,7 +19145,7 @@ export interface operations {
             };
         };
     };
-    get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get: {
+    get_last_known_statuses_route_v1_operational_projects__project_id__status_last_known_statuses_get: {
         parameters: {
             query?: {
                 device_type_ids?: number[] | null;
@@ -19383,7 +19383,7 @@ export interface operations {
             };
         };
     };
-    get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get: {
+    get_project_data_last_updated_endpoint_route_v1_operational_project_data_last_updated_get: {
         parameters: {
             query: {
                 project_ids: string[];
@@ -19797,7 +19797,7 @@ export interface operations {
             };
         };
     };
-    create_inverter_v1_operational_pv_inverters_post: {
+    create_inverter: {
         parameters: {
             query?: {
                 company_id?: string | null;
@@ -20076,7 +20076,7 @@ export interface operations {
             };
         };
     };
-    create_pv_module_v1_operational_pv_modules_post: {
+    create_pv_module: {
         parameters: {
             query?: {
                 company_id?: string | null;
@@ -20320,7 +20320,7 @@ export interface operations {
             };
         };
     };
-    create_racking_v1_operational_pv_rackings_post: {
+    create_racking: {
         parameters: {
             query?: {
                 company_id?: string | null;
@@ -21399,7 +21399,7 @@ export interface operations {
             };
         };
     };
-    get_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_user_dashboards_get: {
+    get_user_dashboards: {
         parameters: {
             query?: never;
             header?: {
@@ -21433,7 +21433,7 @@ export interface operations {
             };
         };
     };
-    get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get: {
+    get_shared_user_dashboards: {
         parameters: {
             query?: never;
             header?: {
@@ -21467,7 +21467,7 @@ export interface operations {
             };
         };
     };
-    create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post: {
+    create_user_dashboard: {
         parameters: {
             query?: never;
             header?: {
@@ -21544,7 +21544,7 @@ export interface operations {
             };
         };
     };
-    update_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put: {
+    update_user_dashboard_route_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put: {
         parameters: {
             query?: never;
             header?: {
@@ -23240,7 +23240,7 @@ export interface operations {
             };
         };
     };
-    get_ptp_endpoints_v1_protected_web_application_projects__project_id__ptp_data_endpoints_get: {
+    get_ptp_endpoints_route_v1_protected_web_application_projects__project_id__ptp_data_endpoints_get: {
         parameters: {
             query?: never;
             header?: {
@@ -23514,7 +23514,7 @@ export interface operations {
             };
         };
     };
-    utility_expected_v1_protected__project_id__pv_expected_energy_plot_get: {
+    utility_expected: {
         parameters: {
             query: {
                 device_id: number;

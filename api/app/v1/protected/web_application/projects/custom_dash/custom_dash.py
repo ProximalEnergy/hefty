@@ -752,8 +752,11 @@ async def get_scatter(
     }
 
 
-@router.get("/user-dashboards")
-async def get_user_dashboards(
+@router.get(
+    "/user-dashboards",
+    operation_id="get_user_dashboards",
+)
+async def get_user_dashboards_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -773,8 +776,11 @@ async def get_user_dashboards(
     return user_dashboards
 
 
-@router.get("/shared-user-dashboards")
-async def get_shared_user_dashboards(
+@router.get(
+    "/shared-user-dashboards",
+    operation_id="get_shared_user_dashboards",
+)
+async def get_shared_user_dashboards_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -794,8 +800,11 @@ async def get_shared_user_dashboards(
     return shared_user_dashboards
 
 
-@router.post("/create-dashboard")
-async def create_user_dashboard(
+@router.post(
+    "/create-dashboard",
+    operation_id="create_user_dashboard",
+)
+async def create_user_dashboard_route(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[UserAuthed, Depends(get_user)],
@@ -957,7 +966,7 @@ async def duplicate_user_dashboard(
 
 
 @router.put("/update-dashboard")
-async def update_user_dashboard(
+async def update_user_dashboard_route(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[UserAuthed, Depends(get_user)],

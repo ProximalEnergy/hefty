@@ -1,7 +1,7 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { Project } from '@/api/v1/operational/projects'
 
-const formatNumber = (number: number | null) => {
+const formatProjectDescriptionValue = (number: number | null) => {
   if (number === null) {
     return number
   }
@@ -19,13 +19,13 @@ export const projectDescription = (project: Project) => {
   let title = ''
   switch (project.project_type_id) {
     case ProjectTypeEnum.PV:
-      title = `${formatNumber(project.poi)} MW PV`
+      title = `${formatProjectDescriptionValue(project.poi)} MW PV`
       break
     case ProjectTypeEnum.BESS:
-      title = `${formatNumber(project.capacity_bess_power_ac)} MW / ${formatNumber(project.capacity_bess_energy_bol_dc)} MWh BESS`
+      title = `${formatProjectDescriptionValue(project.capacity_bess_power_ac)} MW / ${formatProjectDescriptionValue(project.capacity_bess_energy_bol_dc)} MWh BESS`
       break
     case ProjectTypeEnum.PVS:
-      title = `${formatNumber(project.poi)} MW PV | ${formatNumber(project.capacity_bess_power_ac)} MW - ${formatNumber(project.capacity_bess_energy_bol_dc)} MWh BESS`
+      title = `${formatProjectDescriptionValue(project.poi)} MW PV | ${formatProjectDescriptionValue(project.capacity_bess_power_ac)} MW - ${formatProjectDescriptionValue(project.capacity_bess_energy_bol_dc)} MWh BESS`
       break
   }
 

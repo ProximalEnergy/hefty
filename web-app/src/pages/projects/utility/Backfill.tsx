@@ -65,7 +65,7 @@ interface BackfillFormValues {
   use_median_irr_sensor: boolean
 }
 
-const Page = () => {
+const BackfillPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
 
   const { data: project } = useSelectProject(projectId!)
@@ -323,4 +323,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default BackfillPage

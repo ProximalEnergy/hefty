@@ -85,7 +85,7 @@ const getYAxisRangeConfig = (kpiType: KPIType) => {
   return {}
 }
 
-const Page = () => {
+const ProjectKPITemplatePage = () => {
   const { projectId, kpiTypeId } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -1291,4 +1291,4 @@ const MapCard = ({
   )
 }
 
-export default Page
+export default ProjectKPITemplatePage

@@ -11,6 +11,7 @@ import { IconChevronRight } from '@tabler/icons-react'
 import { Link, useLocation } from 'react-router'
 
 import classes from './NavbarLinksGroup.module.css'
+import { isPathActive } from './isPathActive'
 
 interface DropdownLinkProps {
   label: string
@@ -40,16 +41,6 @@ export function LinksGroup({
   const hasLinks = Array.isArray(links)
   const location = useLocation()
 
-  const isActive = (path: string) => {
-    if (location.pathname.startsWith(path)) {
-      const nextChar = location.pathname[path.length]
-      // Only return true if this is the most specific match
-      // i.e., if there are no more path segments after this one
-      return nextChar === undefined
-    }
-    return false
-  }
-
   const handleMainClick = () => {
     if (collapsed && hasLinks && onExpandNavbar) {
       // If sidebar is collapsed and this item has nested links, expand the sidebar
@@ -69,7 +60,7 @@ export function LinksGroup({
           <Menu.Item
             component={Link}
             to={link.to}
-            data-active={isActive(link.to)}
+            data-active={isPathActive(location.pathname, link.to)}
           >
             {link.label}
           </Menu.Item>
@@ -77,7 +68,7 @@ export function LinksGroup({
       ))
     : []
 
-  const activeState = to ? isActive(to) : false
+  const activeState = to ? isPathActive(location.pathname, to) : false
 
   const buttonContent = (
     <UnstyledButton onClick={handleMainClick} className={classes.control}>

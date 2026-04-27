@@ -104,7 +104,7 @@ def simulate_project(
         ALBEDO=ALBEDO,
         AXIS_AZIMUTH=AXIS_AZIMUTH,
     )
-    # poai.to_csv(target_string_id=0)
+    # poai.to_poai_csv(target_string_id=0)
     logging.info("...POAI step complete")
     yield poai
 
@@ -134,7 +134,7 @@ def simulate_project(
         racking_structure_shade_factor=rackings.structure_shading_factor,
         AXIS_AZIMUTH=AXIS_AZIMUTH,
     )
-    # epoai.to_csv(indeces=indeces)
+    # epoai.to_epoai_csv(indeces=indeces)
     logging.info("... EPOAI step complete")
 
     # --- Phase 5:  Calculate DC Current and Voltage (DC IV) ---

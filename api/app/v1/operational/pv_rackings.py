@@ -137,8 +137,9 @@ async def get_racking_ids_by_manufacturer_and_model(
     "",
     response_model=interfaces.PVRackings,
     summary="Create or update a PV racking",
+    operation_id="create_racking",
 )
-async def create_racking(
+async def create_racking_route(
     *,
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     racking: interfaces.PVRackings,

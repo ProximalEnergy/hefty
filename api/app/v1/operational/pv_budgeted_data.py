@@ -24,7 +24,7 @@ router = APIRouter(prefix="/pv-budgeted-data", tags=["pv_budgeted_data"])
     operation_id="get_pv_budgeted_series",
     dependencies=[Depends(require_user_company)],
 )
-async def get_pv_budgeted_series(
+async def get_pv_budgeted_series_route(
     *,
     project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
@@ -46,7 +46,7 @@ async def get_pv_budgeted_series(
     operation_id="get_pv_budgeted_data",
     dependencies=[Depends(require_user_company)],
 )
-async def get_pv_budgeted_data(
+async def get_pv_budgeted_data_route(
     *,
     project_id: uuid.UUID,
     start: datetime.datetime,
@@ -108,7 +108,7 @@ async def get_pv_budgeted_data_by_series(
     operation_id="get_pv_budgeted_series_daily_data",
     dependencies=[Depends(require_user_company)],
 )
-async def get_pv_budgeted_series_daily_data(
+async def get_pv_budgeted_series_daily_data_route(
     *,
     project_id: uuid.UUID,
     pv_budgeted_series_id: int,

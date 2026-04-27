@@ -383,7 +383,7 @@ const ConfirmRootModal = ({
   </Modal>
 )
 
-const Page = () => {
+const DcFieldEventPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const location = useLocation()
   const eventId = parseInt(
@@ -645,4 +645,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default DcFieldEventPage

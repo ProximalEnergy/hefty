@@ -5,10 +5,9 @@ import { UseQueryOptions } from '@tanstack/react-query'
 
 type UtilityExpected = types.components['schemas']['UtilityExpectedResponse']
 
-type UtilityExpectedOperation =
-  'utility_expected_v1_protected__project_id__pv_expected_energy_plot_get'
+type UtilityExpectedPath = '/v1/protected/{project_id}/pv-expected-energy/plot'
 type UtilityExpectedQueryParams =
-  types.operations[UtilityExpectedOperation]['parameters']['query']
+  types.paths[UtilityExpectedPath]['get']['parameters']['query']
 
 export const useGetUtilityExpected = ({
   pathParams,

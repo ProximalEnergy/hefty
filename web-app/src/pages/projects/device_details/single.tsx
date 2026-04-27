@@ -16,7 +16,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
-const Page = () => {
+const SingleDeviceDetailsPage = () => {
   const { deviceId, projectId } = useParams<{
     deviceId: string
     projectId: string
@@ -188,4 +188,4 @@ const PlotDataStacked = ({
   }
 }
 
-export default Page
+export default SingleDeviceDetailsPage

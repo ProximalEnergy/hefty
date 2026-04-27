@@ -141,7 +141,7 @@ async def get_proximal_cec_pv_module_models(
 
 
 @router.post("", response_model=list[interfaces.CECPVModule])
-async def upsert_cec_pv_modules_bulk(
+async def upsert_cec_pv_modules_bulk_route(
     modules: interfaces.CECPVModuleBulkCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):

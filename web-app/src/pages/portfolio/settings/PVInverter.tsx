@@ -40,6 +40,8 @@ import {
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 
+import { formatFieldLabel } from './fieldLabels'
+
 const FIELD_LABELS: Record<string, string> = {
   voltage_mpp_min: 'Minimum MPP Voltage',
   voltage_mpp_max: 'Maximum MPP Voltage',
@@ -79,17 +81,6 @@ type SubmitErrorResult = {
   fieldErrors: Record<string, string>
 }
 
-const formatFieldLabel = (field: string) => {
-  if (FIELD_LABELS[field]) {
-    return FIELD_LABELS[field]
-  }
-
-  return field
-    .split('_')
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join(' ')
-}
-
 const getSubmitErrorResult = (error: unknown): SubmitErrorResult => {
   if (axios.isAxiosError(error)) {
     const detail = error.response?.data?.detail as unknown
@@ -108,7 +99,9 @@ const getSubmitErrorResult = (error: unknown): SubmitErrorResult => {
               .filter((locPart) => locPart !== 'body')
             const field = locParts?.[locParts.length - 1]
             const fieldLabel =
-              typeof field === 'string' ? formatFieldLabel(field) : 'Request'
+              typeof field === 'string'
+                ? formatFieldLabel(field, FIELD_LABELS)
+                : 'Request'
             if (
               typeof field === 'string' &&
               typeof item.msg === 'string' &&
@@ -157,7 +150,7 @@ const getSubmitErrorResult = (error: unknown): SubmitErrorResult => {
 
 const isNonPositive = (value: number) => !Number.isFinite(value) || value <= 0
 
-const Page = () => {
+const PVInverterSettings = () => {
   // --- User and Company Info ---
   const self = useGetUserSelf({})
   const userCompanyId = self.data?.company_id
@@ -1727,4 +1720,4 @@ const Page = () => {
     </Container>
   )
 }
-export default Page
+export default PVInverterSettings

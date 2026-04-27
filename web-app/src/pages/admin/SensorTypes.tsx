@@ -6,6 +6,7 @@ import {
   useUpdateSensorTypeMutation,
 } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
+import { useTableSort } from '@/hooks/useTableSort'
 import {
   ActionIcon,
   Button,
@@ -24,6 +25,8 @@ import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconPlus } from '@tabler/icons-react'
 import { useState } from 'react'
+
+import { getUniqueUnits } from './sensorTypeUnits'
 
 const columns = [
   { key: 'sensor_type_id', header: 'ID', align: 'center' as const },
@@ -50,24 +53,16 @@ const SensorTypes = () => {
     null,
   )
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
-  const [sortConfig, setSortConfig] = useState<{
-    key: string
-    direction: 'asc' | 'desc'
-  } | null>({ key: 'sensor_type_id', direction: 'asc' })
+  const { sortConfig, handleSort } = useTableSort({
+    key: 'sensor_type_id',
+    direction: 'asc',
+  })
 
   const sensorTypes = useGetSensorTypes({})
+  const uniqueUnits = getUniqueUnits(sensorTypes.data)
   const deviceTypes = useGetDeviceTypes({})
   const createSensorType = useCreateSensorTypeMutation()
   const updateSensorType = useUpdateSensorTypeMutation()
-
-  // Get unique units from existing sensor types
-  const getUniqueUnits = () => {
-    if (!sensorTypes.data) return []
-    const units = sensorTypes.data
-      .map((sensorType) => sensorType.unit)
-      .filter((unit) => unit !== null && unit !== '')
-    return [...new Set(units)]
-  }
 
   const form = useForm({
     initialValues: {
@@ -210,18 +205,6 @@ const SensorTypes = () => {
       default:
         return String(sensorType[key as keyof SensorType] ?? '')
     }
-  }
-
-  const handleSort = (key: string) => {
-    setSortConfig((current) => {
-      if (!current || current.key !== key) {
-        return { key, direction: 'asc' }
-      }
-      if (current.direction === 'asc') {
-        return { key, direction: 'desc' }
-      }
-      return null
-    })
   }
 
   const filtered = (sensorTypes.data ?? []).filter((row) =>
@@ -439,8 +422,8 @@ const SensorTypes = () => {
                     Existing units:
                   </Text>
                   <Text size="xs">
-                    {getUniqueUnits().length > 0
-                      ? getUniqueUnits().join(', ')
+                    {uniqueUnits.length > 0
+                      ? uniqueUnits.join(', ')
                       : 'No existing units found'}
                   </Text>
                   <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>

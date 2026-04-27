@@ -253,8 +253,8 @@ Replace [DATE_PLACEHOLDER] with the current date (e.g., "December 2025").
     return prompt
 
 
-def main():
-    """Main entry point."""
+def extract_git_changes_cli():
+    """Run the git changes extraction CLI."""
     parser = argparse.ArgumentParser(
         description="Extract git changes and generate Cursor AI prompt for platform update emails"
     )
@@ -299,4 +299,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    extract_git_changes_cli()

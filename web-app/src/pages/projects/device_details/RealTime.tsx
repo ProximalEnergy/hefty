@@ -66,7 +66,7 @@ interface RealTimeProps {
   restrictToDeviceTypeId?: number
 }
 
-const Page = ({
+const RealTime = ({
   initialDeviceTypeId,
   restrictToDeviceTypeId,
 }: RealTimeProps) => {
@@ -1034,4 +1034,4 @@ const naturalSort = (array: string[]) => {
   )
 }
 
-export default Page
+export default RealTime

@@ -9,7 +9,7 @@ interface ACVoltageChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
 }
 
-export const ACVoltageChart = ({ realtimeData }: ACVoltageChartProps) => {
+export const ACVoltageChartPvPcs = ({ realtimeData }: ACVoltageChartProps) => {
   const { projectId } = useParams<{ projectId: string }>()
 
   const voltageData = useMemo(() => {

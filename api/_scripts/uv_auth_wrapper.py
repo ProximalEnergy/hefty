@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 
-def main():
+def run_uv_auth_wrapper():
     """Execute the uv_wrapper.sh script."""
     # Get the project root directory (go up from app/scripts to project root)
     project_root = Path(__file__).parent.parent.parent
@@ -35,4 +35,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_uv_auth_wrapper()

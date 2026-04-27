@@ -7,10 +7,11 @@ from plotly.colors import qualitative
 logger = logging.getLogger(__name__)
 
 
-def plot(
+def plot_modeled_vs_measured(
+    *,
     modeled: pl.DataFrame,
     measured: pl.DataFrame,
-):
+) -> None:
     """Run plot."""
     color_scale = qualitative.Dark24
 

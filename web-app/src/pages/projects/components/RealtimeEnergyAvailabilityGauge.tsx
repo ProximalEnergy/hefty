@@ -1,10 +1,6 @@
 import { RingProgress, Text, Tooltip } from '@mantine/core'
 
-const getColor = (pct: number) => {
-  if (pct >= 90) return 'green'
-  if (pct >= 70) return 'yellow'
-  return 'red'
-}
+import { getRealtimeGaugeColor } from './realtimeGaugeUtils'
 
 export const RealtimeEnergyAvailabilityGauge = ({
   value,
@@ -20,7 +16,7 @@ export const RealtimeEnergyAvailabilityGauge = ({
   onClick?: () => void
 }) => {
   const sectionValue = value != null ? Math.min(100, value) : 0
-  const color = value != null ? getColor(value) : 'gray'
+  const color = value != null ? getRealtimeGaugeColor(value) : 'gray'
 
   const stringsLabel =
     availableStrings != null && totalStrings != null

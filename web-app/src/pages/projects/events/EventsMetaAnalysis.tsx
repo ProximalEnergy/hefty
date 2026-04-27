@@ -40,7 +40,7 @@ const DATE_RANGE_OPTIONS: DateRangeOption[] = [
   'BOL to Date',
 ]
 
-const Page = () => {
+const EventsMetaAnalysisPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const [selectedDateRange, setSelectedDateRange] =
     useState<DateRangeOption>('Month to Date')
@@ -680,4 +680,4 @@ const DeviceTypeModal = ({
   )
 }
 
-export default Page
+export default EventsMetaAnalysisPage

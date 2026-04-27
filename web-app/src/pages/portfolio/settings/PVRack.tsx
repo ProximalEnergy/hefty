@@ -36,7 +36,7 @@ import {
 import { UseQueryOptions } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
-const Page = () => {
+const PVRackSettings = () => {
   // --- User and Company Info ---
   const self = useGetUserSelf({})
   const userCompanyId = self.data?.company_id
@@ -605,4 +605,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default PVRackSettings

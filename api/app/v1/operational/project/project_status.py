@@ -132,7 +132,7 @@ async def get_status_time_series_python(
 
 
 @router.get("/last-known-statuses", response_model=list[DeviceStatus])
-async def get_last_known_statuses(
+async def get_last_known_statuses_route(
     *,
     project: Annotated[models.Project, Depends(get_project_api)],
     device_type_ids: list[int] | None = Query(None),

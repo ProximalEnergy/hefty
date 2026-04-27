@@ -9,8 +9,8 @@ import {
   useGetRealTimeByDeviceTypeID,
 } from '@/api/v1/protected/web-application/projects/real_time'
 import { PageLoader } from '@/components/Loading'
-import { ACVoltageChart } from '@/components/pv-pcs/ACVoltageChart'
-import { ActivePowerChart } from '@/components/pv-pcs/ActivePowerChart'
+import { ACVoltageChartPvPcs } from '@/components/pv-pcs/ACVoltageChart'
+import { ActivePowerChartPvPcs } from '@/components/pv-pcs/ActivePowerChart'
 import { DCVoltageChart } from '@/components/pv-pcs/DCVoltageChart'
 import { EfficiencyChart } from '@/components/pv-pcs/EfficiencyChart'
 import { EfficiencyLevelCard } from '@/components/pv-pcs/EfficiencyLevelCard'
@@ -482,7 +482,7 @@ const RealtimeTab = () => {
     <Stack gap="md" pb="md">
       <StatsCards stats={stats} />
 
-      <ActivePowerChart
+      <ActivePowerChartPvPcs
         realtimeData={realtimeData}
         maxCapacityMWac={maxCapacityMWac}
         hasExpectedEnergyIntegration={
@@ -497,7 +497,7 @@ const RealtimeTab = () => {
 
       <EfficiencyChart devices={devices} />
 
-      <ACVoltageChart realtimeData={realtimeData} />
+      <ACVoltageChartPvPcs realtimeData={realtimeData} />
 
       <DCVoltageChart realtimeData={realtimeData} />
 

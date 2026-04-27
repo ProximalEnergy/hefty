@@ -50,6 +50,8 @@ import {
 import axios from 'axios'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { formatFieldLabel } from './fieldLabels'
+
 const FIELD_LABELS: Record<string, string> = {
   half_cut: 'Half Cut',
   frame_overhang: 'Frame Overhang',
@@ -62,17 +64,6 @@ const FIELD_LABELS: Record<string, string> = {
 type ValidationIssue = {
   loc?: Array<string | number>
   msg?: string
-}
-
-const formatFieldLabel = (field: string) => {
-  if (FIELD_LABELS[field]) {
-    return FIELD_LABELS[field]
-  }
-
-  return field
-    .split('_')
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join(' ')
 }
 
 const getSubmitErrorMessage = (error: unknown) => {
@@ -92,7 +83,9 @@ const getSubmitErrorMessage = (error: unknown) => {
               .filter((locPart) => locPart !== 'body')
             const field = locParts?.[locParts.length - 1]
             const fieldLabel =
-              typeof field === 'string' ? formatFieldLabel(field) : 'Request'
+              typeof field === 'string'
+                ? formatFieldLabel(field, FIELD_LABELS)
+                : 'Request'
             return `${fieldLabel}: ${item.msg}`
           })
 
@@ -157,7 +150,7 @@ const getPANUploadErrorMessage = (error: unknown) => {
   return 'Failed to upload PAN file'
 }
 
-const Page = () => {
+const PVModuleSettings = () => {
   // --- User and Company Info ---
   const self = useGetUserSelf({})
   const userCompanyId = self.data?.company_id
@@ -1562,4 +1555,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default PVModuleSettings

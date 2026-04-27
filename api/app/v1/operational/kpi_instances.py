@@ -14,8 +14,12 @@ from app.dependencies import get_is_superadmin_async
 router = APIRouter(prefix="/kpi-instances", tags=["kpi_instances"])
 
 
-@router.get("", response_model=list[interfaces.KPIInstance])
-def get_kpi_instances(
+@router.get(
+    "",
+    response_model=list[interfaces.KPIInstance],
+    operation_id="get_kpi_instances",
+)
+def get_kpi_instances_route(
     db: Annotated[Session, Depends(get_db)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     project_ids: Annotated[list[uuid.UUID] | None, Query()] = [],

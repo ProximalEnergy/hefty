@@ -531,7 +531,7 @@ const RootCauseSelection = ({
   )
 }
 
-const Page = () => {
+const EventPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const location = useLocation()
   const eventId = parseInt(
@@ -1147,4 +1147,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default EventPage

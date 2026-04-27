@@ -16,7 +16,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
-const Page = () => {
+const DeviceDetailsBESSPage = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
@@ -379,4 +379,4 @@ function getBatteryTitle(usedSensorTypeIds: number[] | undefined) {
   return undefined
 }
 
-export default Page
+export default DeviceDetailsBESSPage

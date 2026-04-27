@@ -865,8 +865,8 @@ async def analyze_data_structure(token: str, endpoint: str, element_id: str) -> 
         return {"success": False, "error": str(e)}
 
 
-async def main():
-    """Main function to run all tests."""
+async def run_test_ptp_endpoint_cli():
+    """Run the PTP endpoint test CLI."""
     parser = argparse.ArgumentParser(
         description="Test PTP endpoint parameters to determine required inputs"
     )
@@ -1053,4 +1053,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_test_ptp_endpoint_cli())

@@ -132,9 +132,10 @@ async def add_user_permission(
 @router.delete(
     "/projects/{project_id}/users/{user_id}",
     response_model=interfaces.UserPermission,
+    operation_id="delete_user_permission",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
-async def delete_user_permission(
+async def delete_user_permission_route(
     project_id: uuid.UUID,
     user_id: str,
     user_permission: UserPermissionRequest,

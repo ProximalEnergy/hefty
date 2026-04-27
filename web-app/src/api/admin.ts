@@ -219,30 +219,6 @@ export const useUpdateUserPermissionMutation = () => {
   })
 }
 
-export const useGetCompanies = ({
-  queryParams = {},
-  queryOptions = {},
-}: {
-  queryParams?: { company_ids?: string[] }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/admin/companies`,
-  }
-
-  const defaultQueryOptions = {
-    refetchOnWindowFocus: false,
-    staleTime: QUERY_TIME.NEVER,
-  }
-
-  return useCustomQuery<Company[]>({
-    axiosConfig,
-    queryName: 'getCompanies',
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 type CompanyWithProjects = Company & {
   project_ids: string[]
 }

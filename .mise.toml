@@ -1,9 +1,10 @@
 
 [tools]
-uv = "latest"
-gh = "latest"
-awscli = "latest"
-ripgrep = "latest"
+uv = "0.11.7"
+gh = "2.91.0"
+awscli = "2.34.31"
+ripgrep = "15.1.0"
+ast-grep = "0.42.1"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
@@ -242,6 +243,12 @@ run = "uv run --dev ruff check core/ api/ microservices/ pv-eem/"
 description = "Run ruff formatter on entire monorepo"
 dir = "."
 run = "uv run --dev ruff format core/ api/ microservices/ pv-eem/"
+
+
+[tasks."root:duplicate_functions"]
+description = "Check for duplicate function names in Python and TypeScript using ast-grep"
+dir = "{{config_root}}"
+run = "./_scripts/check_duplicate_functions.sh"
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)

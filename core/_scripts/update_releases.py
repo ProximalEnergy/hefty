@@ -167,7 +167,7 @@ class ReleaseUpdater:
             raise
 
 
-def main():
+def run_update_releases_cli():
     parser = argparse.ArgumentParser(
         description="Update release notes with a new migration message"
     )
@@ -192,4 +192,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    exit(run_update_releases_cli())

@@ -98,8 +98,8 @@ class RotationAngles:
             filtered_rotations.loc[:, ["string_id", "met_name", "time"]]
         )
 
-    def to_df(self, indeces):
-        """Run to_df."""
+    def to_rotation_angles_df(self, indeces):
+        """Convert rotation angles to a DataFrame."""
         return pd.DataFrame(
             {
                 "time": indeces.time_index,
@@ -111,7 +111,7 @@ class RotationAngles:
             }
         )
 
-    def to_csv(self, indeces):
-        """Run to_csv."""
-        df = self.to_df(indeces)
+    def to_rotation_angles_csv(self, indeces):
+        """Write rotation angles to CSV."""
+        df = self.to_rotation_angles_df(indeces)
         df.to_csv("rotation_angles.csv", index=False)

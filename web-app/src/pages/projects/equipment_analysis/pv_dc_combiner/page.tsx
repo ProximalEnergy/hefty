@@ -16,16 +16,16 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import { Device } from '@/hooks/types'
+import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import RealTime from '@/pages/projects/device_details/RealTime'
 import { Checkbox, Group, HoverCard, Stack, Tabs, Text } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-import Plotly from 'plotly.js/dist/plotly-custom.min.js'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 1
 
-const Page = () => {
+const EquipmentAnalysisPVDCCombinerPage = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
@@ -132,56 +132,11 @@ const Page = () => {
     queryOptions: { enabled: !!projectId },
   })
 
-  // Resize Plotly charts when tab becomes active
-  // Must be before early return to follow React hooks rules
-  useEffect(() => {
-    if (!tabPanelRef.current || activeTab !== 'current-day') return
-
-    const resizeCharts = () => {
-      // Find all Plotly plot elements within the active tab panel
-      const plotElements = tabPanelRef.current?.querySelectorAll(
-        '.js-plotly-plot',
-      ) as NodeListOf<HTMLElement>
-
-      if (plotElements && plotElements.length > 0) {
-        // Resize each plot after a short delay to ensure container has dimensions
-        setTimeout(() => {
-          plotElements.forEach((plotElement) => {
-            const rect = plotElement.getBoundingClientRect()
-            // Only resize if the plot element has actual dimensions
-            if (rect.width > 0 && rect.height > 0) {
-              Plotly.Plots.resize(plotElement)
-            }
-          })
-        }, 150)
-      }
-    }
-
-    // Initial resize when tab becomes active
-    resizeCharts()
-
-    // Also set up an IntersectionObserver to detect when the tab panel becomes visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0) {
-            resizeCharts()
-          }
-        })
-      },
-      {
-        threshold: 0.01,
-      },
-    )
-
-    if (tabPanelRef.current) {
-      observer.observe(tabPanelRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [activeTab])
+  // Must stay before early returns to satisfy hooks rules.
+  useResizePlotlyCharts({
+    containerRef: tabPanelRef,
+    enabled: activeTab === 'current-day',
+  })
 
   return (
     <Stack p="md" h="100%">
@@ -342,4 +297,4 @@ const Info = () => {
   )
 }
 
-export default Page
+export default EquipmentAnalysisPVDCCombinerPage

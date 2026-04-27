@@ -38,7 +38,7 @@ from src.p02_simulation.p4_dc_iv.s02_single_diode_params import ModelSingleDiode
 
 SNAPSHOT_NAME = Path(__file__).stem
 SNAPSHOT_RELATIVE_DIR = f"_tests/_artifacts/snapshots/{SNAPSHOT_NAME}"
-TEST_NAME = "test_simulation"
+TEST_NAME = "test_combiner_simulation_range"
 OUTPUT_NAMESPACE = f"{SNAPSHOT_NAME}_{TEST_NAME}"
 PROJECT_NAME_SHORT = "double_black_diamond"
 SIMULATION_START = "2024-10-20 00:00:00"
@@ -597,7 +597,7 @@ def _install_unique_export_patch(*, monkeypatch: Any) -> None:
     monkeypatch.setattr(c_export, "export_to_file", export_to_unique_file)
 
 
-def test_simulation(monkeypatch):
+def test_combiner_simulation_range(monkeypatch):
     os.environ["ENVIRONMENT"] = "DEV"
     _install_inputs_loader_patch(monkeypatch=monkeypatch)
     _install_unique_export_patch(monkeypatch=monkeypatch)

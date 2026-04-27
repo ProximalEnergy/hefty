@@ -436,7 +436,7 @@ const DataViewer = ({
   )
 }
 
-const Page = () => {
+const PTPDataPage = () => {
   const { projectId } = useParams()
   const project = useSelectProject(projectId || '-1')
   useProjectDropdownToggle()
@@ -612,4 +612,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default PTPDataPage

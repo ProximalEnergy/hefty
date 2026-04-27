@@ -27,7 +27,7 @@ import { useParams } from 'react-router'
 
 import { HoverInfo } from './utils'
 
-const Page = () => {
+const BessEnclosureGISPage = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
@@ -175,4 +175,4 @@ export const BESSEnclosureGIS = ({
   )
 }
 
-export default Page
+export default BessEnclosureGISPage

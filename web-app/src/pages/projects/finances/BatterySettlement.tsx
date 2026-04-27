@@ -59,7 +59,7 @@ interface ChatMessage {
 
 type TableRow = Record<string, string | number | null>
 
-const Page = () => {
+const BatterySettlementPage = () => {
   const { projectId } = useParams()
   const project = useSelectProject(projectId || '-1')
   const [selectedColumns, setSelectedColumns] = useState<string[]>([])
@@ -1063,4 +1063,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default BatterySettlementPage

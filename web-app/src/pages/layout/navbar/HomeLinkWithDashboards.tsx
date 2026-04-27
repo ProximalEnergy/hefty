@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import classes from './NavbarLinksGroup.module.css'
+import { isPathActive } from './isPathActive'
 
 export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
   const { projectId } = useParams<{ projectId: string }>()
@@ -36,20 +37,14 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
     ...(sharedUserDashboards.data || []),
   ]
 
-  const isActive = (path: string) => {
-    if (location.pathname.startsWith(path)) {
-      const nextChar = location.pathname[path.length]
-      return nextChar === undefined
-    }
-    return false
-  }
-
-  const activeState = projectId ? isActive(`/projects/${projectId}`) : false
+  const activeState = projectId
+    ? isPathActive(location.pathname, `/projects/${projectId}`)
+    : false
 
   if (!projectId) {
     // If no projectId, render a simple home link without dashboard functionality
     const homePath = '/portfolio'
-    const activeState = isActive('/portfolio')
+    const activeState = isPathActive(location.pathname, '/portfolio')
 
     const button = (
       <Link
@@ -123,7 +118,8 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
                     key={dashboard.dashboard_id}
                     component={Link}
                     to={`/projects/${projectId}/custom-dash/${dashboard.dashboard_id}`}
-                    data-active={isActive(
+                    data-active={isPathActive(
+                      location.pathname,
                       `/projects/${projectId}/custom-dash/${dashboard.dashboard_id}`,
                     )}
                   >
@@ -136,7 +132,7 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
             component={Link}
             to={customDashboardsPath}
             leftSection={<IconSettings size={14} />}
-            data-active={isActive(customDashboardsPath)}
+            data-active={isPathActive(location.pathname, customDashboardsPath)}
           >
             Manage Dashboards
           </Menu.Item>,

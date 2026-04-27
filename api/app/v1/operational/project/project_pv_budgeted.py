@@ -79,7 +79,7 @@ def create_pv_budgeted_series(
 
 
 @router.get("/data", response_model=list[interfaces.PVBudgetedDataRow])
-def get_pv_budgeted_data(
+def get_pv_budgeted_data_project_route(
     pv_budgeted_series_id: int,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     start: datetime.datetime | None = None,

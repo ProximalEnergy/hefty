@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 
 
-def plot(results):
+def plot_results_to_plotly(*, results) -> None:
     """Run plot."""
     df = results.pivot(index=["time"], columns="combiner_device_id", values="p_mp")
     df = df.reset_index()
