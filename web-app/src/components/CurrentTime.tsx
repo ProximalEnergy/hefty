@@ -14,7 +14,8 @@ export const CurrentTime = ({ timezone }: { timezone: string }) => {
   )
 
   useEffect(() => {
-    const updateTime = () => setCurrentTime(dayjs().tz(timezone).format(TIME_FORMAT))
+    const updateTime = () =>
+      setCurrentTime(dayjs().tz(timezone).format(TIME_FORMAT))
     updateTime()
     const interval = setInterval(updateTime, 1000)
 

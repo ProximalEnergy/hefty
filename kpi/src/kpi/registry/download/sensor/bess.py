@@ -12,19 +12,19 @@ class DownloadSensorBess(FieldRegistry[SensorProtocol]):
     # project level
 
     project_total_energy_charged_raw_kwh_5m = sensor_field(
-        sensor_type=SensorType.METER_CONSUMED_ENERGY,
+        sensor_type=SensorType.METER_ENERGY_IMPORTED_TO_PROJECT,
         project_level=True,
         scale=1000,
     )
 
     project_total_energy_discharged_raw_kwh_5m = sensor_field(
-        sensor_type=SensorType.METER_DELIVERED_ENERGY,
+        sensor_type=SensorType.METER_ENERGY_EXPORTED_TO_GRID,
         project_level=True,
         scale=1000,
     )
 
     project_total_aux_energy_raw_kwh_5m = sensor_field(
-        sensor_type=SensorType.BESS_MV_AUX_METER_CONSUMED_ENERGY,
+        sensor_type=SensorType.BESS_MV_AUX_METER_ENERGY_IMPORTED_TO_PROJECT,
         project_level=True,
         scale=1000,
     )
@@ -32,12 +32,16 @@ class DownloadSensorBess(FieldRegistry[SensorProtocol]):
     # mv circuit level
 
     circuit_total_energy_charged_raw_kwh_5m = sensor_field(
-        sensor_type=SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_CONSUMED_ENERGY,
+        sensor_type=(
+            SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ENERGY_IMPORTED_TO_PROJECT
+        ),
         scale=1000,
     )
 
     circuit_total_energy_discharged_raw_kwh_5m = sensor_field(
-        sensor_type=SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_DELIVERED_ENERGY,
+        sensor_type=(
+            SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ENERGY_EXPORTED_TO_GRID
+        ),
         scale=1000,
     )
 

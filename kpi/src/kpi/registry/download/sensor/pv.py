@@ -9,7 +9,7 @@ field = MakeField[SensorProtocol].infer_doc
 
 class DownloadSensorPv(FieldRegistry[SensorProtocol]):
     project_total_delivered_energy_raw_kwh_5m = sensor_field(
-        sensor_type=SensorType.METER_DELIVERED_ENERGY,
+        sensor_type=SensorType.METER_ENERGY_EXPORTED_TO_GRID,
         project_level=True,
         scale=1000,
     )
