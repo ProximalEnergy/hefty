@@ -23,7 +23,7 @@ import {
 
 import DataStatus from '../../../layout/header/DataStatus'
 
-export function Header({
+export function PortfolioProjectCardHeader({
   project,
   projectDataLastUpdated,
   isFavorited,

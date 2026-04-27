@@ -6,7 +6,7 @@ import { useParams } from 'react-router'
 import { useBessPcsStaticData } from '../use-bess-pcs-static-data'
 import { ACVoltageChartBessPcsRealtime } from './ac-voltage/ac-voltage-chart'
 import { ActivePowerChartBessPcsRealtime } from './active-power/active-power-chart'
-import { DCVoltageChart } from './dc-voltage/dc-voltage-chart'
+import { DCVoltageChartBessPcsRealtime } from './dc-voltage/dc-voltage-chart'
 import { IGBTTemperatureChart } from './igbt-temperature/igbt-temperature-chart'
 import { ReactivePowerChart } from './reactive-power/reactive-power-chart'
 import { RealtimeStats } from './stats/realtime-stats'
@@ -46,7 +46,7 @@ export function Realtime() {
 
       <ACVoltageChartBessPcsRealtime />
 
-      <DCVoltageChart realtimeData={sources.pcsRealtime} />
+      <DCVoltageChartBessPcsRealtime realtimeData={sources.pcsRealtime} />
 
       <IGBTTemperatureChart maxCapacityMWac={maxCapacityMwac} />
 

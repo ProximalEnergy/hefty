@@ -98,7 +98,9 @@ const Page: React.FC = () => {
   return (
     <Stack p="md" h="100%">
       <Title>{reportType.data?.name_long}</Title>
-      <DescriptionText reportTypeId={reportTypeId || ''} />
+      <DescriptionTextTrackerAvailabilityReport
+        reportTypeId={reportTypeId || ''}
+      />
       <Stack align="center">
         <AdvancedDatePicker
           includeClearButton={false}
@@ -163,7 +165,11 @@ const Page: React.FC = () => {
 
 export default Page
 
-const DescriptionText = ({ reportTypeId }: { reportTypeId: string }) => {
+const DescriptionTextTrackerAvailabilityReport = ({
+  reportTypeId,
+}: {
+  reportTypeId: string
+}) => {
   return (
     <Stack>
       <Text>

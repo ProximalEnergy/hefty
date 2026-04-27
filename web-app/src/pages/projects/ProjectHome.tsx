@@ -9,6 +9,7 @@ import {
   useGetProjects,
   useSelectProject,
 } from '@/api/v1/operational/projects'
+import { CurrentTime } from '@/components/CurrentTime'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -56,34 +57,8 @@ import {
   IconZoomIn,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import timezone from 'dayjs/plugin/timezone'
-import utc from 'dayjs/plugin/utc'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
-// Extend dayjs with timezone support
-dayjs.extend(utc)
-dayjs.extend(timezone)
-
-const CurrentTime = ({ timezone }: { timezone: string }) => {
-  const [currentTime, setCurrentTime] = useState(() =>
-    dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss'),
-  )
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss'))
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [timezone])
-
-  return (
-    <Text size="sm" style={{ fontFamily: 'monospace' }}>
-      {currentTime}
-    </Text>
-  )
-}
 
 const KPICards = () => {
   const { projectId } = useParams()
@@ -290,7 +265,7 @@ function KioskMode({
   )
 }
 
-const ContractualKPIOverview = ({
+const ContractualKPIOverviewProjectHome = ({
   project,
   onExpandedChange,
 }: {
@@ -958,7 +933,7 @@ const ProjectHome = () => {
           </CustomCard>
           {/* Contractual KPI Overview for PV-only projects in left pane */}
           {project.data.project_type_id === ProjectTypeEnum.PV && (
-            <ContractualKPIOverview project={project.data} />
+            <ContractualKPIOverviewProjectHome project={project.data} />
           )}
         </Stack>
         <Stack h="100%" flex={1}>
@@ -969,7 +944,7 @@ const ProjectHome = () => {
           )}
           {/* Contractual KPI Overview for PV+Storage projects (right pane) */}
           {project.data.project_type_id === ProjectTypeEnum.PVS && (
-            <ContractualKPIOverview project={project.data} />
+            <ContractualKPIOverviewProjectHome project={project.data} />
           )}
           <PowerPlotPVZoom />
         </Stack>

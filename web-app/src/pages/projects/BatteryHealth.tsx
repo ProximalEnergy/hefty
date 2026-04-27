@@ -121,7 +121,7 @@ const adaptiveDateTickSettings = {
   ],
 }
 
-const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
+const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [selectedTimeRange, setSelectedTimeRange] = useState('all')
@@ -2113,4 +2113,4 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   )
 }
 
-export default BatteryHealth
+export default BatteryHealthPage

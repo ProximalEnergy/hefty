@@ -20,7 +20,7 @@ import {
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useParams } from 'react-router'
 
-import Header from './header/Header'
+import AppLayoutHeader from './header/Header'
 import { NavbarNested } from './navbar/NavbarNested'
 
 const Demo = ({
@@ -109,7 +109,7 @@ export function Layout() {
       }}
       padding={0}
     >
-      <Header opened={opened} toggle={toggleMobile} />
+      <AppLayoutHeader opened={opened} toggle={toggleMobile} />
       <NavbarNested
         collapsed={navbarCollapsed}
         onExpandNavbar={handleExpandNavbar}

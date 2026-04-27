@@ -9,7 +9,7 @@ import ThemeToggle from './ThemeToggle'
 import UserAlerts from './UserAlerts'
 import UserDropdown from './UserDropdown'
 
-const Header = ({
+const AppLayoutHeader = ({
   opened,
   toggle,
 }: {
@@ -46,4 +46,4 @@ const Header = ({
   )
 }
 
-export default Header
+export default AppLayoutHeader

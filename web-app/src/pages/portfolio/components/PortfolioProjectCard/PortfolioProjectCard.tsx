@@ -5,7 +5,7 @@ import { Box, Card, Group } from '@mantine/core'
 import { Link } from 'react-router'
 
 import styles from '../../PortfolioHome.module.css'
-import { Header } from './Header.tsx'
+import { PortfolioProjectCardHeader } from './Header.tsx'
 import { Sparkline } from './Sparkline.tsx'
 import { Stats } from './Stats.tsx'
 
@@ -38,7 +38,7 @@ export function PortfolioProjectCard({
         className={styles.root}
         style={{ position: 'relative' }}
       >
-        <Header
+        <PortfolioProjectCardHeader
           project={project}
           projectDataLastUpdated={projectDataLastUpdated}
           isFavorited={isFavorited}

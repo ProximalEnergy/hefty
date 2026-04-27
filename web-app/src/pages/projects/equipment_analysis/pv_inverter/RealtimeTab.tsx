@@ -11,7 +11,7 @@ import {
 import { PageLoader } from '@/components/Loading'
 import { ACVoltageChartPvPcs } from '@/components/pv-pcs/ACVoltageChart'
 import { ActivePowerChartPvPcs } from '@/components/pv-pcs/ActivePowerChart'
-import { DCVoltageChart } from '@/components/pv-pcs/DCVoltageChart'
+import { DCVoltageChartPvPcs } from '@/components/pv-pcs/DCVoltageChart'
 import { EfficiencyChart } from '@/components/pv-pcs/EfficiencyChart'
 import { EfficiencyLevelCard } from '@/components/pv-pcs/EfficiencyLevelCard'
 import { ReactivePowerChart } from '@/components/pv-pcs/ReactivePowerChart'
@@ -499,7 +499,7 @@ const RealtimeTab = () => {
 
       <ACVoltageChartPvPcs realtimeData={realtimeData} />
 
-      <DCVoltageChart realtimeData={realtimeData} />
+      <DCVoltageChartPvPcs realtimeData={realtimeData} />
 
       <StatusAndErrorCodes
         realtimeData={realtimeData}

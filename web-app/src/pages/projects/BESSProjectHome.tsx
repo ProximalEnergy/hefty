@@ -14,6 +14,7 @@ import {
   useSelectProject,
 } from '@/api/v1/operational/projects'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
+import { CurrentTime } from '@/components/CurrentTime'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -458,26 +459,6 @@ const PowerPlotBESS = () => {
   )
 }
 
-const CurrentTime = ({ timezone }: { timezone: string }) => {
-  const [currentTime, setCurrentTime] = useState(() =>
-    dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss'),
-  )
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss'))
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [timezone])
-
-  return (
-    <Text size="sm" style={{ fontFamily: 'monospace' }}>
-      {currentTime}
-    </Text>
-  )
-}
-
 const KPICards = () => {
   const { projectId } = useParams()
   const { ref: containerRef, width: containerWidth } = useElementSize()
@@ -683,7 +664,7 @@ function KioskMode({
   )
 }
 
-const BatteryHealth = () => {
+const BatteryHealthBESSProjectHome = () => {
   const { projectId } = useParams()
   const theme = useMantineTheme()
   const navigate = useNavigate()
@@ -1506,7 +1487,7 @@ const BatteryHealth = () => {
   )
 }
 
-const ContractualKPIOverview = ({
+const ContractualKPIOverviewBESSProjectHome = ({
   project,
   onExpandedChange,
 }: {
@@ -2304,7 +2285,7 @@ const BESSProjectHome = () => {
             >
               <AdaptiveGisBESS />
             </CustomCard>
-            <BatteryHealth />
+            <BatteryHealthBESSProjectHome />
           </>
         </Stack>
         <Stack h="100%" flex={1}>
@@ -2316,7 +2297,7 @@ const BESSProjectHome = () => {
               }
             />
           )}
-          <ContractualKPIOverview project={project.data} />
+          <ContractualKPIOverviewBESSProjectHome project={project.data} />
           <PowerPlotBESS />
         </Stack>
       </Group>

@@ -13,7 +13,7 @@ interface DCVoltageChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
 }
 
-export const DCVoltageChart = ({ realtimeData }: DCVoltageChartProps) => {
+export const DCVoltageChartPvPcs = ({ realtimeData }: DCVoltageChartProps) => {
   const { projectId } = useParams<{ projectId: string }>()
 
   const moduleRealtimeData = useGetRealTimeByDeviceTypeID({
