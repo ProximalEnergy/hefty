@@ -15,6 +15,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
+import { determineTextColor } from '@/utils/colors'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
@@ -698,28 +699,6 @@ const BatterySettlementPage = () => {
 
   const renderMessage = (message: ChatMessage) => {
     const isUserMessage = message.role === 'user'
-
-    function determineTextColor(hexInput: string) {
-      const hex = hexInput.replace(/^#/, '')
-      const bigint = parseInt(hex, 16)
-      const r = (bigint >> 16) & 255
-      const g = (bigint >> 8) & 255
-      const b = bigint & 255
-
-      const linearize = (val: number): number => {
-        const normalized = val / 255
-        return normalized <= 0.03928
-          ? normalized / 12.92
-          : Math.pow((normalized + 0.055) / 1.055, 2.4)
-      }
-
-      const rLin = linearize(r)
-      const gLin = linearize(g)
-      const bLin = linearize(b)
-
-      const luminance = 0.2126 * rLin + 0.7152 * gLin + 0.0722 * bLin
-      return luminance > 0.179 ? 'black' : 'white'
-    }
 
     const userTextColor = determineTextColor(
       theme.colors[theme.primaryColor][7],

@@ -1,5 +1,6 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { determineTextColor } from '@/utils/colors'
 import { useAuth, useUser } from '@clerk/react'
 import {
   ActionIcon,
@@ -373,29 +374,6 @@ export function ChatCard({
 
   const renderMessage = (message: IStep) => {
     const isUserMessage = message.type === 'user_message'
-    function determineTextColor(hex: string) {
-      const sanitizedHex = hex.replace(/^#/, '')
-
-      const bigint = parseInt(sanitizedHex, 16)
-      const r = (bigint >> 16) & 255
-      const g = (bigint >> 8) & 255
-      const b = bigint & 255
-
-      const linearize = (value: number): number => {
-        const normalizedValue = value / 255 // Normalize to 0-1
-        return normalizedValue <= 0.03928
-          ? normalizedValue / 12.92
-          : Math.pow((normalizedValue + 0.055) / 1.055, 2.4)
-      }
-
-      const rLin = linearize(r)
-      const gLin = linearize(g)
-      const bLin = linearize(b)
-
-      const luminance = 0.2126 * rLin + 0.7152 * gLin + 0.0722 * bLin
-
-      return luminance > 0.179 ? 'black' : 'white'
-    }
 
     const userTextColor = determineTextColor(
       theme.colors[theme.primaryColor][7],

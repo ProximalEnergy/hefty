@@ -35,3 +35,18 @@ export const sortAndColorDevices = <T extends { name: string }>(
     }
   })
 }
+
+/**
+ * Determines whether black or white text should be used for better contrast
+ * based on the provided background hex color.
+ *
+ * @param hex Background color in hex format (with or without #)
+ * @returns 'black' or 'white'
+ */
+export function determineTextColor(hex: string): 'black' | 'white' {
+  try {
+    return chroma(hex).luminance() > 0.179 ? 'black' : 'white'
+  } catch {
+    return 'black'
+  }
+}
