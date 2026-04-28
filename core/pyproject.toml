@@ -56,7 +56,7 @@ dev = [
 
 [tool.basedpyright]
 venv = ".venv"
-venvPath = "."
+venvPath = ".."
 typeCheckingMode = "off"
 
 [tool.deptry]
