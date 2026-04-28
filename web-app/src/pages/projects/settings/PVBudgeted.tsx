@@ -2,7 +2,7 @@ import { useGetUserSelf } from '@/api/v1/admin/users'
 import type { PVBudgetedSeries } from '@/api/v1/operational/project/pv_budgeted_data'
 import {
   useDeletePVBudgetedSeries,
-  useGetPVBudgetedSeries,
+  useGetProjectPVBudgetedSeries,
 } from '@/api/v1/operational/project/pv_budgeted_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import ConfirmationModal from '@/components/modals/ConfirmationModal'
@@ -228,7 +228,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient()
   const userSelf = useGetUserSelf({})
   const project = useSelectProject(projectId!)
-  const existingSeries = useGetPVBudgetedSeries({
+  const existingSeries = useGetProjectPVBudgetedSeries({
     pathParams: { projectId },
   })
 

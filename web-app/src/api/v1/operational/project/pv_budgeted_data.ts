@@ -7,7 +7,7 @@ import { UseQueryOptions, useMutation } from '@tanstack/react-query'
 
 export type PVBudgetedSeries = types.components['schemas']['PVBudgetedSeries']
 
-export const useGetPVBudgetedSeries = ({
+export const useGetProjectPVBudgetedSeries = ({
   pathParams,
   queryOptions = {},
 }: {
