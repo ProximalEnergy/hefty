@@ -620,7 +620,7 @@ function WeatherPanel({
   }
 
   // Generate severity control data with colored icons
-  const getSeverityControlData = ({
+  const getWeatherSeverityControlData = ({
     includePerProject = false,
   }: {
     includePerProject?: boolean
@@ -812,7 +812,7 @@ function WeatherPanel({
                 selectedSeverity,
               })
             }}
-            data={getSeverityControlData({ includePerProject: true })}
+            data={getWeatherSeverityControlData({ includePerProject: true })}
             disabled={bulkControlsDisabled}
           />
         </Stack>
@@ -833,7 +833,7 @@ function WeatherPanel({
                 selectedSeverity,
               })
             }}
-            data={getSeverityControlData({ includePerProject: true })}
+            data={getWeatherSeverityControlData({ includePerProject: true })}
             disabled={bulkControlsDisabled}
           />
         </Stack>
@@ -917,7 +917,7 @@ function WeatherPanel({
                                   })
                                 }
                               }}
-                              data={getSeverityControlData()}
+                              data={getWeatherSeverityControlData()}
                               disabled={bulkUpdateMutation.isPending}
                             />
                           </Group>
@@ -952,7 +952,7 @@ function WeatherPanel({
                                   })
                                 }
                               }}
-                              data={getSeverityControlData()}
+                              data={getWeatherSeverityControlData()}
                               disabled={bulkUpdateMutation.isPending}
                             />
                           </Group>
@@ -1218,7 +1218,7 @@ function CapacityReductionNotificationsPanel({
     [projects],
   )
 
-  const getSeverityControlData = () => {
+  const getCapacitySeverityControlData = () => {
     const isDark = colorScheme === 'dark'
     const iconSize = 14
 
@@ -1400,7 +1400,7 @@ function CapacityReductionNotificationsPanel({
                               })
                             }
                           }}
-                          data={getSeverityControlData()}
+                          data={getCapacitySeverityControlData()}
                         />
                       </Group>
                       <Group gap="xs" align="center">
@@ -1433,7 +1433,7 @@ function CapacityReductionNotificationsPanel({
                               })
                             }
                           }}
-                          data={getSeverityControlData()}
+                          data={getCapacitySeverityControlData()}
                         />
                       </Group>
                     </Stack>
@@ -1494,7 +1494,7 @@ function DataConnectionOutageNotificationsPanel({
     [projects],
   )
 
-  const getSeverityControlData = () => {
+  const getDataConnectionOutageSeverityControlData = () => {
     const isDark = colorScheme === 'dark'
     const iconSize = 14
 
@@ -1633,7 +1633,7 @@ function DataConnectionOutageNotificationsPanel({
                               })
                             }
                           }}
-                          data={getSeverityControlData()}
+                          data={getDataConnectionOutageSeverityControlData()}
                         />
                       </Group>
                       <Group gap="xs" align="center">
@@ -1666,7 +1666,7 @@ function DataConnectionOutageNotificationsPanel({
                               })
                             }
                           }}
-                          data={getSeverityControlData()}
+                          data={getDataConnectionOutageSeverityControlData()}
                         />
                       </Group>
                     </Stack>
