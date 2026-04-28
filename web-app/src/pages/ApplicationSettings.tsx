@@ -6,6 +6,7 @@ import {
 } from '@/api/enumerations'
 import {
   type NotificationPreference,
+  useBulkUpdateNotificationPreferences,
   useGetNotificationPreferences,
   useUpdateNotificationPreference,
 } from '@/api/v1/admin/notification_preferences'
@@ -78,6 +79,82 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+
+const PER_PROJECT_WEATHER_SEVERITY = 'PER_PROJECT'
+
+type WeatherNotificationChannel = 'in_app' | 'email'
+type WeatherSeverityValue = 'OFF' | 'INFO' | 'WARNING' | 'CRITICAL'
+type WeatherBulkSeverityValue =
+  | typeof PER_PROJECT_WEATHER_SEVERITY
+  | WeatherSeverityValue
+
+const getWeatherPreferenceKey = (
+  projectId: string,
+  notificationTypeId: number,
+) => `${projectId}-${notificationTypeId}`
+
+const getWeatherNotificationSeverityValue = ({
+  channel,
+  preference,
+  type,
+}: {
+  channel: WeatherNotificationChannel
+  preference: NotificationPreference | null
+  type: NotificationType
+}): WeatherSeverityValue => {
+  const enabled =
+    channel === 'in_app'
+      ? (preference?.in_app_enabled ?? type.in_app_enabled_default)
+      : (preference?.email_enabled ?? type.email_enabled_default)
+
+  if (!enabled) return 'OFF'
+
+  const severity =
+    channel === 'in_app'
+      ? (preference?.in_app_min_severity ??
+        type.in_app_severity_default ??
+        'info')
+      : (preference?.email_min_severity ??
+        type.email_severity_default ??
+        'info')
+
+  return severity.toUpperCase() as WeatherSeverityValue
+}
+
+const getBulkWeatherSeverityValue = ({
+  channel,
+  preferencesMap,
+  projects,
+  weatherTypes,
+}: {
+  channel: WeatherNotificationChannel
+  preferencesMap: Map<string, NotificationPreference>
+  projects: Array<{ project_id: string; name_long: string }>
+  weatherTypes: NotificationType[]
+}): WeatherBulkSeverityValue => {
+  const values = projects.flatMap((project) =>
+    weatherTypes.map((type) =>
+      getWeatherNotificationSeverityValue({
+        channel,
+        preference:
+          preferencesMap.get(
+            getWeatherPreferenceKey(
+              project.project_id,
+              type.notification_type_id,
+            ),
+          ) || null,
+        type,
+      }),
+    ),
+  )
+  const firstValue = values[0]
+
+  if (!firstValue) return PER_PROJECT_WEATHER_SEVERITY
+
+  return values.every((value) => value === firstValue)
+    ? firstValue
+    : PER_PROJECT_WEATHER_SEVERITY
+}
 
 const DemoMode = () => {
   const { user } = useUser()
@@ -416,6 +493,11 @@ function WeatherPanel({
   const notificationTypes = useGetNotificationTypes({})
   const preferences = useGetNotificationPreferences({})
   const updateMutation = useUpdateNotificationPreference()
+  const bulkUpdateMutation = useBulkUpdateNotificationPreferences()
+  const [bulkInAppSeverityOverride, setBulkInAppSeverityOverride] =
+    useState<WeatherBulkSeverityValue | null>(null)
+  const [bulkEmailSeverityOverride, setBulkEmailSeverityOverride] =
+    useState<WeatherBulkSeverityValue | null>(null)
 
   // Find weather notification types
   const weatherTypes = useMemo(() => {
@@ -449,7 +531,10 @@ function WeatherPanel({
   const preferencesMap = useMemo(() => {
     const map = new Map<string, NotificationPreference>()
     preferences.data?.forEach((pref) => {
-      const key = `${pref.project_id}-${pref.notification_type_id}`
+      const key = getWeatherPreferenceKey(
+        pref.project_id,
+        pref.notification_type_id,
+      )
       map.set(key, pref)
     })
     return map
@@ -459,13 +544,47 @@ function WeatherPanel({
     projectId: string,
     notificationTypeId: number,
   ): NotificationPreference | null => {
-    const key = `${projectId}-${notificationTypeId}`
+    const key = getWeatherPreferenceKey(projectId, notificationTypeId)
     return preferencesMap.get(key) || null
   }
 
-  const sortedProjects = [...projects].sort((a, b) =>
-    a.name_long.localeCompare(b.name_long),
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.name_long.localeCompare(b.name_long)),
+    [projects],
   )
+
+  const derivedBulkInAppSeverity = useMemo(
+    () =>
+      getBulkWeatherSeverityValue({
+        channel: 'in_app',
+        preferencesMap,
+        projects: sortedProjects,
+        weatherTypes,
+      }),
+    [preferencesMap, sortedProjects, weatherTypes],
+  )
+  const derivedBulkEmailSeverity = useMemo(
+    () =>
+      getBulkWeatherSeverityValue({
+        channel: 'email',
+        preferencesMap,
+        projects: sortedProjects,
+        weatherTypes,
+      }),
+    [preferencesMap, sortedProjects, weatherTypes],
+  )
+  const bulkInAppSeverity =
+    bulkInAppSeverityOverride ?? derivedBulkInAppSeverity
+  const bulkEmailSeverity =
+    bulkEmailSeverityOverride ?? derivedBulkEmailSeverity
+  const showWeatherProjectSettings =
+    bulkInAppSeverity === PER_PROJECT_WEATHER_SEVERITY ||
+    bulkEmailSeverity === PER_PROJECT_WEATHER_SEVERITY
+  const bulkControlsDisabled =
+    updateMutation.isPending ||
+    bulkUpdateMutation.isPending ||
+    sortedProjects.length === 0 ||
+    weatherTypes.length === 0
 
   if (notificationTypes.isLoading || preferences.isLoading) {
     return <Loader />
@@ -501,11 +620,15 @@ function WeatherPanel({
   }
 
   // Generate severity control data with colored icons
-  const getSeverityControlData = () => {
+  const getSeverityControlData = ({
+    includePerProject = false,
+  }: {
+    includePerProject?: boolean
+  } = {}) => {
     const isDark = colorScheme === 'dark'
     const iconSize = 14
 
-    return [
+    const severityControlData = [
       {
         label: (
           <span
@@ -579,6 +702,90 @@ function WeatherPanel({
         value: NotificationSeverityEnum.CRITICAL.toUpperCase(),
       },
     ]
+
+    if (!includePerProject) return severityControlData
+
+    return [
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconEdit
+              size={iconSize}
+              color={isDark ? theme.colors.gray[4] : theme.colors.gray[8]}
+            />
+            <span>Per project</span>
+          </span>
+        ),
+        value: PER_PROJECT_WEATHER_SEVERITY,
+      },
+      ...severityControlData,
+    ]
+  }
+
+  const updateAllWeatherNotificationSeverities = ({
+    channel,
+    selectedSeverity,
+  }: {
+    channel: WeatherNotificationChannel
+    selectedSeverity: WeatherSeverityValue
+  }) => {
+    const resetBulkWeatherSeverityOverride = () => {
+      if (channel === 'in_app') {
+        setBulkInAppSeverityOverride(null)
+        return
+      }
+      setBulkEmailSeverityOverride(null)
+    }
+    const projectIds = sortedProjects.map((project) => project.project_id)
+    const notificationTypeIds = weatherTypes.map(
+      (type) => type.notification_type_id,
+    )
+
+    if (selectedSeverity === 'OFF') {
+      bulkUpdateMutation.mutate(
+        {
+          project_ids: projectIds,
+          notification_type_ids: notificationTypeIds,
+          ...(channel === 'in_app'
+            ? { in_app_enabled: false }
+            : { email_enabled: false }),
+        },
+        {
+          onError: resetBulkWeatherSeverityOverride,
+        },
+      )
+      return
+    }
+
+    const normalizedSeverity = selectedSeverity.toLowerCase() as
+      | 'info'
+      | 'warning'
+      | 'critical'
+
+    bulkUpdateMutation.mutate(
+      {
+        project_ids: projectIds,
+        notification_type_ids: notificationTypeIds,
+        ...(channel === 'in_app'
+          ? {
+              in_app_enabled: true,
+              in_app_min_severity: normalizedSeverity,
+            }
+          : {
+              email_enabled: true,
+              email_min_severity: normalizedSeverity,
+            }),
+      },
+      {
+        onError: resetBulkWeatherSeverityOverride,
+      },
+    )
   }
 
   return (
@@ -587,125 +794,178 @@ function WeatherPanel({
         Configure notifications for weather-related events. Severity levels:
         INFO (&lt; 15%), WARNING (&lt; 30%), CRITICAL (&gt; 30%).
       </Text>
-      <Table.ScrollContainer minWidth={800}>
-        <Table striped highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Project Name</Table.Th>
-              {weatherTypes.map((type) => (
-                <Table.Th key={type.notification_type_id}>
-                  <Group gap={4}>
-                    {getWeatherTypeName(type)}
-                    <Tooltip label={getWeatherTypeTooltip(type)}>
-                      <ActionIcon size="xs" variant="transparent" color="gray">
-                        <IconInfoCircle size={14} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
-                </Table.Th>
-              ))}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {sortedProjects.map((project) => (
-              <Table.Tr key={project.project_id}>
-                <Table.Td>{project.name_long}</Table.Td>
-                {weatherTypes.map((type) => {
-                  const preference = getPreference(
-                    project.project_id,
-                    type.notification_type_id,
-                  )
-                  const inAppEnabled =
-                    preference?.in_app_enabled ?? type.in_app_enabled_default
-                  const emailEnabled =
-                    preference?.email_enabled ?? type.email_enabled_default
-                  const inAppSeverity =
-                    preference?.in_app_min_severity ??
-                    type.in_app_severity_default ??
-                    'info'
-                  const emailSeverity =
-                    preference?.email_min_severity ??
-                    type.email_severity_default ??
-                    'info'
+      <Group align="end" wrap="wrap">
+        <Stack gap={4}>
+          <Text size="xs" fw={500}>
+            In-app weather notifications
+          </Text>
+          <SegmentedControl
+            size="xs"
+            value={bulkInAppSeverity}
+            onChange={(value) => {
+              const selectedSeverity = value as WeatherBulkSeverityValue
+              setBulkInAppSeverityOverride(selectedSeverity)
+              if (selectedSeverity === PER_PROJECT_WEATHER_SEVERITY) return
 
-                  return (
-                    <Table.Td key={type.notification_type_id}>
-                      <Stack gap="xs">
-                        <Group gap="xs" align="center">
-                          <Text size="xs" w={50}>
-                            in-app:
-                          </Text>
-                          <SegmentedControl
-                            size="xs"
-                            value={
-                              inAppEnabled ? inAppSeverity.toUpperCase() : 'OFF'
-                            }
-                            onChange={(value) => {
-                              if (value === 'OFF') {
-                                updateMutation.mutate({
-                                  project_id: project.project_id,
-                                  notification_type_id:
-                                    type.notification_type_id,
-                                  in_app_enabled: false,
-                                })
-                              } else {
-                                updateMutation.mutate({
-                                  project_id: project.project_id,
-                                  notification_type_id:
-                                    type.notification_type_id,
-                                  in_app_enabled: true,
-                                  in_app_min_severity: value?.toLowerCase() as
-                                    | 'info'
-                                    | 'warning'
-                                    | 'critical',
-                                })
-                              }
-                            }}
-                            data={getSeverityControlData()}
-                          />
-                        </Group>
-                        <Group gap="xs" align="center">
-                          <Text size="xs" w={50}>
-                            email:
-                          </Text>
-                          <SegmentedControl
-                            size="xs"
-                            value={
-                              emailEnabled ? emailSeverity.toUpperCase() : 'OFF'
-                            }
-                            onChange={(value) => {
-                              if (value === 'OFF') {
-                                updateMutation.mutate({
-                                  project_id: project.project_id,
-                                  notification_type_id:
-                                    type.notification_type_id,
-                                  email_enabled: false,
-                                })
-                              } else {
-                                updateMutation.mutate({
-                                  project_id: project.project_id,
-                                  notification_type_id:
-                                    type.notification_type_id,
-                                  email_enabled: true,
-                                  email_min_severity: value?.toLowerCase() as
-                                    | 'info'
-                                    | 'warning'
-                                    | 'critical',
-                                })
-                              }
-                            }}
-                            data={getSeverityControlData()}
-                          />
-                        </Group>
-                      </Stack>
-                    </Table.Td>
-                  )
-                })}
+              updateAllWeatherNotificationSeverities({
+                channel: 'in_app',
+                selectedSeverity,
+              })
+            }}
+            data={getSeverityControlData({ includePerProject: true })}
+            disabled={bulkControlsDisabled}
+          />
+        </Stack>
+        <Stack gap={4}>
+          <Text size="xs" fw={500}>
+            Email weather notifications
+          </Text>
+          <SegmentedControl
+            size="xs"
+            value={bulkEmailSeverity}
+            onChange={(value) => {
+              const selectedSeverity = value as WeatherBulkSeverityValue
+              setBulkEmailSeverityOverride(selectedSeverity)
+              if (selectedSeverity === PER_PROJECT_WEATHER_SEVERITY) return
+
+              updateAllWeatherNotificationSeverities({
+                channel: 'email',
+                selectedSeverity,
+              })
+            }}
+            data={getSeverityControlData({ includePerProject: true })}
+            disabled={bulkControlsDisabled}
+          />
+        </Stack>
+      </Group>
+      {showWeatherProjectSettings && (
+        <Table.ScrollContainer minWidth={800}>
+          <Table striped highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Project Name</Table.Th>
+                {weatherTypes.map((type) => (
+                  <Table.Th key={type.notification_type_id}>
+                    <Group gap={4}>
+                      {getWeatherTypeName(type)}
+                      <Tooltip label={getWeatherTypeTooltip(type)}>
+                        <ActionIcon
+                          size="xs"
+                          variant="transparent"
+                          color="gray"
+                        >
+                          <IconInfoCircle size={14} />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+                  </Table.Th>
+                ))}
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </Table.ScrollContainer>
+            </Table.Thead>
+            <Table.Tbody>
+              {sortedProjects.map((project) => (
+                <Table.Tr key={project.project_id}>
+                  <Table.Td>{project.name_long}</Table.Td>
+                  {weatherTypes.map((type) => {
+                    const preference = getPreference(
+                      project.project_id,
+                      type.notification_type_id,
+                    )
+                    const inAppValue = getWeatherNotificationSeverityValue({
+                      channel: 'in_app',
+                      preference,
+                      type,
+                    })
+                    const emailValue = getWeatherNotificationSeverityValue({
+                      channel: 'email',
+                      preference,
+                      type,
+                    })
+
+                    return (
+                      <Table.Td key={type.notification_type_id}>
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center">
+                            <Text size="xs" w={50}>
+                              in-app:
+                            </Text>
+                            <SegmentedControl
+                              size="xs"
+                              value={inAppValue}
+                              onChange={(value) => {
+                                setBulkInAppSeverityOverride(
+                                  PER_PROJECT_WEATHER_SEVERITY,
+                                )
+                                if (value === 'OFF') {
+                                  updateMutation.mutate({
+                                    project_id: project.project_id,
+                                    notification_type_id:
+                                      type.notification_type_id,
+                                    in_app_enabled: false,
+                                  })
+                                } else {
+                                  updateMutation.mutate({
+                                    project_id: project.project_id,
+                                    notification_type_id:
+                                      type.notification_type_id,
+                                    in_app_enabled: true,
+                                    in_app_min_severity:
+                                      value?.toLowerCase() as
+                                        | 'info'
+                                        | 'warning'
+                                        | 'critical',
+                                  })
+                                }
+                              }}
+                              data={getSeverityControlData()}
+                              disabled={bulkUpdateMutation.isPending}
+                            />
+                          </Group>
+                          <Group gap="xs" align="center">
+                            <Text size="xs" w={50}>
+                              email:
+                            </Text>
+                            <SegmentedControl
+                              size="xs"
+                              value={emailValue}
+                              onChange={(value) => {
+                                setBulkEmailSeverityOverride(
+                                  PER_PROJECT_WEATHER_SEVERITY,
+                                )
+                                if (value === 'OFF') {
+                                  updateMutation.mutate({
+                                    project_id: project.project_id,
+                                    notification_type_id:
+                                      type.notification_type_id,
+                                    email_enabled: false,
+                                  })
+                                } else {
+                                  updateMutation.mutate({
+                                    project_id: project.project_id,
+                                    notification_type_id:
+                                      type.notification_type_id,
+                                    email_enabled: true,
+                                    email_min_severity: value?.toLowerCase() as
+                                      | 'info'
+                                      | 'warning'
+                                      | 'critical',
+                                  })
+                                }
+                              }}
+                              data={getSeverityControlData()}
+                              disabled={bulkUpdateMutation.isPending}
+                            />
+                          </Group>
+                        </Stack>
+                      </Table.Td>
+                    )
+                  })}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      )}
     </Stack>
   )
 }

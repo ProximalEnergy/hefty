@@ -250,6 +250,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/notification-preferences/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Bulk Update Notification Preferences
+         * @description Update multiple notification preferences.
+         */
+        put: operations["bulk_update_notification_preferences_v1_admin_notification_preferences_bulk_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/notification-types": {
         parameters: {
             query?: never;
@@ -10295,6 +10315,22 @@ export interface components {
             email_min_severity: components["schemas"]["NotificationSeverity"];
         };
         /**
+         * NotificationPreferenceBulkUpdate
+         * @description Notification preference bulk update model.
+         */
+        NotificationPreferenceBulkUpdate: {
+            /** Project Ids */
+            project_ids: string[];
+            /** Notification Type Ids */
+            notification_type_ids: number[];
+            /** In App Enabled */
+            in_app_enabled?: boolean | null;
+            /** Email Enabled */
+            email_enabled?: boolean | null;
+            in_app_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+            email_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+        };
+        /**
          * NotificationPreferenceUpdate
          * @description Notification preference update model.
          */
@@ -12845,6 +12881,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NotificationPreference"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_update_notification_preferences_v1_admin_notification_preferences_bulk_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferenceBulkUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreference"][];
                 };
             };
             /** @description Validation Error */

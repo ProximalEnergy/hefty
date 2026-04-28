@@ -192,6 +192,17 @@ class NotificationPreferenceUpdate(BaseModel):
     email_min_severity: NotificationSeverity | None = None
 
 
+class NotificationPreferenceBulkUpdate(BaseModel):
+    """Notification preference bulk update model."""
+
+    project_ids: list[uuid.UUID] = Field(min_length=1)
+    notification_type_ids: list[int] = Field(min_length=1)
+    in_app_enabled: bool | None = None
+    email_enabled: bool | None = None
+    in_app_min_severity: NotificationSeverity | None = None
+    email_min_severity: NotificationSeverity | None = None
+
+
 class UserProjectFavoriteUpdate(BaseModel):
     """Userprojectfavoriteupdate model."""
 

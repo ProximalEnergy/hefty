@@ -6,6 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, utils
 from app._crud.admin.notification_preferences import (
+    bulk_update_notification_preferences as crud_bulk_update_notification_preferences,
+)
+from app._crud.admin.notification_preferences import (
     get_user_notification_preferences as crud_get_user_notification_preferences,
 )
 from app._crud.admin.notification_preferences import (
@@ -48,6 +51,74 @@ async def get_user_notification_preferences(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get notification preferences: {str(e)}",
+        )
+
+
+@router.put(
+    "/bulk",
+    response_model=list[interfaces.NotificationPreference],
+    description="Update multiple notification preferences.",
+)
+async def bulk_update_notification_preferences(
+    data: interfaces.NotificationPreferenceBulkUpdate,
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
+):
+    """Update multiple notification preferences.
+
+    Args:
+        data: Bulk update data including projects and notification types.
+        db: Database session.
+        user_data: User data.
+    """
+    has_update = any(
+        value is not None
+        for value in [
+            data.in_app_enabled,
+            data.email_enabled,
+            data.in_app_min_severity,
+            data.email_min_severity,
+        ]
+    )
+    if not has_update:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one notification preference field is required",
+        )
+
+    permitted_project_ids = set(user_data.operational_project_ids)
+    denied_project_ids = [
+        project_id
+        for project_id in data.project_ids
+        if project_id not in permitted_project_ids
+    ]
+    if denied_project_ids:
+        raise HTTPException(
+            status_code=403,
+            detail="User does not have access to all requested projects",
+        )
+
+    try:
+        preferences = await crud_bulk_update_notification_preferences(
+            db=db,
+            user_id=user_data.user_id,
+            project_ids=data.project_ids,
+            notification_type_ids=data.notification_type_ids,
+            in_app_enabled=data.in_app_enabled,
+            email_enabled=data.email_enabled,
+            in_app_min_severity=data.in_app_min_severity,
+            email_min_severity=data.email_min_severity,
+        )
+        return preferences
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update notification preferences: {str(e)}",
         )
 
 

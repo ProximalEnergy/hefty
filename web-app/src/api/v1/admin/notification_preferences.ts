@@ -3,6 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
+import { notifications } from '@mantine/notifications'
 import {
   UseQueryOptions,
   useMutation,
@@ -19,6 +20,15 @@ type NotificationPreferenceUpdate =
     project_id: string
     notification_type_id: number
   }
+type NotificationPreferenceBulkUpdate =
+  types.components['schemas']['NotificationPreferenceBulkUpdate']
+type NotificationPreferenceFieldsUpdate = Pick<
+  NotificationPreferenceBulkUpdate,
+  | 'in_app_enabled'
+  | 'email_enabled'
+  | 'in_app_min_severity'
+  | 'email_min_severity'
+>
 
 export const useGetNotificationPreferences = ({
   projectIds,
@@ -73,6 +83,112 @@ const getMutationTimestamps = (
     mutationTimestampsByClient.set(queryClient, timestamps)
   }
   return timestamps
+}
+
+const getPreferenceFieldUpdates = ({
+  data,
+  serverPreference,
+}: {
+  data: NotificationPreferenceFieldsUpdate
+  serverPreference?: NotificationPreference
+}): Partial<NotificationPreference> => ({
+  ...(data.in_app_enabled !== undefined &&
+    data.in_app_enabled !== null && {
+      in_app_enabled: serverPreference?.in_app_enabled ?? data.in_app_enabled,
+    }),
+  ...(data.email_enabled !== undefined &&
+    data.email_enabled !== null && {
+      email_enabled: serverPreference?.email_enabled ?? data.email_enabled,
+    }),
+  ...(data.in_app_min_severity !== undefined &&
+    data.in_app_min_severity !== null && {
+      in_app_min_severity:
+        serverPreference?.in_app_min_severity ?? data.in_app_min_severity,
+    }),
+  ...(data.email_min_severity !== undefined &&
+    data.email_min_severity !== null && {
+      email_min_severity:
+        serverPreference?.email_min_severity ?? data.email_min_severity,
+    }),
+})
+
+const createOptimisticNotificationPreference = ({
+  data,
+  notificationType,
+  notificationTypeId,
+  projectId,
+}: {
+  data: NotificationPreferenceFieldsUpdate
+  notificationType?: NotificationType
+  notificationTypeId: number
+  projectId: string
+}): NotificationPreference => ({
+  notification_preference_id: -1,
+  user_id: '',
+  project_id: projectId,
+  notification_type_id: notificationTypeId,
+  in_app_enabled:
+    data.in_app_enabled ??
+    (data.in_app_min_severity !== undefined && data.in_app_min_severity !== null
+      ? true
+      : (notificationType?.in_app_enabled_default ?? false)),
+  email_enabled:
+    data.email_enabled ??
+    (data.email_min_severity !== undefined && data.email_min_severity !== null
+      ? true
+      : (notificationType?.email_enabled_default ?? false)),
+  in_app_min_severity:
+    data.in_app_min_severity ??
+    notificationType?.in_app_severity_default ??
+    'info',
+  email_min_severity:
+    data.email_min_severity ??
+    notificationType?.email_severity_default ??
+    'info',
+})
+
+const mergeNotificationPreferences = ({
+  existingPreferences,
+  updatedPreferences,
+}: {
+  existingPreferences: NotificationPreference[]
+  updatedPreferences: NotificationPreference[]
+}): NotificationPreference[] => {
+  const mergedPreferences = [...existingPreferences]
+
+  updatedPreferences.forEach((updatedPreference) => {
+    const existingIndex = mergedPreferences.findIndex(
+      (preference) =>
+        preference.project_id === updatedPreference.project_id &&
+        preference.notification_type_id ===
+          updatedPreference.notification_type_id,
+    )
+
+    if (existingIndex >= 0) {
+      mergedPreferences[existingIndex] = updatedPreference
+      return
+    }
+
+    mergedPreferences.push(updatedPreference)
+  })
+
+  return mergedPreferences
+}
+
+const showNotificationPreferenceSaveSuccess = () => {
+  notifications.show({
+    title: 'Saved',
+    message: 'Notification settings updated.',
+    color: 'green',
+  })
+}
+
+const showNotificationPreferenceSaveError = () => {
+  notifications.show({
+    title: 'Save failed',
+    message: 'Unable to update notification settings.',
+    color: 'red',
+  })
 }
 
 export const useUpdateNotificationPreference = () => {
@@ -299,6 +415,8 @@ export const useUpdateNotificationPreference = () => {
       if (mutationTimestamp >= latestTimestamp) {
         mutationTimestamps.delete(preferenceKey)
       }
+
+      showNotificationPreferenceSaveSuccess()
     },
     onError: (_err, variables, context) => {
       const preferenceKey =
@@ -332,6 +450,198 @@ export const useUpdateNotificationPreference = () => {
       // Clean up timestamp if this was the latest mutation
       if (shouldRollback) {
         mutationTimestamps.delete(preferenceKey)
+        showNotificationPreferenceSaveError()
+      }
+    },
+  })
+}
+
+export const useBulkUpdateNotificationPreferences = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  const mutationTimestamps = getMutationTimestamps(queryClient)
+
+  return useMutation<
+    NotificationPreference[],
+    Error,
+    NotificationPreferenceBulkUpdate,
+    {
+      previousQueries: Map<string, NotificationPreference[] | undefined>
+      mutationTimestamp: number
+      preferenceKeys: string[]
+    }
+  >({
+    mutationFn: async (data) => {
+      const token = await getToken({ template: 'default' })
+      const response = await axios.put<NotificationPreference[]>(
+        `${baseURL}/v1/admin/notification-preferences/bulk`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      return response.data
+    },
+    onMutate: async (data) => {
+      const mutationTimestamp = Date.now()
+      const preferenceKeys = data.project_ids.flatMap((projectId) =>
+        data.notification_type_ids.map((notificationTypeId) =>
+          getPreferenceKey(projectId, notificationTypeId),
+        ),
+      )
+
+      preferenceKeys.forEach((preferenceKey) => {
+        mutationTimestamps.set(preferenceKey, mutationTimestamp)
+      })
+
+      await queryClient.cancelQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'getNotificationPreferences',
+      })
+
+      const previousQueries = new Map<
+        string,
+        NotificationPreference[] | undefined
+      >()
+      queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ['getNotificationPreferences'] })
+        .forEach((query) => {
+          const keyStr = JSON.stringify(query.queryKey)
+          previousQueries.set(
+            keyStr,
+            query.state.data as NotificationPreference[] | undefined,
+          )
+        })
+
+      const notificationTypes = queryClient.getQueryData<NotificationType[]>([
+        'getNotificationTypes',
+      ])
+
+      queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ['getNotificationPreferences'] })
+        .forEach((query) => {
+          queryClient.setQueryData<NotificationPreference[]>(
+            query.queryKey,
+            (old) => {
+              if (!old) return old
+
+              const updatedPreferences = [...old]
+              data.project_ids.forEach((projectId) => {
+                data.notification_type_ids.forEach((notificationTypeId) => {
+                  const existingIndex = updatedPreferences.findIndex(
+                    (preference) =>
+                      preference.project_id === projectId &&
+                      preference.notification_type_id === notificationTypeId,
+                  )
+
+                  if (existingIndex >= 0) {
+                    updatedPreferences[existingIndex] = {
+                      ...updatedPreferences[existingIndex],
+                      ...getPreferenceFieldUpdates({ data }),
+                    }
+                    return
+                  }
+
+                  const notificationType = notificationTypes?.find(
+                    (type) => type.notification_type_id === notificationTypeId,
+                  )
+                  updatedPreferences.push(
+                    createOptimisticNotificationPreference({
+                      data,
+                      notificationType,
+                      notificationTypeId,
+                      projectId,
+                    }),
+                  )
+                })
+              })
+
+              return updatedPreferences
+            },
+          )
+        })
+
+      return { previousQueries, mutationTimestamp, preferenceKeys }
+    },
+    onSuccess: (data, _variables, context) => {
+      const mutationTimestamp = context?.mutationTimestamp ?? 0
+      const latestPreferences = data.filter((preference) => {
+        const preferenceKey = getPreferenceKey(
+          preference.project_id,
+          preference.notification_type_id,
+        )
+        const latestTimestamp = mutationTimestamps.get(preferenceKey) ?? 0
+        return mutationTimestamp >= latestTimestamp
+      })
+
+      if (latestPreferences.length > 0) {
+        queryClient
+          .getQueryCache()
+          .findAll({ queryKey: ['getNotificationPreferences'] })
+          .forEach((query) => {
+            queryClient.setQueryData<NotificationPreference[]>(
+              query.queryKey,
+              (old) => {
+                if (!old) return old
+                return mergeNotificationPreferences({
+                  existingPreferences: old,
+                  updatedPreferences: latestPreferences,
+                })
+              },
+            )
+          })
+      }
+
+      latestPreferences.forEach((preference) => {
+        const preferenceKey = getPreferenceKey(
+          preference.project_id,
+          preference.notification_type_id,
+        )
+        const latestTimestamp = mutationTimestamps.get(preferenceKey) ?? 0
+        if (mutationTimestamp >= latestTimestamp) {
+          mutationTimestamps.delete(preferenceKey)
+        }
+      })
+
+      if (latestPreferences.length > 0) {
+        showNotificationPreferenceSaveSuccess()
+      }
+    },
+    onError: (_err, _variables, context) => {
+      const mutationTimestamp = context?.mutationTimestamp ?? 0
+      const shouldRollback =
+        !context ||
+        context.preferenceKeys.every((preferenceKey) => {
+          const latestTimestamp = mutationTimestamps.get(preferenceKey) ?? 0
+          return mutationTimestamp >= latestTimestamp
+        })
+
+      if (shouldRollback && context?.previousQueries) {
+        context.previousQueries.forEach(
+          (
+            previousData: NotificationPreference[] | undefined,
+            queryKeyStr: string,
+          ) => {
+            const queryKey = JSON.parse(queryKeyStr)
+            queryClient.setQueryData(queryKey, previousData)
+          },
+        )
+      }
+
+      context?.preferenceKeys.forEach((preferenceKey) => {
+        const latestTimestamp = mutationTimestamps.get(preferenceKey) ?? 0
+        if (mutationTimestamp >= latestTimestamp) {
+          mutationTimestamps.delete(preferenceKey)
+        }
+      })
+
+      if (shouldRollback) {
+        showNotificationPreferenceSaveError()
       }
     },
   })
