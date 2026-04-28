@@ -4,25 +4,25 @@ import xarray as xr
 from kpi.base.enumeration import TimeCoords
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import date_local, diff, filter_mask
-from kpi.op.field import MakeField
+from kpi.op.field import Field
 from kpi.op.transform.class_calc import DailyEnergy
-from kpi.op.transform.method import method_calc, required
+from kpi.op.transform.input import Required
+from kpi.op.transform.method import method_calc
 from kpi.registry.transform.bess.api import TransformBess
 from kpi.registry.transform.pv.api import Transform
-
-field = MakeField[CalcProtocol].infer_doc
 
 
 class BexarTransform(Transform):
     allow_override = True
 
-    @method_calc
+    @method_calc(
+        energy_total=Required(TransformBess.project_total_energy_charged_filled_kwh_5m),
+        power_capacity=Required(Transform.project_power_capacity_kw),
+    )
     @override
     def project_energy_charged_kwh_5m(
-        energy_total: xr.DataArray = required(
-            TransformBess.project_total_energy_charged_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = required(Transform.project_power_capacity_kw),
+        energy_total: xr.DataArray,
+        power_capacity: xr.DataArray,
     ) -> xr.DataArray:
         """
         Include a rollover value to handle the 16-bit integer overflow.
@@ -39,15 +39,16 @@ class BexarTransform(Transform):
         )
         return clean_diff
 
-    @method_calc
-    @override
-    def project_energy_discharged_kwh_5m(
-        energy_total: xr.DataArray = required(
+    @method_calc(
+        energy_total=Required(
             TransformBess.project_total_energy_discharged_filled_kwh_5m
         ),
-        power_capacity: xr.DataArray = required(
-            TransformBess.project_power_capacity_kw
-        ),
+        power_capacity=Required(TransformBess.project_power_capacity_kw),
+    )
+    @override
+    def project_energy_discharged_kwh_5m(
+        energy_total: xr.DataArray,
+        power_capacity: xr.DataArray,
     ) -> xr.DataArray:
         """
         Include a rollover value to handle the 16-bit integer overflow.
@@ -64,11 +65,14 @@ class BexarTransform(Transform):
         )
         return clean_diff
 
-    @method_calc
+    @method_calc(
+        energy=Required(project_energy_discharged_kwh_5m),
+        date_local_5m=Required(TransformBess.date_local_5m),
+    )
     @override
     def project_energy_discharged_kwh_d(
-        energy: xr.DataArray = required(project_energy_discharged_kwh_5m),
-        date_local_5m: xr.DataArray = required(TransformBess.date_local_5m),
+        energy: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Use the sum of the 5-minute energy because the bexar meter accumulator rolls
@@ -77,11 +81,14 @@ class BexarTransform(Transform):
         """
         return energy.groupby(date_local(date_local_5m)).sum()
 
-    @method_calc
+    @method_calc(
+        energy=Required(project_energy_charged_kwh_5m),
+        date_local_5m=Required(TransformBess.date_local_5m),
+    )
     @override
     def project_energy_charged_kwh_d(
-        energy: xr.DataArray = required(project_energy_charged_kwh_5m),
-        date_local_5m: xr.DataArray = required(TransformBess.date_local_5m),
+        energy: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Use the sum of the 5-minute energy because the bexar meter accumulator rolls
@@ -90,16 +97,16 @@ class BexarTransform(Transform):
         """
         return energy.groupby(date_local(date_local_5m)).sum()
 
-    @method_calc
+    @method_calc(
+        total_energy_5m=Required(TransformBess.project_total_aux_energy_filled_kwh_5m),
+        power_capacity=Required(TransformBess.project_power_capacity_kw),
+        date_local_5m=Required(TransformBess.date_local_5m),
+    )
     @override
     def project_aux_energy_kwh_d(
-        total_energy_5m: xr.DataArray = required(
-            TransformBess.project_total_aux_energy_filled_kwh_5m
-        ),
-        power_capacity: xr.DataArray = required(
-            TransformBess.project_power_capacity_kw
-        ),
-        date_local_5m: xr.DataArray = required(TransformBess.date_local_5m),
+        total_energy_5m: xr.DataArray,
+        power_capacity: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project Auxiliary Energy Per Day
@@ -121,38 +128,46 @@ class BexarTransform(Transform):
         )
         return difference
 
-    circuit_energy_charged_kwh_d = field(
+    circuit_energy_charged_kwh_d = Field[CalcProtocol](
         DailyEnergy(
-            total_energy_5m=TransformBess.circuit_total_energy_charged_filled_kwh_5m,
-            energy_capacity=TransformBess.circuit_energy_capacity_kwh,
-            date_local_5m=TransformBess.date_local_5m,
+            total_energy_5m=Required(
+                TransformBess.circuit_total_energy_charged_filled_kwh_5m
+            ),
+            energy_capacity=Required(TransformBess.circuit_energy_capacity_kwh),
+            date_local_5m=Required(TransformBess.date_local_5m),
             modulus=65_536,
         )
     )
 
-    circuit_energy_discharged_kwh_d = field(
+    circuit_energy_discharged_kwh_d = Field[CalcProtocol](
         DailyEnergy(
-            total_energy_5m=TransformBess.circuit_total_energy_discharged_filled_kwh_5m,
-            energy_capacity=TransformBess.circuit_energy_capacity_kwh,
-            date_local_5m=TransformBess.date_local_5m,
+            total_energy_5m=Required(
+                TransformBess.circuit_total_energy_discharged_filled_kwh_5m
+            ),
+            energy_capacity=Required(TransformBess.circuit_energy_capacity_kwh),
+            date_local_5m=Required(TransformBess.date_local_5m),
             modulus=65_536,
         )
     )
 
-    string_energy_charged_kwh_d = field(
+    string_energy_charged_kwh_d = Field[CalcProtocol](
         DailyEnergy(
-            total_energy_5m=TransformBess.string_total_energy_charged_filled_kwh_5m,
-            energy_capacity=TransformBess.string_energy_capacity_kwh,
-            date_local_5m=TransformBess.date_local_5m,
+            total_energy_5m=Required(
+                TransformBess.string_total_energy_charged_filled_kwh_5m
+            ),
+            energy_capacity=Required(TransformBess.string_energy_capacity_kwh),
+            date_local_5m=Required(TransformBess.date_local_5m),
             modulus=6_553.6,
         )
     )
 
-    string_energy_discharged_kwh_d = field(
+    string_energy_discharged_kwh_d = Field[CalcProtocol](
         DailyEnergy(
-            total_energy_5m=TransformBess.string_total_energy_discharged_filled_kwh_5m,
-            energy_capacity=TransformBess.string_energy_capacity_kwh,
-            date_local_5m=TransformBess.date_local_5m,
+            total_energy_5m=Required(
+                TransformBess.string_total_energy_discharged_filled_kwh_5m
+            ),
+            energy_capacity=Required(TransformBess.string_energy_capacity_kwh),
+            date_local_5m=Required(TransformBess.date_local_5m),
             modulus=6_553.6,
         )
     )

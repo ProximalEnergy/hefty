@@ -8,7 +8,8 @@ from core.enumerations import DeviceType
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import daily_mean_across_devices, date_local
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.method import method_calc, required
+from kpi.op.transform.input import Required
+from kpi.op.transform.method import method_calc
 from kpi.registry.download.status import DownloadStatus
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
@@ -17,10 +18,13 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     # PCS
 
     # BESS_PCS_AVAILABILITY (58)
-    @method_calc
+    @method_calc(
+        availability=Required(Eval.pcs_availability_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def pcs_availability_d(
-        availability: xr.DataArray = required(Eval.pcs_availability_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        availability: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         PCS Availability Per Day
@@ -28,10 +32,13 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
         """
         return availability.groupby(date_local(date_local_5m)).mean()
 
-    @method_calc
+    @method_calc(
+        availability=Required(Eval.pcs_availability_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def project_pcs_availability_d(
-        availability: xr.DataArray = required(Eval.pcs_availability_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        availability: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=availability,
@@ -42,17 +49,23 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     # PCS Module
 
     # BESS_PCS_MODULE_AVAILABILITY (107)
-    @method_calc
+    @method_calc(
+        event=Required(Eval.pcs_module_offline_event_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def pcs_module_availability_d(
-        event: xr.DataArray = required(Eval.pcs_module_offline_event_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        event: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return (1 - event).groupby(date_local(date_local_5m)).mean()
 
-    @method_calc
+    @method_calc(
+        event=Required(Eval.pcs_module_offline_event_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def project_pcs_module_availability_d(
-        event: xr.DataArray = required(Eval.pcs_module_offline_event_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        event: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - event),
@@ -63,17 +76,23 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     # Bank
 
     # BESS_BANK_AVAILABILITY (57)
-    @method_calc
+    @method_calc(
+        status=Required(DownloadStatus.bank_status_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def bank_availability_d(
-        status: xr.DataArray = required(DownloadStatus.bank_status_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        status: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return (1 - status).groupby(date_local(date_local_5m)).mean()
 
-    @method_calc
+    @method_calc(
+        status=Required(DownloadStatus.bank_status_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def project_bank_availability_d(
-        status: xr.DataArray = required(DownloadStatus.bank_status_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        status: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - status),
@@ -85,10 +104,13 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
 
     # BESS_PROJECT_POWER_AVAILABILITY (123)
 
-    @method_calc
+    @method_calc(
+        availability=Required(Eval.project_power_availability_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def project_power_availability_d(
-        availability: xr.DataArray = required(Eval.project_power_availability_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        availability: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project Power Availability Per Day
@@ -99,10 +121,13 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
 
     # BESS_PROJECT_ENERGY_AVAILABILITY (124)
 
-    @method_calc
+    @method_calc(
+        availability=Required(Eval.project_energy_availability_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def project_energy_availability_d(
-        availability: xr.DataArray = required(Eval.project_energy_availability_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        availability: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project Energy Availability Per Day
@@ -111,10 +136,13 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
         """
         return availability.groupby(date_local(date_local_5m)).mean()
 
-    @method_calc
+    @method_calc(
+        availability_5m=Required(Eval.project_system_availability_5m),
+        date_local_5m=Required(Eval.date_local_5m),
+    )
     def project_ner_availability_d(
-        availability_5m: xr.DataArray = required(Eval.project_pcs_availability_5m),
-        date_local_5m: xr.DataArray = required(Eval.date_local_5m),
+        availability_5m: xr.DataArray,
+        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project NER Availability Per Day

@@ -8,23 +8,23 @@ from kpi.op.util import select_var
 
 
 class UnaryCalc:
-    def __init__(self, fn: Callable[[xr.DataArray], xr.DataArray], name: str) -> None:
+    def __init__(self, fn: Callable[[xr.DataArray], xr.DataArray], input: str) -> None:
         self.fn = fn
-        self.name = name
+        self.input = input
 
     def inputs(self) -> set[str]:
-        return {self.name}
+        return {self.input}
 
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
-        return self.fn(select_var(dataset, self.name))
+        return self.fn(select_var(dataset, self.input))
 
 
 def unary_field(
     fn: Callable[[xr.DataArray], xr.DataArray],
     *,
     field: Field[Any],
-) -> Field[UnaryCalc]:
-    return Field[UnaryCalc](UnaryCalc(fn=fn, name=field.name))
+) -> Field[CalcProtocol]:
+    return Field[CalcProtocol](UnaryCalc(fn=fn, input=field.name))
 
 
-_: CalcProtocol = UnaryCalc(fn=lambda x: x, name="")
+_: CalcProtocol = UnaryCalc(fn=lambda x: x, input="")

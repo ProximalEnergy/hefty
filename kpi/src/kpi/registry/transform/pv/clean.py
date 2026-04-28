@@ -11,7 +11,8 @@ from kpi.domain.util import (
     verify_positive,
 )
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.method import method_calc, required
+from kpi.op.transform.input import Required
+from kpi.op.transform.method import method_calc
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.device.pv.attribute import (
     DownloadDevicePvAttribute as Device,
@@ -27,45 +28,51 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
     # Project Attributes
     # =======================================================
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.project_total_delivered_energy_raw_kwh_5m),
+    )
     def project_total_delivered_energy_filled_kwh_5m(
-        value: xr.DataArray = required(
-            Sensor.project_total_delivered_energy_raw_kwh_5m
-        ),
+        value: xr.DataArray,
     ) -> xr.DataArray:
         return value.ffill(dim=TimeCoords.TIME_5MIN_UTC.value).bfill(
             dim=TimeCoords.TIME_5MIN_UTC.value
         )
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.inverter_total_energy_production_raw_kwh_5m),
+    )
     def inverter_total_energy_production_filled_kwh_5m(
-        value: xr.DataArray = required(
-            Sensor.inverter_total_energy_production_raw_kwh_5m
-        ),
+        value: xr.DataArray,
     ) -> xr.DataArray:
         return value.ffill(dim=TimeCoords.TIME_5MIN_UTC.value).bfill(
             dim=TimeCoords.TIME_5MIN_UTC.value
         )
 
-    @method_calc
+    @method_calc(
+        value=Required(Project.project_latitude_raw_deg),
+    )
     def project_latitude_deg(
-        value: xr.DataArray = required(Project.project_latitude_raw_deg),
+        value: xr.DataArray,
     ) -> xr.DataArray:
         if value.item() == 0:
             raise ValidationError("Project latitude is 0")
         return filter_verify(filter_by=value, min_value=-90, max_value=90)
 
-    @method_calc
+    @method_calc(
+        value=Required(Project.project_longitude_raw_deg),
+    )
     def project_longitude_deg(
-        value: xr.DataArray = required(Project.project_longitude_raw_deg),
+        value: xr.DataArray,
     ) -> xr.DataArray:
         if value.item() == 0:
             raise ValidationError("Project longitude is 0")
         return filter_verify(filter_by=value, min_value=-180, max_value=180)
 
-    @method_calc
+    @method_calc(
+        value=Required(Project.project_elevation_raw_m),
+    )
     def project_elevation_m(
-        value: xr.DataArray = required(Project.project_elevation_raw_m),
+        value: xr.DataArray,
     ) -> xr.DataArray:
         return filter_verify(filter_by=value, min_value=1, max_value=10000)
 
@@ -103,18 +110,23 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
     # Sensors
     # =======================================================
 
-    @method_calc
+    @method_calc(
+        power=Required(Sensor.project_power_raw_kw_5m),
+        capacity=Required(project_dc_capacity_kw),
+    )
     def pv_project_power_kw_5m(
-        power: xr.DataArray = required(Sensor.project_power_raw_kw_5m),
-        capacity: xr.DataArray = required(project_dc_capacity_kw),
+        power: xr.DataArray,
+        capacity: xr.DataArray,
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1e-6, max_value=1)
         )
 
-    @method_calc
+    @method_calc(
+        x=Required(Sensor.met_poa_irradiance_raw_w_m2_5m),
+    )
     def met_poa_irradiance_w_m2_5m(
-        x: xr.DataArray = required(Sensor.met_poa_irradiance_raw_w_m2_5m),
+        x: xr.DataArray,
     ) -> xr.DataArray:
         window_size = 6  # flat lining for 30 minutes
         epsilon = 1e-6
@@ -130,50 +142,65 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
 
     # power validation
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.inverter_ac_power_raw_kw_5m),
+        capacity=Required(inverter_ac_capacity_kw),
+    )
     def inverter_ac_power_kw_5m(
-        value: xr.DataArray = required(Sensor.inverter_ac_power_raw_kw_5m),
-        capacity: xr.DataArray = required(inverter_ac_capacity_kw),
+        value: xr.DataArray,
+        capacity: xr.DataArray,
     ) -> xr.DataArray:
         return filter_capacity(
             value=value,
             capacity=capacity,
         )
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.inverter_reactive_power_raw_kvar_5m),
+        capacity=Required(inverter_dc_capacity_kw),
+    )
     def inverter_reactive_power_kvar_5m(
-        value: xr.DataArray = required(Sensor.inverter_reactive_power_raw_kvar_5m),
-        capacity: xr.DataArray = required(inverter_dc_capacity_kw),
+        value: xr.DataArray,
+        capacity: xr.DataArray,
     ) -> xr.DataArray:
         return filter_capacity(
             value=value,
             capacity=capacity,
         )
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.inverter_module_ac_power_raw_kw_5m),
+        capacity=Required(inverter_module_ac_capacity_kw),
+    )
     def inverter_module_ac_power_kw_5m(
-        value: xr.DataArray = required(Sensor.inverter_module_ac_power_raw_kw_5m),
-        capacity: xr.DataArray = required(inverter_module_ac_capacity_kw),
+        value: xr.DataArray,
+        capacity: xr.DataArray,
     ) -> xr.DataArray:
         return filter_capacity(
             value=value,
             capacity=capacity,
         )
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.project_power_setpoint_raw_kw_5m),
+        capacity=Required(project_dc_capacity_kw),
+    )
     def project_power_setpoint_kw_5m(
-        value: xr.DataArray = required(Sensor.project_power_setpoint_raw_kw_5m),
-        capacity: xr.DataArray = required(project_dc_capacity_kw),
+        value: xr.DataArray,
+        capacity: xr.DataArray,
     ) -> xr.DataArray:
         return filter_capacity(
             value=value,
             capacity=capacity,
         )
 
-    @method_calc
+    @method_calc(
+        value=Required(Sensor.inverter_ac_power_setpoint_raw_kw_5m),
+        capacity=Required(inverter_dc_capacity_kw),
+    )
     def inverter_ac_power_setpoint_kw_5m(
-        value: xr.DataArray = required(Sensor.inverter_ac_power_setpoint_raw_kw_5m),
-        capacity: xr.DataArray = required(inverter_dc_capacity_kw),
+        value: xr.DataArray,
+        capacity: xr.DataArray,
     ) -> xr.DataArray:
         return filter_capacity(
             value=value,
@@ -192,17 +219,21 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
     )
 
     # voltage validation
-    @method_calc
+    @method_calc(
+        voltage=Required(Sensor.inverter_voltage_raw_v_5m),
+    )
     def inverter_voltage_v_5m(
-        voltage: xr.DataArray = required(Sensor.inverter_voltage_raw_v_5m),
+        voltage: xr.DataArray,
     ) -> xr.DataArray:
         return voltage.where(
             filter_mask(filter_by=voltage, min_value=0, max_value=2000)
         )
 
-    @method_calc
+    @method_calc(
+        voltage=Required(Sensor.inverter_module_voltage_raw_v_5m),
+    )
     def inverter_module_voltage_v_5m(
-        voltage: xr.DataArray = required(Sensor.inverter_module_voltage_raw_v_5m),
+        voltage: xr.DataArray,
     ) -> xr.DataArray:
         return voltage.where(
             filter_mask(filter_by=voltage, min_value=0, max_value=2000)

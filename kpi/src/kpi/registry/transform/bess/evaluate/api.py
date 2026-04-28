@@ -2,21 +2,20 @@ import xarray as xr
 from core.enumerations import DeviceType
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import resting_soc
-from kpi.domain.util import TimeCoords, coord, fill_accumulator
-from kpi.op.field import MakeField
+from kpi.domain.util import coord, fill_accumulator
+from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.time import DateLocal5m
-from kpi.op.transform.class_calc import Energy5mFromAccumulator
-from kpi.op.transform.method import method_calc, required
+from kpi.op.transform.class_calc import Energy5mFromAccumulator, Event
+from kpi.op.transform.input import Required
+from kpi.op.transform.method import method_calc
 from kpi.op.transform.unary import unary_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 
-field = MakeField[CalcProtocol].infer_doc
-
 
 class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
-    date_local_5m = field(DateLocal5m())
+    date_local_5m = Field[CalcProtocol](DateLocal5m())
 
     # =======================================================
     # Backfill and forward fill accumulators to remove nans
@@ -93,33 +92,33 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     # Project level
 
-    project_energy_charged_kwh_5m = field(
+    project_energy_charged_kwh_5m = Field[CalcProtocol](
         Energy5mFromAccumulator(
-            accumulator=project_total_energy_charged_filled_kwh_5m.name,
-            power_capacity=Clean.project_power_capacity_kw.name,
+            accumulator=Required(project_total_energy_charged_filled_kwh_5m),
+            power_capacity=Required(Clean.project_power_capacity_kw),
         )
     )
 
-    project_energy_discharged_kwh_5m = field(
+    project_energy_discharged_kwh_5m = Field[CalcProtocol](
         Energy5mFromAccumulator(
-            accumulator=project_total_energy_discharged_filled_kwh_5m.name,
-            power_capacity=Clean.project_power_capacity_kw.name,
+            accumulator=Required(project_total_energy_discharged_filled_kwh_5m),
+            power_capacity=Required(Clean.project_power_capacity_kw),
         )
     )
 
     # PCS level
 
-    pcs_energy_charged_dc_kwh_5m = field(
+    pcs_energy_charged_dc_kwh_5m = Field[CalcProtocol](
         Energy5mFromAccumulator(
-            accumulator=pcs_total_energy_charged_filled_kwh_5m.name,
-            power_capacity=Clean.pcs_power_capacity_kw.name,
+            accumulator=Required(pcs_total_energy_charged_filled_kwh_5m),
+            power_capacity=Required(Clean.pcs_power_capacity_kw),
         )
     )
 
-    pcs_energy_discharged_dc_kwh_5m = field(
+    pcs_energy_discharged_dc_kwh_5m = Field[CalcProtocol](
         Energy5mFromAccumulator(
-            accumulator=pcs_total_energy_discharged_filled_kwh_5m.name,
-            power_capacity=Clean.pcs_power_capacity_kw.name,
+            accumulator=Required(pcs_total_energy_discharged_filled_kwh_5m),
+            power_capacity=Required(Clean.pcs_power_capacity_kw),
         )
     )
 
@@ -129,28 +128,37 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
 
     # project level
 
-    @method_calc
+    @method_calc(
+        power=Required(Clean.project_power_kw_5m),
+        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+    )
     def project_c_rate_5m(
-        power: xr.DataArray = required(Clean.bess_project_power_kw_5m),
-        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
+        power: xr.DataArray,
+        energy_capacity: xr.DataArray,
     ) -> xr.DataArray:
         return power / energy_capacity
 
     # pcs level
 
-    @method_calc
+    @method_calc(
+        power=Required(Clean.pcs_power_kw_5m),
+        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
+    )
     def pcs_c_rate_5m(
-        power: xr.DataArray = required(Clean.pcs_power_kw_5m),
-        energy_capacity: xr.DataArray = required(Clean.pcs_energy_capacity_kwh),
+        power: xr.DataArray,
+        energy_capacity: xr.DataArray,
     ) -> xr.DataArray:
         return power / energy_capacity
 
     # string level
 
-    @method_calc
+    @method_calc(
+        power=Required(Clean.string_power_kw_5m),
+        energy_capacity=Required(Clean.string_energy_capacity_kwh),
+    )
     def string_c_rate_5m(
-        power: xr.DataArray = required(Clean.string_power_kw_5m),
-        energy_capacity: xr.DataArray = required(Clean.string_energy_capacity_kwh),
+        power: xr.DataArray,
+        energy_capacity: xr.DataArray,
     ) -> xr.DataArray:
         return power / energy_capacity
 
@@ -189,9 +197,11 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
     # Other
     # =======================================================
 
-    @method_calc
+    @method_calc(
+        soh=Required(Clean.string_soh_5m),
+    )
     def project_soh_5m(
-        soh: xr.DataArray = required(Clean.string_soh_5m),
+        soh: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project SOH Per 5-Minute Interval
@@ -201,34 +211,42 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
         return soh.mean(dim=coord(DeviceType.BESS_STRING))
 
     # =======================================================
+    # Events
+    # =======================================================
+
+    # Project
+
+    project_offline_event_5m = Field[CalcProtocol](
+        Event(
+            event_change=Required(Clean.project_offline_event_change_5m),
+        )
+    )
+
+    # PCS
+
+    pcs_offline_event_5m = Field[CalcProtocol](
+        Event(
+            event_change=Required(Clean.pcs_offline_event_change_5m),
+        )
+    )
+
+    # PCS Module
+
+    pcs_module_offline_event_5m = Field[CalcProtocol](
+        Event(
+            event_change=Required(Clean.pcs_module_offline_event_change_5m),
+        )
+    )
+
+    # =======================================================
     # Availability
     # =======================================================
 
-    @method_calc
-    def pcs_offline_event_5m(
-        offline_event_change: xr.DataArray = required(
-            Clean.pcs_offline_event_change_5m
-        ),
-    ) -> xr.DataArray:
-        """
-        PCS Offline Event Per 5-Minute Interval
-        """
-        return offline_event_change.cumsum(dim=TimeCoords.TIME_5MIN_UTC.value) > 0
-
-    @method_calc
-    def pcs_module_offline_event_5m(
-        offline_event_change: xr.DataArray = required(
-            Clean.pcs_module_offline_event_change_5m
-        ),
-    ) -> xr.DataArray:
-        """
-        PCS Module Offline Event Per 5-Minute Interval
-        """
-        return offline_event_change.cumsum(dim=TimeCoords.TIME_5MIN_UTC.value) > 0
-
-    @method_calc
+    @method_calc(
+        offline_event=Required(pcs_offline_event_5m),
+    )
     def pcs_availability_5m(
-        offline_event: xr.DataArray = required(pcs_offline_event_5m),
+        offline_event: xr.DataArray,
     ) -> xr.DataArray:
         """
         PCS Availability Per 5-Minute Interval
@@ -236,9 +254,11 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
         """
         return 1 - offline_event
 
-    @method_calc
+    @method_calc(
+        availability=Required(pcs_availability_5m),
+    )
     def project_pcs_availability_5m(
-        availability: xr.DataArray = required(pcs_availability_5m),
+        availability: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project PCS Availability Per 5-Minute Interval
@@ -246,11 +266,31 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
         """
         return availability.mean(dim=coord(DeviceType.BESS_PCS))
 
-    @method_calc
+    @method_calc(
+        project_pcs_availability=Required(project_pcs_availability_5m),
+        project_event=Required(project_offline_event_5m),
+    )
+    def project_system_availability_5m(
+        project_pcs_availability: xr.DataArray,
+        project_event: xr.DataArray,
+    ) -> xr.DataArray:
+        """
+        Project System Availability Per 5-Minute Interval
+        If the project is offline, then the system availability is 0.
+        Otherwise, the system availability is project level pcs availability
+        """
+        project_availability = 1 - project_event
+        return project_pcs_availability * project_availability
+
+    @method_calc(
+        availability=Required(project_system_availability_5m),
+        soh=Required(project_soh_5m),
+        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+    )
     def project_energy_availability_5m(
-        availability: xr.DataArray = required(project_pcs_availability_5m),
-        soh: xr.DataArray = required(project_soh_5m),
-        energy_capacity: xr.DataArray = required(Clean.project_energy_capacity_kwh),
+        availability: xr.DataArray,
+        soh: xr.DataArray,
+        energy_capacity: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project Energy Availability Per 5-Minute Interval
@@ -258,11 +298,15 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
         """
         return availability * soh * energy_capacity
 
-    @method_calc
+    @method_calc(
+        availability=Required(project_system_availability_5m),
+        power_capacity=Required(Clean.project_power_capacity_kw),
+        poi_capacity=Required(Clean.project_poi_limit_kw),
+    )
     def project_power_availability_5m(
-        availability: xr.DataArray = required(project_pcs_availability_5m),
-        power_capacity: xr.DataArray = required(Clean.project_power_capacity_kw),
-        poi_capacity: xr.DataArray = required(Clean.project_poi_limit_kw),
+        availability: xr.DataArray,
+        power_capacity: xr.DataArray,
+        poi_capacity: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project Power Availability Per 5-Minute Interval

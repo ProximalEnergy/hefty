@@ -1,10 +1,8 @@
 from core.enumerations import SensorType
 from kpi.base.protocol import SensorProtocol
 from kpi.op.download.sensor import SensorMax, sensor_field
-from kpi.op.field import MakeField
+from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry
-
-field = MakeField[SensorProtocol].infer_doc
 
 
 class DownloadSensorPv(FieldRegistry[SensorProtocol]):
@@ -61,7 +59,7 @@ class DownloadSensorPv(FieldRegistry[SensorProtocol]):
         scale=1000,
     )
 
-    met_poa_irradiance_raw_w_m2_5m = field(
+    met_poa_irradiance_raw_w_m2_5m = Field[SensorProtocol](
         SensorMax(sensor_type=SensorType.MET_STATION_POA)
     )
 

@@ -1,36 +1,37 @@
 import inspect
 from collections.abc import Callable
-from typing import Any
 
 import xarray as xr
 from kpi.base.protocol import CalcProtocol
-from kpi.op.field import Field, MakeField
-from kpi.op.transform.input import InputType, Optional, Required
-
-
-def required(field: Field[Any]) -> xr.DataArray:
-    return Required(field.name)  # type: ignore
-
-
-def optional(field: Field[Any]) -> xr.DataArray | None:
-    return Optional(field.name)  # type: ignore
-
+from kpi.op.field import Field
+from kpi.op.transform.input import InputType
 
 MethodFn = Callable[..., xr.DataArray]
 
 
-def extract_input_mapping(fn: MethodFn) -> dict[str, InputType]:
-    """Extract param name -> field name for parameters whose default is Input."""
-    mapping: dict[str, InputType] = {}
-    for name, param in inspect.signature(fn).parameters.items():
-        if param.default is inspect.Parameter.empty:
-            msg = f"{fn.__name__}: parameter {name!r} must have an InputType default"
+def validate_input_mapping(
+    fn: MethodFn,
+    *,
+    inputs_map: dict[str, InputType],
+) -> None:
+    signature = inspect.signature(fn)
+    params = signature.parameters
+
+    for name, input_type in inputs_map.items():
+        if name not in params:
+            msg = f"{fn.__name__}: input {name!r} is not a parameter"
             raise TypeError(msg)
-        if not isinstance(param.default, InputType):
-            msg = f"{fn.__name__}: parameter {name!r} default must be InputType"
+        if not isinstance(input_type, InputType):
+            msg = f"{fn.__name__}: input {name!r} default must be InputType"  # type: ignore
             raise TypeError(msg)
-        mapping[name] = param.default
-    return mapping
+
+    for name, param in params.items():
+        if param.default is not inspect.Parameter.empty:
+            msg = f"{fn.__name__}: parameter {name!r} must not have a default"
+            raise TypeError(msg)
+        if name not in inputs_map:
+            msg = f"{fn.__name__}: parameter {name!r} must have an input"
+            raise TypeError(msg)
 
 
 class MethodCalc:
@@ -49,20 +50,19 @@ class MethodCalc:
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
         inputs = {}
         for name, input_type in self._inputs_map.items():
-            value = input_type.get(dataset)
+            value = input_type.extract(dataset)
             inputs[name] = value
         return self._fn(**inputs)
 
 
-def method_calc(fn: MethodFn) -> Field[CalcProtocol]:
-    return Field[CalcProtocol](
-        MethodCalc(
-            fn=fn,
-            inputs_map=extract_input_mapping(fn),
-        ),
-        name=fn.__name__,
-        doc=fn.__doc__,
-    )
+def method_calc(**inputs_map: InputType) -> Callable[[MethodFn], Field[CalcProtocol]]:
+    def wrap(fn: MethodFn) -> Field[CalcProtocol]:
+        validate_input_mapping(fn, inputs_map=inputs_map)
+        return Field[CalcProtocol](
+            MethodCalc(
+                fn=fn,
+                inputs_map=inputs_map,
+            ),
+        )
 
-
-calc_field = MakeField[CalcProtocol].infer_doc
+    return wrap

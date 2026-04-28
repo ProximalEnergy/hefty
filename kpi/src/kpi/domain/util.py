@@ -1,5 +1,4 @@
 import warnings
-from typing import overload
 
 import xarray as xr
 from core.enumerations import DeviceType
@@ -176,32 +175,12 @@ def daily_mean_across_grouped_devices(
     return value_sum / is_valid_sum.where(is_valid_sum > 0)
 
 
-@overload
-def scale_offset(
-    value: None,
-    *,
-    scale: float | None = None,
-    offset: float | None = None,
-) -> None: ...
-
-
-@overload
 def scale_offset(
     value: xr.DataArray,
     *,
     scale: float | None = None,
     offset: float | None = None,
-) -> xr.DataArray: ...
-
-
-def scale_offset(
-    value: xr.DataArray | None,
-    *,
-    scale: float | None = None,
-    offset: float | None = None,
-) -> xr.DataArray | None:
-    if value is None:
-        return None
+) -> xr.DataArray:
     if scale is not None:
         value = value * scale
     if offset is not None:
@@ -221,3 +200,12 @@ def date_local(
     date_local_5m: xr.DataArray,
 ) -> xr.DataArray:
     return date_local_5m.rename(TimeCoords.DATE_LOCAL.value)
+
+
+def fill_missing_zero(
+    x: xr.DataArray,
+) -> xr.DataArray:
+    """
+    Fill missing values with 0.
+    """
+    return x.fillna(0)

@@ -1,11 +1,11 @@
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceType
+from kpi.base.protocol import DeviceProtocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.op.field import Field, NoInputs
 from pydantic import BaseModel
-from kpi.base.protocol import DeviceProtocol
 
 
 class DeviceAttributeModel(BaseModel, NoInputs):

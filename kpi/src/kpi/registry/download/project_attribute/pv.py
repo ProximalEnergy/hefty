@@ -4,12 +4,10 @@ from kpi.op.download.project_attribute import (
     Longitude,
     project_attribute_field,
 )
-from kpi.op.field import MakeField
+from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry
 
 from core import models
-
-field = MakeField[ProjectAttributeProtocol].infer_doc
 
 
 class DownloadProjectAttributePv(FieldRegistry[ProjectAttributeProtocol]):
@@ -18,9 +16,9 @@ class DownloadProjectAttributePv(FieldRegistry[ProjectAttributeProtocol]):
         scale=1000,
     )
 
-    project_latitude_raw_deg = field(Latitude())
+    project_latitude_raw_deg = Field[ProjectAttributeProtocol](Latitude())
 
-    project_longitude_raw_deg = field(Longitude())
+    project_longitude_raw_deg = Field[ProjectAttributeProtocol](Longitude())
 
     project_elevation_raw_m = project_attribute_field(
         source_field_name=models.Project.elevation.name,

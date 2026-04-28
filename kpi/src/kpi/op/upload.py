@@ -67,6 +67,13 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                         )
                     )
                     continue
+                device_data = None
+                if model.device_var is not None:
+                    device_data = select_optional(dataset, model.device_var)
+                    if device_data is not None:
+                        device_data = scale_offset(
+                            device_data, scale=model.scale, offset=model.offset
+                        )
                 data_rows.extend(
                     arrays_to_rows(
                         project_data=scale_offset(
@@ -74,13 +81,7 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                             scale=model.scale,
                             offset=model.offset,
                         ),
-                        device_data=scale_offset(
-                            select_optional(dataset, model.device_var),
-                            scale=model.scale,
-                            offset=model.offset,
-                        )
-                        if model.device_var is not None
-                        else None,
+                        device_data=device_data,
                         version=model.version,
                         project_id=project.project_id,
                         kpi_type=model.kpi_type,

@@ -6,7 +6,7 @@ from kpi.base.enumeration import Attrs
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.field import Field, NoInputs
+from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
@@ -20,27 +20,9 @@ from core import models
 class ExpectedEnergyModel(BaseModel, NoInputs):
     expected_metric_id: int
     device_type: DeviceType
-    project_level: bool
-    scale: float | None
-    offset: float | None
-
-
-def expected_energy_field(
-    expected_metric_id: int,
-    device_type: DeviceType,
-    project_level: bool = False,
-    scale: float | None = None,
-    offset: float | None = None,
-) -> Field[ExpectedEnergyModel]:
-    return Field[ExpectedEnergyModel](
-        ExpectedEnergyModel(
-            expected_metric_id=expected_metric_id,
-            device_type=device_type,
-            project_level=project_level,
-            scale=scale,
-            offset=offset,
-        )
-    )
+    project_level: bool = False
+    scale: float | None = None
+    offset: float | None = None
 
 
 class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
@@ -49,7 +31,9 @@ class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
         expected_metric_ids = [
             self.map[field_name].expected_metric_id for field_name in field_names
         ]
-        device_types = set(self.map[field_name].device_type for field_name in field_names)
+        device_types = set(
+            self.map[field_name].device_type for field_name in field_names
+        )
         all_device_ids: list[int] = []
         for device_type in device_types:
             all_device_ids.extend(dataset.coords[coord(device_type)])
@@ -80,10 +64,7 @@ class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
                     filtered,
                     project_level=model.project_level,
                     device_type=model.device_type,
-                    skip_if_project_level_empty=True,
                 )
-                if value is None:
-                    continue
                 assign_var(
                     dataset,
                     field_name,

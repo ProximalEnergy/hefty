@@ -4,7 +4,7 @@ from kpi.base.enumeration import Attrs
 from kpi.infra.download.sensor import get_existing_columns_df
 from kpi.infra.download.status import download_status_df, get_tag_df
 from kpi.infra.pandas_to_xarray import pandas_device_time_series_to_xarray
-from kpi.op.field import Field, NoInputs
+from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
@@ -17,20 +17,6 @@ class StatusModel(BaseModel, NoInputs):
     sensor_type: SensorType
     device_type: DeviceType
     failure_modes: list[int]
-
-
-def status_field(
-    sensor_type: SensorType,
-    device_type: DeviceType,
-    failure_modes: list[int],
-) -> Field[StatusModel]:
-    return Field[StatusModel](
-        StatusModel(
-            sensor_type=sensor_type,
-            device_type=device_type,
-            failure_modes=failure_modes,
-        )
-    )
 
 
 class StatusSchema(SchemaAbstract[StatusModel]):

@@ -3,7 +3,7 @@ from core.enumerations import DeviceType
 from kpi.base.enumeration import Attrs
 from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.field import Field, NoInputs
+from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
@@ -13,19 +13,7 @@ from pydantic import BaseModel
 
 class EventsModel(BaseModel, NoInputs):
     device_type: DeviceType
-    project_level: bool
-
-
-def event_model_field(
-    device_type: DeviceType,
-    project_level: bool = False,
-) -> Field[EventsModel]:
-    return Field[EventsModel](
-        EventsModel(
-            device_type=device_type,
-            project_level=project_level,
-        )
-    )
+    project_level: bool = False
 
 
 class EventSchema(SchemaAbstract[EventsModel]):

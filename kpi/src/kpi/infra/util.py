@@ -1,6 +1,5 @@
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
-from core.utils.pandas_datetime import index_to_numpy_ns, series_to_numpy_ns
 
 from core import models
 
