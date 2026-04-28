@@ -11,24 +11,24 @@ import {
 import {
   Button,
   Checkbox,
-  ColorSwatch,
   ComboboxItem,
-  ComboboxLikeRenderOptionInput,
   Group,
   Modal,
   MultiSelect,
   // If you allow changing notify_offsets
   Select,
   Stack,
-  Text,
   TextInput,
   Textarea,
 } from '@mantine/core'
 import { DateInput, DateTimePicker } from '@mantine/dates'
 import { UseFormReturnType, useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconUsers } from '@tabler/icons-react'
 import { useEffect, useMemo } from 'react'
+import {
+  renderAssigneeOption,
+  renderCategoryOption,
+} from './CalendarRenderers'
 
 // Note: Recurrence (rrule) related imports and logic will be mostly removed or disabled
 
@@ -94,18 +94,6 @@ interface FormValues {
   assignees_mixed: string[]
 }
 
-const renderCategoryOption = (
-  input: ComboboxLikeRenderOptionInput<ComboboxItem>,
-) => {
-  const option = input.option as ComboboxItem & { color_code: string }
-  return (
-    <Group>
-      <ColorSwatch color={option.color_code || 'transparent'} size={14} />
-      <Text>{option.label}</Text>
-    </Group>
-  )
-}
-
 export const DetachAndEditOccurrenceModal = ({
   opened,
   onClose,
@@ -143,24 +131,6 @@ export const DetachAndEditOccurrenceModal = ({
     }))
     return [...teamOpts, ...userOpts]
   }, [companyUsers, teams])
-
-  const renderAssigneeOption = (
-    input: ComboboxLikeRenderOptionInput<ComboboxItem>,
-  ) => {
-    const option = input.option as ComboboxItem & { kind?: 'user' | 'team' }
-    const isTeam = option.kind === 'team'
-    return (
-      <Group gap="xs" wrap="nowrap">
-        {isTeam && <IconUsers size={14} />}
-        <Text
-          size="sm"
-          style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
-          {option.label}
-        </Text>
-      </Group>
-    )
-  }
 
   const categoryOptionsForSelect = useMemo(() => {
     if (

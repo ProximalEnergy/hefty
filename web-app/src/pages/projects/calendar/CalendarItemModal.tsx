@@ -12,9 +12,7 @@ import { useUser } from '@clerk/react'
 import {
   Button,
   Checkbox,
-  ColorSwatch,
   ComboboxItem,
-  ComboboxLikeRenderOptionInput,
   Group,
   Modal,
   MultiSelect,
@@ -30,10 +28,13 @@ import {
 import { DateInput } from '@mantine/dates'
 import { UseFormReturnType, useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconUsers } from '@tabler/icons-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { ByWeekday, Frequency, Options, RRule, rrulestr } from 'rrule'
+import {
+  renderAssigneeOption,
+  renderCategoryOption,
+} from './CalendarRenderers'
 
 // Extended type to include optional category property that may be added by calendar libraries
 type CalendarItem = CalendarEvent & {
@@ -285,35 +286,6 @@ const generateRRule = (values: FormValues): string | undefined => {
   }
 }
 
-// Custom renderer for category options
-const renderCategoryOption = (
-  input: ComboboxLikeRenderOptionInput<ComboboxItem>,
-) => {
-  const option = input.option as {
-    value: string
-    label: string
-    color_code: string
-  }
-  if (!option.color_code) {
-    return null
-  }
-  return (
-    <Group gap="xs" wrap="nowrap">
-      <ColorSwatch
-        color={option.color_code || '#868e96'}
-        size={10}
-        radius="xl"
-      />
-      <Text
-        size="sm"
-        style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}
-      >
-        {option.label}
-      </Text>
-    </Group>
-  )
-}
-
 export const CalendarItemModal = ({
   opened,
   onClose,
@@ -389,24 +361,6 @@ export const CalendarItemModal = ({
     }))
     return [...teamOpts, ...userOpts]
   }, [companyUsers, teams])
-
-  const renderAssigneeOption = (
-    input: ComboboxLikeRenderOptionInput<ComboboxItem>,
-  ) => {
-    const option = input.option as ComboboxItem & { kind?: 'user' | 'team' }
-    const isTeam = option.kind === 'team'
-    return (
-      <Group gap="xs" wrap="nowrap">
-        {isTeam && <IconUsers size={14} />}
-        <Text
-          size="sm"
-          style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
-          {option.label}
-        </Text>
-      </Group>
-    )
-  }
 
   const form: UseFormReturnType<FormValues> = useForm<FormValues>({
     initialValues: {
