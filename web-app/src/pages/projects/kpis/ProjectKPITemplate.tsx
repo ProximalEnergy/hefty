@@ -617,7 +617,7 @@ const DevicePlotCard = ({
 
   const device_values = data?.data.device_data_obj?.device_values
 
-  const parseData = (data: OperationalKPIData, yAxisTitle: string) => {
+  const parseDeviceKPIData = (data: OperationalKPIData, yAxisTitle: string) => {
     switch (plotType) {
       case 'bar': {
         const x = Object.keys(device_values || {}).map(
@@ -787,7 +787,7 @@ const DevicePlotCard = ({
   }
 
   const { yAxisTitle } = YAxisConfig(kpiType)
-  const parsedData = data.data && parseData(data, yAxisTitle)
+  const parsedData = data.data && parseDeviceKPIData(data, yAxisTitle)
 
   return (
     <SelectableChartCard

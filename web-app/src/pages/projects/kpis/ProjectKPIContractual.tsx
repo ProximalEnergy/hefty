@@ -287,7 +287,7 @@ const ProjectKPIContractual = () => {
     ]
   }, [allKPIData, getFilteredYearData])
 
-  const parseData = (
+  const parseContractualKPIData = (
     data: OperationalKPIData[] | undefined,
     kpiTypeData: KPITypeWithContracts | undefined,
   ) => {
@@ -707,7 +707,7 @@ const ProjectKPIContractual = () => {
             <BarAndHeatmapCard
               parsedData={
                 filteredData
-                  ? parseData(filteredData, filteredKpiTypeData)
+                  ? parseContractualKPIData(filteredData, filteredKpiTypeData)
                   : undefined
               }
               isLoading={kpiDataLoading}
