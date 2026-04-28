@@ -220,7 +220,7 @@ const ApplicationSettings = () => {
         </Tabs.Panel>
 
         <Tabs.Panel value="project-labels" pt="md">
-          <ProjectLabels projects={projects.data || []} />
+          <ProjectLabelManager projects={projects.data || []} />
         </Tabs.Panel>
       </Tabs>
     </Stack>
@@ -1629,7 +1629,7 @@ function ColorScalePicker({
   )
 }
 
-function ProjectLabels({ projects }: { projects: Project[] }) {
+function ProjectLabelManager({ projects }: { projects: Project[] }) {
   const [createOpened, createModal] = useDisclosure(false)
   const [editOpened, editModal] = useDisclosure(false)
   const [deleteOpened, deleteModal] = useDisclosure(false)

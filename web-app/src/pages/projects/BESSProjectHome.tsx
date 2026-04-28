@@ -7,7 +7,6 @@ import {
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useGetUserProjectLabelsByProjectId } from '@/api/v1/operational/project/project_user_project_labels'
 import { Project, useSelectProject } from '@/api/v1/operational/projects'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import { CurrentTime } from '@/components/CurrentTime'
@@ -21,6 +20,7 @@ import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { MarketStatsGrid } from '@/components/stats/MarketStatsGrid'
+import { ProjectLabels } from '@/pages/projects/components/ProjectLabels'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import {
   getInterval,
@@ -70,7 +70,7 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import type { Data } from 'plotly.js'
+import type { Data, Layout } from 'plotly.js'
 import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -339,6 +339,77 @@ const PowerPlotBESS = () => {
     return aggregated
   }, [projectDetails, timeSeriesData])
 
+  const socTraceColor = theme.colors.blue[7]
+  const availablePowerTraceColor = theme.colors.orange[7]
+  const defaultTraceColor = theme.colors.green[7]
+
+  const powerPlotData = useMemo(
+    () =>
+      aggregatedData?.map((d) => {
+        const isAvailableCharge =
+          d.sensor_type_name === 'bess_pcs_available_charge_power'
+        const isAvailableDischarge =
+          d.sensor_type_name === 'bess_pcs_available_discharge_power'
+        const isSoc = d.sensor_type_name === 'project_soc_percent'
+        const isAvailablePower =
+          isAvailableCharge || isAvailableDischarge
+        const traceFill = isSoc || isAvailablePower ? undefined : 'tozeroy'
+        const traceColor = isSoc
+          ? socTraceColor
+          : isAvailablePower
+            ? availablePowerTraceColor
+            : defaultTraceColor
+        const lineDash = isAvailablePower ? 'dot' : undefined
+        const yAxis = isSoc ? 'y2' : 'y'
+
+        return {
+          x: d.x,
+          y: d.y,
+          name: d.name,
+          fill: traceFill,
+          line: {
+            color: traceColor,
+            dash: lineDash,
+          },
+          yaxis: yAxis,
+        }
+      }),
+    [
+      aggregatedData,
+      availablePowerTraceColor,
+      defaultTraceColor,
+      socTraceColor,
+    ],
+  )
+
+  const powerPlotLayout = useMemo<Partial<Layout> | undefined>(() => {
+    if (!projectDetails) return undefined
+
+    const poiRangeMax = projectDetails.poi * 1.05
+    const poiRangeMin = -poiRangeMax
+
+    return {
+      yaxis: {
+        title: { text: 'Power (MW)' },
+        fixedrange: true,
+        range: [poiRangeMin, poiRangeMax],
+      },
+      yaxis2: {
+        title: { text: 'SOC' },
+        fixedrange: true,
+        range: [0, 1.05],
+        overlaying: 'y',
+        side: 'right',
+        tickformat: '.0%',
+      },
+      xaxis: {
+        type: 'date',
+        fixedrange: false,
+        tickangle: 0,
+      },
+    }
+  }, [projectDetails])
+
   return (
     <CustomCard
       title="Meter Power"
@@ -394,56 +465,9 @@ const PowerPlotBESS = () => {
       }
     >
       <PlotlyPlot
-        data={aggregatedData?.map((d) => {
-          const isAvailableCharge =
-            d.sensor_type_name === 'bess_pcs_available_charge_power'
-          const isAvailableDischarge =
-            d.sensor_type_name === 'bess_pcs_available_discharge_power'
-          const isSoc = d.sensor_type_name === 'project_soc_percent'
-
-          return {
-            x: d.x,
-            y: d.y,
-            name: d.name,
-            fill:
-              isSoc || isAvailableCharge || isAvailableDischarge
-                ? null
-                : 'tozeroy',
-            line: {
-              color: isSoc
-                ? theme.colors.blue[7]
-                : isAvailableCharge || isAvailableDischarge
-                  ? theme.colors.orange[7]
-                  : theme.colors.green[7],
-              dash:
-                isAvailableCharge || isAvailableDischarge ? 'dot' : undefined,
-            },
-            yaxis: isSoc ? 'y2' : 'y',
-          }
-        })}
+        data={powerPlotData}
         xAxisTimeZone={projectTimeZone}
-        layout={
-          project.data && {
-            yaxis: {
-              title: { text: 'Power (MW)' },
-              fixedrange: true,
-              range: [project.data.poi * 1.05 * -1, project.data.poi * 1.05],
-            },
-            yaxis2: {
-              title: { text: 'SOC' },
-              fixedrange: true,
-              range: [0, 1.05],
-              overlaying: 'y',
-              side: 'right',
-              tickformat: '.0%',
-            },
-            xaxis: {
-              type: 'date',
-              fixedrange: false,
-              tickangle: 0,
-            },
-          }
-        }
+        layout={powerPlotLayout}
         onRelayout={handleRelayout}
         isLoading={data.isLoading}
         error={data.error}
@@ -2234,26 +2258,6 @@ const BESSProjectHome = () => {
         projectData={project.data}
       />
     </Stack>
-  )
-}
-
-function ProjectLabels({ projectId }: { projectId: string }) {
-  const projectLabels = useGetUserProjectLabelsByProjectId({
-    pathParams: { project_id: projectId },
-  })
-
-  if (!projectLabels.data?.length) {
-    return null
-  }
-
-  return (
-    <Group>
-      {projectLabels.data.map((label) => (
-        <Badge key={label.name} color={label.color} variant="light">
-          {label.name}
-        </Badge>
-      ))}
-    </Group>
   )
 }
 

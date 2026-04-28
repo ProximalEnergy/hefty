@@ -3,7 +3,6 @@ import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import { useGetProjectContractualKPIs } from '@/api/v1/operational/kpi_data'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
-import { useGetUserProjectLabelsByProjectId } from '@/api/v1/operational/project/project_user_project_labels'
 import { Project, useSelectProject } from '@/api/v1/operational/projects'
 import { CurrentTime } from '@/components/CurrentTime'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
@@ -16,13 +15,13 @@ import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
 import { TopEventsTableCard } from '@/pages/projects/TopEventsTableCard'
+import { ProjectLabels } from '@/pages/projects/components/ProjectLabels'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { projectDescription } from '@/utils/projectDescription'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
-  Badge,
   Box,
   Button,
   Card,
@@ -882,26 +881,6 @@ const ProjectHome = () => {
         projectData={project.data}
       />
     </Stack>
-  )
-}
-
-function ProjectLabels({ projectId }: { projectId: string }) {
-  const projectLabels = useGetUserProjectLabelsByProjectId({
-    pathParams: { project_id: projectId },
-  })
-
-  if (!projectLabels.data?.length) {
-    return null
-  }
-
-  return (
-    <Group>
-      {projectLabels.data.map((label) => (
-        <Badge key={label.name} color={label.color} variant="light">
-          {label.name}
-        </Badge>
-      ))}
-    </Group>
   )
 }
 
