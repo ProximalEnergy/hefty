@@ -8,17 +8,14 @@ import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useGetUserProjectLabelsByProjectId } from '@/api/v1/operational/project/project_user_project_labels'
-import {
-  Project,
-  useGetProjects,
-  useSelectProject,
-} from '@/api/v1/operational/projects'
+import { Project, useSelectProject } from '@/api/v1/operational/projects'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import { CurrentTime } from '@/components/CurrentTime'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
 import KPICard, { EmptyKPICard } from '@/components/KPICard'
+import { KioskMode } from '@/components/KioskMode'
 import { PageLoader } from '@/components/Loading'
 import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
@@ -49,7 +46,6 @@ import {
   SegmentedControl,
   Skeleton,
   Stack,
-  Switch,
   Table,
   Text,
   Title,
@@ -68,8 +64,6 @@ import {
   IconInfoCircle,
   IconLock,
   IconMouse,
-  IconRepeat,
-  IconRepeatOff,
   IconSatellite,
   IconZoomIn,
 } from '@tabler/icons-react'
@@ -592,75 +586,6 @@ const KPICards = () => {
         ))}
       </Group>
     </Group>
-  )
-}
-
-function KioskMode({
-  enabled,
-  setEnabled,
-}: {
-  enabled: boolean
-  setEnabled: (enabled: boolean) => void
-}) {
-  const INTERVAL = 60
-
-  const { projectId } = useParams()
-  const navigate = useNavigate()
-
-  // Query data for all projects
-  const projects = useGetProjects({
-    queryParams: {
-      deep: true,
-    },
-  })
-
-  // Get an array of all project IDs
-  const projectIds = useMemo(
-    () => projects.data?.map((project) => project.project_id),
-    [projects.data],
-  )
-
-  // Effect to handle kiosk mode
-  useEffect(() => {
-    // If kiosk mode is not enabled, do nothing
-    if (!enabled) return
-
-    // If there are no project IDs, do nothing
-    if (!projectIds) return
-
-    // Set an interval to rotate to the next project
-    const interval = setInterval(() => {
-      // Find the current project index in the array
-      const currentIndex = projectIds.findIndex((id) => id === projectId)
-
-      // Get the next project ID (wrap around to the beginning if at the end)
-      const nextIndex =
-        currentIndex === -1 || currentIndex === projectIds.length - 1
-          ? 0
-          : currentIndex + 1
-
-      // Navigate to the next project
-      const nextProjectId = projectIds[nextIndex]
-      navigate(`/projects/${nextProjectId}`)
-    }, INTERVAL * 1000)
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval)
-  }, [navigate, projectIds, enabled, projectId])
-
-  return (
-    <Tooltip
-      label={`Kiosk Mode - When enabled, the page will automatically rotate to the next project every ${INTERVAL} seconds.`}
-      refProp="rootRef"
-    >
-      <Switch
-        size="md"
-        onLabel={<IconRepeat size={16} />}
-        offLabel={<IconRepeatOff size={16} />}
-        checked={enabled}
-        onChange={(event) => setEnabled(event.currentTarget.checked)}
-      />
-    </Tooltip>
   )
 }
 
