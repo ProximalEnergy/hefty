@@ -1033,7 +1033,7 @@ export function AdaptiveGisMap() {
                     />
                   )}
                 </Source>
-                {hoverInfo.feature && <CustomHoverCard hoverInfo={hoverInfo} />}
+                {hoverInfo.feature && <AdaptiveGisHoverCard hoverInfo={hoverInfo} />}
               </MapboxMap>
               <Box
                 style={{
@@ -1163,7 +1163,7 @@ export function AdaptiveGisMap() {
   )
 }
 
-function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
+function AdaptiveGisHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
   if (!hoverInfo.feature?.properties) {
     return null
   }

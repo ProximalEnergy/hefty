@@ -1316,7 +1316,7 @@ function AdaptiveGisBESS() {
                     />
                   )}
                 </Source>
-                {hoverInfo.feature && <CustomHoverCard hoverInfo={hoverInfo} />}
+                {hoverInfo.feature && <BessHoverCard hoverInfo={hoverInfo} />}
               </MapboxMap>
 
               {/* PCS Color Scale Legend - Left Side */}
@@ -1446,7 +1446,7 @@ function AdaptiveGisBESS() {
   )
 }
 
-function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
+function BessHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
   if (
     hoverInfo.feature?.properties === null ||
     hoverInfo.feature?.properties === undefined

@@ -150,7 +150,7 @@ function exportToCsv(
   link.click()
 }
 
-function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
+function DegradationHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
   if (hoverInfo.feature === null) {
     return null
   }
@@ -271,7 +271,7 @@ const GisTab: React.FC<{
             <Layer {...gisUtils.layerLabel({ textField: 'name' })} />
           )}
         </Source>
-        {hoverInfo.feature && <CustomHoverCard hoverInfo={hoverInfo} />}
+        {hoverInfo.feature && <DegradationHoverCard hoverInfo={hoverInfo} />}
       </ReactMap>
       <Box
         style={{
