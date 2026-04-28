@@ -16,6 +16,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 
+import { makePreviousDayCellClassNames } from '../../../utils/calendarUtils'
 import { CalendarItemModal } from './CalendarItemModal'
 import { DetachAndEditOccurrenceModal } from './DetachAndEditOccurrenceModal'
 import classes from './ProjectCalendar.module.css'
@@ -315,7 +316,9 @@ export const ProjectCalendar = () => {
             dayMaxEvents={true}
             weekends={true}
             events={currentCalendarEvents}
-            dayCellClassNames={getDayCellClassNames}
+            dayCellClassNames={makePreviousDayCellClassNames(
+              classes.previousDays,
+            )}
             height="100%"
             select={handleSelect}
             eventClick={handleProjectCalendarItemClick}
@@ -368,14 +371,4 @@ export const ProjectCalendar = () => {
       )}
     </Stack>
   )
-}
-
-const getDayCellClassNames = (arg: { date: Date }) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  if (arg.date < today) {
-    return [classes.previousDays]
-  }
-  return []
 }

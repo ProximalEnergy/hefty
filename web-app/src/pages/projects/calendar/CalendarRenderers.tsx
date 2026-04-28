@@ -35,8 +35,7 @@ export const renderCategoryOption = (
 export const renderAssigneeOption = (
   input: ComboboxLikeRenderOptionInput<ComboboxItem>,
 ) => {
-  const option = input.option as ComboboxItem & { kind?: 'user' | 'team' }
-  const isTeam = option.kind === 'team'
+  const isTeam = input.option.value.startsWith('team:')
   return (
     <Group gap="xs" wrap="nowrap">
       {isTeam && <IconUsers size={14} />}
@@ -44,7 +43,7 @@ export const renderAssigneeOption = (
         size="sm"
         style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}
       >
-        {option.label}
+        {input.option.label}
       </Text>
     </Group>
   )

@@ -14,7 +14,6 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import FullCalendar from '@fullcalendar/react'
 import rrulePlugin from '@fullcalendar/rrule'
-import type { ComboboxItem, ComboboxLikeRenderOptionInput } from '@mantine/core'
 import {
   Box,
   Button,
@@ -27,11 +26,12 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconUsers } from '@tabler/icons-react'
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 
+import { makePreviousDayCellClassNames } from '../../utils/calendarUtils'
 import { CalendarItemModal } from '../projects/calendar/CalendarItemModal'
+import { renderAssigneeOption } from '../projects/calendar/CalendarRenderers'
 import { DetachAndEditOccurrenceModal } from '../projects/calendar/DetachAndEditOccurrenceModal'
 import classes from '../projects/calendar/ProjectCalendar.module.css'
 import { ViewCalendarItemModal } from '../projects/calendar/ViewCalendarItemModal'
@@ -178,24 +178,6 @@ export const PortfolioCalendar = () => {
       ? [currentUserOpt, ...teamOpts, ...otherUserOpts]
       : [...teamOpts, ...userOpts]
   }, [companyUsers, teams, user?.id])
-
-  const renderAssigneeOption = (
-    input: ComboboxLikeRenderOptionInput<ComboboxItem>,
-  ) => {
-    const option = input.option as ComboboxItem & { kind?: 'user' | 'team' }
-    const isTeam = option.value.startsWith('team:')
-    return (
-      <Group gap="xs" wrap="nowrap">
-        {isTeam && <IconUsers size={14} />}
-        <Text
-          size="sm"
-          style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
-          {option.label}
-        </Text>
-      </Group>
-    )
-  }
 
   const categoryOptions = useMemo(() => {
     return (categories || []).map((cat) => ({
@@ -528,13 +510,17 @@ export const PortfolioCalendar = () => {
                   list: {
                     duration: { months: 3 },
                     buttonText: 'List',
-                    dayCellClassNames: getListDayClassNames,
+                    dayCellClassNames: makePreviousDayCellClassNames(
+                      classes.previousDays,
+                    ),
                   },
                 }}
                 dayMaxEvents={true}
                 weekends={true}
                 events={currentCalendarEvents}
-                dayCellClassNames={getDayCellClassNames}
+                dayCellClassNames={makePreviousDayCellClassNames(
+                  classes.previousDays,
+                )}
                 height="100%"
                 eventClick={handlePortfolioCalendarItemClick}
                 firstDay={1}
@@ -584,24 +570,4 @@ export const PortfolioCalendar = () => {
       )}
     </Stack>
   )
-}
-
-const getDayCellClassNames = (arg: { date: Date }) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  if (arg.date < today) {
-    return [classes.previousDays]
-  }
-  return []
-}
-
-const getListDayClassNames = (arg: { date: Date }) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  if (arg.date < today) {
-    return [classes.previousDays]
-  }
-  return []
 }
