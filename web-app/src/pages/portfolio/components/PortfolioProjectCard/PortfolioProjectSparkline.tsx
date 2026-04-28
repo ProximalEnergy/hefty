@@ -6,7 +6,7 @@ import { Data } from 'plotly.js'
 
 import { usePortfolioPlotData } from './usePortfolioPlotData'
 
-export function Sparkline({
+export function PortfolioProjectSparkline({
   project,
   portfolioHomeProject,
   time,

@@ -1,18 +1,18 @@
 import { Box, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 
-interface SparklineProps {
+interface StatSparklineProps {
   data: number[]
   width?: number
   height?: number
   color?: string
 }
 
-export function Sparkline({
+export function StatSparkline({
   data,
   width = 60,
   height = 20,
   color,
-}: SparklineProps) {
+}: StatSparklineProps) {
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme()
   const sparklineColor =

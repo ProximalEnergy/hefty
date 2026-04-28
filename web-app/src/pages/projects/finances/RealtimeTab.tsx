@@ -6,7 +6,7 @@ import {
   useGetPTPData,
 } from '@/api/v1/protected/web-application/projects/financial/ptp_data'
 import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/projects/real_time'
-import { Sparkline } from '@/components/stats/Sparkline'
+import { StatSparkline } from '@/components/stats/StatSparkline'
 import { StatsGrid } from '@/components/stats/StatsGrid'
 import { Statistic } from '@/hooks/types'
 import { QUERY_TIME } from '@/utils/queryTiming'
@@ -799,7 +799,7 @@ export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
                   </Text>
                 )}
                 {sparklineData.length > 0 && (
-                  <Sparkline data={sparklineData} width={60} height={20} />
+                  <StatSparkline data={sparklineData} width={60} height={20} />
                 )}
               </Group>
               {dispatchState && (

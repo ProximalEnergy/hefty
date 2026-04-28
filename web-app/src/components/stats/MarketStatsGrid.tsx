@@ -1,6 +1,6 @@
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetActiveOutageTickets } from '@/api/v1/protected/web-application/projects/financial/ptp_data'
-import { Sparkline } from '@/components/stats/Sparkline'
+import { StatSparkline } from '@/components/stats/StatSparkline'
 import { StatsGrid } from '@/components/stats/StatsGrid'
 import { useBatterySOC } from '@/components/stats/hooks/useBatterySOC'
 import { useMarketPrices } from '@/components/stats/hooks/useMarketPrices'
@@ -190,7 +190,7 @@ export function MarketStatsGrid({ projectId }: MarketStatsGridProps) {
                 </Text>
               )}
               {sparklineData.length > 0 && (
-                <Sparkline data={sparklineData} width={60} height={20} />
+                <StatSparkline data={sparklineData} width={60} height={20} />
               )}
             </Group>
             {dispatchState && (

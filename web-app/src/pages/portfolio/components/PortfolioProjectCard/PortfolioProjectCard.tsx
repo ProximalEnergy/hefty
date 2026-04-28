@@ -6,7 +6,7 @@ import { Link } from 'react-router'
 
 import styles from '../../PortfolioHome.module.css'
 import { PortfolioProjectCardHeader } from './Header.tsx'
-import { Sparkline } from './Sparkline.tsx'
+import { PortfolioProjectSparkline } from './PortfolioProjectSparkline.tsx'
 import { Stats } from './Stats.tsx'
 
 export function PortfolioProjectCard({
@@ -46,7 +46,7 @@ export function PortfolioProjectCard({
         />
         <Group gap="sm" h={210} mt="md">
           <Box h="100%" flex={1}>
-            <Sparkline
+            <PortfolioProjectSparkline
               project={project}
               portfolioHomeProject={portfolioHomeProject}
               time={time}
