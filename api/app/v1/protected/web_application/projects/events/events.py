@@ -74,7 +74,7 @@ def _ensure_tz_aware(*, ts: pd.Series, tz: str) -> pd.Series:
     return s.dt.tz_convert(tz)
 
 
-def _clip_to_window(  # nosemgrep: python-enforce-keyword-only-args
+def _clip_to_window(  # no-star-syntax
     s: pd.Series,
     start: pd.Timestamp,
     end: pd.Timestamp,

@@ -1033,7 +1033,9 @@ export function AdaptiveGisMap() {
                     />
                   )}
                 </Source>
-                {hoverInfo.feature && <AdaptiveGisHoverCard hoverInfo={hoverInfo} />}
+                {hoverInfo.feature && (
+                  <AdaptiveGisHoverCard hoverInfo={hoverInfo} />
+                )}
               </MapboxMap>
               <Box
                 style={{

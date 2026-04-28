@@ -14,7 +14,7 @@ def convert_ond_data(
     """
     result = {}
 
-    def _to_float_if_set(value: str | None) -> float | None:  # nosemgrep
+    def _to_float_if_set(value: str | None) -> float | None:  # no-star-syntax
         if value is None:
             return None
         stripped = value.strip()

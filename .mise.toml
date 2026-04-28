@@ -207,6 +207,11 @@ description = "Run all semgrep quality checks on the monorepo"
 dir = "."
 run = "./_scripts/semgrep_check.sh"
 
+[tasks."root:ast_grep"]
+description = "Run ast-grep quality checks on the monorepo"
+dir = "."
+run = "./_scripts/ast_grep_check.sh"
+
 [tasks."root:no_package_json"]
 description = "Fail when JS manifests or lockfiles exist at repo root"
 dir = "."
@@ -307,7 +312,7 @@ run = "uv run --dev ruff format core/"
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml core/src"
+run = "./_scripts/ast_grep_check.sh core/src"
 
 [tasks."core:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in core"
@@ -554,7 +559,7 @@ run = "uv run --dev ruff format microservices/"
 [tasks."micro:star_syntax"]
 description = "Check for star syntax violations in microservices"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml microservices"
+run = "./_scripts/ast_grep_check.sh microservices"
 
 [tasks."micro:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in micro"
@@ -669,7 +674,7 @@ run = "uv run pytest"
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml api/app"
+run = "./_scripts/ast_grep_check.sh api/app"
 
 [tasks."api:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in api"

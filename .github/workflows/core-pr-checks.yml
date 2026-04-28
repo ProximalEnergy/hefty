@@ -6,6 +6,8 @@ on:
     paths:
       - "core/**"
       - "pyproject.toml"
+      - "_scripts/ast-grep/**"
+      - "_scripts/ast_grep_check.sh"
       - "_scripts/auto_bump_core_version.py"
       - "_scripts/prepare_core_publish_artifact.py"
       - "_scripts/pyproject_dependencies_changed.py"
@@ -73,8 +75,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-      - name: Run Semgrep star-syntax check
-        run: uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml core/src
+      - name: Run ast-grep star-syntax check
+        run: ./_scripts/ast_grep_check.sh core/src
       - name: Run Semgrep sqlalchemy query/filter check
         run: >
           uvx semgrep@1.160 --error --config

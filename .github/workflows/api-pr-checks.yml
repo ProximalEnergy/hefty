@@ -8,6 +8,8 @@ on:
       - "core/**"
       - "pyproject.toml"
       - "uv.lock"
+      - "_scripts/ast-grep/**"
+      - "_scripts/ast_grep_check.sh"
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/api-pr-checks.yml"
       - ".github/actions/install-hurl/**"
@@ -68,8 +70,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-      - name: Run Semgrep star-syntax check
-        run: uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml api/app
+      - name: Run ast-grep star-syntax check
+        run: ./_scripts/ast_grep_check.sh api/app
       - name: Run Semgrep sqlalchemy query/filter check
         run: >
           uvx semgrep@1.160 --error --config

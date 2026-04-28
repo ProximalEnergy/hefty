@@ -71,7 +71,11 @@ function ViewDataButton({
 
   return (
     <Stack>
-      <Button rightSection={<IconArrowRight />} onClick={handleViewDataClick} disabled={filteredTags.length === 0}>
+      <Button
+        rightSection={<IconArrowRight />}
+        onClick={handleViewDataClick}
+        disabled={filteredTags.length === 0}
+      >
         View Data
       </Button>
     </Stack>

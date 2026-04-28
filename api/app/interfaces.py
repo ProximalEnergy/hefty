@@ -273,11 +273,11 @@ class Point(BaseModel):
     type: str
     coordinates: conlist(float, min_length=2, max_length=2)  # type: ignore # pyright: ignore
 
-    @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
+    @model_validator(mode="before")  # no-star-syntax
     @staticmethod
     def convert_point(
         point: Any,
-    ) -> dict | None:  # nosemgrep: python-enforce-keyword-only-args
+    ) -> dict | None:  # no-star-syntax
         """Handle convert point.
 
         Args:
@@ -293,11 +293,11 @@ class Polygon(BaseModel):
     # TODO: Generate more specific validation for POLYGON or MULTIPOLYGON
     coordinates: list[Any]
 
-    @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
+    @model_validator(mode="before")  # no-star-syntax
     @staticmethod
     def convert_polygon(
         polygon: Any,
-    ) -> dict | None:  # nosemgrep: python-enforce-keyword-only-args
+    ) -> dict | None:  # no-star-syntax
         """Handle convert polygon.
 
         Args:
@@ -312,9 +312,9 @@ class MultiPolygon(BaseModel):
     type: str
     coordinates: list[Any]
 
-    @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
+    @model_validator(mode="before")  # no-star-syntax
     @staticmethod
-    def convert_multipolygon(  # nosemgrep: python-enforce-keyword-only-args
+    def convert_multipolygon(  # no-star-syntax
         multipolygon: Any,
     ) -> dict | None:
         """Handle convert multipolygon.

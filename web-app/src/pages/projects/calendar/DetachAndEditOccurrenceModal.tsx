@@ -25,10 +25,8 @@ import { DateInput, DateTimePicker } from '@mantine/dates'
 import { UseFormReturnType, useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { useEffect, useMemo } from 'react'
-import {
-  renderAssigneeOption,
-  renderCategoryOption,
-} from './CalendarRenderers'
+
+import { renderAssigneeOption, renderCategoryOption } from './CalendarRenderers'
 
 // Note: Recurrence (rrule) related imports and logic will be mostly removed or disabled
 

@@ -309,7 +309,7 @@ async def _run_data_connection_outage_notifications() -> dict:
 def lambda_handler(
     event,  # noqa: ARG001
     context,  # noqa: ARG001
-):  # nosemgrep: python-enforce-keyword-only-args
+):  # no-star-syntax
     """AWS Lambda entrypoint for data connection outage notifications.
 
     Args:

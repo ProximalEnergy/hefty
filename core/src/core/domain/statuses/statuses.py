@@ -49,7 +49,7 @@ def _empty_facts_df() -> pd.DataFrame:
     return pd.DataFrame({c: pd.Series(dtype="object") for c in FACT_COLUMNS})
 
 
-def parse_maybe_int(val):  # nosemgrep
+def parse_maybe_int(val):  # no-star-syntax
     """
     Convert:
       - ints -> ints

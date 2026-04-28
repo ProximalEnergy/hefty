@@ -119,7 +119,7 @@ async def _run_calendar_notifications():
 def lambda_handler(
     event,  # noqa: ARG001
     context,  # noqa: ARG001
-):  # nosemgrep: python-enforce-keyword-only-args
+):  # no-star-syntax
     """AWS Lambda handler for calendar notification checks.
 
     Args:

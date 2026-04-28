@@ -25,7 +25,7 @@ class TokenManager:
     The provider-specific logic is injected via `fetch_token`.
     """
 
-    def __init__(  # nosemgrep: python-enforce-keyword-only-args
+    def __init__(  # no-star-syntax
         self,
         fetch_token: Callable[[], Awaitable[TokenResponse]],
         refresh_margin_s: int = 120,

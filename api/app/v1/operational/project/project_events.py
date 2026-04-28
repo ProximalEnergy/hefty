@@ -49,7 +49,7 @@ from core import models
 router = APIRouter(prefix="/events", tags=["project_events"])
 
 
-def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-only-args
+def _none_if_nan(x: Any) -> float | None:  # no-star-syntax
     """Convert a value to float, returning None if the value is NaN or invalid.
 
     Args:
@@ -66,7 +66,7 @@ def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-o
 # device types dict -> DataFrame
 # device_type_dict values may be objects; handle either dict-like
 # or object with attributes
-def _dtype_name_long(v: Any) -> str | None:
+def _dtype_name_long(*, v: Any) -> str | None:
     return v.get("name_long") if isinstance(v, dict) else getattr(v, "name_long", None)
 
 
@@ -161,7 +161,7 @@ async def get_events(
             }
 
     # Create mappings from DataFrames
-    def _fm_row_to_model(row: pd.Series) -> interfaces.FailureMode:
+    def _fm_row_to_model(*, row: pd.Series) -> interfaces.FailureMode:
         return interfaces.FailureMode(
             failure_mode_id=int(row["failure_mode_id"]),
             device_type_id=int(row["device_type_id"]),
@@ -169,7 +169,7 @@ async def get_events(
             name_long=str(row["name_long"]) if pd.notna(row["name_long"]) else "",
         )
 
-    def _rc_row_to_model(row: pd.Series) -> interfaces.RootCause:
+    def _rc_row_to_model(*, row: pd.Series) -> interfaces.RootCause:
         return interfaces.RootCause(
             root_cause_id=int(row["root_cause_id"]),
             device_type_id=int(row["device_type_id"]),
@@ -179,7 +179,7 @@ async def get_events(
 
     failure_mode_map = (
         {
-            int(row["failure_mode_id"]): _fm_row_to_model(row)
+            int(row["failure_mode_id"]): _fm_row_to_model(row=row)
             for _, row in failure_modes_df.iterrows()
         }
         if not failure_modes_df.empty
@@ -187,7 +187,7 @@ async def get_events(
     )
     root_cause_map = (
         {
-            int(row["root_cause_id"]): _rc_row_to_model(row)
+            int(row["root_cause_id"]): _rc_row_to_model(row=row)
             for _, row in root_causes_df.iterrows()
         }
         if not root_causes_df.empty
@@ -949,7 +949,7 @@ async def get_uptime(
         {
             "device_type_id": list(device_type_dict.keys()),
             "device_type_name_long": [
-                _dtype_name_long(v) for v in device_type_dict.values()
+                _dtype_name_long(v=v) for v in device_type_dict.values()
             ],
         }
     )
@@ -1740,7 +1740,7 @@ async def get_5min_event_losses_single(
     # Order results by sum of losses
     def _total_loss(
         entry: dict[str, Any],
-    ) -> float:  # nosemgrep: python-enforce-keyword-only-args
+    ) -> float:  # no-star-syntax
         total = 0.0
         for series in entry.get("data", []):
             losses = series.get("losses", {})

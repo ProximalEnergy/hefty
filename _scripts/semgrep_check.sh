@@ -25,6 +25,7 @@ done < <(
         -type f \
         \( -name '*.yaml' -o -name '*.yml' \) \
         ! -name 'sqlalchemy-return.yaml' \
+        ! -name 'star-syntax.yaml' \
         | sort
 )
 

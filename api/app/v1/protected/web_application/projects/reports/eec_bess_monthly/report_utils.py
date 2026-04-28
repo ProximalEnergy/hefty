@@ -17,7 +17,7 @@ from reportlab.platypus import Image, TableStyle
 # ---------------------------------------------------------------------------
 
 
-def format_dollar_value(  # nosemgrep: python-enforce-keyword-only-args
+def format_dollar_value(  # no-star-syntax
     value: float,
     decimals: int = 2,
 ) -> str:
@@ -33,7 +33,7 @@ def format_dollar_value(  # nosemgrep: python-enforce-keyword-only-args
     return f"${value:,.{decimals}f}"
 
 
-def format_energy_value(  # nosemgrep: python-enforce-keyword-only-args
+def format_energy_value(  # no-star-syntax
     value: float,
     decimals: int = 2,
 ) -> str:
@@ -49,7 +49,7 @@ def format_energy_value(  # nosemgrep: python-enforce-keyword-only-args
     return f"{value:,.{decimals}f} MWh"
 
 
-def format_percentage_value(  # nosemgrep: python-enforce-keyword-only-args
+def format_percentage_value(  # no-star-syntax
     value: float,
     decimals: int = 2,
 ) -> str:
@@ -65,7 +65,7 @@ def format_percentage_value(  # nosemgrep: python-enforce-keyword-only-args
     return f"{(value * 100):.{decimals}f}%"
 
 
-def format_dollar_per_kw_value(  # nosemgrep: python-enforce-keyword-only-args
+def format_dollar_per_kw_value(  # no-star-syntax
     value: float,
     decimals: int = 2,
 ) -> str:
@@ -81,7 +81,7 @@ def format_dollar_per_kw_value(  # nosemgrep: python-enforce-keyword-only-args
     return f"{value:,.{decimals}f} $/kW"
 
 
-def format_percentage_per_year(  # nosemgrep: python-enforce-keyword-only-args
+def format_percentage_per_year(  # no-star-syntax
     value: float,
     decimals: int = 2,
 ) -> str:
@@ -97,7 +97,7 @@ def format_percentage_per_year(  # nosemgrep: python-enforce-keyword-only-args
     return f"{(value * 100):.{decimals}f}%/yr"
 
 
-def format_change_text(  # nosemgrep: python-enforce-keyword-only-args
+def format_change_text(  # no-star-syntax
     value: str,
 ) -> str:
     """Format change indicator text with color.
@@ -116,7 +116,7 @@ def format_change_text(  # nosemgrep: python-enforce-keyword-only-args
         return value
 
 
-def format_change_text_reversed(  # nosemgrep: python-enforce-keyword-only-args
+def format_change_text_reversed(  # no-star-syntax
     value: str,
 ) -> str:
     """Format change indicator text with color.
@@ -193,7 +193,7 @@ def calc_delta_value(*, actual: float, expected: float) -> float:
 # ---------------------------------------------------------------------------
 
 
-def load_image_from_source(  # nosemgrep: python-enforce-keyword-only-args
+def load_image_from_source(  # no-star-syntax
     img_source: str | bytes | BytesIO,
 ) -> Image:
     """Load an Image from various source types.

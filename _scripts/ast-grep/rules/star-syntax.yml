@@ -1,0 +1,51 @@
+id: python-enforce-keyword-only-args
+message: >-
+  Function must use '*' in parameters to enforce keyword arguments.
+severity: error
+language: Python
+rule:
+  all:
+    - any:
+        - pattern: 'def $FUNC($ARGS): $$$BODY'
+        - pattern: 'def $FUNC($ARGS) -> $RET: $$$BODY'
+        - pattern: 'async def $FUNC($ARGS): $$$BODY'
+        - pattern: 'async def $FUNC($ARGS) -> $RET: $$$BODY'
+    - not:
+        follows:
+          stopBy: end
+          any:
+            - pattern: '@$OBJ.get($$$ARGS)'
+            - pattern: '@$OBJ.post($$$ARGS)'
+            - pattern: '@$OBJ.put($$$ARGS)'
+            - pattern: '@$OBJ.delete($$$ARGS)'
+            - pattern: '@$OBJ.patch($$$ARGS)'
+            - pattern: '@$OBJ.options($$$ARGS)'
+            - pattern: '@$OBJ.head($$$ARGS)'
+            - pattern: '@$OBJ.route($$$ARGS)'
+            - pattern: '@$OBJ.api_route($$$ARGS)'
+            - pattern: '@$OBJ.websocket($$$ARGS)'
+            - pattern: '@$OBJ.websocket_route($$$ARGS)'
+            - pattern: '@router'
+    - not:
+        all:
+          - pattern: 'def $FUNC(cls): $$$BODY'
+          - follows:
+              pattern: '@classmethod'
+    - not:
+        all:
+          - pattern: 'def $FUNC(cls) -> $RET: $$$BODY'
+          - follows:
+              pattern: '@classmethod'
+    - not:
+        pattern: 'def $FUNC(self): $$$BODY'
+    - not:
+        pattern: 'def $FUNC(self) -> $RET: $$$BODY'
+    - not:
+        pattern: 'def lambda_handler($EVENT, $CONTEXT): $$$BODY'
+    - not:
+        pattern: 'def lambda_handler($EVENT, $CONTEXT) -> $RET: $$$BODY'
+    - not:
+        regex: '(?s).*#\s*no-star-syntax.*'
+constraints:
+  ARGS:
+    regex: '^[^*]+$'

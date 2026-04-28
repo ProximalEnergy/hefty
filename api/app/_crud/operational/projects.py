@@ -105,7 +105,7 @@ async def _create_schema_and_tables(
             for fk, referenced_table in fks_to_update:
                 referenced_table.schema = schema
 
-        def ddl(sync_session):  # nosemgrep: python-enforce-keyword-only-args
+        def ddl(sync_session):  # no-star-syntax
             """todo
 
             Args:

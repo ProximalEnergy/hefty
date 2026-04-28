@@ -353,8 +353,7 @@ const PowerPlotBESS = () => {
         const isAvailableDischarge =
           d.sensor_type_name === 'bess_pcs_available_discharge_power'
         const isSoc = d.sensor_type_name === 'project_soc_percent'
-        const isAvailablePower =
-          isAvailableCharge || isAvailableDischarge
+        const isAvailablePower = isAvailableCharge || isAvailableDischarge
         const traceFill = isSoc || isAvailablePower ? undefined : 'tozeroy'
         const traceColor = isSoc
           ? socTraceColor

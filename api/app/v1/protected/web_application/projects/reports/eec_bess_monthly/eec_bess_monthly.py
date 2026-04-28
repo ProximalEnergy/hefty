@@ -235,7 +235,7 @@ def build_styles():
 
 # The doc argument is not used in this function, but it is required by the
 # draw_header_footer function signature.
-def draw_header_footer(c: canvas.Canvas, doc):  # noqa: ARG001 # nosemgrep: python-enforce-keyword-only-args
+def draw_header_footer(c: canvas.Canvas, doc):  # noqa: ARG001 # no-star-syntax
     """Logos flush to the top; simple footer w/ generation date & mark."""
     width, height = A4
 
@@ -885,14 +885,14 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
 
     # Formatting functions are now imported from report_utils
 
-    def _cell_float(row: str, column: str) -> float:  # nosemgrep
+    def _cell_float(row: str, column: str) -> float:  # no-star-syntax
         coerced = pd.to_numeric(
             executive_summary_df.loc[row, column],
             errors="coerce",
         )
         return float(coerced)
 
-    def _delta_str(row: str) -> str:  # nosemgrep
+    def _delta_str(row: str) -> str:  # no-star-syntax
         return str(executive_summary_df.loc[row, "Delta"])
 
     def _format_percent_cell(*, row: str, column: str) -> str:
@@ -1205,8 +1205,8 @@ def build_portfolio_kpi_table_rows(
 
     column_order = list(df.columns)
 
-    def sort_key(idx):  # nosemgrep
-        def row_key(x: str) -> tuple[int, int, str]:  # nosemgrep
+    def sort_key(idx):  # no-star-syntax
+        def row_key(x: str) -> tuple[int, int, str]:  # no-star-syntax
             if x == selected_project:
                 return (0, 0, "")
             if x == "Portfolio Mean":
@@ -3334,7 +3334,7 @@ async def build_event_data(
         capacity_loss_mwh=lambda x: x["capacity_loss_kwh"] / 1_000
     ).drop(columns="capacity_loss_kwh")
 
-    def _to_naive_timestamp(value):  # nosemgrep: python-enforce-keyword-only-args
+    def _to_naive_timestamp(value):  # no-star-syntax
         ts = pd.Timestamp(value)
         if ts.tz is not None:
             return ts.tz_localize(None)
@@ -3470,7 +3470,7 @@ async def build_event_data(
         yaxis_format=",.2f",
     )
     bess_pcs_availability_bytes = fig.to_image(format="png")
-    frac_covered = covered_fraction_by_any_event(event_df, start, end)
+    frac_covered = covered_fraction_by_any_event(events=event_df, start=start, end=end)
     lost_capacity_mwh = cap_loss_mwh_df["capacity_loss_mwh"].sum()
     event_summary_metrics = {
         "Total Unavailable Capacity": f"{lost_capacity_mwh:,.2f} MWh",
@@ -4146,10 +4146,10 @@ def covered_seconds_by_any_event(
 
 
 def covered_fraction_by_any_event(
+    *,
     events: pd.DataFrame,
     start: TimestampLike,
     end: TimestampLike,
-    *,
     time_start_col: str = "time_start",
     time_end_col: str = "time_end",
     ongoing_end: TimestampLike | None = None,

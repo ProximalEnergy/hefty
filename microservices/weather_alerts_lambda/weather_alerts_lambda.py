@@ -82,7 +82,7 @@ async def _run_weather_alerts():
 def lambda_handler(
     event,  # noqa: ARG001
     context,  # noqa: ARG001
-):  # nosemgrep: python-enforce-keyword-only-args
+):  # no-star-syntax
     """AWS Lambda handler for weather alert checks.
 
     Args:

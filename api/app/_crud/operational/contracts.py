@@ -44,7 +44,7 @@ async def create_contract(*, db: AsyncSession, contract: interfaces.ContractCrea
     return db_contract
 
 
-async def get_contracts(  # nosemgrep: python-enforce-keyword-only-args
+async def get_contracts(  # no-star-syntax
     db: AsyncSession,
 ):
     """Return all contracts.

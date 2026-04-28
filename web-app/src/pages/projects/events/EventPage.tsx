@@ -51,8 +51,8 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import DeviceEventsTimeline from './DeviceEventsTimeline'
-import { buildUpdateRootCauseHandler } from './updateRootCause'
 import EventCMMSLinks from './components/EventCMMSLinks'
+import { buildUpdateRootCauseHandler } from './updateRootCause'
 
 // Types
 interface EventTraceTag {

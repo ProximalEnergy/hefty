@@ -5,6 +5,8 @@ on:
     branches: [dev, staging, main]
     paths:
       - "microservices/**"
+      - "_scripts/ast-grep/**"
+      - "_scripts/ast_grep_check.sh"
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/microservices-pr-checks.yml"
       - ".github/actions/setup-uv-python-from-pyproject/**"
@@ -105,8 +107,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-      - name: Run Semgrep star-syntax check
-        run: uvx semgrep@1.160 --error --config _scripts/rules/star-syntax.yaml microservices
+      - name: Run ast-grep star-syntax check
+        run: ./_scripts/ast_grep_check.sh microservices
 
   mypy:
     runs-on: ubuntu-latest

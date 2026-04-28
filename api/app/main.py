@@ -58,7 +58,7 @@ else:
 class SentryClientPageURLMiddleware(BaseHTTPMiddleware):
     """Middleware to capture frontend page URL and add it to Sentry context."""
 
-    async def dispatch(  # nosemgrep: python-enforce-keyword-only-args
+    async def dispatch(  # no-star-syntax
         self, request: Request, call_next
     ):
         """Process request and add client page URL to Sentry context if present.

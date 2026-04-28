@@ -86,7 +86,9 @@ export const KPICards = () => {
     : 0
 
   const rotatedItems = items
-    ? items.slice(effectiveRotationOffset).concat(items.slice(0, effectiveRotationOffset))
+    ? items
+        .slice(effectiveRotationOffset)
+        .concat(items.slice(0, effectiveRotationOffset))
     : []
 
   // Rotate items every 4 seconds when content is greater than container and not hovered

@@ -225,7 +225,6 @@ const DemoMode = () => {
   return null
 }
 
-
 const APPLICATION_SETTINGS_TABS = [
   'teams',
   'notifications',
@@ -244,9 +243,7 @@ const isApplicationSettingsTab = (
     return false
   }
 
-  return APPLICATION_SETTINGS_TABS.includes(
-    tabValue as ApplicationSettingsTab,
-  )
+  return APPLICATION_SETTINGS_TABS.includes(tabValue as ApplicationSettingsTab)
 }
 
 const ApplicationSettings = () => {
@@ -262,9 +259,7 @@ const ApplicationSettings = () => {
     userType.data?.name_short === 'admin' ||
     userType.data?.name_short === 'superadmin'
 
-  const defaultTab: ApplicationSettingsTab = isAdmin
-    ? 'teams'
-    : 'notifications'
+  const defaultTab: ApplicationSettingsTab = isAdmin ? 'teams' : 'notifications'
   const requestedTab = searchParams.get('tab')
   const canUseRequestedTab =
     isApplicationSettingsTab(requestedTab) &&

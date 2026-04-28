@@ -20,7 +20,7 @@ delete_chars = string.punctuation + string.whitespace
 tbl = str.maketrans("", "", delete_chars)
 
 
-def strtobool(val: str) -> int:  # nosemgrep: python-enforce-keyword-only-args
+def strtobool(val: str) -> int:  # no-star-syntax
     """Convert a truthy/falsey string to 1 or 0.
 
     Args:
@@ -40,7 +40,7 @@ def validate_status_tags_and_values(
     *,
     status_tags: list[int],
     status_values: list[Any],
-):  # nosemgrep: python-enforce-keyword-only-args
+):  # no-star-syntax
     """Validate that status tags and values lists are non-empty and aligned.
 
     Args:
@@ -297,7 +297,7 @@ async def get_status_interpret(
                 *,
                 row,
                 grouped,
-            ):  # nosemgrep: python-enforce-keyword-only-args
+            ):  # no-star-syntax
                 """Decode a binary status value into a status payload.
 
                 Args:
@@ -352,7 +352,7 @@ async def get_status_interpret(
             status_boolean_df = status_boolean_pl.to_pandas()
             status_boolean_df = status_boolean_df.set_index(status_type)
 
-            def resolve_bool(row):  # nosemgrep: python-enforce-keyword-only-args
+            def resolve_bool(row):  # no-star-syntax
                 """Resolve a boolean status into status text and failure mode.
 
                 Args:
@@ -384,7 +384,7 @@ async def get_status_interpret(
             status_string_df = status_string_pl.to_pandas()
             status_string_df = status_string_df.set_index("string_trigger")
 
-            def resolve_string(row):  # nosemgrep: python-enforce-keyword-only-args
+            def resolve_string(row):  # no-star-syntax
                 """Resolve a string status into status text and failure mode.
 
                 Args:
@@ -921,7 +921,7 @@ def _interpret_boolean_statuses(
 
     # Parse boolean input from the coalesced "value" text column
     # Accepts: True/False, "true"/"false", "1"/"0", 1/0
-    def _parse_bool(  # nosemgrep: python-enforce-keyword-only-args
+    def _parse_bool(  # no-star-syntax
         x: Any,
     ) -> bool | NAType:
         if pd.isna(x):

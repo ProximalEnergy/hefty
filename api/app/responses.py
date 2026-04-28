@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 class NaNSafeJSONResponse(JSONResponse):
     """JSONResponse that serializes NaN/Inf floats as null via pydantic-core."""
 
-    def render(  # nosemgrep: python-enforce-keyword-only-args
+    def render(  # no-star-syntax
         self,
         content: Any,  # nosemgrep: python-missing-args-in-docstring
     ) -> bytes:
