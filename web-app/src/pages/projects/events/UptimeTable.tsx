@@ -58,7 +58,7 @@ function ViewDataButton({
     .filter((tag) => tag.sensor_type_id != SensorTypeEnum.GHOST_UNKNOWN)
   const tagString = filteredTags.map((tag) => tag.tag_id).join('%2C')
 
-  const onClick = () => {
+  const handleViewDataClick = () => {
     if (filteredTags.length > 0) {
       const link = `/projects/${projectId}/data-browsing?start=${
         startQuery.split('T')[0]
@@ -71,7 +71,7 @@ function ViewDataButton({
 
   return (
     <Stack>
-      <Button rightSection={<IconArrowRight />} onClick={onClick}>
+      <Button rightSection={<IconArrowRight />} onClick={handleViewDataClick} disabled={filteredTags.length === 0}>
         View Data
       </Button>
     </Stack>

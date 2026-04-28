@@ -168,7 +168,7 @@ export function ProjectSpotlight() {
 
   const reportInstances = useGetReportInstances({})
 
-  const onClick = (newProjectId: string) => {
+  const handleProjectNavigation = (newProjectId: string) => {
     navigate(
       resolveProjectNavigationPath(
         newProjectId,
@@ -192,7 +192,7 @@ export function ProjectSpotlight() {
         .map((project) => ({
           id: `project-${project.project_id}`,
           label: project.name_long,
-          onClick: () => onClick(project.project_id),
+          onClick: () => handleProjectNavigation(project.project_id),
         }))
     : []
 
