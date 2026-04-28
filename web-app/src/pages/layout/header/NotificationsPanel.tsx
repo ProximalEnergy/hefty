@@ -254,12 +254,8 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
               <Menu.Item
                 leftSection={<IconSettings size={16} />}
                 component={Link}
-                to="/application-settings"
-                onClick={(e) => {
-                  e.preventDefault()
-                  onClose()
-                  window.location.href = '/application-settings#notifications'
-                }}
+                to="/application-settings?tab=notifications"
+                onClick={onClose}
               >
                 Notification settings
               </Menu.Item>

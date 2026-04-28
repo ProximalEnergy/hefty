@@ -77,7 +77,7 @@ import {
 } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 
 const DemoMode = () => {
   const { user } = useUser()
@@ -148,21 +148,64 @@ const DemoMode = () => {
   return null
 }
 
+
+const APPLICATION_SETTINGS_TABS = [
+  'teams',
+  'notifications',
+  'personal-portfolio',
+  'tips',
+  'gis-colors',
+  'project-labels',
+] as const
+
+type ApplicationSettingsTab = (typeof APPLICATION_SETTINGS_TABS)[number]
+
+const isApplicationSettingsTab = (
+  tabValue: string | null,
+): tabValue is ApplicationSettingsTab => {
+  if (!tabValue) {
+    return false
+  }
+
+  return APPLICATION_SETTINGS_TABS.includes(
+    tabValue as ApplicationSettingsTab,
+  )
+}
+
 const ApplicationSettings = () => {
   const userType = useGetUserType({})
   const projects = useGetProjects({ personalPortfolio: false })
+  const [searchParams, setSearchParams] = useSearchParams()
+
   if (userType.isLoading || projects.isLoading) {
     return <PageLoader />
   }
+
   const isAdmin =
     userType.data?.name_short === 'admin' ||
     userType.data?.name_short === 'superadmin'
+
+  const defaultTab: ApplicationSettingsTab = isAdmin
+    ? 'teams'
+    : 'notifications'
+  const requestedTab = searchParams.get('tab')
+  const canUseRequestedTab =
+    isApplicationSettingsTab(requestedTab) &&
+    (isAdmin || requestedTab !== 'teams')
+  const selectedTab = canUseRequestedTab ? requestedTab : defaultTab
 
   return (
     <Stack p="md">
       <Title order={1}>Application Settings</Title>
       <Tabs
-        defaultValue={isAdmin ? 'teams' : 'notifications'}
+        value={selectedTab}
+        onChange={(nextTab) => {
+          if (!nextTab || !isApplicationSettingsTab(nextTab)) {
+            return
+          }
+
+          setSearchParams({ tab: nextTab }, { replace: true })
+        }}
         variant="outline"
       >
         <Tabs.List>
