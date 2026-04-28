@@ -15,7 +15,7 @@ import { DCVoltageChartPvPcs } from '@/components/pv-pcs/DCVoltageChart'
 import { EfficiencyChart } from '@/components/pv-pcs/EfficiencyChart'
 import { EfficiencyLevelCard } from '@/components/pv-pcs/EfficiencyLevelCard'
 import { ReactivePowerChart } from '@/components/pv-pcs/ReactivePowerChart'
-import { StatsCards } from '@/components/pv-pcs/StatsCards'
+import { PVPCSStatsCards } from '@/components/pv-pcs/StatsCards'
 import { StatusAndErrorCodes } from '@/components/pv-pcs/StatusAndErrorCodes'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { DataTimeSeries } from '@/hooks/types'
@@ -53,7 +53,7 @@ const findLatestExpectedPower = (series?: DataTimeSeries[]) => {
   return { value, timestamp }
 }
 
-const RealtimeTab = () => {
+const PVInverterRealtimeTab = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const project = useSelectProject(projectId!)
 
@@ -480,7 +480,7 @@ const RealtimeTab = () => {
 
   return (
     <Stack gap="md" pb="md">
-      <StatsCards stats={stats} />
+      <PVPCSStatsCards stats={stats} />
 
       <ActivePowerChartPvPcs
         realtimeData={realtimeData}
@@ -511,4 +511,4 @@ const RealtimeTab = () => {
   )
 }
 
-export default RealtimeTab
+export default PVInverterRealtimeTab

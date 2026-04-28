@@ -1,7 +1,7 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import type { components } from '@/api/schema'
 import type { CalendarEvent } from '@/api/v1/operational/calendar'
-import { StatsCards } from '@/components/bess-pcs/StatsCards'
+import { BessPCSStatsCards } from '@/components/bess-pcs/StatsCards'
 import type { Device } from '@/hooks/types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -408,7 +408,7 @@ export function RealtimeStats({ pcsDevices, sources }: RealtimeStatsProps) {
   ])
 
   return (
-    <StatsCards
+    <BessPCSStatsCards
       stats={stats}
       isLoading={{
         realtime: sources.pcsRealtime.isLoading,

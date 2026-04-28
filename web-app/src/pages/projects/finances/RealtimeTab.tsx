@@ -44,7 +44,7 @@ const formatCurrency = (value: number) => {
   })
 }
 
-export const RealtimeTab = ({ projectId }: RealtimeTabProps) => {
+export const FinancesRealtimeTab = ({ projectId }: RealtimeTabProps) => {
   const project = useSelectProject(projectId)
   const theme = useMantineTheme()
   const [isHoveringRevenue, setIsHoveringRevenue] = useState(false)

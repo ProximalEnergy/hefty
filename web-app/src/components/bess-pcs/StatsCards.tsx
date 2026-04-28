@@ -69,7 +69,7 @@ interface StatsCardsProps {
   hasCMMSIntegration?: boolean
 }
 
-export const StatsCards = ({
+export const BessPCSStatsCards = ({
   stats,
   isLoading,
   activeEventsHoverSections = [],

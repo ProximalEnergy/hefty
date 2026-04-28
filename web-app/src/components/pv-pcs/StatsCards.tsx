@@ -41,7 +41,7 @@ interface StatsCardsProps {
   }
 }
 
-export const StatsCards = ({ stats }: StatsCardsProps) => {
+export const PVPCSStatsCards = ({ stats }: StatsCardsProps) => {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 

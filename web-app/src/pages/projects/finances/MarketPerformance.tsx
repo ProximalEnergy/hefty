@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 
 import { LongTermTab } from './LongTermTab'
-import { RealtimeTab } from './RealtimeTab'
+import { FinancesRealtimeTab } from './RealtimeTab'
 import { WeekViewTab } from './WeekViewTab'
 
 const MarketPerformance = () => {
@@ -109,7 +109,7 @@ const MarketPerformance = () => {
         </Tabs.List>
 
         <Tabs.Panel value="realtime" pt="md">
-          <RealtimeTab projectId={projectId!} />
+          <FinancesRealtimeTab projectId={projectId!} />
         </Tabs.Panel>
 
         <Tabs.Panel value="week-view" pt="md">

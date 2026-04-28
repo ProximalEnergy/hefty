@@ -59,7 +59,7 @@ import { PlotType } from 'plotly.js'
 import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
-import RealtimeTab from './RealtimeTab'
+import PVInverterRealtimeTab from './RealtimeTab'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -1410,7 +1410,7 @@ const PCSEquipmentAnalysis = () => {
         </Tabs.List>
 
         <Tabs.Panel value="realtime" pt="md">
-          <RealtimeTab />
+          <PVInverterRealtimeTab />
         </Tabs.Panel>
 
         <Tabs.Panel value="current-day" pt="md" ref={tabPanelRef}>
