@@ -1646,6 +1646,7 @@ class Device(Base):
     polygon: Mapped[Geography | None] = mapped_column(
         Geography(geometry_type="MULTIPOLYGON", srid=4326, spatial_index=False),
     )
+    serial_number: Mapped[str | None]
 
     sa.Index("ix_devices_device_type_id", device_type_id)
     sa.Index("ix_devices_device_id_path", device_id_path, postgresql_using="gist")
