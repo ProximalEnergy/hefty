@@ -51,6 +51,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import DeviceEventsTimeline from './DeviceEventsTimeline'
+import { buildUpdateRootCauseHandler } from './updateRootCause'
 import EventCMMSLinks from './components/EventCMMSLinks'
 
 // Types
@@ -588,13 +589,11 @@ const EventPage = () => {
   }
 
   const mutation = useUpdateRootCause()
-  const updateRootCause = (rootCauseId: number | null) => {
-    mutation.mutate({
-      project_id: projectId || '-1',
-      event_id: eventId,
-      root_cause_id: rootCauseId !== null ? rootCauseId : undefined,
-    })
-  }
+  const updateRootCause = buildUpdateRootCauseHandler({
+    eventId,
+    projectId,
+    mutate: mutation.mutate,
+  })
 
   useEffect(() => {
     if (event) {

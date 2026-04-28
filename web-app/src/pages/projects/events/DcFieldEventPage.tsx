@@ -35,6 +35,7 @@ import { useLocation, useParams } from 'react-router'
 
 import DcFieldAnomaliesMap from './DcFieldAnomaliesMap'
 import DeviceEventsTimeline from './DeviceEventsTimeline'
+import { buildUpdateRootCauseHandler } from './updateRootCause'
 
 // Types
 
@@ -416,13 +417,11 @@ const DcFieldEventPage = () => {
   const projectTz = project.data?.time_zone || 'UTC'
 
   const mutation = useUpdateRootCause()
-  const updateRootCause = (rootCauseId: number | null) => {
-    mutation.mutate({
-      project_id: projectId || '-1',
-      event_id: eventId,
-      root_cause_id: rootCauseId !== null ? rootCauseId : undefined,
-    })
-  }
+  const updateRootCause = buildUpdateRootCauseHandler({
+    eventId,
+    projectId,
+    mutate: mutation.mutate,
+  })
 
   useEffect(() => {
     if (event) {
