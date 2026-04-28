@@ -35,7 +35,7 @@ const BessEnclosureGISPage = () => {
   return <BESSEnclosureGIS showTitleCard={true} />
 }
 
-export const BESSEnclosureGIS = ({
+const BESSEnclosureGIS = ({
   showTitleCard = true,
 }: {
   showTitleCard?: boolean

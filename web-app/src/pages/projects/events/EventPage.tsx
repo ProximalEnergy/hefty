@@ -24,7 +24,6 @@ import { traceColors } from '@/components/plots/PlotlyPlotUtils'
 import { useGetEvents, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
-import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,
@@ -51,7 +50,6 @@ import type { Dash, Layout } from 'plotly.js'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
-import { AdaptiveGisMap } from '../gis/adaptive-gis'
 import DeviceEventsTimeline from './DeviceEventsTimeline'
 import EventCMMSLinks from './components/EventCMMSLinks'
 
@@ -1013,12 +1011,6 @@ const EventPage = () => {
     ...extraYAxes,
   }
 
-  let mapComponent
-  if (project.data?.project_type_id === ProjectTypeEnum.BESS) {
-    mapComponent = <BESSEnclosureGIS showTitleCard={false} />
-  } else {
-    mapComponent = <AdaptiveGisMap />
-  }
   const capacityOnly =
     !project.data?.has_expected_energy_integration &&
     project.data?.project_type_id !== ProjectTypeEnum.BESS
@@ -1088,13 +1080,10 @@ const EventPage = () => {
             }}
           >
             <Card withBorder w="100%" h="100%" p={0} radius="md">
-              {project.data?.spec.device_types_all_with_polygons?.includes(
-                event?.device?.device_type_id || -1,
-              ) ? (
-                <EventGISCard deviceId={event?.device_id.toString() || '-1'} />
-              ) : (
-                mapComponent
-              )}
+              <EventGISCard
+                animateToDevice
+                deviceId={event?.device_id.toString() || '-1'}
+              />
             </Card>
           </Box>
         </Group>

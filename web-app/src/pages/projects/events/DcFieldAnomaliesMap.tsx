@@ -20,9 +20,16 @@ import {
   Text,
   useComputedColorScheme,
 } from '@mantine/core'
+import { IconFlag } from '@tabler/icons-react'
 import { Feature } from 'geojson'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import MapboxMap, { Layer, MapMouseEvent, Source } from 'react-map-gl/mapbox'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import MapboxMap, {
+  Layer,
+  MapMouseEvent,
+  MapRef,
+  Marker,
+  Source,
+} from 'react-map-gl/mapbox'
 
 interface DcFieldAnomaliesMapProps {
   event: Event | null
@@ -35,11 +42,100 @@ interface HoverInfo {
   y: number
 }
 
+interface MapBounds {
+  west: number
+  south: number
+  east: number
+  north: number
+}
+
+type LngLat = [number, number]
+
+const EVENT_FOCUS_ZOOM = 17
+const FOCUS_ANIMATION_DURATION_MS = 1800
+
+const getBoundsCenter = (bounds: MapBounds): [number, number] => [
+  (bounds.west + bounds.east) / 2,
+  (bounds.south + bounds.north) / 2,
+]
+
+const getPointCoordinates = (
+  point: { coordinates: number[] } | null | undefined,
+): [number, number] | null => {
+  if (
+    Array.isArray(point?.coordinates) &&
+    Number.isFinite(point.coordinates[0]) &&
+    Number.isFinite(point.coordinates[1])
+  ) {
+    return [point.coordinates[0], point.coordinates[1]]
+  }
+
+  return null
+}
+
+const collectLngLats = (coordinates: unknown): LngLat[] => {
+  if (!Array.isArray(coordinates)) return []
+
+  if (
+    typeof coordinates[0] === 'number' &&
+    typeof coordinates[1] === 'number' &&
+    Number.isFinite(coordinates[0]) &&
+    Number.isFinite(coordinates[1])
+  ) {
+    return [[coordinates[0], coordinates[1]]]
+  }
+
+  return coordinates.flatMap((coord) => collectLngLats(coord))
+}
+
+const getPolygonBounds = (polygon: unknown): MapBounds | null => {
+  if (!polygon) return null
+
+  let polygonData: unknown = polygon
+  if (typeof polygon === 'string') {
+    try {
+      polygonData = JSON.parse(polygon)
+    } catch (error) {
+      console.warn('Failed to parse polygon JSON for bounds:', error, polygon)
+      return null
+    }
+  }
+
+  const coordinatesSource =
+    typeof polygonData === 'object' &&
+    polygonData !== null &&
+    'coordinates' in polygonData
+      ? polygonData.coordinates
+      : null
+
+  const coordinates = collectLngLats(coordinatesSource)
+  if (coordinates.length === 0) {
+    console.warn(
+      'Invalid polygon coordinates structure for bounds:',
+      coordinatesSource,
+    )
+    return null
+  }
+
+  const lngs = coordinates.map(([lng]) => lng)
+  const lats = coordinates.map(([, lat]) => lat)
+
+  return {
+    west: Math.min(...lngs),
+    south: Math.min(...lats),
+    east: Math.max(...lngs),
+    north: Math.max(...lats),
+  }
+}
+
 const DcFieldAnomaliesMap = ({
   event,
   projectId,
 }: DcFieldAnomaliesMapProps) => {
   const computedColorScheme = useComputedColorScheme('dark')
+  const mapRef = useRef<MapRef>(null)
+  const hasFocusedEventRef = useRef(false)
+  const [isMapLoaded, setIsMapLoaded] = useState(false)
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
     feature: null,
     x: 0,
@@ -192,56 +288,75 @@ const DcFieldAnomaliesMap = ({
     }
   }, [allCombiners, dcFieldInfo?.parentCombiner])
 
-  // Calculate bounds for the map focused on the parent combiner
-  const mapBounds = useMemo(() => {
-    if (!dcFieldInfo?.parentCombiner?.polygon) return null
+  const dcField = dcFieldInfo?.dcField
+  const parentCombiner = dcFieldInfo?.parentCombiner
 
-    let polygonData = dcFieldInfo.parentCombiner.polygon
-    if (typeof dcFieldInfo.parentCombiner.polygon === 'string') {
-      try {
-        polygonData = JSON.parse(dcFieldInfo.parentCombiner.polygon)
-      } catch (error) {
-        console.warn(
-          'Failed to parse parent combiner polygon JSON for bounds:',
-          error,
-          dcFieldInfo.parentCombiner.polygon,
-        )
-        return null
-      }
+  const ancestorDeviceIds = useMemo(() => {
+    const pathIds = dcField?.device_id_path
+      ?.split('.')
+      .map((pathDeviceId) => Number(pathDeviceId))
+      .filter((pathDeviceId) => Number.isFinite(pathDeviceId))
+
+    if (pathIds?.length) {
+      return pathIds
+        .filter((pathDeviceId) => pathDeviceId !== dcField?.device_id)
+        .reverse()
     }
 
-    let coordinates: number[][]
-    const coords = polygonData?.coordinates
+    return dcField?.parent_device_id ? [dcField.parent_device_id] : []
+  }, [dcField])
 
-    // Handle different polygon types (Polygon vs MultiPolygon) - same as DroneInspectionsMap
-    if (
-      Array.isArray(coords?.[0]) &&
-      Array.isArray(coords?.[0]?.[0]) &&
-      Array.isArray(coords?.[0]?.[0]?.[0])
-    ) {
-      // MultiPolygon: coordinates[0] is first polygon, [0] is outer ring
-      coordinates = (coords as unknown as number[][][][])[0][0]
-    } else if (Array.isArray(coords?.[0]) && Array.isArray(coords?.[0]?.[0])) {
-      // Polygon: coordinates[0] is outer ring
-      coordinates = (coords as unknown as number[][][])[0]
-    } else {
-      console.warn(
-        'Invalid parent combiner polygon coordinates structure for bounds:',
-        coords,
-      )
-      return null
-    }
+  const ancestorDevices = useGetDevicesV2({
+    pathParams: { projectId },
+    filters: {
+      device_ids: ancestorDeviceIds,
+    },
+    queryOptions: {
+      enabled: ancestorDeviceIds.length > 0,
+    },
+  })
 
-    const lngs = coordinates.map((coord: number[]) => coord[0])
-    const lats = coordinates.map((coord: number[]) => coord[1])
+  const projectMapBounds = useMemo(() => {
+    const bounds = allCombiners
+      .map((device) => getPolygonBounds(device.polygon))
+      .filter((bound): bound is MapBounds => bound !== null)
+
+    if (bounds.length === 0) return null
 
     return {
-      west: Math.min(...lngs),
-      south: Math.min(...lats),
-      east: Math.max(...lngs),
-      north: Math.max(...lats),
+      west: Math.min(...bounds.map((bound) => bound.west)),
+      south: Math.min(...bounds.map((bound) => bound.south)),
+      east: Math.max(...bounds.map((bound) => bound.east)),
+      north: Math.max(...bounds.map((bound) => bound.north)),
     }
-  }, [dcFieldInfo])
+  }, [allCombiners])
+
+  // Calculate bounds for the map focused on the parent combiner
+  const mapBounds = useMemo(() => {
+    return getPolygonBounds(parentCombiner?.polygon)
+  }, [parentCombiner?.polygon])
+
+  const eventLocation = useMemo<[number, number] | null>(() => {
+    const dcFieldPoint = getPointCoordinates(dcField?.point)
+    if (dcFieldPoint) return dcFieldPoint
+
+    const dcFieldBounds = getPolygonBounds(dcField?.polygon)
+    if (dcFieldBounds) return getBoundsCenter(dcFieldBounds)
+
+    const ancestorsById = new Map(
+      ancestorDevices.data?.map((ancestor) => [ancestor.device_id, ancestor]),
+    )
+    for (const ancestorDeviceId of ancestorDeviceIds) {
+      const ancestor = ancestorsById.get(ancestorDeviceId)
+      const ancestorPoint = getPointCoordinates(ancestor?.point)
+      if (ancestorPoint) return ancestorPoint
+
+      const ancestorBounds = getPolygonBounds(ancestor?.polygon)
+      if (ancestorBounds) return getBoundsCenter(ancestorBounds)
+    }
+
+    return null
+  }, [ancestorDeviceIds, ancestorDevices.data, dcField])
 
   const [viewState, setViewState] = useState({
     longitude: 0,
@@ -251,19 +366,49 @@ const DcFieldAnomaliesMap = ({
     bearing: 0,
   })
 
-  // Set initial view to fit the combiner bounds
+  // Start at the full project, then animate into the event's device location.
   useEffect(() => {
-    if (mapBounds) {
-      queueMicrotask(() =>
-        setViewState((prev) => ({
-          ...prev,
-          longitude: (mapBounds.west + mapBounds.east) / 2,
-          latitude: (mapBounds.south + mapBounds.north) / 2,
-          zoom: 17,
-        })),
+    if (!isMapLoaded || hasFocusedEventRef.current || !eventLocation) {
+      return
+    }
+
+    hasFocusedEventRef.current = true
+
+    if (projectMapBounds) {
+      mapRef.current?.fitBounds(
+        [
+          projectMapBounds.west,
+          projectMapBounds.south,
+          projectMapBounds.east,
+          projectMapBounds.north,
+        ],
+        { duration: 0, padding: 35 },
       )
     }
-  }, [mapBounds])
+
+    const timeoutId = window.setTimeout(() => {
+      if (mapBounds) {
+        mapRef.current?.fitBounds(
+          [mapBounds.west, mapBounds.south, mapBounds.east, mapBounds.north],
+          {
+            duration: FOCUS_ANIMATION_DURATION_MS,
+            maxZoom: EVENT_FOCUS_ZOOM,
+            padding: 80,
+          },
+        )
+        return
+      }
+
+      mapRef.current?.flyTo({
+        center: eventLocation,
+        duration: FOCUS_ANIMATION_DURATION_MS,
+        essential: true,
+        zoom: EVENT_FOCUS_ZOOM,
+      })
+    }, 350)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [eventLocation, isMapLoaded, mapBounds, projectMapBounds])
 
   const onHover = useCallback((event: MapMouseEvent) => {
     const {
@@ -449,6 +594,8 @@ const DcFieldAnomaliesMap = ({
           )}
           <MapboxMap
             {...viewState}
+            ref={mapRef}
+            onLoad={() => setIsMapLoaded(true)}
             onMove={(evt) => setViewState(evt.viewState)}
             onClick={(evt) => {
               const feature = (evt as MapMouseEvent & { features?: Feature[] })
@@ -563,6 +710,17 @@ const DcFieldAnomaliesMap = ({
                   }}
                 />
               </Source>
+            )}
+
+            {eventLocation && (
+              <Marker
+                key="event-location-flag"
+                longitude={eventLocation[0]}
+                latitude={eventLocation[1]}
+                anchor="bottom"
+              >
+                <IconFlag color="#e03131" fill="#e03131" />
+              </Marker>
             )}
 
             {/* Hover Card */}
