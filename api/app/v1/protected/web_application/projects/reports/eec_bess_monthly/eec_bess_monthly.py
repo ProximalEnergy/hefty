@@ -2878,7 +2878,7 @@ async def yearly_degradation_rate_from_soh(
     }
 
 
-async def get_kpi_data(
+async def get_report_kpi_data(
     *,
     project: models.Project,
     project_db_sync: Session,
@@ -3929,7 +3929,7 @@ async def generate_eec_bess_monthly_report(
         degradation_rate,
         ytd_cycles,
         ytd_earliest_date,
-    ) = await get_kpi_data(
+    ) = await get_report_kpi_data(
         project=project,
         project_db_sync=project_db_sync,
         start=req_start,
