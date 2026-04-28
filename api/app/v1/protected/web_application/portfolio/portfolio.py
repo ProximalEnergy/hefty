@@ -272,8 +272,7 @@ async def get_portfolio_home_short_term(
 
         if not df.empty:
             # Collapse value columns into a single column
-            with pd.option_context("future.no_silent_downcasting", True):
-                df["value"] = df.filter(regex="value_").bfill(axis=1).iloc[:, 0]
+            df["value"] = df.filter(regex="value_").bfill(axis=1).iloc[:, 0]
             df = df.infer_objects()
 
             # Select the relevant columns
@@ -303,10 +302,9 @@ async def get_portfolio_home_short_term(
 
         if not df_day_behind.empty:
             # Collapse value columns into a single column
-            with pd.option_context("future.no_silent_downcasting", True):
-                df_day_behind["value"] = (
-                    df_day_behind.filter(regex="value_").bfill(axis=1).iloc[:, 0]
-                )
+            df_day_behind["value"] = (
+                df_day_behind.filter(regex="value_").bfill(axis=1).iloc[:, 0]
+            )
             df_day_behind = df_day_behind.infer_objects()
 
             # Select the relevant columns

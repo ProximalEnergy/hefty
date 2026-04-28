@@ -224,15 +224,7 @@ def parse_db_data_to_df(*, db_data):
 
     # Collapse value columns into single column (each tag_id only has data of
     # one value type)
-    # NOTE: Context manager required for pandas 3.0 readiness. See the
-    # following resources for more information:
-    # - https://pandas.pydata.org/docs/whatsnew/v2.2.0.html#
-    #   deprecated-automatic-downcasting
-    # - https://github.com/pandas-dev/pandas/issues/57734
-    # - https://medium.com/@felipecaballero/
-    #   deciphering-the-cryptic-futurewarning-for-fillna-in-pandas-2-01deb4e411a1
-    with pd.option_context("future.no_silent_downcasting", True):
-        df["value"] = df.filter(regex="value").bfill(axis=1).iloc[:, 0]
+    df["value"] = df.filter(regex="value_").bfill(axis=1).iloc[:, 0]
 
     df = df.infer_objects()
 
