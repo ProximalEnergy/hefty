@@ -234,7 +234,7 @@ export const DetachAndEditOccurrenceModal = ({
     // form.setValues should not be a dependency, but form itself if its identity changes
   ])
 
-  const handleSubmit = async (values: FormValues) => {
+  const handleDetachOccurrenceSubmit = async (values: FormValues) => {
     // Ensure start_time and end_time are valid Date objects before calling toISOString
     // Validation should catch nulls for non-all-day events.
     if (!values.start_time) {
@@ -347,7 +347,7 @@ export const DetachAndEditOccurrenceModal = ({
       size="lg" // Potentially larger like CalendarItemModal
       centered
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit(handleDetachOccurrenceSubmit)}>
         <Stack>
           <TextInput
             label="Title"

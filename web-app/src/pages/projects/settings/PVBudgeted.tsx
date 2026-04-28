@@ -269,7 +269,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
 
   const hasData = totalRows > 0
 
-  const handleDeleteClick = (seriesId: number) => {
+  const handlePvBudgetedDeleteClick = (seriesId: number) => {
     setSeriesToDelete(seriesId)
     setDeleteModalOpened(true)
   }
@@ -281,7 +281,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
     return mode
   }
 
-  const handleEditClick = async (series: PVBudgetedSeries) => {
+  const handlePvBudgetedEditClick = async (series: PVBudgetedSeries) => {
     setEditingSeries(series)
     try {
       setIsLoadingSeriesData(true)
@@ -341,7 +341,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
     }
   }
 
-  const handleConfirmDelete = async () => {
+  const handlePvBudgetedConfirmDelete = async () => {
     if (!seriesToDelete) return
 
     try {
@@ -366,7 +366,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
     }
   }
 
-  const handleSave = async () => {
+  const handlePvBudgetedSave = async () => {
     if (!hasData) return
 
     try {
@@ -746,7 +746,9 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
                                     size="sm"
                                     variant="light"
                                     color="blue"
-                                    onClick={() => handleEditClick(series)}
+                                    onClick={() =>
+                                      handlePvBudgetedEditClick(series)
+                                    }
                                   >
                                     <IconEdit size={14} />
                                   </ActionIcon>
@@ -757,7 +759,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
                                     variant="light"
                                     color="red"
                                     onClick={() =>
-                                      handleDeleteClick(
+                                      handlePvBudgetedDeleteClick(
                                         series.pv_budgeted_series_id,
                                       )
                                     }
@@ -1152,7 +1154,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
               <Button
                 size="xs"
                 disabled={!hasData || isSaving}
-                onClick={handleSave}
+                onClick={handlePvBudgetedSave}
                 loading={isSaving}
               >
                 Save
@@ -1169,7 +1171,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
           setDeleteModalOpened(false)
           setSeriesToDelete(null)
         }}
-        onConfirm={handleConfirmDelete}
+        onConfirm={handlePvBudgetedConfirmDelete}
         title="Delete PV Budgeted Series"
         message="Are you sure you want to delete this series? This action cannot be undone and will permanently remove all associated data."
         confirmLoading={isDeleting}

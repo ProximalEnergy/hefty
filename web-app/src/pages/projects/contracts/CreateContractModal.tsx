@@ -594,7 +594,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const companyName = companies?.[0]?.name_long ?? 'your company'
   const isAdminUser = (currentUser?.user_type_id ?? 3) <= 2
 
-  const handleSubmit = async () => {
+  const handleCreateContractSubmit = async () => {
     if (
       !selectedDocument ||
       !contractCategory ||
@@ -1097,7 +1097,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
 
               {/* Submit Button */}
               <Button
-                onClick={handleSubmit}
+                onClick={handleCreateContractSubmit}
                 loading={createCompany.isPending || createContract.isPending}
                 size="lg"
                 fullWidth

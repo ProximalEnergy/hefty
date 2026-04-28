@@ -394,7 +394,7 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
     return [0, 100] as [number, number]
   }, [])
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handlePvEfficiencyRelayout = (event: Readonly<PlotRelayoutEvent>) => {
     let userZoomedLocal = false
 
     if (
@@ -467,7 +467,7 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
                   : undefined,
           },
         }}
-        onRelayout={handleRelayout}
+        onRelayout={handlePvEfficiencyRelayout}
         isLoading={
           acPowerTimeSeries.isLoading ||
           dcPowerTimeSeries.isLoading ||

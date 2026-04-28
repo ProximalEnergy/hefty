@@ -66,7 +66,7 @@ const ProjectEquipmentAnalysisTracker = () => {
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const handleBlockDropdownChange = (value: string | null) => {
+  const handleTrackerDropdownChange = (value: string | null) => {
     if (value) {
       const newSearchParams = new URLSearchParams(searchParams)
       newSearchParams.set('deviceId', value)
@@ -188,7 +188,7 @@ const ProjectEquipmentAnalysisTracker = () => {
               <BlockDropdown
                 data={blockDropdown.data}
                 value={selectedBlockId}
-                onChange={handleBlockDropdownChange}
+                onChange={handleTrackerDropdownChange}
                 includeNextPrevious={false}
                 includeFirstLast={false}
               />

@@ -86,7 +86,7 @@ const DataStatus = ({
 
   const size = 16
 
-  const handleClick = () => {
+  const handleDataStatusClick = () => {
     if (projectId) {
       navigate(`/projects/${projectId}/device-details/data-availability`)
     }
@@ -100,7 +100,7 @@ const DataStatus = ({
         <Box
           w={size}
           h={size}
-          onClick={handleClick}
+          onClick={handleDataStatusClick}
           style={{
             cursor: projectId ? 'pointer' : 'default',
           }}

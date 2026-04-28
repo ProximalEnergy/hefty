@@ -56,7 +56,7 @@ const EquipmentAnalysisPVDCCombinerPage = () => {
   const tabPanelRef = useRef<HTMLDivElement>(null)
 
   // Handle block dropdown change
-  const handleBlockDropdownChange = (value: string | null) => {
+  const handlePvDcCombinerDropdownChange = (value: string | null) => {
     if (value) {
       const newSearchParams = new URLSearchParams(searchParams)
       newSearchParams.set('deviceId', value)
@@ -194,7 +194,7 @@ const EquipmentAnalysisPVDCCombinerPage = () => {
               <BlockDropdown
                 data={blockDropdown.data}
                 value={null}
-                onChange={handleBlockDropdownChange}
+                onChange={handlePvDcCombinerDropdownChange}
                 includeNextPrevious={false}
                 includeFirstLast={false}
               />

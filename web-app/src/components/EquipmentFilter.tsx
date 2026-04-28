@@ -98,7 +98,7 @@ const EquipmentFilter = ({
   }, [selectedManufacturer, initialManufacturer, initialModel, onModelChange])
 
   // --- Handler for Manufacturer Select ---
-  const handleManufacturerChange = (value: string | null) => {
+  const handleEquipmentManufacturerChange = (value: string | null) => {
     setSelectedModel(null)
     setSelectedManufacturer(value)
 
@@ -108,7 +108,7 @@ const EquipmentFilter = ({
   }
 
   // --- Handler for Model Select ---
-  const handleModelChange = (value: string | null) => {
+  const handleEquipmentModelChange = (value: string | null) => {
     setSelectedModel(value)
     if (onModelChange) {
       onModelChange(value)
@@ -128,7 +128,7 @@ const EquipmentFilter = ({
           placeholder="Select manufacturer"
           data={manufacturerOptions}
           value={selectedManufacturer}
-          onChange={handleManufacturerChange}
+          onChange={handleEquipmentManufacturerChange}
           clearable
           searchable={true}
           required={true}
@@ -147,7 +147,7 @@ const EquipmentFilter = ({
           }
           data={modelOptions}
           value={selectedModel}
-          onChange={handleModelChange}
+          onChange={handleEquipmentModelChange}
           clearable
           searchable={true}
           required={true}

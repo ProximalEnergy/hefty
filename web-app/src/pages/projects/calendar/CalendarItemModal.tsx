@@ -707,7 +707,7 @@ export const CalendarItemModal = ({
     }
   }
 
-  const handleSubmit = async (values: FormValues) => {
+  const handleCalendarItemSubmit = async (values: FormValues) => {
     const finalProjectId = item?.project_id || values.project_id
     if (!finalProjectId) {
       console.error('No project ID provided for calendar item submission.')
@@ -797,7 +797,7 @@ export const CalendarItemModal = ({
     }
   }
 
-  const handleDelete = async () => {
+  const handleCalendarItemDelete = async () => {
     if (item && item.calendar_item_id) {
       try {
         await deleteCalendarEvent.mutateAsync({
@@ -829,7 +829,7 @@ export const CalendarItemModal = ({
       title={item ? 'Edit Item' : 'Create Item'}
       size="lg"
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit(handleCalendarItemSubmit)}>
         <Stack>
           <Group justify="space-between">
             <Title order={3}>Event Details</Title>
@@ -837,7 +837,7 @@ export const CalendarItemModal = ({
               <Button
                 variant="subtle"
                 color="red"
-                onClick={handleDelete}
+                onClick={handleCalendarItemDelete}
                 loading={deleteCalendarEvent.isPending}
               >
                 Delete Event

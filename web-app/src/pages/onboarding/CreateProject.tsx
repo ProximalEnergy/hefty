@@ -126,7 +126,7 @@ function CreateProject() {
     },
   })
 
-  const handleSubmit = (values: CreateProjectForm) => {
+  const handleCreateProjectSubmit = (values: CreateProjectForm) => {
     // Map form values to API structure
     const projectData: ProjectCreate = {
       project_type_id: getProjectTypeId(values.project_type),
@@ -276,7 +276,7 @@ function CreateProject() {
             {/* Form */}
             <Paper p="xl" withBorder>
               <form
-                onSubmit={form.onSubmit(handleSubmit, () => {
+                onSubmit={form.onSubmit(handleCreateProjectSubmit, () => {
                   notifications.show({
                     title: 'Validation Error',
                     message:

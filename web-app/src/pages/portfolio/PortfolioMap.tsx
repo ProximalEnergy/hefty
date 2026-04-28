@@ -660,7 +660,7 @@ const PortfolioMap = () => {
 
   // Handle dragging
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePortfolioMapMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const newX = e.clientX - dragOffset.x
         const newY = e.clientY - dragOffset.y
@@ -668,21 +668,21 @@ const PortfolioMap = () => {
       }
     }
 
-    const handleMouseUp = () => {
+    const handlePortfolioMapMouseUp = () => {
       setIsDragging(false)
     }
 
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mousemove', handlePortfolioMapMouseMove)
+      document.addEventListener('mouseup', handlePortfolioMapMouseUp)
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('mousemove', handlePortfolioMapMouseMove)
+        document.removeEventListener('mouseup', handlePortfolioMapMouseUp)
       }
     }
   }, [isDragging, dragOffset, setOverlayPosition])
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePortfolioMapMouseDown = (e: React.MouseEvent) => {
     // Don't start dragging if clicking on interactive elements
     const target = e.target as HTMLElement
     if (
@@ -1023,7 +1023,7 @@ const PortfolioMap = () => {
       {/* Overlay Controls - Draggable */}
       <Box
         ref={overlayRef}
-        onMouseDown={handleMouseDown}
+        onMouseDown={handlePortfolioMapMouseDown}
         style={{
           position: 'absolute',
           top: overlayPosition.y,

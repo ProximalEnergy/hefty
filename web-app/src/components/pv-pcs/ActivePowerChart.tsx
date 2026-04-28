@@ -288,7 +288,7 @@ export const ActivePowerChartPvPcs = ({
     return [minValue, maxCapacityMWac] as [number, number]
   }, [realtimeData.data, maxCapacityMWac, pcsExpectedPower.data])
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handlePvActivePowerRelayout = (event: Readonly<PlotRelayoutEvent>) => {
     let userZoomedLocal = false
 
     if (
@@ -389,7 +389,7 @@ export const ActivePowerChartPvPcs = ({
               },
               shapes: [...setpointShapes, ...expectedPowerShapes],
             }}
-            onRelayout={handleRelayout}
+            onRelayout={handlePvActivePowerRelayout}
             isLoading={realtimeData.isLoading || pcsExpectedPower.isLoading}
             error={realtimeData.error || pcsExpectedPower.error}
             noDataMessage="No data available. Required sensor types: PV Inverter AC Power (optional: PV Inverter AC Power Setpoint)"

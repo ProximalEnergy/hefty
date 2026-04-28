@@ -84,7 +84,7 @@ const DroneIntegrations: React.FC = () => {
     },
   })
 
-  const handleOpenModal = () => {
+  const handleDroneIntegrationsOpenModal = () => {
     const nextId =
       integrations && integrations.length > 0
         ? Math.max(...integrations.map((i) => i.drone_integration_id)) + 1
@@ -152,7 +152,9 @@ const DroneIntegrations: React.FC = () => {
     }
   }
 
-  const handleOpenEditModal = (integration: DroneIntegration) => {
+  const handleDroneIntegrationsOpenEditModal = (
+    integration: DroneIntegration,
+  ) => {
     setSelectedIntegration(integration)
     editForm.setValues({
       ...integration,
@@ -161,7 +163,9 @@ const DroneIntegrations: React.FC = () => {
     openEdit()
   }
 
-  const handleOpenDeleteModal = (integration: DroneIntegration) => {
+  const handleDroneIntegrationsOpenDeleteModal = (
+    integration: DroneIntegration,
+  ) => {
     setSelectedIntegration(integration)
     openDelete()
   }
@@ -186,7 +190,7 @@ const DroneIntegrations: React.FC = () => {
     closeEdit()
   })
 
-  const handleDeleteSubmit = async () => {
+  const handleDroneIntegrationsDeleteSubmit = async () => {
     if (selectedIntegration) {
       await deleteDroneIntegration.mutateAsync(
         selectedIntegration.drone_integration_id,
@@ -233,7 +237,11 @@ const DroneIntegrations: React.FC = () => {
                 </Table.Td>
                 <Table.Td>{integration.provider_project_id}</Table.Td>
                 <Table.Td>
-                  <ActionIcon onClick={() => handleOpenEditModal(integration)}>
+                  <ActionIcon
+                    onClick={() =>
+                      handleDroneIntegrationsOpenEditModal(integration)
+                    }
+                  >
                     <IconPencil />
                   </ActionIcon>
                 </Table.Td>
@@ -244,7 +252,9 @@ const DroneIntegrations: React.FC = () => {
       ) : (
         <Text>No drone integrations found.</Text>
       )}
-      <Button onClick={handleOpenModal}>Add Integration</Button>
+      <Button onClick={handleDroneIntegrationsOpenModal}>
+        Add Integration
+      </Button>
       <Modal
         opened={isModalOpen}
         onClose={close}
@@ -517,7 +527,9 @@ const DroneIntegrations: React.FC = () => {
             <Group justify="space-between">
               <Button
                 color="red"
-                onClick={() => handleOpenDeleteModal(selectedIntegration!)}
+                onClick={() =>
+                  handleDroneIntegrationsOpenDeleteModal(selectedIntegration!)
+                }
               >
                 <IconTrash />
               </Button>
@@ -544,7 +556,7 @@ const DroneIntegrations: React.FC = () => {
             </Button>
             <Button
               color="red"
-              onClick={handleDeleteSubmit}
+              onClick={handleDroneIntegrationsDeleteSubmit}
               loading={deleteDroneIntegration.isPending}
             >
               Delete

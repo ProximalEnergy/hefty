@@ -1927,7 +1927,7 @@ const CustomDashPage = () => {
   }
 
   // Handle save functionality
-  const handleSave = async () => {
+  const handleCustomDashSave = async () => {
     if (isNewDashboard) {
       // If on "/new" route, create a new dashboard
       if (!dashboardName.trim()) {
@@ -2542,7 +2542,7 @@ const CustomDashPage = () => {
             {dashboard.data?.is_owner || isNewDashboard ? (
               <Button
                 variant={editing ? 'filled' : 'outline'}
-                onClick={editing ? handleSave : toggleEditing}
+                onClick={editing ? handleCustomDashSave : toggleEditing}
                 disabled={editing && !dashboardName.trim()}
                 loading={
                   addUserDashboardMutation.isPending ||

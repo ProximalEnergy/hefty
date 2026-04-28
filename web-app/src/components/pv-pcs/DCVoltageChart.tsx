@@ -118,7 +118,7 @@ export const DCVoltageChartPvPcs = ({ realtimeData }: DCVoltageChartProps) => {
     return [yMin, yMax] as [number, number]
   }, [dcVoltageData.data])
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handlePvDcVoltageRelayout = (event: Readonly<PlotRelayoutEvent>) => {
     let userZoomedLocal = false
 
     if (
@@ -183,7 +183,7 @@ export const DCVoltageChartPvPcs = ({ realtimeData }: DCVoltageChartProps) => {
             range: userZoomed && xAxisRange ? xAxisRange : undefined,
           },
         }}
-        onRelayout={handleRelayout}
+        onRelayout={handlePvDcVoltageRelayout}
         isLoading={
           dcVoltageData.isModuleLevel
             ? moduleRealtimeData.isLoading

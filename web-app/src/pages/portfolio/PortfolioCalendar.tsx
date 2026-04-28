@@ -353,7 +353,7 @@ export const PortfolioCalendar = () => {
     }
   }
 
-  const handleItemClick = (info: EventClickArg) => {
+  const handlePortfolioCalendarItemClick = (info: EventClickArg) => {
     const clickedItem = (calendarItems || []).find(
       (e) => info.event.id === e.calendar_item_id,
     )
@@ -373,14 +373,14 @@ export const PortfolioCalendar = () => {
     }
   }
 
-  const handleModalClose = () => {
+  const handlePortfolioCalendarModalClose = () => {
     closeModal()
     setSelectedItem(null)
     setSelectedDates(undefined)
     setSelectedOccurrenceDate(null)
   }
 
-  const handleEditClick = (
+  const handlePortfolioCalendarEditClick = (
     itemToEdit: CalendarEvent,
     editMode: 'item' | 'series',
   ) => {
@@ -536,7 +536,7 @@ export const PortfolioCalendar = () => {
                 events={currentCalendarEvents}
                 dayCellClassNames={getDayCellClassNames}
                 height="100%"
-                eventClick={handleItemClick}
+                eventClick={handlePortfolioCalendarItemClick}
                 firstDay={1}
                 timeZone="UTC"
                 eventsSet={handleEventsSet}
@@ -547,7 +547,7 @@ export const PortfolioCalendar = () => {
       </Paper>
       <CalendarItemModal
         opened={modalOpened}
-        onClose={handleModalClose}
+        onClose={handlePortfolioCalendarModalClose}
         item={selectedItem ?? undefined}
         startDate={selectedDates?.start}
         endDate={selectedDates?.end}
@@ -558,7 +558,7 @@ export const PortfolioCalendar = () => {
       <ViewCalendarItemModal
         opened={viewModalOpened}
         onClose={closeViewModal}
-        onEdit={handleEditClick}
+        onEdit={handlePortfolioCalendarEditClick}
         onDeleteSuccess={refetchCalendarItems}
         item={selectedItem ?? undefined}
         occurrenceDate={selectedOccurrenceDate}

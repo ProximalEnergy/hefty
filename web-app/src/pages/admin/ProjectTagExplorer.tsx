@@ -1030,7 +1030,7 @@ const ProjectTagExplorer = () => {
   }
 
   // Handle device type selection to pre-populate long name
-  const handleDeviceTypeChange = (deviceTypeId: string | null) => {
+  const handleProjectTagDeviceTypeChange = (deviceTypeId: string | null) => {
     if (deviceTypeId && deviceTypes.data) {
       const selectedDeviceType = deviceTypes.data.find(
         (dt) => dt.device_type_id.toString() === deviceTypeId,
@@ -1954,7 +1954,7 @@ const ProjectTagExplorer = () => {
                   })) || []
                 }
                 value={createSensorTypeForm.values.device_type_id}
-                onChange={handleDeviceTypeChange}
+                onChange={handleProjectTagDeviceTypeChange}
                 searchable
                 clearable
                 required

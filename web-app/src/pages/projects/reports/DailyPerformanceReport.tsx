@@ -477,7 +477,7 @@ const Page: React.FC = () => {
   const [pendingThemeSwitch, setPendingThemeSwitch] = useState(false)
   const { setColorScheme } = useMantineColorScheme()
 
-  const handleExportPdf = () => {
+  const handleDailyPerformanceExportPdf = () => {
     if (!reportRef.current) return
     setIsPdfLoading(true)
     if (colorScheme === 'dark') {
@@ -2468,7 +2468,7 @@ const Page: React.FC = () => {
             </Tooltip>
             <ActionIcon
               size="lg"
-              onClick={handleExportPdf}
+              onClick={handleDailyPerformanceExportPdf}
               loading={isPdfLoading}
             >
               <IconFileTypePdf />

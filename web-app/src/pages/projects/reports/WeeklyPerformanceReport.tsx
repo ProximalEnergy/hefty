@@ -2681,7 +2681,7 @@ const Page: React.FC = () => {
     meterPowerPdfGate.isLoading ||
     (meterPowerChartView === 'delta' && eventLossesPdfGate.isLoading)
 
-  const handleExportPdf = () => {
+  const handleWeeklyPerformanceExportPdf = () => {
     if (isReportPageLoading) return
     if (!reportRef.current) return
     setIsPdfLoading(true)
@@ -2955,7 +2955,7 @@ const Page: React.FC = () => {
             </Tooltip>
             <ActionIcon
               size="lg"
-              onClick={handleExportPdf}
+              onClick={handleWeeklyPerformanceExportPdf}
               loading={isPdfLoading}
               disabled={isReportPageLoading}
             >

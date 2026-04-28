@@ -18,7 +18,7 @@ import { useParams, useSearchParams } from 'react-router'
 
 const ICON_SIZE = 14
 
-const handleDownload = async (
+const handleInverterAvailabilityDownload = async (
   presignedUrl: UseQueryResult<string, AxiosError>,
   startQuery: string | undefined,
   validDates: string[] | undefined,
@@ -143,7 +143,7 @@ const Page: React.FC = () => {
               invalidDateWarning
             }
             onClick={() =>
-              handleDownload(
+              handleInverterAvailabilityDownload(
                 presignedUrl,
                 startQuery,
                 validDates,

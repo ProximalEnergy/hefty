@@ -88,7 +88,7 @@ const System = () => {
     importProjectSystem.isPending ||
     projectsQuery.isLoading
 
-  const handleSave = () => {
+  const handlePortfolioSystemSave = () => {
     if (!selectedProjectId) {
       return
     }
@@ -314,7 +314,7 @@ const System = () => {
             </Button>
             <Button
               leftSection={<IconDeviceFloppy size={16} />}
-              onClick={handleSave}
+              onClick={handlePortfolioSystemSave}
               loading={updateProject.isPending}
               disabled={isSaveDisabled}
             >

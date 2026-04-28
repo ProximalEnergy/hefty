@@ -657,7 +657,7 @@ const FeedbackForm = ({
     setFile(null)
   }
 
-  const handleDrop = (acceptedFiles: FileWithPath[]) => {
+  const handleNavbarNestedDrop = (acceptedFiles: FileWithPath[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const file = acceptedFiles[0]
       setFile(file)
@@ -693,7 +693,7 @@ const FeedbackForm = ({
 
   const { user } = useUser()
 
-  const handleSubmit = async (values: types.FeedbackFormData) => {
+  const handleNavbarNestedSubmit = async (values: types.FeedbackFormData) => {
     const formData = new FormData()
 
     formData.append('user_id', userId)
@@ -722,7 +722,7 @@ const FeedbackForm = ({
   }
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form onSubmit={form.onSubmit(handleNavbarNestedSubmit)}>
       <Stack gap="md">
         <TextInput
           withAsterisk
@@ -743,7 +743,7 @@ const FeedbackForm = ({
         />
         {file === null && (
           <Dropzone
-            onDrop={handleDrop}
+            onDrop={handleNavbarNestedDrop}
             maxFiles={1}
             maxSize={500 * 1024}
             multiple={false}

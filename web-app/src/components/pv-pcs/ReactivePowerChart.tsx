@@ -144,7 +144,9 @@ export const ReactivePowerChart = ({
     return [Math.min(minValue, -maxValue), maxValue] as [number, number]
   }, [realtimeData.data, maxCapacityMWac])
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handlePvReactivePowerRelayout = (
+    event: Readonly<PlotRelayoutEvent>,
+  ) => {
     let userZoomedLocal = false
 
     if (
@@ -217,7 +219,7 @@ export const ReactivePowerChart = ({
           },
           shapes: reactivePowerSetpointShapes,
         }}
-        onRelayout={handleRelayout}
+        onRelayout={handlePvReactivePowerRelayout}
         isLoading={realtimeData.isLoading}
         error={realtimeData.error}
         noDataMessage="No data available. Required sensor types: PV Inverter Reactive Power (optional: PV Inverter Reactive Power Setpoint)"

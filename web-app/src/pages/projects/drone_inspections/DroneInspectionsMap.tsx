@@ -1299,7 +1299,7 @@ const DroneInspectionsMap = ({
   const currentViewName = viewNameMapping[currentPowerTypeId] || 'Overview'
 
   // --- Lock Toggle Handler ---
-  const handleLockToggle = () => {
+  const handleDroneMapLockToggle = () => {
     if (isViewLocked) {
       // If it's already locked, unlock it.
       setIsViewLocked(false)
@@ -1317,7 +1317,9 @@ const DroneInspectionsMap = ({
   }
 
   // --- Handler for Locking to a specific layer from the dropdown ---
-  const handleLockToLayer = (layerName: keyof typeof layerLockConfig) => {
+  const handleDroneMapLockToLayer = (
+    layerName: keyof typeof layerLockConfig,
+  ) => {
     const config = layerLockConfig[layerName]
 
     setIsViewLocked(true)
@@ -1977,7 +1979,7 @@ const DroneInspectionsMap = ({
                   <Button
                     size="compact-md"
                     variant="default"
-                    onClick={handleLockToggle}
+                    onClick={handleDroneMapLockToggle}
                     leftSection={
                       isViewLocked ? (
                         <IconLock size={16} />
@@ -2016,7 +2018,9 @@ const DroneInspectionsMap = ({
                   <Menu.Item
                     key={layer}
                     onClick={() =>
-                      handleLockToLayer(layer as keyof typeof layerLockConfig)
+                      handleDroneMapLockToLayer(
+                        layer as keyof typeof layerLockConfig,
+                      )
                     }
                   >
                     {layer}

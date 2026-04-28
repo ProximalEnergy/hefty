@@ -227,7 +227,7 @@ const EquipmentAnalysisPVDCCombinerBlockPage = () => {
 
   useProjectDropdownToggle()
 
-  const handleBlockDropdownChange = (value: string | null) => {
+  const handlePvDcCombinerBlockDropdownChange = (value: string | null) => {
     if (value) {
       searchParams.set('deviceId', value)
       setSearchParams(searchParams)
@@ -634,7 +634,7 @@ const EquipmentAnalysisPVDCCombinerBlockPage = () => {
         <BlockDropdown
           data={blockDropdown.data}
           value={blockDeviceId}
-          onChange={handleBlockDropdownChange}
+          onChange={handlePvDcCombinerBlockDropdownChange}
         />
         <AdvancedDatePicker
           includeClearButton={false}

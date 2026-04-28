@@ -84,7 +84,7 @@ const createSmartBidderDefaults = (
     rows.map((label) => [label, { actual: '', expected: '' }]),
   ) as Record<string, SmartBidderRowValues>
 
-const handleDownload = async (
+const handleBessMonthlyReportDownload = async (
   presignedUrl: UseQueryResult<string, AxiosError>,
   selectedReport: string | null,
   reportKeys: string[] | undefined,
@@ -228,7 +228,7 @@ const BESSMonthlyReport = () => {
     })
   }, [setSmartBidderData])
 
-  const handleInputChange = (
+  const handleBessMonthlyInputChange = (
     rowIndex: number,
     columnKey: string,
     value: number | '',
@@ -429,7 +429,7 @@ const BESSMonthlyReport = () => {
           rightSection={<IconDownload size={ICON_SIZE} />}
           disabled={!selectedReport || !reportKeys?.includes(selectedReport)}
           onClick={() =>
-            handleDownload(
+            handleBessMonthlyReportDownload(
               presignedUrl,
               selectedReport,
               reportKeys,
@@ -499,7 +499,7 @@ const BESSMonthlyReport = () => {
                     <NumberInput
                       value={tableData[rowIndex]?.month ?? ''}
                       onChange={(value) =>
-                        handleInputChange(
+                        handleBessMonthlyInputChange(
                           rowIndex,
                           'month',
                           typeof value === 'number' ? value : '',
@@ -515,7 +515,7 @@ const BESSMonthlyReport = () => {
                     <NumberInput
                       value={tableData[rowIndex]?.ytd ?? ''}
                       onChange={(value) =>
-                        handleInputChange(
+                        handleBessMonthlyInputChange(
                           rowIndex,
                           'ytd',
                           typeof value === 'number' ? value : '',

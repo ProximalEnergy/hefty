@@ -254,7 +254,9 @@ export const ReactivePowerChart = ({
   const resolvedXAxisRange =
     userZoomed && xAxisRange ? xAxisRange : xAxisRangeComputed
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handleBessReactivePowerRelayout = (
+    event: Readonly<PlotRelayoutEvent>,
+  ) => {
     let zoomed = false
 
     if (
@@ -315,7 +317,7 @@ export const ReactivePowerChart = ({
             range: resolvedXAxisRange,
           },
         }}
-        onRelayout={handleRelayout}
+        onRelayout={handleBessReactivePowerRelayout}
         isLoading={
           realtimeData.isLoading || moduleData.isLoading || groupData.isLoading
         }

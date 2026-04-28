@@ -1967,7 +1967,7 @@ function ProjectLabelManager({ projects }: { projects: Project[] }) {
     createModal.close()
   }
 
-  const handleOpenEditModal = (label: UserProjectLabel) => {
+  const handleApplicationSettingsOpenEditModal = (label: UserProjectLabel) => {
     updateUserProjectLabel.reset()
     setActiveLabel(label)
     editModal.open()
@@ -1986,7 +1986,9 @@ function ProjectLabelManager({ projects }: { projects: Project[] }) {
     })
   }
 
-  const handleOpenDeleteModal = (label: UserProjectLabel) => {
+  const handleApplicationSettingsOpenDeleteModal = (
+    label: UserProjectLabel,
+  ) => {
     deleteUserProjectLabel.reset()
     setActiveLabel(label)
     deleteModal.open()
@@ -2052,14 +2054,18 @@ function ProjectLabelManager({ projects }: { projects: Project[] }) {
                         <ActionIcon
                           variant="transparent"
                           color="blue"
-                          onClick={() => handleOpenEditModal(label)}
+                          onClick={() =>
+                            handleApplicationSettingsOpenEditModal(label)
+                          }
                         >
                           <IconEdit size={16} />
                         </ActionIcon>
                         <ActionIcon
                           variant="transparent"
                           color="red"
-                          onClick={() => handleOpenDeleteModal(label)}
+                          onClick={() =>
+                            handleApplicationSettingsOpenDeleteModal(label)
+                          }
                         >
                           <IconTrash size={16} />
                         </ActionIcon>
@@ -2143,21 +2149,21 @@ function CreateProjectLabelModal({
   const isColorValid = /^#[0-9a-fA-F]{6}$/.test(color)
   const isCreateDisabled = !name.trim() || !isColorValid || !projectIds.length
 
-  const handleClose = () => {
+  const handleApplicationSettingsClose = () => {
     setName('')
     setColor('#adb5bd')
     setProjectIds([])
     close()
   }
 
-  const handleCreate = async () => {
+  const handleApplicationSettingsCreate = async () => {
     try {
       await onCreate({
         name: name.trim(),
         color,
         project_ids: projectIds,
       })
-      handleClose()
+      handleApplicationSettingsClose()
     } catch {
       // Keep modal open so user can adjust and retry.
     }
@@ -2166,7 +2172,7 @@ function CreateProjectLabelModal({
   return (
     <Modal
       opened={opened}
-      onClose={handleClose}
+      onClose={handleApplicationSettingsClose}
       title="Create New Project Label"
     >
       <Stack gap="md">
@@ -2195,7 +2201,7 @@ function CreateProjectLabelModal({
           searchable
         />
         <Button
-          onClick={handleCreate}
+          onClick={handleApplicationSettingsCreate}
           loading={isPending}
           disabled={isCreateDisabled || isPending}
         >
@@ -2249,7 +2255,7 @@ function EditProjectLabelModal({
   const isColorValid = /^#[0-9a-fA-F]{6}$/.test(color)
   const isSaveDisabled = !name.trim() || !isColorValid || !projectIds.length
 
-  const handleSave = async () => {
+  const handleApplicationSettingsSave = async () => {
     try {
       await onSave({
         name: name.trim(),
@@ -2292,7 +2298,7 @@ function EditProjectLabelModal({
           searchable
         />
         <Button
-          onClick={handleSave}
+          onClick={handleApplicationSettingsSave}
           loading={isPending}
           disabled={isSaveDisabled || isPending}
         >
@@ -2323,7 +2329,7 @@ function DeleteProjectLabelModal({
   errorMessage?: string
   onDelete: () => Promise<void>
 }) {
-  const handleDelete = async () => {
+  const handleApplicationSettingsDelete = async () => {
     try {
       await onDelete()
       close()
@@ -2346,7 +2352,11 @@ function DeleteProjectLabelModal({
           <Button variant="default" onClick={close} disabled={isPending}>
             Cancel
           </Button>
-          <Button color="red" onClick={handleDelete} loading={isPending}>
+          <Button
+            color="red"
+            onClick={handleApplicationSettingsDelete}
+            loading={isPending}
+          >
             Delete
           </Button>
         </Group>

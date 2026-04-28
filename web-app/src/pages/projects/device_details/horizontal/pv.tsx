@@ -69,7 +69,7 @@ const DeviceDetailsPVPage = () => {
     return <PageLoader />
   }
 
-  const handlePlotClick = (event: PlotMouseEvent) => {
+  const handleHorizontalPvPlotClick = (event: PlotMouseEvent) => {
     const { points } = event
 
     if (points.length !== 1) {
@@ -230,7 +230,7 @@ const DeviceDetailsPVPage = () => {
           }}
           onRelayout={handleRelayout}
           isLoading={deviceDetails.isLoading}
-          onClick={handlePlotClick}
+          onClick={handleHorizontalPvPlotClick}
           error={deviceDetails.error}
         />
       </CustomCard>

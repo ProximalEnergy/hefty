@@ -66,7 +66,7 @@ function FileUpload({
   const [opened, setOpened] = useState(false)
   const [file, setFile] = useState<FileWithPath | null>(null)
 
-  const handleDrop = (files: FileWithPath[]) => {
+  const handleProjectDocumentsDrop = (files: FileWithPath[]) => {
     setFile(files[0])
   }
 
@@ -120,7 +120,7 @@ function FileUpload({
             <Text>File selected: {file.name}</Text>
           ) : (
             <Dropzone
-              onDrop={handleDrop}
+              onDrop={handleProjectDocumentsDrop}
               onReject={handleReject}
               maxSize={MAX_MB * 1024 ** 2}
               accept={PDF_MIME_TYPE}

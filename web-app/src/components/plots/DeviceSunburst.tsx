@@ -24,7 +24,7 @@ const DeviceSunburst = ({
   const clickedRef = useRef<string>('')
   const visibleRef = useRef<number[]>([])
 
-  const handlePlotClick = (event: Readonly<PlotMouseEvent>) => {
+  const handleDeviceSunburstPlotClick = (event: Readonly<PlotMouseEvent>) => {
     const points = event.points as unknown as Array<{
       label: string
       parent: string
@@ -72,7 +72,7 @@ const DeviceSunburst = ({
       layout={{
         margin: { l: 0, r: 0, b: 0, t: 0, pad: 0 },
       }}
-      onClick={handlePlotClick}
+      onClick={handleDeviceSunburstPlotClick}
       isLoading={isLoading}
     />
   )

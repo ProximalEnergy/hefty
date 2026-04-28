@@ -753,7 +753,7 @@ const ProjectContractsPage = () => {
 
   const contractList = Array.isArray(contracts.data) ? contracts.data : []
 
-  const handleRowClick = (contractId: number) => {
+  const handleProjectContractsRowClick = (contractId: number) => {
     navigate(`/projects/${projectId}/contracts/${contractId}`)
   }
 
@@ -904,7 +904,7 @@ const ProjectContractsPage = () => {
             <ContractCard
               key={contract.contract_id}
               contract={contract}
-              onContractClick={handleRowClick}
+              onContractClick={handleProjectContractsRowClick}
               onVoiceChat={handleVoiceChat}
               onDeleteContract={handleDeleteContract}
             />

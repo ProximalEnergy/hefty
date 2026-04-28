@@ -496,7 +496,7 @@ const PlotlyPlot = ({
     }
   }
 
-  const handleClick = (e: Readonly<PlotMouseEvent>) => {
+  const handlePlotlyPlotClick = (e: Readonly<PlotMouseEvent>) => {
     if (allowPinning && pinModeActive && lastHoverEvent.current) {
       const getVal = (
         val: Plotly.Datum,
@@ -747,7 +747,7 @@ const PlotlyPlot = ({
         config={merge({}, configTemplate, config)}
         style={{ width: '100%', height: '100%', overflow: 'hidden' }}
         useResizeHandler={true}
-        onClick={handleClick}
+        onClick={handlePlotlyPlotClick}
         onHover={handleHover}
         onRelayout={onRelayout}
       />

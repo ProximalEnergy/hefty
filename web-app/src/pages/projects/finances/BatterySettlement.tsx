@@ -692,7 +692,7 @@ const BatterySettlementPage = () => {
     }
   }
 
-  const handleSendMessage = () => {
+  const handleBatterySettlementSendMessage = () => {
     if (!inputValue.trim() || isStreaming) return
     startAnalysis(inputValue)
   }
@@ -1014,7 +1014,7 @@ const BatterySettlementPage = () => {
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' && !event.shiftKey) {
                           event.preventDefault()
-                          handleSendMessage()
+                          handleBatterySettlementSendMessage()
                         }
                       }}
                       minRows={2}
@@ -1025,7 +1025,7 @@ const BatterySettlementPage = () => {
                           disabled={!inputValue.trim() || isAnalyzing}
                           size="sm"
                           variant="transparent"
-                          onClick={handleSendMessage}
+                          onClick={handleBatterySettlementSendMessage}
                         >
                           <IconSend width="100%" />
                         </ActionIcon>

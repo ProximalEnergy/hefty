@@ -140,7 +140,7 @@ export const BlockHeader = ({
   ])
 
   useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
+    const handleBlockHeaderWheel = (e: WheelEvent) => {
       e.preventDefault()
       setIsLive(false) // Zooming disables live mode
 
@@ -181,14 +181,21 @@ export const BlockHeader = ({
 
     const sliderElement = sliderContainerRef.current
     if (sliderElement) {
-      sliderElement.addEventListener('wheel', handleWheel as EventListener, {
-        passive: false,
-      })
+      sliderElement.addEventListener(
+        'wheel',
+        handleBlockHeaderWheel as EventListener,
+        {
+          passive: false,
+        },
+      )
     }
 
     return () => {
       if (sliderElement) {
-        sliderElement.removeEventListener('wheel', handleWheel as EventListener)
+        sliderElement.removeEventListener(
+          'wheel',
+          handleBlockHeaderWheel as EventListener,
+        )
       }
     }
   }, [

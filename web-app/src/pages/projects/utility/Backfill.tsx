@@ -139,7 +139,7 @@ const BackfillPage = () => {
   } = useSubmitBackfill()
 
   // Define the submission handler
-  const handleSubmit = (values: BackfillFormValues) => {
+  const handleBackfillSubmit = (values: BackfillFormValues) => {
     if (!values.project_id) {
       console.error('ProjectId is missing!')
       return
@@ -205,7 +205,7 @@ const BackfillPage = () => {
         p="md"
         radius="md"
         component="form"
-        onSubmit={form.onSubmit(handleSubmit, (validationErrors) => {
+        onSubmit={form.onSubmit(handleBackfillSubmit, (validationErrors) => {
           console.error('--- Validation Failed ---')
           console.error('Validation Errors:', validationErrors)
           if (

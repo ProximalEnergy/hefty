@@ -24,7 +24,7 @@ export function QuotedMessage({
   // Replace image placeholders [IMG:0], [IMG:1], etc. with "[image]" and add newline after
   const processedBody = parentMessageBody.replace(/\[IMG:\d+\]/g, '[image]\n')
 
-  const handleClick = () => {
+  const handleQuotedMessageClick = () => {
     if (parentMessageId && onParentMessageClick) {
       onParentMessageClick(parentMessageId)
     }
@@ -35,7 +35,7 @@ export function QuotedMessage({
   return (
     <Paper
       p="xs"
-      onClick={isClickable ? handleClick : undefined}
+      onClick={isClickable ? handleQuotedMessageClick : undefined}
       style={{
         backgroundColor:
           colorScheme === 'dark' ? theme.colors.dark[6] : theme.white,

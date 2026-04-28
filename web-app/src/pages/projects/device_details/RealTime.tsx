@@ -244,7 +244,7 @@ const RealTime = ({
   const availableGroups = new Set(latestData?.device_names_y)
   const canGroup = availableGroups.size > 1
 
-  const handleClick = (event: Readonly<PlotMouseEvent>) => {
+  const handleRealtimeClick = (event: Readonly<PlotMouseEvent>) => {
     if (!event.points?.[0]) {
       return
     }
@@ -916,7 +916,7 @@ const RealTime = ({
           <PlotlyPlot
             data={trace}
             layout={layout}
-            onClick={handleClick}
+            onClick={handleRealtimeClick}
             isLoading={data.isLoading}
             error={data.error}
             colorscale={
@@ -956,7 +956,7 @@ const GroupNavigation = ({
     }
   }
 
-  const handlePrevious = () => {
+  const handleRealtimePrevious = () => {
     const groups = Array.from(availableGroups)
     const currentIndex = groups.indexOf(groupBy || '')
     if (currentIndex > 0) {
@@ -964,7 +964,7 @@ const GroupNavigation = ({
     }
   }
 
-  const handleNext = () => {
+  const handleRealtimeNext = () => {
     const groups = Array.from(availableGroups)
     const currentIndex = groups.indexOf(groupBy || '')
     if (currentIndex < groups.length - 1) {
@@ -991,7 +991,7 @@ const GroupNavigation = ({
       <Button
         variant={GROUP_BUTTON_VARIANT}
         px={GROUP_BUTTON_PX}
-        onClick={handlePrevious}
+        onClick={handleRealtimePrevious}
         disabled={groupFirstOrPrevDisabled}
       >
         <IconChevronLeft />
@@ -1010,7 +1010,7 @@ const GroupNavigation = ({
       <Button
         variant={GROUP_BUTTON_VARIANT}
         px={GROUP_BUTTON_PX}
-        onClick={handleNext}
+        onClick={handleRealtimeNext}
         disabled={groupNextOrLastDisabled}
       >
         <IconChevronRight />

@@ -51,7 +51,7 @@ const DroneProviders: React.FC = () => {
     },
   })
 
-  const handleOpenModal = () => {
+  const handleDroneProvidersOpenModal = () => {
     const nextId =
       providers && providers.length > 0
         ? Math.max(...providers.map((p) => p.drone_provider_id)) + 1
@@ -64,13 +64,13 @@ const DroneProviders: React.FC = () => {
     open()
   }
 
-  const handleOpenEditModal = (provider: DroneProvider) => {
+  const handleDroneProvidersOpenEditModal = (provider: DroneProvider) => {
     setSelectedProvider(provider)
     editForm.setValues(provider)
     openEdit()
   }
 
-  const handleOpenDeleteModal = (provider: DroneProvider) => {
+  const handleDroneProvidersOpenDeleteModal = (provider: DroneProvider) => {
     setSelectedProvider(provider)
     openDelete()
   }
@@ -86,7 +86,7 @@ const DroneProviders: React.FC = () => {
     closeEdit()
   })
 
-  const handleDeleteSubmit = async () => {
+  const handleDroneProvidersDeleteSubmit = async () => {
     if (selectedProvider) {
       await deleteDroneProvider.mutateAsync(selectedProvider.drone_provider_id)
       closeDelete()
@@ -118,7 +118,9 @@ const DroneProviders: React.FC = () => {
                 <Table.Td>{provider.name_short}</Table.Td>
                 <Table.Td>{provider.name_long}</Table.Td>
                 <Table.Td>
-                  <ActionIcon onClick={() => handleOpenEditModal(provider)}>
+                  <ActionIcon
+                    onClick={() => handleDroneProvidersOpenEditModal(provider)}
+                  >
                     <IconPencil />
                   </ActionIcon>
                 </Table.Td>
@@ -129,7 +131,7 @@ const DroneProviders: React.FC = () => {
       ) : (
         <Text>No drone providers found.</Text>
       )}
-      <Button onClick={handleOpenModal}>Add Provider</Button>
+      <Button onClick={handleDroneProvidersOpenModal}>Add Provider</Button>
       <Modal opened={isModalOpen} onClose={close} title="Add Drone Provider">
         <form onSubmit={handleSubmit}>
           <Stack>
@@ -168,7 +170,9 @@ const DroneProviders: React.FC = () => {
             <Group justify="space-between">
               <Button
                 color="red"
-                onClick={() => handleOpenDeleteModal(selectedProvider!)}
+                onClick={() =>
+                  handleDroneProvidersOpenDeleteModal(selectedProvider!)
+                }
               >
                 <IconTrash />
               </Button>
@@ -195,7 +199,7 @@ const DroneProviders: React.FC = () => {
             </Button>
             <Button
               color="red"
-              onClick={handleDeleteSubmit}
+              onClick={handleDroneProvidersDeleteSubmit}
               loading={deleteDroneProvider.isPending}
             >
               Delete

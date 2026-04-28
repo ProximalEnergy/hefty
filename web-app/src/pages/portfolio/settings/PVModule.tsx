@@ -448,13 +448,13 @@ const PVModuleSettings = () => {
   })
 
   // --- Handlers  ---
-  const handleManufacturerChange = (value: string | null) => {
+  const handlePvModuleManufacturerChange = (value: string | null) => {
     setSelectedManufacturer(value || '')
     setSelectedModel('')
     setSelectedModuleId(null)
   }
 
-  const handleModelChange = (value: string | null) => {
+  const handlePvModuleModelChange = (value: string | null) => {
     setSelectedModel(value || '')
     if (dataSource === 'manual') {
       return
@@ -740,7 +740,7 @@ const PVModuleSettings = () => {
   const createOrUpdatePVModuleMutation = useCreateOrUpdatePVModuleMutation()
 
   // Form submission handler
-  const handleSubmit = async (values: typeof form.values) => {
+  const handlePvModuleSubmit = async (values: typeof form.values) => {
     // Clear any validation error when form is submitted successfully
     setValidationError(null)
     try {
@@ -880,7 +880,7 @@ const PVModuleSettings = () => {
         p="md"
         radius="md"
         component="form"
-        onSubmit={form.onSubmit(handleSubmit, (_validationErrors) => {
+        onSubmit={form.onSubmit(handlePvModuleSubmit, (_validationErrors) => {
           // Clear any previous validation error message
           setValidationError(
             'Please check the form above for missing or values which are not allowed',
@@ -955,8 +955,8 @@ const PVModuleSettings = () => {
                 <EquipmentFilter
                   useGetManufacturers={getManufacturersHook}
                   useGetModels={getModelsHook}
-                  onManufacturerChange={handleManufacturerChange}
-                  onModelChange={handleModelChange}
+                  onManufacturerChange={handlePvModuleManufacturerChange}
+                  onModelChange={handlePvModuleModelChange}
                   initialManufacturer={selectedManufacturer}
                   initialModel={selectedModel}
                   company_id={userCompanyId}
@@ -1494,7 +1494,7 @@ const PVModuleSettings = () => {
                           if (isUpdate) {
                             setModalOpened(true)
                           } else {
-                            form.onSubmit(handleSubmit)()
+                            form.onSubmit(handlePvModuleSubmit)()
                           }
                         }}
                         loading={formSubmitting}
@@ -1515,7 +1515,7 @@ const PVModuleSettings = () => {
                     opened={modalOpened}
                     onClose={() => setModalOpened(false)}
                     onConfirm={() => {
-                      form.onSubmit(handleSubmit)()
+                      form.onSubmit(handlePvModuleSubmit)()
                       setModalOpened(false)
                     }}
                     title="Confirm Update"

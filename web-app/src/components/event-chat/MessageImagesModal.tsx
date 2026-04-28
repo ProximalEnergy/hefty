@@ -57,7 +57,7 @@ export function MessageImagesModal({
 
   const selectedImage = images[selectedIndex]
 
-  const handlePrevious = () => {
+  const handleMessageImagesPrevious = () => {
     if (selectedIndex > 0) {
       onSelectIndex(selectedIndex - 1)
       setZoom(1)
@@ -65,7 +65,7 @@ export function MessageImagesModal({
     }
   }
 
-  const handleNext = () => {
+  const handleMessageImagesNext = () => {
     if (selectedIndex < images.length - 1) {
       onSelectIndex(selectedIndex + 1)
       setZoom(1)
@@ -73,7 +73,7 @@ export function MessageImagesModal({
     }
   }
 
-  const handleDownload = async () => {
+  const handleMessageImagesDownload = async () => {
     if (!selectedImage || isDownloading) return
 
     setIsDownloading(true)
@@ -114,14 +114,14 @@ export function MessageImagesModal({
     setPosition({ x: 0, y: 0 })
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMessageImagesMouseDown = (e: React.MouseEvent) => {
     if (zoom > 1) {
       setIsDragging(true)
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
     }
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMessageImagesMouseMove = (e: React.MouseEvent) => {
     if (isDragging && zoom > 1) {
       setPosition({
         x: e.clientX - dragStart.x,
@@ -130,11 +130,11 @@ export function MessageImagesModal({
     }
   }
 
-  const handleMouseUp = () => {
+  const handleMessageImagesMouseUp = () => {
     setIsDragging(false)
   }
 
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleMessageImagesWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault()
       const delta = e.deltaY > 0 ? -0.1 : 0.1
@@ -210,7 +210,7 @@ export function MessageImagesModal({
               <ActionIcon
                 variant="subtle"
                 color="gray"
-                onClick={handleDownload}
+                onClick={handleMessageImagesDownload}
                 disabled={isDownloading}
               >
                 {isDownloading ? (
@@ -272,7 +272,7 @@ export function MessageImagesModal({
                 zIndex: 10,
                 opacity: 0.8,
               }}
-              onClick={handlePrevious}
+              onClick={handleMessageImagesPrevious}
             >
               <IconChevronLeft size={24} />
             </ActionIcon>
@@ -293,11 +293,11 @@ export function MessageImagesModal({
               overflow: 'hidden',
               cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
             }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
+            onMouseDown={handleMessageImagesMouseDown}
+            onMouseMove={handleMessageImagesMouseMove}
+            onMouseUp={handleMessageImagesMouseUp}
+            onMouseLeave={handleMessageImagesMouseUp}
+            onWheel={handleMessageImagesWheel}
           >
             <div
               style={{
@@ -337,7 +337,7 @@ export function MessageImagesModal({
                 zIndex: 10,
                 opacity: 0.8,
               }}
-              onClick={handleNext}
+              onClick={handleMessageImagesNext}
             >
               <IconChevronRight size={24} />
             </ActionIcon>

@@ -663,7 +663,7 @@ const VoiceChatModal = ({
     setIsSpeaking(true)
   }
 
-  const handleClose = () => {
+  const handleVoiceChatModalClose = () => {
     disconnectFromSession()
     setSession(null) // Clear session when modal is closed
     onClose()
@@ -705,7 +705,7 @@ const VoiceChatModal = ({
       </style>
       <Modal
         opened={opened}
-        onClose={handleClose}
+        onClose={handleVoiceChatModalClose}
         title={
           <Group gap="sm">
             <Text fw={600}>Contract Chat</Text>

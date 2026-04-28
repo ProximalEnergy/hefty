@@ -101,7 +101,7 @@ const PowerPlotBESS = () => {
   const [interval, setInterval] = useState<string>('5min')
   const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
 
-  const handleDefaultView = () => {
+  const handleBessProjectHomeDefaultView = () => {
     const {
       startTime: newStartTime,
       endTime: newEndTime,
@@ -114,7 +114,9 @@ const PowerPlotBESS = () => {
     setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
   }
 
-  const handleTimeRangeChange = (range: '48h' | '7d' | 'yesterday') => {
+  const handleBessProjectHomeTimeRangeChange = (
+    range: '48h' | '7d' | 'yesterday',
+  ) => {
     let start = dayjs()
     const end = dayjs()
 
@@ -134,7 +136,7 @@ const PowerPlotBESS = () => {
     setInterval(getInterval(start.toISOString(), end.toISOString()))
   }
 
-  const handlePan = (direction: 'left' | 'right') => {
+  const handleBessProjectHomePan = (direction: 'left' | 'right') => {
     const range = dayjs(endTime).diff(dayjs(startTime), 'minute')
     const newStartTime =
       direction === 'left'
@@ -149,7 +151,9 @@ const PowerPlotBESS = () => {
     setIsAutoUpdating(false) // Disable auto-update when user manually pans
   }
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handleBessProjectHomeRelayout = (
+    event: Readonly<PlotRelayoutEvent>,
+  ) => {
     const newStartTime = event['xaxis.range[0]']
     const newEndTime = event['xaxis.range[1]']
 
@@ -420,14 +424,18 @@ const PowerPlotBESS = () => {
             <Button
               size="xs"
               variant="outline"
-              onClick={() => handlePan('left')}
+              onClick={() => handleBessProjectHomePan('left')}
             >
               <IconArrowLeft />
             </Button>
           </Tooltip>
           <Button.Group>
             <Tooltip label="Reset to the last 24 hours. You can also zoom by scrolling.">
-              <Button size="xs" variant="outline" onClick={handleDefaultView}>
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={handleBessProjectHomeDefaultView}
+              >
                 Last 24 Hours
               </Button>
             </Tooltip>
@@ -440,13 +448,21 @@ const PowerPlotBESS = () => {
                 </Tooltip>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item onClick={() => handleTimeRangeChange('yesterday')}>
+                <Menu.Item
+                  onClick={() =>
+                    handleBessProjectHomeTimeRangeChange('yesterday')
+                  }
+                >
                   Yesterday
                 </Menu.Item>
-                <Menu.Item onClick={() => handleTimeRangeChange('48h')}>
+                <Menu.Item
+                  onClick={() => handleBessProjectHomeTimeRangeChange('48h')}
+                >
                   Last 48 Hours
                 </Menu.Item>
-                <Menu.Item onClick={() => handleTimeRangeChange('7d')}>
+                <Menu.Item
+                  onClick={() => handleBessProjectHomeTimeRangeChange('7d')}
+                >
                   Last 7 Days
                 </Menu.Item>
               </Menu.Dropdown>
@@ -456,7 +472,7 @@ const PowerPlotBESS = () => {
             <Button
               size="xs"
               variant="outline"
-              onClick={() => handlePan('right')}
+              onClick={() => handleBessProjectHomePan('right')}
             >
               <IconArrowRight />
             </Button>
@@ -468,7 +484,7 @@ const PowerPlotBESS = () => {
         data={powerPlotData}
         xAxisTimeZone={projectTimeZone}
         layout={powerPlotLayout}
-        onRelayout={handleRelayout}
+        onRelayout={handleBessProjectHomeRelayout}
         isLoading={data.isLoading}
         error={data.error}
         config={{ responsive: true, scrollZoom: true }}

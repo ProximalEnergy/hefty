@@ -29,7 +29,7 @@ const DateCombobox: React.FC<DateComboboxProps> = ({
   })
 
   // Handle input change
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleComboboxInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     let value = event.target.value
 
     // Strip all "0"s from the beginning of the string
@@ -101,7 +101,7 @@ const DateCombobox: React.FC<DateComboboxProps> = ({
           <InputBase
             ref={inputRef}
             value={inputValue}
-            onChange={handleInputChange}
+            onChange={handleComboboxInputChange}
             placeholder="Search range..."
             flex={1}
           />

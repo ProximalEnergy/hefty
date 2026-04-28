@@ -38,7 +38,7 @@ const EquipmentAnalysisTrackerBlockPage = () => {
     endRequest = end && end.tz(project.data.time_zone, true).toISOString()
   }
 
-  const handleBlockDropdownChange = (value: string | null) => {
+  const handleTrackerBlockDropdownChange = (value: string | null) => {
     if (value) {
       setSearchParams({
         deviceId: value,
@@ -114,7 +114,7 @@ const EquipmentAnalysisTrackerBlockPage = () => {
         <BlockDropdown
           data={blockDropdown.data}
           value={deviceId}
-          onChange={handleBlockDropdownChange}
+          onChange={handleTrackerBlockDropdownChange}
           buttonPx={2}
         />
         <AdvancedDatePicker

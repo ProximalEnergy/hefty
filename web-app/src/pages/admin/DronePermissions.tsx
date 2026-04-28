@@ -86,13 +86,15 @@ const DronePermissions: React.FC = () => {
     },
   })
 
-  const handleOpenEditModal = (permission: DronePermission) => {
+  const handleDronePermissionsOpenEditModal = (permission: DronePermission) => {
     setSelectedPermission(permission)
     editForm.setValues(permission)
     openEdit()
   }
 
-  const handleOpenDeleteModal = (permission: DronePermission) => {
+  const handleDronePermissionsOpenDeleteModal = (
+    permission: DronePermission,
+  ) => {
     setSelectedPermission(permission)
     openDelete()
   }
@@ -111,7 +113,7 @@ const DronePermissions: React.FC = () => {
     closeEdit()
   })
 
-  const handleDeleteSubmit = async () => {
+  const handleDronePermissionsDeleteSubmit = async () => {
     if (selectedPermission) {
       await deleteDronePermission.mutateAsync(selectedPermission)
       closeDelete()
@@ -168,7 +170,11 @@ const DronePermissions: React.FC = () => {
                   </Table.Td>
                   <Table.Td>{permission.can_view.toString()}</Table.Td>
                   <Table.Td>
-                    <ActionIcon onClick={() => handleOpenEditModal(permission)}>
+                    <ActionIcon
+                      onClick={() =>
+                        handleDronePermissionsOpenEditModal(permission)
+                      }
+                    >
                       <IconPencil />
                     </ActionIcon>
                   </Table.Td>
@@ -236,7 +242,9 @@ const DronePermissions: React.FC = () => {
             <Group justify="space-between">
               <Button
                 color="red"
-                onClick={() => handleOpenDeleteModal(selectedPermission!)}
+                onClick={() =>
+                  handleDronePermissionsOpenDeleteModal(selectedPermission!)
+                }
               >
                 <IconTrash />
               </Button>
@@ -263,7 +271,7 @@ const DronePermissions: React.FC = () => {
             </Button>
             <Button
               color="red"
-              onClick={handleDeleteSubmit}
+              onClick={handleDronePermissionsDeleteSubmit}
               loading={deleteDronePermission.isPending}
             >
               Delete

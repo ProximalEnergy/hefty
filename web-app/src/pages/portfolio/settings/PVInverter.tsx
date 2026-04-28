@@ -389,7 +389,7 @@ const PVInverterSettings = () => {
   }
 
   // --- Handlers  ---
-  const handleManufacturerChange = (value: string | null) => {
+  const handlePvInverterManufacturerChange = (value: string | null) => {
     setFieldErrors((prev) => {
       if (!prev.manufacturer) {
         return prev
@@ -403,7 +403,7 @@ const PVInverterSettings = () => {
     setSelectedInverterId(null)
     resetFormFields()
   }
-  const handleModelChange = (value: string | null) => {
+  const handlePvInverterModelChange = (value: string | null) => {
     setFieldErrors((prev) => {
       if (!prev.model) {
         return prev
@@ -554,7 +554,7 @@ const PVInverterSettings = () => {
   // Form submission handler
   // Create or Update Inverter mutation
   const createInverterMutation = useCreateInverterMutation()
-  const handleSubmit = async () => {
+  const handlePvInverterSubmit = async () => {
     try {
       setFieldErrors({})
       setFormSubmitting(true)
@@ -791,8 +791,8 @@ const PVInverterSettings = () => {
                 <EquipmentFilter
                   useGetManufacturers={useGetProximalInverterManufacturers}
                   useGetModels={useGetProximalInverterModels}
-                  onManufacturerChange={handleManufacturerChange}
-                  onModelChange={handleModelChange}
+                  onManufacturerChange={handlePvInverterManufacturerChange}
+                  onModelChange={handlePvInverterModelChange}
                   initialManufacturer={selectedManufacturer}
                   initialModel={selectedModel}
                   company_id={userCompanyId}
@@ -1658,7 +1658,7 @@ const PVInverterSettings = () => {
                         ) {
                           setModalOpened(true)
                         } else {
-                          handleSubmit()
+                          handlePvInverterSubmit()
                         }
                       }}
                       loading={formSubmitting}
@@ -1684,7 +1684,7 @@ const PVInverterSettings = () => {
                     opened={modalOpened}
                     onClose={() => setModalOpened(false)}
                     onConfirm={() => {
-                      handleSubmit()
+                      handlePvInverterSubmit()
                       setModalOpened(false)
                     }}
                     title="Confirm Update"

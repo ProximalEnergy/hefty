@@ -141,7 +141,10 @@ const CustomDashMenu = () => {
     openDuplicate()
   }
 
-  const handleDeleteClick = (dashboardId: string, dashboardName: string) => {
+  const handleCustomDashMenuDeleteClick = (
+    dashboardId: string,
+    dashboardName: string,
+  ) => {
     setDashboardToDelete({ id: dashboardId, name: dashboardName })
     openDelete()
   }
@@ -216,7 +219,7 @@ const CustomDashMenu = () => {
     }
   }
 
-  const handleConfirmDelete = async () => {
+  const handleCustomDashMenuConfirmDelete = async () => {
     if (!dashboardToDelete || !projectId) return
 
     try {
@@ -398,7 +401,7 @@ const CustomDashMenu = () => {
                       {...ACTION_ICON_PROPS}
                       color="red"
                       onClick={() =>
-                        handleDeleteClick(
+                        handleCustomDashMenuDeleteClick(
                           dashboard.dashboard_id,
                           dashboard.dashboard_name,
                         )
@@ -537,7 +540,7 @@ const CustomDashMenu = () => {
             </Button>
             <Button
               color="red"
-              onClick={handleConfirmDelete}
+              onClick={handleCustomDashMenuConfirmDelete}
               loading={deleteUserDashboardMutation.isPending}
             >
               Delete

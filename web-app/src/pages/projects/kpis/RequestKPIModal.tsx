@@ -67,7 +67,7 @@ const RequestKPIModal = ({ opened, onClose }: RequestKPIModalProps) => {
     refetch()
   }
 
-  const handleSubmit = async () => {
+  const handleRequestKpiSubmit = async () => {
     if (!kpiName || !selectedContract || !description) {
       // Show error message
       return
@@ -144,7 +144,7 @@ Contract ID: ${selectedContract}`,
             minRows={3}
             required
           />
-          <Button onClick={handleSubmit}>Submit Request</Button>
+          <Button onClick={handleRequestKpiSubmit}>Submit Request</Button>
         </Stack>
       </Modal>
 

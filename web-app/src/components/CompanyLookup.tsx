@@ -168,7 +168,7 @@ export default function CompanyLookup({
     return companyOptions.some((opt) => opt.label.trim().toLowerCase() === q)
   }, [companyOptions, companyQuery])
 
-  const handleCreate = async () => {
+  const handleCompanyLookupCreate = async () => {
     const nameLong = companyQuery.trim()
     if (!nameLong) return
     const nameShort = nameLong
@@ -229,7 +229,7 @@ export default function CompanyLookup({
         !hasExactMatch && (
           <Button
             variant="light"
-            onClick={handleCreate}
+            onClick={handleCompanyLookupCreate}
             loading={createCompany.isPending}
           >
             Create company “{companyQuery.trim()}”

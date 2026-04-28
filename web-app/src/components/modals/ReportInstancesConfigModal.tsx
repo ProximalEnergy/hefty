@@ -64,7 +64,7 @@ export const ReportInstancesConfigModal = ({
 
   const currentStates = reportStates ?? initialStates
 
-  const handleClose = () => {
+  const handleReportInstancesModalClose = () => {
     setReportStates(null)
     onClose()
   }
@@ -82,7 +82,7 @@ export const ReportInstancesConfigModal = ({
     })
   }
 
-  const handleSave = async () => {
+  const handleReportInstancesConfigSave = async () => {
     if (!reportTypes.data) return
 
     // Calculate delta: only include instances that changed
@@ -130,7 +130,7 @@ export const ReportInstancesConfigModal = ({
         color: 'green',
       })
 
-      handleClose()
+      handleReportInstancesModalClose()
     } catch (error) {
       console.error('Failed to update report instances', error)
       notifications.show({
@@ -146,7 +146,7 @@ export const ReportInstancesConfigModal = ({
   return (
     <Modal
       opened={opened}
-      onClose={handleClose}
+      onClose={handleReportInstancesModalClose}
       title="Configure Report Instances"
       size="lg"
     >
@@ -191,10 +191,13 @@ export const ReportInstancesConfigModal = ({
           </ScrollArea>
 
           <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={handleClose}>
+            <Button variant="default" onClick={handleReportInstancesModalClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} loading={updateMutation.isPending}>
+            <Button
+              onClick={handleReportInstancesConfigSave}
+              loading={updateMutation.isPending}
+            >
               Save
             </Button>
           </Group>

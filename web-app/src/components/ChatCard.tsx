@@ -216,7 +216,7 @@ export function ChatCard({
   if (!projectId) return null
 
   const handleQuestionSelect = (question: string) => {
-    handleSendMessage(question)
+    handleChatCardSendMessage(question)
   }
 
   if (!project.data) return null
@@ -246,7 +246,7 @@ export function ChatCard({
     )
   }
 
-  const handleSendMessage = async (message: string) => {
+  const handleChatCardSendMessage = async (message: string) => {
     const token = await getToken({ template: 'default' })
 
     if (message) {
@@ -453,7 +453,7 @@ export function ChatCard({
         onKeyDown={(event) => {
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault()
-            handleSendMessage(inputValue)
+            handleChatCardSendMessage(inputValue)
           }
         }}
         minRows={1}
@@ -465,7 +465,7 @@ export function ChatCard({
             variant="transparent"
           >
             <IconSend
-              onClick={() => handleSendMessage(inputValue)}
+              onClick={() => handleChatCardSendMessage(inputValue)}
               width={'100%'}
             />
           </ActionIcon>

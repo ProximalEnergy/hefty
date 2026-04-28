@@ -443,7 +443,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
     return { cleaned, offset: offset - trimOffset }
   }
 
-  const handleSendMessage = async () => {
+  const handleEventChatSendMessage = async () => {
     if (
       (!inputValue.trim() &&
         pendingImages.length === 0 &&
@@ -590,7 +590,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
     )
   }
 
-  const handleEditClick = (messageId: number) => {
+  const handleEventChatEditClick = (messageId: number) => {
     const message = organizedMessages.find(
       (m) => m.event_message_id === messageId,
     )
@@ -818,7 +818,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
     )
   }
 
-  const handleDeleteClick = (messageId: number) => {
+  const handleEventChatDeleteClick = (messageId: number) => {
     const message = organizedMessages.find(
       (m) => m.event_message_id === messageId,
     )
@@ -1236,7 +1236,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
           setInlineImages={setInlineImages}
           pendingImages={pendingImages}
           setPendingImages={setPendingImages}
-          onSendMessage={handleSendMessage}
+          onSendMessage={handleEventChatSendMessage}
           onCancelReply={handleCancelReply}
           isPending={createMessage.isPending}
           savedVisibilityPreference={savedVisibilityPreference}
@@ -1309,8 +1309,8 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
           reactionsByMessageId={reactionsByMessageId}
           handleReactionClick={handleReactionClick}
           handleReplyClick={handleReplyClick}
-          handleEditClick={handleEditClick}
-          handleDeleteClick={handleDeleteClick}
+          handleEditClick={handleEventChatEditClick}
+          handleDeleteClick={handleEventChatDeleteClick}
           emojiReactions={emojiReactions}
           colorScheme={colorScheme}
           theme={theme}

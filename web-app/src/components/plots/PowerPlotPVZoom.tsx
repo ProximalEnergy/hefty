@@ -70,7 +70,7 @@ const PowerPlotPVZoom = () => {
   const [interval, setInterval] = useState<string>('5min')
   const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
 
-  const handleDefaultView = () => {
+  const handlePowerPlotDefaultView = () => {
     const {
       startTime: newStartTime,
       endTime: newEndTime,
@@ -83,7 +83,9 @@ const PowerPlotPVZoom = () => {
     setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
   }
 
-  const handleTimeRangeChange = (range: '48h' | '7d' | 'yesterday') => {
+  const handlePowerPlotTimeRangeChange = (
+    range: '48h' | '7d' | 'yesterday',
+  ) => {
     let start = dayjs()
     const end = dayjs()
 
@@ -250,7 +252,9 @@ const PowerPlotPVZoom = () => {
     return meterMWh / expectedMWh
   })()
 
-  const handleRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
+  const handlePowerPlotRelayout = (
+    event: Readonly<Plotly.PlotRelayoutEvent>,
+  ) => {
     const newStartTime = event['xaxis.range[0]']
     const newEndTime = event['xaxis.range[1]']
 
@@ -285,7 +289,7 @@ const PowerPlotPVZoom = () => {
     }
   }
 
-  const handlePan = (direction: 'left' | 'right') => {
+  const handlePowerPlotPan = (direction: 'left' | 'right') => {
     const range = dayjs(endTime).diff(dayjs(startTime), 'minute')
     const newStartTime =
       direction === 'left'
@@ -534,13 +538,21 @@ const PowerPlotPVZoom = () => {
             </Tooltip>
           )}
           <Tooltip label="Pan Left">
-            <Button size="xs" variant="light" onClick={() => handlePan('left')}>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={() => handlePowerPlotPan('left')}
+            >
               <IconArrowLeft />
             </Button>
           </Tooltip>
           <Button.Group>
             <Tooltip label="Reset to the last 24 hours. You can also zoom by scrolling.">
-              <Button size="xs" variant="light" onClick={handleDefaultView}>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={handlePowerPlotDefaultView}
+              >
                 Last 24 Hours
               </Button>
             </Tooltip>
@@ -553,13 +565,17 @@ const PowerPlotPVZoom = () => {
                 </Tooltip>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item onClick={() => handleTimeRangeChange('yesterday')}>
+                <Menu.Item
+                  onClick={() => handlePowerPlotTimeRangeChange('yesterday')}
+                >
                   Yesterday
                 </Menu.Item>
-                <Menu.Item onClick={() => handleTimeRangeChange('48h')}>
+                <Menu.Item
+                  onClick={() => handlePowerPlotTimeRangeChange('48h')}
+                >
                   Last 48 Hours
                 </Menu.Item>
-                <Menu.Item onClick={() => handleTimeRangeChange('7d')}>
+                <Menu.Item onClick={() => handlePowerPlotTimeRangeChange('7d')}>
                   Last 7 Days
                 </Menu.Item>
               </Menu.Dropdown>
@@ -569,7 +585,7 @@ const PowerPlotPVZoom = () => {
             <Button
               size="xs"
               variant="light"
-              onClick={() => handlePan('right')}
+              onClick={() => handlePowerPlotPan('right')}
             >
               <IconArrowRight />
             </Button>
@@ -581,7 +597,7 @@ const PowerPlotPVZoom = () => {
         data={plotData}
         xAxisTimeZone={projectTimeZone}
         layout={meterPowerPlotLayout}
-        onRelayout={handleRelayout}
+        onRelayout={handlePowerPlotRelayout}
         // Use the loading state from the hook
         isLoading={meterAndExpectedPower.isLoading || project.isLoading}
         error={meterAndExpectedPower.error}

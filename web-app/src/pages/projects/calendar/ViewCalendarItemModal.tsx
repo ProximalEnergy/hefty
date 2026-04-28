@@ -189,7 +189,7 @@ export const ViewCalendarItemModal = ({
     )
   }, [categories, item])
 
-  const handleEditClick = () => {
+  const handleViewCalendarItemEditClick = () => {
     if (item) {
       onEdit(item, 'item')
     }
@@ -201,7 +201,7 @@ export const ViewCalendarItemModal = ({
     }
   }
 
-  const handleDeleteClick = async () => {
+  const handleViewCalendarItemDeleteClick = async () => {
     if (!item || !projectId) return
 
     try {
@@ -425,7 +425,10 @@ export const ViewCalendarItemModal = ({
                   >
                     Delete Occurrence
                   </Menu.Item>
-                  <Menu.Item onClick={handleDeleteClick} color="red">
+                  <Menu.Item
+                    onClick={handleViewCalendarItemDeleteClick}
+                    color="red"
+                  >
                     Delete Series
                   </Menu.Item>
                 </Menu.Dropdown>
@@ -434,7 +437,7 @@ export const ViewCalendarItemModal = ({
               <Button
                 variant="filled"
                 color="red"
-                onClick={handleDeleteClick}
+                onClick={handleViewCalendarItemDeleteClick}
                 loading={deleteCalendarEvent.isPending}
               >
                 Delete
@@ -450,7 +453,7 @@ export const ViewCalendarItemModal = ({
                     <Button>Edit</Button>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    <Menu.Item onClick={handleEditClick}>
+                    <Menu.Item onClick={handleViewCalendarItemEditClick}>
                       Edit Occurrence
                     </Menu.Item>
                     <Menu.Item onClick={handleEditSeriesClick}>
@@ -459,7 +462,9 @@ export const ViewCalendarItemModal = ({
                   </Menu.Dropdown>
                 </Menu>
               ) : (
-                <Button onClick={handleEditClick}>Edit Item</Button>
+                <Button onClick={handleViewCalendarItemEditClick}>
+                  Edit Item
+                </Button>
               )}
             </Group>
           </Group>

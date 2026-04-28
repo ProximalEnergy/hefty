@@ -848,7 +848,7 @@ const ProjectPlotCard = ({
   }
   const { yAxisTickFormat, yAxisTitle } = YAxisConfig(kpiType)
 
-  const handleClick = (event: Readonly<PlotMouseEvent>) => {
+  const handleProjectKpiTemplateClick = (event: Readonly<PlotMouseEvent>) => {
     if (!event.points?.[0]) {
       return
     }
@@ -1012,7 +1012,7 @@ const ProjectPlotCard = ({
           },
           hovermode: 'closest',
         }}
-        onClick={handleClick}
+        onClick={handleProjectKpiTemplateClick}
       />
     </CustomCard>
   )

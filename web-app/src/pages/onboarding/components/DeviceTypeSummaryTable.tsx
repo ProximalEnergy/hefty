@@ -29,7 +29,7 @@ export function DeviceTypeSummaryTable({
   const navigate = useNavigate()
   const { projectId } = useParams<{ projectId: string }>()
 
-  const handleRowClick = (row: DeviceTypeSummary) => {
+  const handleDeviceTypeSummaryRowClick = (row: DeviceTypeSummary) => {
     const route = getDeviceTypeRoute(row.deviceType)
     navigate(`/onboarding/${projectId}/device-types/${route}`)
   }
@@ -59,7 +59,7 @@ export function DeviceTypeSummaryTable({
             <Table.Tr key={row.deviceType}>
               <Table.Td style={{ padding: 0 }}>
                 <div
-                  onClick={() => handleRowClick(row)}
+                  onClick={() => handleDeviceTypeSummaryRowClick(row)}
                   style={{
                     cursor: 'pointer',
                     display: 'flex',

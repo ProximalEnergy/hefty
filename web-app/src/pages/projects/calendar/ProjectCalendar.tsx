@@ -195,7 +195,7 @@ export const ProjectCalendar = () => {
     setSearchParams,
   ])
 
-  const handleItemClick = (info: EventClickArg) => {
+  const handleProjectCalendarItemClick = (info: EventClickArg) => {
     const clickedItem = (calendarItems || []).find(
       (e) => info.event.id === e.calendar_item_id,
     )
@@ -221,14 +221,14 @@ export const ProjectCalendar = () => {
     openModal()
   }
 
-  const handleModalClose = () => {
+  const handleProjectCalendarModalClose = () => {
     closeModal()
     setSelectedItem(undefined)
     setSelectedDates(undefined)
     setSelectedOccurrenceDate(null)
   }
 
-  const handleEditClick = (
+  const handleProjectCalendarEditClick = (
     itemToEdit: CalendarEvent,
     editMode: 'item' | 'series',
   ) => {
@@ -318,7 +318,7 @@ export const ProjectCalendar = () => {
             dayCellClassNames={getDayCellClassNames}
             height="100%"
             select={handleSelect}
-            eventClick={handleItemClick}
+            eventClick={handleProjectCalendarItemClick}
             firstDay={1}
             timeZone="UTC"
             datesSet={(dateInfo) => {
@@ -333,7 +333,7 @@ export const ProjectCalendar = () => {
       </Paper>
       <CalendarItemModal
         opened={modalOpened}
-        onClose={handleModalClose}
+        onClose={handleProjectCalendarModalClose}
         item={selectedItem}
         startDate={selectedDates?.start}
         endDate={selectedDates?.end}
@@ -342,7 +342,7 @@ export const ProjectCalendar = () => {
       <ViewCalendarItemModal
         opened={viewModalOpened}
         onClose={closeViewModal}
-        onEdit={handleEditClick}
+        onEdit={handleProjectCalendarEditClick}
         onDeleteSuccess={refetchCalendarItems}
         item={selectedItem}
         occurrenceDate={selectedOccurrenceDate}

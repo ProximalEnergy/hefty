@@ -690,7 +690,7 @@ export function AdaptiveGisMap() {
   const currentViewName = viewNameMapping[currentPowerTypeId] || 'Overview' // Calculation can stay here or move too
 
   // --- Lock Toggle Handler ---
-  const handleLockToggle = () => {
+  const handleAdaptiveGisLockToggle = () => {
     if (isViewLocked) {
       // If it's already locked, unlock it.
       setIsViewLocked(false)
@@ -713,7 +713,9 @@ export function AdaptiveGisMap() {
   }
 
   // --- Handler for Locking to a specific layer from the dropdown ---
-  const handleLockToLayer = (layerName: keyof typeof layerLockConfig) => {
+  const handleAdaptiveGisLockToLayer = (
+    layerName: keyof typeof layerLockConfig,
+  ) => {
     const config = layerLockConfig[layerName]
 
     setIsViewLocked(true)
@@ -1104,7 +1106,7 @@ export function AdaptiveGisMap() {
                 <Button
                   size="compact-md"
                   variant="default"
-                  onClick={handleLockToggle}
+                  onClick={handleAdaptiveGisLockToggle}
                   leftSection={
                     isViewLocked ? (
                       <IconLock size={16} />
@@ -1143,7 +1145,9 @@ export function AdaptiveGisMap() {
                 <Menu.Item
                   key={layer}
                   onClick={() =>
-                    handleLockToLayer(layer as keyof typeof layerLockConfig)
+                    handleAdaptiveGisLockToLayer(
+                      layer as keyof typeof layerLockConfig,
+                    )
                   }
                 >
                   {layer}

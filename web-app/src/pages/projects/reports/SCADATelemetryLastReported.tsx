@@ -18,7 +18,7 @@ const SCADATelemetryLastReportedPage = () => {
     pathParams: { project_id: projectId ?? '' },
   })
 
-  const handleDownload = async () => {
+  const handleScadaTelemetryDownload = async () => {
     const result = await report.refetch()
     if (result.isError) {
       notifications.show({
@@ -69,7 +69,7 @@ const SCADATelemetryLastReportedPage = () => {
       </List>
       <Button
         leftSection={<IconDownload size={16} />}
-        onClick={handleDownload}
+        onClick={handleScadaTelemetryDownload}
         loading={report.isFetching}
         w="fit-content"
       >

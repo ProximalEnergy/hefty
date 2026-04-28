@@ -178,7 +178,7 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
   }, [project]) // oxlint-disable-line react/exhaustive-deps
   // NOTE: At the time of writing, `form` was included in the dependency array which caused infinite re-renders. This page probably needs to be refactored to use a more stable solution. See https://v7.mantine.dev/form/recipes/#set-initial-values-with-async-request for an example on how to set the form with initial values from an async request.
 
-  const handleSubmit = (values: ProjectUpdate) => {
+  const handleProjectInfoSubmit = (values: ProjectUpdate) => {
     // Only allow admins to submit changes
     if (!isUserAdmin) {
       notifications.show({
@@ -260,7 +260,7 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
           contact an administrator to make changes to this project.
         </Alert>
       )}
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit(handleProjectInfoSubmit)}>
         <Stack gap="lg">
           <Title order={3} mb="md">
             Project Information

@@ -93,7 +93,7 @@ const SensorTypes = () => {
     },
   })
 
-  const handleEdit = (sensorType: SensorType) => {
+  const handleSensorTypesEdit = (sensorType: SensorType) => {
     setEditingSensorType(sensorType)
     form.setValues({
       device_type_id: sensorType.device_type_id.toString(),
@@ -112,7 +112,7 @@ const SensorTypes = () => {
     open()
   }
 
-  const handleDeviceTypeChange = (deviceTypeId: string | null) => {
+  const handleSensorTypesDeviceTypeChange = (deviceTypeId: string | null) => {
     if (deviceTypeId && deviceTypes.data) {
       const selectedDeviceType = deviceTypes.data.find(
         (dt) => dt.device_type_id.toString() === deviceTypeId,
@@ -127,7 +127,7 @@ const SensorTypes = () => {
     }
   }
 
-  const handleSubmit = async (values: typeof form.values) => {
+  const handleSensorTypesSubmit = async (values: typeof form.values) => {
     try {
       const sensorTypeData = {
         ...values,
@@ -197,7 +197,7 @@ const SensorTypes = () => {
           <ActionIcon
             variant="subtle"
             color="blue"
-            onClick={() => handleEdit(sensorType)}
+            onClick={() => handleSensorTypesEdit(sensorType)}
           >
             <IconEdit style={{ width: 16, height: 16 }} />
           </ActionIcon>
@@ -311,7 +311,7 @@ const SensorTypes = () => {
         title={editingSensorType ? 'Edit Sensor Type' : 'Add Sensor Type'}
         size="md"
       >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        <form onSubmit={form.onSubmit(handleSensorTypesSubmit)}>
           <Stack gap="md">
             {editingSensorType && (
               <Text
@@ -345,7 +345,7 @@ const SensorTypes = () => {
                     })) || []
                   }
                   value={form.values.device_type_id}
-                  onChange={handleDeviceTypeChange}
+                  onChange={handleSensorTypesDeviceTypeChange}
                   searchable
                   clearable
                   required
@@ -482,7 +482,7 @@ const SensorTypes = () => {
             <Button
               color="red"
               onClick={() => {
-                form.onSubmit(handleSubmit)()
+                form.onSubmit(handleSensorTypesSubmit)()
               }}
               loading={updateSensorType.isPending}
             >

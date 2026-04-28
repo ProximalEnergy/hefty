@@ -319,7 +319,7 @@ function DeviceTypeCard({
 
   const hasMultipleTraces = (deviceDetails.data?.data.length ?? 0) > 1
 
-  const handlePlotClick = (event: PlotMouseEvent) => {
+  const handleVerticalDeviceDetailsPlotClick = (event: PlotMouseEvent) => {
     const { points } = event
 
     if (points.length !== 1) {
@@ -454,7 +454,7 @@ function DeviceTypeCard({
         }}
         onRelayout={onRelayout}
         isLoading={deviceDetails.isLoading}
-        onClick={handlePlotClick}
+        onClick={handleVerticalDeviceDetailsPlotClick}
         error={deviceDetails.error}
       />
     </CustomCard>

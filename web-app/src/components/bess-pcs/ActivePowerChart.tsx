@@ -208,7 +208,9 @@ export const ActivePowerChartBessPcs = ({
   const resolvedXAxisRange =
     userZoomed && xAxisRange ? xAxisRange : xAxisRangeComputed
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handleBessActivePowerRelayout = (
+    event: Readonly<PlotRelayoutEvent>,
+  ) => {
     let zoomed = false
 
     if (
@@ -307,7 +309,7 @@ export const ActivePowerChartBessPcs = ({
                 range: resolvedXAxisRange,
               },
             }}
-            onRelayout={handleRelayout}
+            onRelayout={handleBessActivePowerRelayout}
             isLoading={realtimeData.isLoading}
             error={realtimeData.error}
             noDataMessage="No data available. Required sensor type: BESS PCS AC Power"

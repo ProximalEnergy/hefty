@@ -67,13 +67,13 @@ const PVRackSettings = () => {
   const [formSubmitting, setFormSubmitting] = useState<boolean>(false)
 
   // --- Handlers  ---
-  const handleManufacturerChange = (value: string | null) => {
+  const handlePvRackManufacturerChange = (value: string | null) => {
     setSelectedManufacturer(value || '')
     setSelectedModel('')
     setSelectedRackingId(null)
   }
 
-  const handleModelChange = (value: string | null) => {
+  const handlePvRackModelChange = (value: string | null) => {
     setSelectedModel(value || '')
     // When changing models on manual mode, don't reset fields
     if (dataSource === 'manual') {
@@ -181,7 +181,7 @@ const PVRackSettings = () => {
   const createOrUpdatePVRackingMutation = useCreateOrUpdatePVRackingMutation()
 
   // Form submission handler
-  const handleSubmit = async () => {
+  const handlePvRackSubmit = async () => {
     try {
       if (!userCompanyId) {
         notifications.show({
@@ -374,8 +374,8 @@ const PVRackSettings = () => {
               <EquipmentFilter
                 useGetManufacturers={useWrappedGetManufacturers}
                 useGetModels={useWrappedGetModels}
-                onManufacturerChange={handleManufacturerChange}
-                onModelChange={handleModelChange}
+                onManufacturerChange={handlePvRackManufacturerChange}
+                onModelChange={handlePvRackModelChange}
                 initialManufacturer={selectedManufacturer}
                 initialModel={selectedModel}
                 company_id={userCompanyId}
@@ -548,7 +548,7 @@ const PVRackSettings = () => {
                         if (selectedRackingId) {
                           setModalOpened(true)
                         } else {
-                          handleSubmit()
+                          handlePvRackSubmit()
                         }
                       }}
                       loading={formSubmitting}
@@ -567,7 +567,7 @@ const PVRackSettings = () => {
                     opened={modalOpened}
                     onClose={() => setModalOpened(false)}
                     onConfirm={() => {
-                      handleSubmit()
+                      handlePvRackSubmit()
                       setModalOpened(false)
                     }}
                     title="Confirm Update"

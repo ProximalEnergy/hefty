@@ -911,7 +911,7 @@ function AdaptiveGisBESS() {
   )
 
   // --- Lock Toggle Handler ---
-  const handleLockToggle = () => {
+  const handleAdaptiveGisBessLockToggle = () => {
     if (effectiveIsViewLocked) {
       // If it's already locked, unlock it.
       setIsViewLocked(false)
@@ -931,7 +931,7 @@ function AdaptiveGisBESS() {
   }
 
   // --- Handler for Locking to a specific layer from the dropdown ---
-  const handleLockToLayer = (layerName: LayerViewName) => {
+  const handleAdaptiveGisBessLockToLayer = (layerName: LayerViewName) => {
     if (!layerAvailability[layerName]) return
 
     const config = layerLockConfig[layerName]
@@ -1389,7 +1389,7 @@ function AdaptiveGisBESS() {
                 <Button
                   size="compact-md"
                   variant="default"
-                  onClick={handleLockToggle}
+                  onClick={handleAdaptiveGisBessLockToggle}
                   leftSection={
                     effectiveIsViewLocked ? (
                       <IconLock size={16} />
@@ -1431,7 +1431,7 @@ function AdaptiveGisBESS() {
                 .map((layer) => (
                   <Menu.Item
                     key={layer}
-                    onClick={() => handleLockToLayer(layer)}
+                    onClick={() => handleAdaptiveGisBessLockToLayer(layer)}
                   >
                     {layer}
                   </Menu.Item>

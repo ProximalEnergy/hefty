@@ -193,7 +193,7 @@ export const DCVoltageChartBessPcs = ({
     return [bottom, Math.max(100, maxVal * 1.1)] as [number, number]
   }, [dcVoltageData.data, faultInfo?.faultSet.size])
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handleBessDcVoltageRelayout = (event: Readonly<PlotRelayoutEvent>) => {
     let zoomed = false
 
     if (
@@ -274,7 +274,7 @@ export const DCVoltageChartBessPcs = ({
             range: userZoomed && xAxisRange ? xAxisRange : undefined,
           },
         }}
-        onRelayout={handleRelayout}
+        onRelayout={handleBessDcVoltageRelayout}
         isLoading={
           realtimeData.isLoading || moduleData.isLoading || groupData.isLoading
         }

@@ -190,7 +190,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
     close()
   })
 
-  const handleEdit = (scope: OMContractorScope) => {
+  const handleOmContractorsEdit = (scope: OMContractorScope) => {
     setEditingScope(scope)
     form.setValues({
       selectedCompanyId: scope.company_id,
@@ -202,7 +202,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
     open()
   }
 
-  const handleClose = () => {
+  const handleOmContractorsClose = () => {
     setEditingScope(null)
     form.reset()
     setSubmitError('')
@@ -245,7 +245,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
             <ActionIcon
               variant="light"
               size="sm"
-              onClick={() => handleEdit(scope)}
+              onClick={() => handleOmContractorsEdit(scope)}
             >
               <IconEdit size={16} />
             </ActionIcon>
@@ -387,7 +387,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
 
       <Modal
         opened={opened}
-        onClose={handleClose}
+        onClose={handleOmContractorsClose}
         title={
           <Title order={4}>
             {editingScope ? 'Edit Contractor Scope' : 'Add Contractor Scope'}
@@ -472,7 +472,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
             </Stack>
 
             <Group justify="flex-end" mt="sm">
-              <Button variant="default" onClick={handleClose}>
+              <Button variant="default" onClick={handleOmContractorsClose}>
                 Cancel
               </Button>
               <Button
@@ -525,7 +525,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
                     editingScope &&
                     editingScope.om_contractor_scope_id === confirmDeleteId
                   ) {
-                    handleClose()
+                    handleOmContractorsClose()
                   }
                 } catch (err: unknown) {
                   const apiMsg =
