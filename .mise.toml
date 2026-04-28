@@ -923,7 +923,7 @@ uv run --dev ruff check pv-eem/
 [tasks."pveem:pytest"]
 description = "Run test suite for pv-eem"
 dir = "pv-eem"
-run = "uv run pytest"
+run = "uv run pytest -n auto"
 
 [tasks."pveem:live_test"]
 description = "Run a live sun_pond pv-eem sanity check"

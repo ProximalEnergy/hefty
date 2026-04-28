@@ -1,5 +1,6 @@
 import polars as pl
 from p01_get_data.source_proximal.s05_qa_met_data import qa_met_data
+from p01_get_data.source_proximal.s08_qc_combined_data import qc_combined_data
 
 
 class TestQCMetData:
@@ -298,3 +299,33 @@ class TestQCMetData:
         _result = qa_met_data(met_data_raw=input_data, use_poa_only=True)
 
         # Test removed - median aggregation moved to s07_combine_met_and_soiling
+
+    def test_qc_combined_data_ignores_minus_999_in_timestep_averages(self):
+        """Test -999 values are excluded when averaging missing met values."""
+        combined_data = pl.DataFrame(
+            {
+                "time": ["2024-01-01 12:00:00", "2024-01-01 12:00:00"],
+                "met_name": ["device1", "device2"],
+                "ghi": [700.0, 710.0],
+                "ambient_temperature": [-999.0, 20.0],
+                "poa": [800.0, 810.0],
+            }
+        )
+        mock_system = type(
+            "MockSystem",
+            (),
+            {"met_name": pl.Series(["device1", "device2", "device3"]).to_pandas()},
+        )()
+
+        result = qc_combined_data(
+            combined_data=combined_data,
+            system=mock_system,
+            use_poa_only=False,
+        )
+
+        temperature_for_missing_station = (
+            result.filter(pl.col("met_name") == "device3")
+            .select("ambient_temperature")
+            .item()
+        )
+        assert temperature_for_missing_station == 20.0

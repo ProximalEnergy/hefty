@@ -102,6 +102,22 @@ def qc_combined_data(
         col for col in combined_data.columns if col not in ["time", "met_name"]
     ]
 
+    # Treat sentinel missing values as null so they are excluded from
+    # timestep aggregates.
+    numeric_cols = [
+        col for col in value_columns if combined_data.schema[col].is_numeric()
+    ]
+    if numeric_cols:
+        combined_data = combined_data.with_columns(
+            [
+                pl.when(pl.col(col) == -999)
+                .then(None)
+                .otherwise(pl.col(col))
+                .alias(col)
+                for col in numeric_cols
+            ]
+        )
+
     # Create expressions for filling nulls
     fill_expressions = []
     for col in value_columns:
@@ -122,7 +138,7 @@ def qc_combined_data(
 
     # --- Average Missing Met Data ---
     logging.info("Averaging missing met data...")
-    system_met_names = system.met_name.unique()
+    system_met_names = list(system.met_name.unique())
     all_times = combined_data_without_nulls["time"].unique().sort()
 
     # 1. Create the complete grid (scaffold) of all time/met station combinations.

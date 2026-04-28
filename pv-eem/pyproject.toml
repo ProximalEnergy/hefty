@@ -34,6 +34,7 @@ dev = [ # for debugging
     "plotly~=6.5", # graphing test results
     "pymupdf~=1.26", # for verification plots
     "pytest~=9.0", # for testing
+    "pytest-xdist>=3.8,<4", # for parallel testing
     "types-psycopg2>=2.9.21.20260408,<3",
     "types-pytz>=2026.1.1.20260408,<2027",
 ]
