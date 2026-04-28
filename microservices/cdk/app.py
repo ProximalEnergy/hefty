@@ -5,6 +5,7 @@ from stacks.calendar_notifications_stack import CalendarNotificationsStack
 from stacks.data_connection_outage_notifications_stack import (
     DataConnectionOutageNotificationsStack,
 )
+from stacks.issues_pipeline_stack import IssuesPipelineStack
 from stacks.weather_alerts_stack import WeatherAlertsStack
 
 app = cdk.App()
@@ -40,6 +41,17 @@ DataConnectionOutageNotificationsStack(
         region="us-east-2",
     ),
     description="Lambda for data connection outage notifications",
+)
+
+# Automated issues pipeline Lambda Stack
+IssuesPipelineStack(
+    app,
+    "IssuesPipelineLambdaStack",
+    env=cdk.Environment(
+        account="016997484973",
+        region="us-east-2",
+    ),
+    description="Lambda function for scheduled automated issues detection",
 )
 
 app.synth()

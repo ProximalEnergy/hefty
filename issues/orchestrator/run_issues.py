@@ -1,6 +1,7 @@
 """Top-level orchestration entrypoint for multi-project issues runs."""
 
 import datetime
+import importlib.metadata
 import logging
 import sys
 from pathlib import Path
@@ -13,13 +14,22 @@ if __package__ is None or __package__ == "":
     if str(core_src) not in sys.path:
         sys.path.insert(0, str(core_src))
 
-from core import crud
 from core.db_query import OutputType
 from core.enumerations import ProjectStatusType, ProjectType
+
+from core import crud
 from issues.logging_utils import setup_logging
 from issues.orchestrator.run_project import ProjectIssueRunSummary, run_project_issues
 
 LOGGER = logging.getLogger(__name__)
+
+
+def get_core_package_version() -> str:
+    """Read the installed core package version for runtime diagnostics."""
+    try:
+        return importlib.metadata.version("core")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
 
 
 def discover_project_ids() -> list[str]:
@@ -41,7 +51,10 @@ def run_issues_for_projects(
     run_time: datetime.datetime | None = None,
 ) -> list[ProjectIssueRunSummary]:
     """Run the automated issues pipeline across selected projects."""
-    LOGGER.info("Starting issues run orchestration")
+    LOGGER.info(
+        "Starting issues run orchestration with core_version=%s",
+        get_core_package_version(),
+    )
     projects = project_ids or discover_project_ids()
     now = run_time or datetime.datetime.now(datetime.UTC)
     LOGGER.info(

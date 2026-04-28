@@ -155,16 +155,15 @@ jobs:
 
             echo "Running mypy for microservice: ${service_name}"
 
-            if [ -f "${service_dir}/pyproject.toml" ]; then
-              uv run --project "${ROOT_DIR}" \
-                --directory "${service_dir}" \
-                --with-editable "${service_dir}" \
-                mypy --config-file "${ROOT_DIR}/pyproject.toml" .
-            else
-              uv run --project "${ROOT_DIR}" \
-                --directory "${service_dir}" \
-                mypy --config-file "${ROOT_DIR}/pyproject.toml" .
+            if [ ! -f "${service_dir}/pyproject.toml" ]; then
+              echo "Skipping ${service_name}: no pyproject.toml found"
+              continue
             fi
+
+            uv run --project "${ROOT_DIR}" \
+              --directory "${service_dir}" \
+              --with-editable "${service_dir}" \
+              mypy --config-file "${ROOT_DIR}/pyproject.toml" .
           done
 
   docstring-args:

@@ -124,3 +124,66 @@ NWS_SECRET_NAME=nws/weather/notifications \
 ENVIRONMENT=production \
 cdk deploy WeatherAlertsLambdaStack
 ```
+
+## Issues Pipeline Lambda
+
+The `IssuesPipelineLambdaStack` deploys:
+
+- CDK-managed ECR image asset for the issues pipeline Docker image
+- Lambda function named `issues-pipeline`
+- EventBridge rule that invokes the Lambda hourly
+- CloudWatch log group `/aws/lambda/issues-pipeline`
+- Secrets Manager access for the issues pipeline secret
+
+### Required Configuration
+
+The image build creates fresh `core` and `issues` wheels from the local repo
+contents at deploy time. No CodeArtifact token or published `core` wheel is
+required.
+
+The Lambda loads runtime configuration from Secrets Manager. By default it uses
+`microservices/issues_pipeline`. The secret must be a JSON object containing
+`DATABASE_URL`, for example:
+
+```json
+{
+  "DATABASE_URL": "postgresql://...",
+  "ENVIRONMENT": "production"
+}
+```
+
+The secret is already set.
+
+Optional:
+
+```bash
+export ISSUES_PIPELINE_SCHEDULE_ENABLED="false"
+```
+
+Setting `ISSUES_PIPELINE_SCHEDULE_ENABLED=false` disables the EventBridge integration, such that the Lambda may only be invoked manually.
+
+### Deployment
+
+From the `mono` directory:
+
+```bash
+cd microservices/cdk
+uv sync
+
+source .venv/bin/activate
+
+CDK_DISABLE_CLI_TELEMETRY=true \
+  npx --yes aws-cdk deploy IssuesPipelineLambdaStack
+```
+
+### Manual Validation
+
+Invoke a controlled project run before enabling the hourly schedule:
+
+```bash
+aws lambda invoke \
+  --function-name issues-pipeline \
+  /tmp/issues-pipeline-response.json
+```
+
+The Lambda logs may be inspected in AWS CloudWatch, under `aws/lambda/issues-pipeline`.

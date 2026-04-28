@@ -1332,8 +1332,10 @@ wheels = [
 [[package]]
 name = "issues"
 version = "0.1.0"
-source = { virtual = "issues" }
+source = { editable = "issues" }
 dependencies = [
+    { name = "boto3" },
+    { name = "botocore" },
     { name = "core" },
     { name = "geoalchemy2" },
     { name = "psycopg2-binary" },
@@ -1342,6 +1344,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "boto3", specifier = ">=1.38,<2" },
+    { name = "botocore", specifier = "~=1.42" },
     { name = "core", editable = "core" },
     { name = "geoalchemy2", specifier = ">=0.18,<0.19" },
     { name = "psycopg2-binary", specifier = ">=2.9.11,<3" },

@@ -5,10 +5,28 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12.8, <3.13"
 dependencies = [
+    "boto3>=1.38,<2",
+    "botocore~=1.42",
     "core",
     "geoalchemy2>=0.18,<0.19",
     "psycopg2-binary>=2.9.11,<3",
     "sqlalchemy>=2.0.45,<3",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "issues" = "." }
+packages = [
+    "issues",
+    "issues.config",
+    "issues.detectors",
+    "issues.models",
+    "issues.orchestrator",
+    "issues.persistence",
+    "issues.rectification",
 ]
 
 [tool.uv.sources]
