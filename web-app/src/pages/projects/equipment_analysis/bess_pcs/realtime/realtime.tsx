@@ -1,4 +1,5 @@
 import { ErrorBoundary } from '@/ErrorBoundary'
+import { StatusAndAlarmCodes } from '@/components/bess-pcs/StatusAndAlarmCodes'
 import { Stack } from '@mantine/core'
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
@@ -10,7 +11,6 @@ import { DCVoltageChartBessPcsRealtime } from './dc-voltage/dc-voltage-chart'
 import { IGBTTemperatureChart } from './igbt-temperature/igbt-temperature-chart'
 import { ReactivePowerChart } from './reactive-power/reactive-power-chart'
 import { RealtimeStats } from './stats/realtime-stats'
-import { StatusAndAlarmCodes } from './status-and-alarm-codes/status-and-alarm-codes'
 import { useRealtimeSources } from './use-realtime-sources'
 
 export function Realtime() {
