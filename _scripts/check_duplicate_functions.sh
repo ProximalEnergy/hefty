@@ -39,7 +39,10 @@ message: Collect Python function names
 severity: warning
 language: Python
 rule:
-  pattern: 'def $NAME($$$A): $$$B'
+  kind: function_definition
+  has:
+    field: name
+    pattern: $NAME
 ---
 id: typescript-function
 message: Collect TypeScript function names
@@ -116,6 +119,19 @@ function normalize_file(file) {
     return file
 }
 
+function is_alembic_migration(file) {
+    if (file ~ /(^|\/)_?alembic_migrations\//) {
+        return 1
+    }
+    if (file ~ /(^|\/)alembic\/versions\//) {
+        return 1
+    }
+    if (file ~ /(^|\/)migrations\/versions\//) {
+        return 1
+    }
+    return 0
+}
+
 function flush_func() {
     if (prev_name != "") {
         if (prev_file != "") {
@@ -137,6 +153,10 @@ NF >= 3 {
     name = $1
     file = normalize_file($2)
     line = $3
+
+    if (is_alembic_migration(file)) {
+        next
+    }
 
     if (name ~ /^__.*__$/ || name == "lambda_handler" || name == "health_check") {
         next

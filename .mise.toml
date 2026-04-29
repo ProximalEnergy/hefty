@@ -120,10 +120,11 @@ depends = ["sync"]
 run = ["mise run web:install", "mise run web:build", "./_scripts/run_preview.sh"]
 
 [tasks.check]
-description = "Run quality checks based on the diff vs dev"
+description = "Run quality checks"
 usage = '''
   flag "--static" help="Skip non-static tests"
-  flag "--all" help="Run all checks without diff filtering"
+  flag "--all" help="Run all checks without diff filtering (default)"
+  flag "--diff-only" help="Run checks based on the diff vs dev"
   flag "--offline" help="Skip checks that need network access"
   flag "--all-warnings" help="Run warning checks for all areas"
   flag "--quiet" help="Keep reduced output (default behavior)"
@@ -133,6 +134,9 @@ run = """
 ALL_ARGS=""
 if [ "${usage_all:-false}" = "true" ]; then
   ALL_ARGS="--all"
+fi
+if [ "${usage_diff_only:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --diff-only"
 fi
 if [ "${usage_static:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --static"

@@ -6,7 +6,7 @@ unset VIRTUAL_ENV
 
 # Parse command line arguments
 SKIP_TESTS=false
-RUN_ALL=false
+RUN_ALL=true
 OFFLINE=false
 QUIET=true
 ALL_WARNINGS=false
@@ -26,6 +26,10 @@ while [ "$#" -gt 0 ]; do
             ;;
         --all)
             RUN_ALL=true
+            shift
+            ;;
+        --diff-only)
+            RUN_ALL=false
             shift
             ;;
         --offline)
@@ -1108,14 +1112,16 @@ EOF
     return 0
 }
 
-# Detect changes vs dev to run only relevant checks
+# Detect changes vs dev when running diff-only checks.
 DIFF_BASE="dev"
-if ! git show-ref --verify --quiet "refs/heads/${DIFF_BASE}"; then
-    if git show-ref --verify --quiet "refs/remotes/origin/${DIFF_BASE}"; then
-        DIFF_BASE="origin/${DIFF_BASE}"
-    else
-        RUN_ALL=true
-        echo "No dev branch found; running all checks."
+if [ "${RUN_ALL}" = "false" ]; then
+    if ! git show-ref --verify --quiet "refs/heads/${DIFF_BASE}"; then
+        if git show-ref --verify --quiet "refs/remotes/origin/${DIFF_BASE}"; then
+            DIFF_BASE="origin/${DIFF_BASE}"
+        else
+            RUN_ALL=true
+            echo "No dev branch found; running all checks."
+        fi
     fi
 fi
 
@@ -1324,7 +1330,7 @@ if [ "${RUN_ROOT}" = "true" ]; then
     add_db_check "Root: Codegen" "mise run root:codegen"
 fi
 
-# Global Checks (Run if any project changed)
+# Global checks
 if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
     SQLALCHEMY_RETURN_CHECK_CMD="mise run root:sqlalchemy_return"
     if [ "${ALL_WARNINGS}" = "true" ]; then
