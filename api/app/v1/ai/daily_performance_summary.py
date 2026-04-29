@@ -206,7 +206,7 @@ class DailyPerformanceSummaryRequest(BaseModel):
     """Request for daily performance summary generation."""
 
     stats: DailyPerformanceStats
-    model: str = Field(default="gpt-4o-mini")
+    model: str = Field(default="gpt-5-mini")
 
 
 class DailyPerformanceSummaryResponse(BaseModel):
