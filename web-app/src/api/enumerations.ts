@@ -617,6 +617,7 @@ export const SensorTypeEnum = {
   MET_STATION_WIND_DIRECTION: 217,
   PROJECT_BREAKER_STATUS: 218,
   PROJECT_RECLOSER_STATUS: 219,
+  TRACKER_ZONE_WIND_SPEED: 220,
 } as const;
 
 export const TimeIntervalEnum = {

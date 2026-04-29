@@ -144,7 +144,7 @@ const useEventData = (projectId: string | undefined, eventId: number) => {
   const eventsHistorical = useGetEvents({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      device_id: event?.device_id?.toString(),
+      device_ids: event?.device_id ? [event.device_id] : undefined,
       open: false,
     },
     queryOptions: {

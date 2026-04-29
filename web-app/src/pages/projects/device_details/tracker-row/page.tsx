@@ -143,7 +143,7 @@ const TrackerRowDetail = React.memo(() => {
   const { data: events, isLoading: isEventsLoading } = useGetEvents({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      device_id: deviceId?.toString(), // Convert deviceId to string
+      device_ids: deviceId ? [Number(deviceId)] : undefined,
       open: false, // Include both open and closed events
     },
     queryOptions: {

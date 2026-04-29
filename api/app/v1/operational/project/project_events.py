@@ -73,7 +73,7 @@ def _dtype_name_long(*, v: Any) -> str | None:
 @router.get("", response_model=list[interfaces.Event])
 async def get_events(
     project_id: uuid.UUID,
-    device_id: int | None = None,
+    device_ids: Annotated[list[int] | None, Query()] = None,
     time_end_gte: datetime.datetime | None = None,
     time_end_lt: datetime.datetime | None = None,
     open: bool = True,
@@ -84,14 +84,14 @@ async def get_events(
 
     Args:
         project_id: UUID of the project to retrieve events for.
-        device_id: Filter events by device ID.
+        device_ids: Filter events by device IDs.
         time_end_gte: Filter events ending at or after this datetime.
         time_end_lt: Filter events ending before this datetime.
         open: Include only open events (default True).
         event_ids: Filter to specific event IDs.
         open_at: Filter events that were open at this datetime.
     """
-    if device_id == -1:
+    if device_ids is not None and -1 in device_ids:
         return None
 
     project_name_short = get_project_name_short(project_id=project_id)
@@ -100,7 +100,7 @@ async def get_events(
 
     # Use the CRUD function to get events with device information
     events_query = core_events.get_events_with_device_info(
-        device_id=device_id,
+        device_ids=device_ids,
         time_end_gte=time_end_gte,
         time_end_lt=time_end_lt,
         open=open,

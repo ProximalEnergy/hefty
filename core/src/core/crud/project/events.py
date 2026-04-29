@@ -316,7 +316,6 @@ def get_events_by_id(
 
 def get_project_events(
     *,
-    device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
     time_end_lt: datetime.datetime | None = None,
     open: bool = True,
@@ -327,7 +326,6 @@ def get_project_events(
     """Build a query for events matching filter parameters.
 
     Args:
-        device_id: Filter by a single device id.
         time_end_gte: Filter events ending on/after this time.
         time_end_lt: Filter events ending before this time.
         open: Include only open events when True.
@@ -337,8 +335,6 @@ def get_project_events(
     """
     stmt = sa.select(models.Event)
 
-    if device_id is not None:
-        stmt = stmt.where(models.Event.device_id == device_id)
     if device_ids is not None:
         stmt = stmt.where(models.Event.device_id.in_(device_ids))
     if time_end_gte is not None:
@@ -438,7 +434,6 @@ def get_paginated_events(
 
 def get_events_with_device_info(
     *,
-    device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
     time_end_lt: datetime.datetime | None = None,
     open: bool = True,
@@ -455,7 +450,6 @@ def get_events_with_device_info(
     device and device type data in a single query using joins.
 
     Args:
-        device_id: Filter by a single device id.
         time_end_gte: Filter events ending on/after this time.
         time_end_lt: Filter events ending before this time.
         open: Include only open events when True.
@@ -481,8 +475,6 @@ def get_events_with_device_info(
         )
     )
 
-    if device_id is not None:
-        stmt = stmt.where(models.Event.device_id == device_id)
     if device_ids is not None:
         stmt = stmt.where(models.Event.device_id.in_(device_ids))
     if time_end_gte is not None:

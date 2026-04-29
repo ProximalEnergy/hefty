@@ -378,7 +378,7 @@ export const useGetEvents = ({
 }: {
   pathParams: { projectId: string }
   queryParams?: {
-    device_id?: string
+    device_ids?: number[]
     open?: boolean
     event_ids?: number[]
   }
