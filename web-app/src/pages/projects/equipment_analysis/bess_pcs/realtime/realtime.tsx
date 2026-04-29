@@ -8,7 +8,7 @@ import { useBessPcsStaticData } from '../use-bess-pcs-static-data'
 import { ACVoltageChartBessPcsRealtime } from './ac-voltage/ac-voltage-chart'
 import { ActivePowerChartBessPcsRealtime } from './active-power/active-power-chart'
 import { DCVoltageChartBessPcsRealtime } from './dc-voltage/dc-voltage-chart'
-import { IGBTTemperatureChart } from './igbt-temperature/igbt-temperature-chart'
+import { IGBTTemperatureChartBessPcsRealtime } from './igbt-temperature/igbt-temperature-chart'
 import { ReactivePowerChart } from './reactive-power/reactive-power-chart'
 import { RealtimeStats } from './stats/realtime-stats'
 import { useRealtimeSources } from './use-realtime-sources'
@@ -48,7 +48,7 @@ export function Realtime() {
 
       <DCVoltageChartBessPcsRealtime realtimeData={sources.pcsRealtime} />
 
-      <IGBTTemperatureChart maxCapacityMWac={maxCapacityMwac} />
+      <IGBTTemperatureChartBessPcsRealtime maxCapacityMWac={maxCapacityMwac} />
 
       <ErrorBoundary>
         <StatusAndAlarmCodes projectId={projectId || '-1'} />

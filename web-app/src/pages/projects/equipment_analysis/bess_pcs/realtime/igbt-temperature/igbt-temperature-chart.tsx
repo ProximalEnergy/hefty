@@ -4,7 +4,7 @@ type IGBTTemperatureChartProps = {
   maxCapacityMWac: number | null
 }
 
-export function IGBTTemperatureChart({
+export function IGBTTemperatureChartBessPcsRealtime({
   maxCapacityMWac,
 }: IGBTTemperatureChartProps) {
   return <SharedIGBTTemperatureChart maxCapacityMWac={maxCapacityMWac} />
