@@ -6,13 +6,14 @@ import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import type { Device } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
-import { Box, Paper, Stack, Text, useComputedColorScheme } from '@mantine/core'
+import { Box, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import type { FeatureCollection } from 'geojson'
 import { useCallback, useContext, useState } from 'react'
 import type { MapMouseEvent } from 'react-map-gl/mapbox'
 import Map, { Layer, Source } from 'react-map-gl/mapbox'
 
 import type { HoverInfo } from '../gis/utils'
+import { MapHoverCard } from '../gis/MapHoverCard'
 
 type PerformanceReportMapCardProps = {
   data: OperationalKPIData | undefined
@@ -259,7 +260,11 @@ export function PerformanceReportMapCard({
               )}
             </Source>
             {hoverInfo.feature && (
-              <MapHoverCard hoverInfo={hoverInfo} kpiType={kpiType} />
+              <MapHoverCard
+                hoverInfo={hoverInfo}
+                kpiType={kpiType}
+                decimalPlaces={0}
+              />
             )}
           </Map>
           <Box
@@ -293,38 +298,3 @@ export function PerformanceReportMapCard({
   )
 }
 
-function MapHoverCard({
-  hoverInfo,
-  kpiType,
-}: {
-  hoverInfo: HoverInfo
-  kpiType: KPIType
-}) {
-  const rawValue = hoverInfo.feature?.properties?.value
-  const hoverValueText =
-    rawValue == null
-      ? 'No Data'
-      : kpiType.unit === '%'
-        ? `${(rawValue * 100).toFixed(2)}%`
-        : `${rawValue.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-            minimumFractionDigits: 0,
-          })} ${kpiType.unit}`
-
-  return (
-    <Paper
-      p="xs"
-      withBorder
-      style={{
-        left: hoverInfo.x,
-        top: hoverInfo.y,
-        position: 'absolute',
-        zIndex: 9,
-        pointerEvents: 'none',
-      }}
-    >
-      <Text fw={700}>{hoverInfo.feature?.properties?.name}</Text>
-      <Text>{hoverValueText}</Text>
-    </Paper>
-  )
-}

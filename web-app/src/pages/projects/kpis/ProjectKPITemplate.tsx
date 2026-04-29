@@ -65,6 +65,7 @@ import {
 } from 'react-router'
 
 import { HoverInfo } from '../gis/utils'
+import { MapHoverCard } from '../gis/MapHoverCard'
 
 const ICON_SIZE = 14
 const MAX_DEVICES = 3000 // Do not render device visualizations for more than this many devices
@@ -1018,39 +1019,6 @@ const ProjectPlotCard = ({
   )
 }
 
-function MapHoverCard({
-  hoverInfo,
-  kpiType,
-}: {
-  hoverInfo: HoverInfo
-  kpiType: KPIType
-}) {
-  const hoverValue = hoverInfo.feature?.properties?.value
-  const hoverValueText =
-    hoverValue != null
-      ? kpiType.unit === '%'
-        ? `${(hoverValue * 100).toFixed(2)}%`
-        : `${hoverValue.toFixed(2)} ${kpiType.unit}`
-      : 'No Data'
-
-  return (
-    <Paper
-      p="xs"
-      withBorder
-      style={{
-        left: hoverInfo.x,
-        top: hoverInfo.y,
-        position: 'absolute',
-        zIndex: 9,
-        pointerEvents: 'none',
-      }}
-    >
-      <Text fw={700}>{hoverInfo.feature?.properties?.name}</Text>
-      <Text>{hoverValueText}</Text>
-    </Paper>
-  )
-}
-
 const MapCard = ({
   data,
   kpiType,
@@ -1256,7 +1224,11 @@ const MapCard = ({
                 )}
               </Source>
               {hoverInfo.feature && (
-                <MapHoverCard hoverInfo={hoverInfo} kpiType={kpiType} />
+                <MapHoverCard
+                  hoverInfo={hoverInfo}
+                  kpiType={kpiType}
+                  decimalPlaces={2}
+                />
               )}
             </Map>
             <Box
