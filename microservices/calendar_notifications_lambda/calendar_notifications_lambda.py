@@ -18,7 +18,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def _load_local_dotenv() -> None:
+def _load_calendar_notifications_local_dotenv() -> None:
     """Load local environment variables when python-dotenv is installed."""
     try:
         dotenv = cast(Any, import_module("dotenv"))
@@ -27,7 +27,7 @@ def _load_local_dotenv() -> None:
     dotenv.load_dotenv()
 
 
-_load_local_dotenv()
+_load_calendar_notifications_local_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -77,7 +77,7 @@ def load_secret_into_env(*, secret_name: str, region: str) -> None:
 # Load secrets BEFORE importing core modules
 # (core.settings accesses DATABASE_URL at import time)
 # This must happen at module level, not inside a function
-def _load_secrets_at_startup() -> None:
+def _load_calendar_notifications_secrets() -> None:
     """Load secrets from AWS Secrets Manager before importing core modules."""
     try:
         region = os.getenv("AWS_REGION", "us-east-2")
@@ -90,7 +90,7 @@ def _load_secrets_at_startup() -> None:
 
 
 # Load secrets at module import time (before core imports)
-_load_secrets_at_startup()
+_load_calendar_notifications_secrets()
 
 
 async def _run_calendar_notifications():

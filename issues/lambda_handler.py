@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 _DEFAULT_SECRET_NAME = "microservices/issues_pipeline"  # noqa: S105
 
 
-def _load_local_dotenv() -> None:
+def _load_issues_local_dotenv() -> None:
     """Load local environment variables when python-dotenv is installed."""
     try:
         dotenv = cast(Any, import_module("dotenv"))
@@ -30,7 +30,7 @@ def _load_local_dotenv() -> None:
     dotenv.load_dotenv()
 
 
-_load_local_dotenv()
+_load_issues_local_dotenv()
 
 
 def configure_lambda_logging() -> None:
@@ -81,14 +81,14 @@ def load_secret_into_env(*, secret_name: str, region: str) -> None:
         )
 
 
-def _load_secrets_at_startup() -> None:
+def _load_issues_pipeline_secrets() -> None:
     """Load secrets before imports that read ``core.settings``."""
     region = os.getenv("AWS_REGION", "us-east-2")
     secret_name = os.getenv("ISSUES_PIPELINE_SECRET_NAME", _DEFAULT_SECRET_NAME)
     load_secret_into_env(secret_name=secret_name, region=region)
 
 
-_load_secrets_at_startup()
+_load_issues_pipeline_secrets()
 
 
 def lambda_handler(

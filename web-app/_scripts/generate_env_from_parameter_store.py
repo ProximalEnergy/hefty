@@ -24,7 +24,7 @@ REGION_NAME = "us-east-2"
 PERSONAL_ENV_VARS: list[str] = []
 
 
-def _get_parameter_store_paths(*, override: str | None) -> list[str]:
+def _get_web_app_parameter_store_paths(*, override: str | None) -> list[str]:
     if override:
         return [override]
     return DEFAULT_PARAMETER_STORE_PATHS
@@ -35,7 +35,7 @@ def generate_web_app_env_file() -> None:
     override_path = os.getenv("WEB_APP_PARAMETER_STORE_PATH")
     parameters: dict[str, str] = {}
     last_error: Exception | None = None
-    paths = _get_parameter_store_paths(override=override_path)
+    paths = _get_web_app_parameter_store_paths(override=override_path)
 
     for path in paths:
         try:

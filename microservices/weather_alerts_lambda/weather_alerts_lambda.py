@@ -16,7 +16,7 @@ from typing import Any, cast
 import boto3
 
 
-def _load_local_dotenv() -> None:
+def _load_weather_alerts_local_dotenv() -> None:
     """Load local environment variables when python-dotenv is installed."""
     try:
         dotenv = cast(Any, import_module("dotenv"))
@@ -25,7 +25,7 @@ def _load_local_dotenv() -> None:
     dotenv.load_dotenv()
 
 
-_load_local_dotenv()
+_load_weather_alerts_local_dotenv()
 
 # Configure logging
 logging.basicConfig(

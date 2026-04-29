@@ -12,7 +12,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def _load_local_dotenv() -> None:
+def _load_data_connection_outage_local_dotenv() -> None:
     """Load local environment variables when python-dotenv is installed."""
     try:
         dotenv = cast(Any, import_module("dotenv"))
@@ -21,7 +21,7 @@ def _load_local_dotenv() -> None:
     dotenv.load_dotenv()
 
 
-_load_local_dotenv()
+_load_data_connection_outage_local_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,7 +73,7 @@ def load_secret_into_env(*, secret_name: str, region: str) -> None:
         )
 
 
-def _load_secrets_at_startup() -> None:
+def _load_data_connection_outage_secrets() -> None:
     """Load secrets before any ``core`` import (``DATABASE_URL`` at import time)."""
     try:
         region = os.getenv("AWS_REGION", "us-east-2")
@@ -86,7 +86,7 @@ def _load_secrets_at_startup() -> None:
         logger.warning("Error loading secrets at startup: %s", e)
 
 
-_load_secrets_at_startup()
+_load_data_connection_outage_secrets()
 
 
 async def _run_data_connection_outage_notifications() -> dict:

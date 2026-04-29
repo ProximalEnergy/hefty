@@ -30,7 +30,7 @@ REGION_NAME = "us-east-2"
 PERSONAL_ENV_VARS: list[str] = []
 
 
-def _get_parameter_store_paths(*, override: str | None) -> list[str]:
+def _get_pveem_parameter_store_paths(*, override: str | None) -> list[str]:
     """Return parameter store paths for pv-eem env lookup.
 
     Args:
@@ -50,7 +50,7 @@ def generate_pveem_env_file() -> None:
     override_path = os.getenv("PVEEM_PARAMETER_STORE_PATH")
     parameters: dict[str, str] = {}
     last_error: Exception | None = None
-    paths = _get_parameter_store_paths(override=override_path)
+    paths = _get_pveem_parameter_store_paths(override=override_path)
 
     for path in paths:
         try:
