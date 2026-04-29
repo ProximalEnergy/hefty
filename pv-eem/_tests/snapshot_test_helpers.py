@@ -67,16 +67,16 @@ def _serialize_simulation_config(simulation_config: Any) -> dict[str, Any]:
     }
 
 
-def _snapshot_dir(*, snapshot_name: str) -> Path:
+def _get_snapshot_dir_path(*, snapshot_name: str) -> Path:
     return _artifacts_root() / "snapshots" / snapshot_name
 
 
-def _snapshot_metadata_path(*, snapshot_name: str) -> Path:
-    return _snapshot_dir(snapshot_name=snapshot_name) / "metadata.json"
+def _get_snapshot_metadata_path_loc(*, snapshot_name: str) -> Path:
+    return _get_snapshot_dir_path(snapshot_name=snapshot_name) / "metadata.json"
 
 
-def _snapshot_table_path(*, snapshot_name: str, file_name: str) -> Path:
-    return _snapshot_dir(snapshot_name=snapshot_name) / file_name
+def _get_snapshot_table_path_loc(*, snapshot_name: str, file_name: str) -> Path:
+    return _get_snapshot_dir_path(snapshot_name=snapshot_name) / file_name
 
 
 def _is_snapshot_complete(*, snapshot_name: str) -> bool:
@@ -97,7 +97,7 @@ def _is_snapshot_complete(*, snapshot_name: str) -> bool:
         "rackings.parquet",
         "inverters.parquet",
     ]
-    snapshot_dir = _snapshot_dir(snapshot_name=snapshot_name)
+    snapshot_dir = _get_snapshot_dir_path(snapshot_name=snapshot_name)
     if not snapshot_dir.exists():
         return False
 
@@ -108,7 +108,7 @@ def _is_snapshot_complete(*, snapshot_name: str) -> bool:
 
 
 def _read_snapshot_metadata(*, snapshot_name: str) -> dict[str, Any]:
-    metadata_path = _snapshot_metadata_path(snapshot_name=snapshot_name)
+    metadata_path = _get_snapshot_metadata_path_loc(snapshot_name=snapshot_name)
     if not metadata_path.exists():
         raise FileNotFoundError(
             "Missing snapshot metadata at "
@@ -121,7 +121,7 @@ def _read_snapshot_metadata(*, snapshot_name: str) -> dict[str, Any]:
 
 
 def _read_snapshot_table(*, snapshot_name: str, file_name: str) -> pd.DataFrame:
-    table_path = _snapshot_table_path(
+    table_path = _get_snapshot_table_path_loc(
         snapshot_name=snapshot_name,
         file_name=file_name,
     )
@@ -138,7 +138,7 @@ def save_snapshot_inputs(
     *, snapshot_name: str, simulation_inputs: SimulationInputs
 ) -> None:
     """Save simulation inputs to a snapshot directory."""
-    snapshot_dir = _snapshot_dir(snapshot_name=snapshot_name)
+    snapshot_dir = _get_snapshot_dir_path(snapshot_name=snapshot_name)
     snapshot_dir.mkdir(parents=True, exist_ok=True)
 
     # Metadata
@@ -162,19 +162,19 @@ def save_snapshot_inputs(
         ),
         "version": simulation_inputs.version,
     }
-    with _snapshot_metadata_path(snapshot_name=snapshot_name).open("w") as f:
+    with _get_snapshot_metadata_path_loc(snapshot_name=snapshot_name).open("w") as f:
         json.dump(metadata, f, indent=2)
 
     # Table saving
     # Indeces
     simulation_inputs.indeces.met_time_index.to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_met_time_index.parquet",
         )
     )
     pd.DataFrame({"string_id": simulation_inputs.indeces.string_index}).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_string_index.parquet",
         )
@@ -182,7 +182,7 @@ def save_snapshot_inputs(
     pd.DataFrame(
         {"module_equipment_id": simulation_inputs.indeces.module_equipment_index}
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_module_equipment_index.parquet",
         )
@@ -190,7 +190,7 @@ def save_snapshot_inputs(
     pd.DataFrame(
         {"racking_equipment_id": simulation_inputs.indeces.racking_equipment_index}
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_racking_equipment_index.parquet",
         )
@@ -198,7 +198,7 @@ def save_snapshot_inputs(
     pd.DataFrame(
         {"pcs_equipment_id": simulation_inputs.indeces.inverter_equipment_index}
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_inverter_equipment_index.parquet",
         )
@@ -206,7 +206,7 @@ def save_snapshot_inputs(
     pd.DataFrame(
         {"combiner_device_id": simulation_inputs.indeces.combiner_device_index}
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_combiner_device_index.parquet",
         )
@@ -214,7 +214,7 @@ def save_snapshot_inputs(
     pd.DataFrame(
         {"pcs_device_id": simulation_inputs.indeces.inverter_device_index}
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_inverter_device_index.parquet",
         )
@@ -222,7 +222,7 @@ def save_snapshot_inputs(
     pd.DataFrame(
         {"transformer_device_id": simulation_inputs.indeces.transformer_device_index}
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="indeces_transformer_device_index.parquet",
         )
@@ -235,7 +235,7 @@ def save_snapshot_inputs(
             "tier_codes": simulation_inputs.quality_assurance.tier_codes,
         }
     ).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="quality_assurance.parquet",
         )
@@ -253,7 +253,7 @@ def save_snapshot_inputs(
         "soil_percent": simulation_inputs.met_data.soil_percent,
     }
     pd.DataFrame(met_data_dict).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="met_data.parquet",
         )
@@ -280,7 +280,7 @@ def save_snapshot_inputs(
         "met_name": simulation_inputs.system.met_name,
     }
     pd.DataFrame(system_data_dict).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="system.parquet",
         )
@@ -334,7 +334,7 @@ def save_snapshot_inputs(
         "data_source": simulation_inputs.modules.data_source,
     }
     pd.DataFrame(module_data_dict).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="modules.parquet",
         )
@@ -353,7 +353,7 @@ def save_snapshot_inputs(
         "rear_mismatch_factor": simulation_inputs.rackings.rear_mismatch_factor,
     }
     pd.DataFrame(racking_data_dict).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="rackings.parquet",
         )
@@ -399,20 +399,20 @@ def save_snapshot_inputs(
         "night_tare": simulation_inputs.inverters.night_tare,
     }
     pd.DataFrame(inverter_data_dict).to_parquet(
-        _snapshot_table_path(
+        _get_snapshot_table_path_loc(
             snapshot_name=snapshot_name,
             file_name="inverters.parquet",
         )
     )
 
 
-def _to_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
+def _extract_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
     if column not in data_frame:
         raise KeyError(f"Missing column '{column}' in snapshot table.")
     return data_frame.loc[:, column]
 
 
-def _to_optional_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
+def _extract_optional_series(*, data_frame: pd.DataFrame, column: str) -> pd.Series:
     if column in data_frame:
         return data_frame.loc[:, column]
     return pd.Series(index=data_frame.index, dtype="float64", name=column)
@@ -435,7 +435,7 @@ def _raise_for_incompatible_pvsyst_snapshot(
         raise ValueError(PVSYST_SNAPSHOT_ERROR)
 
 
-def _to_numpy_array(*, value: Any) -> Any:
+def _map_to_numpy_array(*, value: Any) -> Any:
     if isinstance(value, list):
         return np.array(value)
     return value
@@ -481,7 +481,7 @@ def read_snapshot_inputs(
     indeces = Indeces(
         met_time_index=MetTimeIndex(met_time_index_df),
         string_index=SystemSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_string_index.parquet",
@@ -490,7 +490,7 @@ def read_snapshot_inputs(
             )
         ),
         module_equipment_index=ModuleEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_module_equipment_index.parquet",
@@ -499,7 +499,7 @@ def read_snapshot_inputs(
             )
         ),
         racking_equipment_index=RackingEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_racking_equipment_index.parquet",
@@ -508,7 +508,7 @@ def read_snapshot_inputs(
             )
         ),
         inverter_equipment_index=InverterEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_inverter_equipment_index.parquet",
@@ -517,7 +517,7 @@ def read_snapshot_inputs(
             )
         ),
         combiner_device_index=SystemSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_combiner_device_index.parquet",
@@ -526,7 +526,7 @@ def read_snapshot_inputs(
             )
         ),
         inverter_device_index=InverterDeviceSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_inverter_device_index.parquet",
@@ -535,7 +535,7 @@ def read_snapshot_inputs(
             )
         ),
         transformer_device_index=TransformerDeviceSeries(
-            _to_series(
+            _extract_series(
                 data_frame=_read_snapshot_table(
                     snapshot_name=snapshot_name,
                     file_name="indeces_transformer_device_index.parquet",
@@ -554,10 +554,10 @@ def read_snapshot_inputs(
 
     quality_assurance = QualityAssurance(
         tier=MetTimeSeries(
-            _to_series(data_frame=quality_assurance_data, column="tier")
+            _extract_series(data_frame=quality_assurance_data, column="tier")
         ),
         tier_codes=MetTimeSeries(
-            _to_series(data_frame=quality_assurance_data, column="tier_codes")
+            _extract_series(data_frame=quality_assurance_data, column="tier_codes")
         ),
     )
 
@@ -579,55 +579,59 @@ def read_snapshot_inputs(
         file_name="system.parquet",
     )
     system = System(
-        string_id=SystemSeries(_to_series(data_frame=system_data, column="string_id")),
+        string_id=SystemSeries(
+            _extract_series(data_frame=system_data, column="string_id")
+        ),
         module_equipment_id=SystemSeries(
-            _to_series(data_frame=system_data, column="module_equipment_id")
+            _extract_series(data_frame=system_data, column="module_equipment_id")
         ),
         modules_per_string=SystemSeries(
-            _to_series(data_frame=system_data, column="modules_per_string")
+            _extract_series(data_frame=system_data, column="modules_per_string")
         ),
         strings_per_combiner=SystemSeries(
-            _to_series(data_frame=system_data, column="strings_per_combiner")
+            _extract_series(data_frame=system_data, column="strings_per_combiner")
         ),
         dc_line_to_combiner_stc=SystemSeries(
-            _to_series(data_frame=system_data, column="dc_line_to_combiner_stc")
+            _extract_series(data_frame=system_data, column="dc_line_to_combiner_stc")
         ),
         combiner_device_id=SystemSeries(
-            _to_series(data_frame=system_data, column="combiner_device_id")
+            _extract_series(data_frame=system_data, column="combiner_device_id")
         ),
         pitch=SystemSeries(pd.Series(dtype="float64")),
         racking_controls_gcr=SystemSeries(
-            _to_series(data_frame=system_data, column="racking_controls_gcr")
+            _extract_series(data_frame=system_data, column="racking_controls_gcr")
         ),
         racking_equipment_id=SystemSeries(
-            _to_series(data_frame=system_data, column="racking_equipment_id")
+            _extract_series(data_frame=system_data, column="racking_equipment_id")
         ),
         racking_controls_algorithm=SystemSeries(pd.Series(dtype="object")),
         racking_device_id=SystemSeries(
-            _to_series(data_frame=system_data, column="racking_device_id")
+            _extract_series(data_frame=system_data, column="racking_device_id")
         ),
         dc_line_to_inverter_stc=SystemSeries(
-            _to_series(data_frame=system_data, column="dc_line_to_inverter_stc")
+            _extract_series(data_frame=system_data, column="dc_line_to_inverter_stc")
         ),
         pcs_equipment_id=InverterDeviceSeries(
-            _to_series(data_frame=system_data, column="pcs_equipment_id")
+            _extract_series(data_frame=system_data, column="pcs_equipment_id")
         ),
         pcs_device_id=InverterDeviceSeries(
-            _to_series(data_frame=system_data, column="pcs_device_id")
+            _extract_series(data_frame=system_data, column="pcs_device_id")
         ),
         transformer_equipment_id=TransformerDeviceSeries(
-            _to_series(data_frame=system_data, column="transformer_equipment_id")
+            _extract_series(data_frame=system_data, column="transformer_equipment_id")
         ),
         transformer_device_id=TransformerDeviceSeries(
-            _to_series(data_frame=system_data, column="transformer_device_id")
+            _extract_series(data_frame=system_data, column="transformer_device_id")
         ),
         block_device_id=SystemSeries(
-            _to_series(data_frame=system_data, column="block_device_id")
+            _extract_series(data_frame=system_data, column="block_device_id")
         ),
         circuit_device_id=SystemSeries(
-            _to_series(data_frame=system_data, column="circuit_device_id")
+            _extract_series(data_frame=system_data, column="circuit_device_id")
         ),
-        met_name=SystemSeries(_to_series(data_frame=system_data, column="met_name")),
+        met_name=SystemSeries(
+            _extract_series(data_frame=system_data, column="met_name")
+        ),
     )
 
     module_data = _read_snapshot_table(
@@ -636,120 +640,138 @@ def read_snapshot_inputs(
     )
     modules = Module(
         module_equipment_id=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="module_equipment_id")
+            _extract_series(data_frame=module_data, column="module_equipment_id")
         ),
         company_id=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="company_id")
+            _extract_series(data_frame=module_data, column="company_id")
         ),
         manufacturer=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="manufacturer")
+            _extract_series(data_frame=module_data, column="manufacturer")
         ),
-        model=ModuleEquipmentSeries(_to_series(data_frame=module_data, column="model")),
+        model=ModuleEquipmentSeries(
+            _extract_series(data_frame=module_data, column="model")
+        ),
         family=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="family")
+            _extract_series(data_frame=module_data, column="family")
         ),
         technology=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="technology")
+            _extract_series(data_frame=module_data, column="technology")
         ),
         bifaciality_factor=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="bifaciality_factor")
+            _extract_series(data_frame=module_data, column="bifaciality_factor")
         ),
         pmax=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="pmax").rename("module_p_max_stc")
+            _extract_series(data_frame=module_data, column="pmax").rename(
+                "module_p_max_stc"
+            )
         ),
         isc=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="isc").rename("module_i_sc_stc")
+            _extract_series(data_frame=module_data, column="isc").rename(
+                "module_i_sc_stc"
+            )
         ),
         voc=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="voc").rename("module_v_oc_stc")
+            _extract_series(data_frame=module_data, column="voc").rename(
+                "module_v_oc_stc"
+            )
         ),
         imp=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="imp").rename("module_i_mp_stc")
+            _extract_series(data_frame=module_data, column="imp").rename(
+                "module_i_mp_stc"
+            )
         ),
         vmp=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="vmp").rename("module_v_mp_stc")
+            _extract_series(data_frame=module_data, column="vmp").rename(
+                "module_v_mp_stc"
+            )
         ),
         efficiency=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="efficiency")
+            _extract_series(data_frame=module_data, column="efficiency")
         ),
         gamma_pmax=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="gamma_pmax")
+            _extract_series(data_frame=module_data, column="gamma_pmax")
         ),
         alpha_isc=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="alpha_isc")
+            _extract_series(data_frame=module_data, column="alpha_isc")
         ),
         beta_voc=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="beta_voc")
+            _extract_series(data_frame=module_data, column="beta_voc")
         ),
         warranted_degradation_rate=ModuleEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=module_data,
                 column="warranted_degradation_rate",
             )
         ),
         warranted_degradation_initial=ModuleEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=module_data,
                 column="warranted_degradation_initial",
             )
         ),
         length=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="length")
+            _extract_series(data_frame=module_data, column="length")
         ),
-        width=ModuleEquipmentSeries(_to_series(data_frame=module_data, column="width")),
-        area=ModuleEquipmentSeries(_to_series(data_frame=module_data, column="area")),
+        width=ModuleEquipmentSeries(
+            _extract_series(data_frame=module_data, column="width")
+        ),
+        area=ModuleEquipmentSeries(
+            _extract_series(data_frame=module_data, column="area")
+        ),
         frame_overhang=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="frame_overhang")
+            _extract_series(data_frame=module_data, column="frame_overhang")
         ),
         has_ar_coating=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="has_ar_coating")
+            _extract_series(data_frame=module_data, column="has_ar_coating")
         ),
         half_cut=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="half_cut")
+            _extract_series(data_frame=module_data, column="half_cut")
         ),
         cells_in_series=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="cells_in_series")
+            _extract_series(data_frame=module_data, column="cells_in_series")
         ),
         photocurrent=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="photocurrent")
+            _extract_series(data_frame=module_data, column="photocurrent")
         ),
         diode_saturation_current=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="diode_saturation_current")
+            _extract_series(data_frame=module_data, column="diode_saturation_current")
         ),
         r_series=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="r_series")
+            _extract_series(data_frame=module_data, column="r_series")
         ),
         r_shunt=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="r_shunt")
+            _extract_series(data_frame=module_data, column="r_shunt")
         ),
         r_shunt_0=ModuleEquipmentSeries(
-            _to_optional_series(data_frame=module_data, column="r_shunt_0")
+            _extract_optional_series(data_frame=module_data, column="r_shunt_0")
         ),
         r_shunt_exponent=ModuleEquipmentSeries(
-            _to_optional_series(
+            _extract_optional_series(
                 data_frame=module_data,
                 column="r_shunt_exponent",
             )
         ),
         diode_ideality_factor=ModuleEquipmentSeries(
-            _to_optional_series(
+            _extract_optional_series(
                 data_frame=module_data,
                 column="diode_ideality_factor",
             )
         ),
         diode_ideality_factor_temp_coefficient=ModuleEquipmentSeries(
-            _to_optional_series(
+            _extract_optional_series(
                 data_frame=module_data,
                 column="diode_ideality_factor_temp_coefficient",
             )
         ),
         modified_ideality_factor=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="modified_ideality_factor")
+            _extract_series(data_frame=module_data, column="modified_ideality_factor")
         ),
-        eg=ModuleEquipmentSeries(_to_series(data_frame=module_data, column="eg")),
-        degdt=ModuleEquipmentSeries(_to_series(data_frame=module_data, column="degdt")),
+        eg=ModuleEquipmentSeries(_extract_series(data_frame=module_data, column="eg")),
+        degdt=ModuleEquipmentSeries(
+            _extract_series(data_frame=module_data, column="degdt")
+        ),
         data_source=ModuleEquipmentSeries(
-            _to_series(data_frame=module_data, column="data_source")
+            _extract_series(data_frame=module_data, column="data_source")
         ),
     )
 
@@ -759,31 +781,31 @@ def read_snapshot_inputs(
     )
     rackings = Racking(
         racking_equipment_id=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="racking_equipment_id")
+            _extract_series(data_frame=racking_data, column="racking_equipment_id")
         ),
         racking_type_id=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="racking_type_id")
+            _extract_series(data_frame=racking_data, column="racking_type_id")
         ),
         manufacturer=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="manufacturer")
+            _extract_series(data_frame=racking_data, column="manufacturer")
         ),
         model=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="model")
+            _extract_series(data_frame=racking_data, column="model")
         ),
         max_rotation_angle=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="max_rotation_angle")
+            _extract_series(data_frame=racking_data, column="max_rotation_angle")
         ),
         min_rotation_angle=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="min_rotation_angle")
+            _extract_series(data_frame=racking_data, column="min_rotation_angle")
         ),
         pile_height=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="pile_height")
+            _extract_series(data_frame=racking_data, column="pile_height")
         ),
         structure_shading_factor=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="structure_shading_factor")
+            _extract_series(data_frame=racking_data, column="structure_shading_factor")
         ),
         rear_mismatch_factor=RackingEquipmentSeries(
-            _to_series(data_frame=racking_data, column="rear_mismatch_factor")
+            _extract_series(data_frame=racking_data, column="rear_mismatch_factor")
         ),
     )
 
@@ -800,79 +822,93 @@ def read_snapshot_inputs(
         "efficiency_at_high_voltage",
     ]:
         inverter_data.loc[:, array_column] = inverter_data.loc[:, array_column].map(
-            lambda value: _to_numpy_array(value=value)
+            lambda value: _map_to_numpy_array(value=value)
         )
 
     inverters = Inverter(
         pcs_equipment_id=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="pcs_equipment_id")
+            _extract_series(data_frame=inverter_data, column="pcs_equipment_id")
         ),
         manufacturer=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="manufacturer")
+            _extract_series(data_frame=inverter_data, column="manufacturer")
         ),
         model=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="model")
+            _extract_series(data_frame=inverter_data, column="model")
         ),
         voltage_mpp_min=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="voltage_mpp_min")
+            _extract_series(data_frame=inverter_data, column="voltage_mpp_min")
         ),
         voltage_mpp_max=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="voltage_mpp_max")
+            _extract_series(data_frame=inverter_data, column="voltage_mpp_max")
         ),
         voltage_start_up=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="voltage_start_up")
+            _extract_series(data_frame=inverter_data, column="voltage_start_up")
         ),
         voltage_min=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="voltage_min")
+            _extract_series(data_frame=inverter_data, column="voltage_min")
         ),
         voltage_max=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="voltage_max")
+            _extract_series(data_frame=inverter_data, column="voltage_max")
         ),
         current_max=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="current_max")
+            _extract_series(data_frame=inverter_data, column="current_max")
         ),
         power_max_at_reference_temp=InverterEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=inverter_data,
                 column="power_max_at_reference_temp",
             )
         ),
         reference_temp=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="reference_temp")
+            _extract_series(data_frame=inverter_data, column="reference_temp")
         ),
         voltage_nominal_efficiency=InverterEquipmentSeries(
-            _to_series(
+            _extract_series(
                 data_frame=inverter_data,
                 column="voltage_nominal_efficiency",
             )
         ),
         efficiency_at_low_voltage=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="efficiency_at_low_voltage")
+            _extract_series(
+                data_frame=inverter_data, column="efficiency_at_low_voltage"
+            )
         ),
         efficiency_at_mid_voltage=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="efficiency_at_mid_voltage")
+            _extract_series(
+                data_frame=inverter_data, column="efficiency_at_mid_voltage"
+            )
         ),
         efficiency_at_high_voltage=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="efficiency_at_high_voltage")
+            _extract_series(
+                data_frame=inverter_data, column="efficiency_at_high_voltage"
+            )
         ),
         power_start_up=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="power_start_up")
+            _extract_series(data_frame=inverter_data, column="power_start_up")
         ),
         power_ac_nominal=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="power_ac_nominal")
+            _extract_series(data_frame=inverter_data, column="power_ac_nominal")
         ),
         power_dc_nominal=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="power_dc_nominal")
+            _extract_series(data_frame=inverter_data, column="power_dc_nominal")
         ),
         voltage_dc_nominal=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="voltage_dc_nominal")
+            _extract_series(data_frame=inverter_data, column="voltage_dc_nominal")
         ),
-        c0=InverterEquipmentSeries(_to_series(data_frame=inverter_data, column="c0")),
-        c1=InverterEquipmentSeries(_to_series(data_frame=inverter_data, column="c1")),
-        c2=InverterEquipmentSeries(_to_series(data_frame=inverter_data, column="c2")),
-        c3=InverterEquipmentSeries(_to_series(data_frame=inverter_data, column="c3")),
+        c0=InverterEquipmentSeries(
+            _extract_series(data_frame=inverter_data, column="c0")
+        ),
+        c1=InverterEquipmentSeries(
+            _extract_series(data_frame=inverter_data, column="c1")
+        ),
+        c2=InverterEquipmentSeries(
+            _extract_series(data_frame=inverter_data, column="c2")
+        ),
+        c3=InverterEquipmentSeries(
+            _extract_series(data_frame=inverter_data, column="c3")
+        ),
         night_tare=InverterEquipmentSeries(
-            _to_series(data_frame=inverter_data, column="night_tare")
+            _extract_series(data_frame=inverter_data, column="night_tare")
         ),
     )
 
