@@ -1,6 +1,7 @@
 import pandas as pd
 import xarray as xr
-from kpi.base.enumeration import Attrs, TimeCoords
+from kpi.base.enumeration import TimeCoords
+from kpi.op.context import get_context
 
 
 class TimeLocal:
@@ -9,7 +10,7 @@ class TimeLocal:
 
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
         utc_time = dataset.coords[TimeCoords.TIME_5MIN_UTC.value]
-        tz = dataset.attrs[Attrs.TIME_ZONE.value]
+        tz = get_context(dataset).time_zone
         local_time = (
             pd.DatetimeIndex(utc_time.values)
             .tz_localize("UTC")
@@ -34,7 +35,7 @@ class DateLocal5m:
 
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
         utc_time = dataset.coords[TimeCoords.TIME_5MIN_UTC.value]
-        tz = dataset.attrs[Attrs.TIME_ZONE.value]
+        tz = get_context(dataset).time_zone
         local_time = (
             pd.DatetimeIndex(utc_time.values)
             .tz_localize("UTC")
@@ -48,14 +49,3 @@ class DateLocal5m:
             coords={TimeCoords.TIME_5MIN_UTC.value: utc_time},
         )
 
-
-def start_tz_aware(dataset: xr.Dataset) -> pd.Timestamp:
-    return pd.Timestamp(
-        dataset.attrs[Attrs.START_DATE.value], tz=dataset.attrs[Attrs.TIME_ZONE.value]
-    )
-
-
-def end_tz_aware(dataset: xr.Dataset) -> pd.Timestamp:
-    return pd.Timestamp(
-        dataset.attrs[Attrs.END_DATE.value], tz=dataset.attrs[Attrs.TIME_ZONE.value]
-    )

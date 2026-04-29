@@ -2,15 +2,15 @@ import warnings
 
 import xarray as xr
 from core.enumerations import KPIType
-from kpi.base.enumeration import Attrs
 from kpi.domain.util import scale_offset
-from kpi.infra.util import get_project_from_database
+from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
     arrays_to_rows,
     get_application_name,
     get_kpi_instances,
     insert_device_kpi_data_bulk,
 )
+from kpi.op.context import get_context
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
@@ -49,9 +49,9 @@ def merge_upload_maps_strict(
 
 class UploadSchema(SchemaAbstract[UploadModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
-        project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
+        context = get_context(dataset)
 
-        project = get_project_from_database(name_short=project_name_short)
+        project = get_project_by_id(project_id=context.project_id)
         kpi_type_ids = get_kpi_instances(project_id=project.project_id)
 
         data_rows = []
@@ -85,8 +85,8 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                         version=model.version,
                         project_id=project.project_id,
                         kpi_type=model.kpi_type,
-                        start=dataset.attrs[Attrs.START_DATE.value],
-                        end=dataset.attrs[Attrs.END_DATE.value],
+                        start=context.start_date,
+                        end=context.end_date,
                     )
                 )
             dataset = dataset.drop_vars(field_plan.to_delete(), errors="ignore")

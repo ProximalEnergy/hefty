@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 from kpi.base.enumeration import TimeCoords
 from kpi.base.exception import DatasetAccessError, MissingDataError
-from kpi.op.time import end_tz_aware, start_tz_aware
+from kpi.op.context import get_context
 
 
 def assign_var(
@@ -48,15 +48,16 @@ def tidy_coords(dataset: xr.Dataset) -> xr.Dataset:
 
 
 def exclusive_end_date(dataset: xr.Dataset) -> xr.Dataset:
-    """Clip to ``[Attrs.START_DATE, Attrs.END_DATE)`` on each time dimension.
+    """Clip to ``[start_date, end_date)`` on each time dimension.
 
-    ``time_5min_utc`` uses project ``Attrs.TIME_ZONE`` so bounds match the local
+    ``time_5min_utc`` uses project ``time_zone`` so bounds match the local
     calendar. ``date_local`` is clipped with an inclusive slice through the last
     calendar day before ``end_date``. Variables without those dimensions are
     unchanged. Idempotent for a dataset whose attrs match its coordinates.
     """
-    start_a = start_tz_aware(dataset).normalize()
-    end_a = end_tz_aware(dataset).normalize()
+    context = get_context(dataset)
+    start_a = context.start_tz_aware.normalize()
+    end_a = context.end_tz_aware.normalize()
 
     out = dataset
 

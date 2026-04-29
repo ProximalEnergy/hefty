@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from kpi.op.pipeline_schema import PipelineSchema, Schema
 from kpi.op.transform.schema import CalcSchema
 from kpi.op.upload import UploadSchema
@@ -12,8 +14,8 @@ class BasePipeline(PipelineSchema):
     upload = Schema(UploadSchema(map=UPLOAD))
 
 
-def get_pipeline(project_name_short: str) -> type[BasePipeline]:
+def get_pipeline(project_id: UUID) -> type[BasePipeline]:
     class _Pipeline(BasePipeline):
-        transform = Schema(CalcSchema(map=get_transform(project_name_short).map()))
+        transform = Schema(CalcSchema(map=get_transform(project_id).map()))
 
     return _Pipeline

@@ -1,7 +1,6 @@
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceType, SensorType
-from kpi.base.enumeration import Attrs
 from kpi.base.protocol import SensorProtocol
 from kpi.domain.util import scale_offset
 from kpi.infra.download.sensor import (
@@ -12,11 +11,11 @@ from kpi.infra.download.sensor import (
     tag_df_from_tags_polars,
 )
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
+from kpi.op.context import get_context
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
-from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
 from pydantic import BaseModel
 
@@ -63,20 +62,20 @@ def sensor_field(
 
 class SensorSchema(SchemaAbstract[SensorProtocol]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
-        project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
+        context = get_context(dataset)
         field_names = plan.outputs()
         sensor_type_id_list = [
             self.map[field_name].sensor_type.value for field_name in field_names
         ]
         tags_polars = get_tag_polars(
             sensor_type_id_list=sensor_type_id_list,
-            project_name_short=project_name_short,
+            project_name_short=context.project_name_short,
         )
 
         data_raw = sensor_data_df(
-            project_name_short=project_name_short,
-            start_local=start_tz_aware(dataset),
-            end_local=end_tz_aware(dataset),
+            project_name_short=context.project_name_short,
+            start_local=context.start_tz_aware,
+            end_local=context.end_tz_aware,
             tags_polars=tags_polars,
         )
 

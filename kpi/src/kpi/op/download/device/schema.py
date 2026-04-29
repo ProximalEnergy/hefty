@@ -1,8 +1,8 @@
 import xarray as xr
-from kpi.base.enumeration import Attrs
 from kpi.base.exception import MissingStaticDataError, NoDownloadedDataError
 from kpi.base.protocol import DeviceProtocol
 from kpi.infra.download.devices import download_device_df
+from kpi.op.context import get_context
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
@@ -15,8 +15,11 @@ class DeviceSchema(SchemaAbstract[DeviceProtocol]):
         device_type_ids = set[int]().union(
             *(self.map[field_name].device_type_ids() for field_name in field_names)
         )
+
+        context = get_context(dataset)
+
         device_df = download_device_df(
-            dataset.attrs[Attrs.PROJECT_NAME_SHORT.value],
+            context.project_name_short,
             list(device_type_ids),
         )
         if device_df.empty:

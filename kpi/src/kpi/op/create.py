@@ -1,12 +1,14 @@
 import datetime
+from uuid import UUID
 
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceType
-from kpi.base.enumeration import Attrs, TimeCoords
+from kpi.base.enumeration import TimeCoords
 from kpi.base.util import coord
 from kpi.infra.download.devices import download_device_df
-from kpi.infra.util import get_project_from_database
+from kpi.infra.util import get_project_by_id
+from kpi.op.context import ContextModel
 from pydantic import validate_call
 
 from core import models
@@ -30,12 +32,12 @@ device_types = [
 
 @validate_call
 def create_dataset(
-    project_name_short: str,
+    project_id: UUID,
     start_date: datetime.date,
     end_date: datetime.date,
 ) -> xr.Dataset:
     # Time coordinates
-    project = get_project_from_database(project_name_short)
+    project = get_project_by_id(project_id=project_id)
 
     time_5min_local = pd.date_range(
         start=start_date,
@@ -61,7 +63,7 @@ def create_dataset(
 
     # Device coordinates
     devices_df = download_device_df(
-        project_name_short,
+        project.name_short,
         [device_type.value for device_type in device_types],
     )
 
@@ -72,16 +74,16 @@ def create_dataset(
             devices_df[models.Device.device_type_id.name] == device_type.value
         ].index.values
 
-    # Attributes
-    attrs = {
-        Attrs.PROJECT_NAME_SHORT: project_name_short,
-        Attrs.START_DATE: start_date.strftime("%Y-%m-%d"),
-        Attrs.END_DATE: end_date.strftime("%Y-%m-%d"),
-        Attrs.TIME_ZONE: project.time_zone,
-    }
+    context_model = ContextModel(
+        project_id=project_id,
+        project_name_short=project.name_short,
+        start_date=start_date,
+        end_date=end_date,
+        time_zone=project.time_zone,
+    )
 
     return xr.Dataset(
         data_vars={},
         coords=time_coords | device_coords,
-        attrs=attrs,
+        attrs=context_model.model_dump(mode="json"),
     )

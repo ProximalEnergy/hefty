@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import pandas as pd
 from core.crud.project.tags import get_project_tags_v2
 from core.database import with_db
@@ -5,19 +7,19 @@ from core.db_query import OutputType
 from core.domain.statuses.statuses import get_status_time_series_failure_mode_ids
 from kpi.base.exception import NoDownloadedDataError
 from kpi.infra.download.async_runner import run_in_loop
-from kpi.infra.util import get_project_from_database
+from kpi.infra.util import get_project_by_id
 
 from core import models
 
 
 def download_status_df(
-    project_name_short: str,
+    project_id: UUID,
     start_tz_aware: pd.Timestamp,
     end_tz_aware: pd.Timestamp,
     sensor_type_ids: list[int],
 ) -> pd.DataFrame:
-    project = get_project_from_database(project_name_short)
-    with with_db(schema=project_name_short) as project_db:
+    project = get_project_by_id(project_id=project_id)
+    with with_db(schema=project.name_short) as project_db:
         data_timeseries = run_in_loop(
             get_status_time_series_failure_mode_ids(
                 project_db=project_db,

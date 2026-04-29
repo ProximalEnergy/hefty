@@ -2,15 +2,14 @@ import xarray as xr
 from core.crud.project.data_expected import get_project_data_expected
 from core.db_query import OutputType
 from core.enumerations import DeviceType
-from kpi.base.enumeration import Attrs
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
+from kpi.op.context import get_context
 from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
-from kpi.op.time import end_tz_aware, start_tz_aware
 from kpi.op.util import assign_var
 from pydantic import BaseModel
 
@@ -27,6 +26,7 @@ class ExpectedEnergyModel(BaseModel, NoInputs):
 
 class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
+        context = get_context(dataset)
         field_names = plan.outputs()
         expected_metric_ids = [
             self.map[field_name].expected_metric_id for field_name in field_names
@@ -40,11 +40,11 @@ class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
         model_list = get_project_data_expected(
             expected_metric_ids=expected_metric_ids,
             device_ids=all_device_ids,
-            start=start_tz_aware(dataset),
-            end=end_tz_aware(dataset),
+            start=context.start_tz_aware,
+            end=context.end_tz_aware,
         ).get(
             output_type=OutputType.PANDAS,
-            schema=dataset.attrs[Attrs.PROJECT_NAME_SHORT.value],
+            schema=context.project_name_short,
         )
 
         expected_df = model_list.set_index(models.DataExpected.time.name)

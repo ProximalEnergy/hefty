@@ -22,7 +22,7 @@ import datetime
 import warnings
 
 from asyncpg.exceptions import ProtocolViolationError  # type: ignore[import-untyped]
-from core.enumerations import KPIType
+from core.enumerations import KPIType, ProjectID
 from kpi.base.exception import (
     DatasetAccessError,
     MissingDataError,
@@ -30,7 +30,6 @@ from kpi.base.exception import (
     ValidationError,
 )
 from kpi.base.warning import UnimplementedWarning
-from kpi.infra.util import get_project_from_database
 from kpi.op.create import create_dataset
 from kpi.op.observer import SentryObserver, observe, set_global_observer
 from kpi.op.plan import get_plan
@@ -73,9 +72,10 @@ def lambda_handler(event, _context):
     sentry_sdk.set_context("lambda_payload", event)
     event = Event(**event)
 
-    project = get_project_from_database(event.project_name_short)
+    project_id = ProjectID[event.project_name_short.upper()].value
+
     pipeline = get_pipeline(
-        project_name_short=project.name_short,
+        project_id=project_id,
     )()
 
     with observe():
@@ -101,7 +101,7 @@ def lambda_handler(event, _context):
     plan = get_plan(schema=pipeline, outputs=output_kpis)
 
     dataset = create_dataset(
-        project_name_short=project.name_short,
+        project_id=project_id,
         start_date=event.start_date,
         end_date=event.end_date,
     )

@@ -1,15 +1,13 @@
-from core.crud.operational.projects import get_projects
+from uuid import UUID
+
+from core.crud.operational.projects import get_project
 from core.db_query import OutputType
 
 from core import models
 
 
-def get_project_from_database(name_short: str) -> models.Project:
-    query = get_projects(name_short=name_short)
-    projects = query.get(output_type=OutputType.SQLALCHEMY)
-    if projects is None or len(projects) != 1:
-        raise ValueError(
-            f"Expected 1 project, got {len(projects) if projects is not None else 0}"
-        )
-    project = projects[0]
+def get_project_by_id(*, project_id: UUID) -> models.Project:
+    project = get_project(project_id=project_id).get(output_type=OutputType.SQLALCHEMY)
+    if project is None:
+        raise ValueError(f"Project with id {project_id} not found")
     return project

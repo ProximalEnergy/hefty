@@ -1,9 +1,10 @@
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceType
-from kpi.base.enumeration import Attrs, TimeCoords
+from kpi.base.enumeration import TimeCoords
 from kpi.domain.util import daily_mean_across_devices, date_local, diff, filter_mask
 from kpi.infra.pvlib_integration import theoretical_poa_irradiance
+from kpi.op.context import get_context
 from kpi.op.transform.input import InputType, Optional, Required
 from pydantic import BaseModel, ConfigDict
 
@@ -44,6 +45,7 @@ class TheoreticalPoaIrradiance(BaseCalc):
     project_elevation_m: Optional
 
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
+        context = get_context(dataset)
         return theoretical_poa_irradiance(
             time_utc=pd.DatetimeIndex(
                 dataset.coords[TimeCoords.TIME_5MIN_UTC.value].values
@@ -51,8 +53,7 @@ class TheoreticalPoaIrradiance(BaseCalc):
             latitude=self.project_latitude_deg.extract(dataset).item(),
             longitude=self.project_longitude_deg.extract(dataset).item(),
             elevation=self.project_elevation_m.extract(dataset),
-            time_zone=dataset.attrs[Attrs.TIME_ZONE.value],
-            project_name_short=dataset.attrs[Attrs.PROJECT_NAME_SHORT.value],
+            time_zone=context.time_zone,
         )
 
 

@@ -1,13 +1,12 @@
 import xarray as xr
 from core.enumerations import DeviceType
-from kpi.base.enumeration import Attrs
 from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
+from kpi.op.context import get_context
 from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
-from kpi.op.time import end_tz_aware, start_tz_aware
 from pydantic import BaseModel
 
 
@@ -18,16 +17,16 @@ class EventsModel(BaseModel, NoInputs):
 
 class EventSchema(SchemaAbstract[EventsModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
-        project_name_short = dataset.attrs[Attrs.PROJECT_NAME_SHORT.value]
+        context = get_context(dataset)
         field_names = plan.outputs()
 
         device_type_ids = [
             self.map[field_name].device_type.value for field_name in field_names
         ]
         df_events = download_events_df(
-            project_name_short=project_name_short,
-            start_tz_aware=start_tz_aware(dataset),
-            end_tz_aware=end_tz_aware(dataset),
+            project_name_short=context.project_name_short,
+            start_tz_aware=context.start_tz_aware,
+            end_tz_aware=context.end_tz_aware,
             device_type_ids=device_type_ids,
         )
 

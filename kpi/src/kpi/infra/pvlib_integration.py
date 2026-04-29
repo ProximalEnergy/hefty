@@ -95,7 +95,6 @@ def theoretical_poa_irradiance(
     longitude: float,
     elevation: Any,
     time_zone: str,
-    project_name_short: str,
 ) -> xr.DataArray:
     altitude_m = (
         float(elevation.item())
@@ -103,7 +102,6 @@ def theoretical_poa_irradiance(
         else (0.0 if elevation is None else float(elevation))
     )
     site_location = location.Location(
-        name=project_name_short,
         latitude=latitude,
         longitude=longitude,
         altitude=altitude_m,
