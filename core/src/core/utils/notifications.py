@@ -6,7 +6,6 @@ import logging
 from collections.abc import Callable, Sequence
 from uuid import UUID
 
-import boto3
 from botocore.exceptions import ClientError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +18,7 @@ from core.crud.admin.notifications import (
 from core.crud.admin.users import get_users
 from core.database import AsyncSessionLambda
 from core.db_query import OutputType
+from core.utils.email_delivery import send_email_async
 from core.utils.user_management import get_user_email_from_clerk
 
 logger = logging.getLogger(__name__)
@@ -384,30 +384,10 @@ async def send_notification_email(
     """
     logger.info(f"Sending notification email to user {user_id} at {recipient_email}")
 
-    # Run the synchronous boto3 call in an executor to avoid blocking the event loop
-    # and prevent SQLAlchemy async context issues
-    def _send_email_sync(*, email_data: dict) -> None:
-        """Send email in a separate thread to avoid SQLAlchemy async context issues.
-
-        Args:
-            email_data: Pre-built email kwargs dict for SES send_email.
-        """
-        ses_client = boto3.client("sesv2", region_name="us-east-2")
-        ses_client.send_email(**email_data)
-
     try:
-        # Deep copy the email_kwargs to ensure no references to database objects
+        # Deep copy so no DB-object references leak into the thread.
         email_data = copy.deepcopy(email_kwargs)
-
-        # Use to_thread for Python 3.9+, fallback to run_in_executor for older versions
-        try:
-            await asyncio.to_thread(_send_email_sync, email_data=email_data)
-        except AttributeError:
-            # Fallback for Python < 3.9
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None, lambda: _send_email_sync(email_data=email_data)
-            )
+        await send_email_async(email_kwargs=email_data)
         logger.info(f"Sent notification email to {recipient_email}")
 
         # Create notification state for email

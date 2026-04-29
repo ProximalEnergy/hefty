@@ -16,6 +16,7 @@ from core.crud.admin.users import get_users
 from core.crud.operational.projects import get_projects
 from core.database import with_db_async
 from core.db_query import OutputType
+from core.utils.email_delivery import send_simple_email
 from core.utils.notifications import (
     determine_notification_recipients,
     send_notification_emails_with_rate_limit,
@@ -253,7 +254,6 @@ async def send_event_chat_email(
     """
     # recipient_user_id is kept for API consistency and potential future use
     _ = recipient_user_id  # noqa: F841
-    ses_client = boto3.client("sesv2", region_name="us-east-2")
 
     # Truncate message body for email preview
     message_preview = (
@@ -375,23 +375,13 @@ async def send_event_chat_email(
     </html>
     """
 
-    email_kwargs = {
-        "FromEmailAddress": "proximal-chat@proximal.energy",
-        "Destination": {
-            "ToAddresses": [recipient_email],
-        },
-        "Content": {
-            "Simple": {
-                "Subject": {"Data": subject},
-                "Body": {
-                    "Html": {"Data": html_body},
-                },
-            },
-        },
-    }
-
     try:
-        ses_client.send_email(**email_kwargs)
+        await send_simple_email(
+            from_address="proximal-chat@proximal.energy",
+            to=[recipient_email],
+            subject=subject,
+            html_body=html_body,
+        )
         logger.info(
             f"📧 Sent event chat email to {recipient_email} for event {event_id}"
         )

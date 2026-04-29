@@ -75,7 +75,8 @@ EOF
             | [
                 $name,
                 .file,
-                (.range.start.line + 1)
+                (.range.start.line + 1),
+                (.text | split("\n")[0])
             ]
             | @tsv
         '
@@ -132,6 +133,15 @@ function is_alembic_migration(file) {
     return 0
 }
 
+function is_allowed_duplicate(name, signature) {
+    if (name == "render") {
+        if (signature ~ /^def render\(self\)([[:space:]]*->[^:]+)?:$/) {
+            return 1
+        }
+    }
+    return 0
+}
+
 function flush_func() {
     if (prev_name != "") {
         if (prev_file != "") {
@@ -149,16 +159,21 @@ function flush_func() {
     }
 }
 
-NF >= 3 {
+NF >= 4 {
     name = $1
     file = normalize_file($2)
     line = $3
+    signature = $4
 
     if (is_alembic_migration(file)) {
         next
     }
 
     if (name ~ /^__.*__$/ || name == "lambda_handler" || name == "health_check") {
+        next
+    }
+
+    if (is_allowed_duplicate(name, signature)) {
         next
     }
 

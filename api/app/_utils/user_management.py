@@ -2,8 +2,8 @@ import logging
 import random
 import string
 
-import boto3
 from clerk_backend_api import Clerk, models
+from core.utils.email_delivery import send_simple_email
 
 from app import settings
 from app.interfaces import UserCreate
@@ -81,40 +81,26 @@ async def send_onboarding_email(*, email: str, name: str, password: str) -> None
         name (str): The name of the user.
         password (str): The password of the user.
     """
-
-    ses_client = boto3.client("sesv2", region_name="us-east-2")
-
-    email_kwargs = {
-        "FromEmailAddress": "support@proximal.energy",
-        "Destination": {
-            "ToAddresses": [email],
-            "BccAddresses": ["hunter@proximal.energy"],
-        },
-        "Content": {
-            "Simple": {
-                "Subject": {"Data": "New Proximal User"},
-                "Body": {
-                    "Html": {
-                        "Data": (
-                            f"Hi {name},<br /><br />A new Proximal "
-                            f"(https://app.proximal.energy) account has been created "
-                            f"for you with the following credentials:<br /><br />"
-                            f"Email: {email}<br />Password: <code>{password}</code>"
-                            f"<br /><br />Please log in to configure your MFA code and "
-                            f"feel free to update your password afterwards. "
-                            f"<a href='https://docs.google.com/document/d/"
-                            f"1xk6NhSWQEfrS1PTaon-MyvBnip6609dlyAGKXh_1WKo/edit?"
-                            f"usp=sharing'>Check out the user onboarding document for "
-                            f"additional details.</a><br /><br />Thanks,<br />"
-                            f"The Proximal Team"
-                        ),
-                    },
-                },
-            },
-        },
-    }
-
-    ses_client.send_email(**email_kwargs)
+    html_body = (
+        f"Hi {name},<br /><br />A new Proximal "
+        f"(https://app.proximal.energy) account has been created "
+        f"for you with the following credentials:<br /><br />"
+        f"Email: {email}<br />Password: <code>{password}</code>"
+        f"<br /><br />Please log in to configure your MFA code and "
+        f"feel free to update your password afterwards. "
+        f"<a href='https://docs.google.com/document/d/"
+        f"1xk6NhSWQEfrS1PTaon-MyvBnip6609dlyAGKXh_1WKo/edit?"
+        f"usp=sharing'>Check out the user onboarding document for "
+        f"additional details.</a><br /><br />Thanks,<br />"
+        f"The Proximal Team"
+    )
+    await send_simple_email(
+        from_address="support@proximal.energy",
+        to=[email],
+        subject="New Proximal User",
+        html_body=html_body,
+        bcc=["hunter@proximal.energy"],
+    )
 
 
 async def send_drone_inspection_order_email(
@@ -136,10 +122,7 @@ async def send_drone_inspection_order_email(
         project_name (str): The name of the project.
         timing (str): The timing preference for the inspection.
     """
-    ses_client = boto3.client("sesv2", region_name="us-east-2")
-
     subject = f"New Drone Inspection Request - {project_name}"
-
     html_body = f"""
     <html>
     <body>
@@ -161,24 +144,13 @@ async def send_drone_inspection_order_email(
     </body>
     </html>
     """
-
-    email_kwargs = {
-        "FromEmailAddress": "orders@proximal.energy",
-        "Destination": {
-            "ToAddresses": [provider_email],
-            "CcAddresses": [user_email, "orders@proximal.energy"],
-        },
-        "Content": {
-            "Simple": {
-                "Subject": {"Data": subject},
-                "Body": {
-                    "Html": {"Data": html_body},
-                },
-            },
-        },
-    }
-
-    ses_client.send_email(**email_kwargs)
+    await send_simple_email(
+        from_address="orders@proximal.energy",
+        to=[provider_email],
+        subject=subject,
+        html_body=html_body,
+        cc=[user_email, "orders@proximal.energy"],
+    )
 
 
 async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dict:
