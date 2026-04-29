@@ -4,6 +4,7 @@ import { useGetPTPData } from '@/api/v1/protected/web-application/projects/finan
 import CustomCard from '@/components/CustomCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { formatCurrency as centralFormatCurrency } from '@/utils/currency'
 import {
   type PTPAcronymMetadata,
   getAcronymMetadata,
@@ -233,10 +234,10 @@ function getValueForKey(row: DailyValue | undefined, keyName: string): number {
 }
 
 function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('en-US', {
+  return centralFormatCurrency(value, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`
+  })
 }
 
 interface LongTermTabProps {

@@ -28,6 +28,7 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
+import { formatCurrency } from '@/utils/currency'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -861,15 +862,6 @@ const PVProjectRow = ({
   )
 }
 
-const formatCurrency = (value: number | null) => {
-  if (value === null) return '—'
-  return value.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
-}
 
 const BESSTable = ({
   data,

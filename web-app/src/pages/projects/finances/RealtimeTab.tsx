@@ -9,6 +9,7 @@ import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/pro
 import { StatSparkline } from '@/components/stats/StatSparkline'
 import { StatsGrid } from '@/components/stats/StatsGrid'
 import { Statistic } from '@/hooks/types'
+import { formatCurrency } from '@/utils/currency'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Box,
@@ -37,12 +38,6 @@ interface RealtimeTabProps {
   projectId: string
 }
 
-const formatCurrency = (value: number) => {
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
-}
 
 export const FinancesRealtimeTab = ({ projectId }: RealtimeTabProps) => {
   const project = useSelectProject(projectId)
@@ -643,9 +638,9 @@ export const FinancesRealtimeTab = ({ projectId }: RealtimeTabProps) => {
       return 'N/A'
     }
     // Format realized revenue with unrealized in parentheses
-    const realizedStr = `$${formatCurrency(realizedRevenue)}`
+    const realizedStr = formatCurrency(realizedRevenue)
     if (unrealizedRevenue > 0) {
-      const unrealizedStr = `+$${formatCurrency(unrealizedRevenue)}`
+      const unrealizedStr = `+${formatCurrency(unrealizedRevenue)}`
       return (
         <>
           {realizedStr}{' '}
@@ -679,19 +674,15 @@ export const FinancesRealtimeTab = ({ projectId }: RealtimeTabProps) => {
         <Text component="span" c={theme.colors.orange[6]} fw={500}>
           RT:
         </Text>{' '}
-        <Text component="span">${formatCurrency(rtRevenue)}</Text>{' '}
+        <Text component="span">{formatCurrency(rtRevenue)}</Text>{' '}
         <Text component="span" c={theme.colors.blue[6]} fw={500}>
           DA:
         </Text>{' '}
-        <Text component="span">
-          ${daRevenue === 0 ? '0' : formatCurrency(daRevenue)}
-        </Text>{' '}
+        <Text component="span">{formatCurrency(daRevenue)}</Text>{' '}
         <Text component="span" c={theme.colors.yellow[6]} fw={500}>
           AS:
         </Text>{' '}
-        <Text component="span">
-          ${daASValue === 0 ? '0' : formatCurrency(daASValue)}
-        </Text>
+        <Text component="span">{formatCurrency(daASValue)}</Text>
       </Text>
     )
   }, [batterySettlementLoading, rtRevenue, daRevenue, daASRevenue, theme])

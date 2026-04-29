@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency'
 import {
   Alert,
   Card,
@@ -165,8 +166,6 @@ const sparePartsData: SparePartData[] = [
 ]
 
 const formatNumber = (value: number): string => value.toLocaleString()
-
-const formatCurrency = (value: number): string => `$${value.toLocaleString()}`
 
 const SparePartsPage = () => {
   const { colorScheme } = useMantineColorScheme()
