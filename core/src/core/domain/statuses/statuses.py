@@ -109,6 +109,7 @@ async def get_status_timeseries_interpreted(
     device_ids: list[int] | None = None,
     sensor_type_ids: list[int] | None = None,
     get_all: bool = False,
+    freq: TimeInterval = TimeInterval.FIVE_MINUTES,
 ):
     """Get data_timeseries entries for statuses with filters.
 
@@ -119,6 +120,8 @@ async def get_status_timeseries_interpreted(
         sensor_type_ids: Filter to only included sensor_type_ids.
         start: Filter to only included start.
         end: Filter to only included end.
+        get_all: Whether to retrieve all data rows instead of aggregated rows.
+        freq: Timeseries aggregation interval.
     """
     get_status_tags_query = crud_statuses.get_status_tags(
         tag_ids=tag_ids,
@@ -134,7 +137,7 @@ async def get_status_timeseries_interpreted(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_POLARS,
         filter_values=status_tags_pl,
-        freq=TimeInterval.FIVE_MINUTES,
+        freq=freq,
         query_start=start,
         query_end=end,
         project_db=project_db,
