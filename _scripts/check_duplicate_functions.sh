@@ -162,6 +162,10 @@ NF >= 3 {
         next
     }
 
+    if (scope_to_changed && !(file in changed_files)) {
+        next
+    }
+
     if (name != prev_name) {
         flush_func()
         prev_name = name

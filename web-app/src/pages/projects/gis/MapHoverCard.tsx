@@ -1,6 +1,5 @@
-import { Paper, Text } from '@mantine/core'
-
 import type { KPIType } from '@/api/v1/operational/kpi_types'
+import { Paper, Text } from '@mantine/core'
 
 import type { HoverInfo } from './utils'
 

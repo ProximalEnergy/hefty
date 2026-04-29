@@ -9,7 +9,7 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 - `mise install`:  Install repo-managed tools, including Node.js and pnpm
 - `mise tasks`:  Discover mise tasks
 - `mise run dev`:  Run api and web-app servers together.
-- `mise run check`:  Check all folders in mono-repo
+- `mise run check`:  Check changed areas in mono-repo
 - `mise run sync-deps`:  Sync all dependencies across mono
 - `eval "$(mise activate zsh)"`:  Install in `.zshrc` for auto venv activation
 

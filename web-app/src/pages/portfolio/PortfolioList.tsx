@@ -16,6 +16,7 @@ import { PageTitle } from '@/components/PageTitle'
 import { useTipsPersonalPortfolio } from '@/components/Tips'
 import { RealtimePowerAvailabilityGauge } from '@/pages/projects/components/RealtimePowerAvailabilityGauge'
 import SortChevron from '@/pages/projects/kpis/project-kpi-home/table-shell/SortChevron'
+import { formatCurrency } from '@/utils/currency'
 import {
   HoverCard,
   Progress,
@@ -28,7 +29,6 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
-import { formatCurrency } from '@/utils/currency'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -281,6 +281,8 @@ const PowerAvailabilityHeader = ({
         ' interconnection limit, including overbuild.'
       : 'Switch to PCS mode to compare available power against cumulative' +
         ' PCS AC capacity.'
+  const modeLabel = mode === 'pcs' ? 'PCS Mode' : 'POI Mode'
+  const title = `Real time power availability - ${modeLabel}`
 
   return (
     <Table.Th ta="center" style={style}>
@@ -312,8 +314,7 @@ const PowerAvailabilityHeader = ({
         <HoverCard.Dropdown>
           <Stack gap={8}>
             <Text size="sm" fw={600}>
-              {'Real time power availability - ' +
-                (mode === 'pcs' ? 'PCS Mode' : 'POI Mode')}
+              {title}
             </Text>
             <Text size="sm">{explanation}</Text>
             <Text size="sm" c="dimmed">
@@ -861,7 +862,6 @@ const PVProjectRow = ({
     </Table.Tr>
   )
 }
-
 
 const BESSTable = ({
   data,

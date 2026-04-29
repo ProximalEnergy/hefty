@@ -38,7 +38,6 @@ interface RealtimeTabProps {
   projectId: string
 }
 
-
 export const FinancesRealtimeTab = ({ projectId }: RealtimeTabProps) => {
   const project = useSelectProject(projectId)
   const theme = useMantineTheme()

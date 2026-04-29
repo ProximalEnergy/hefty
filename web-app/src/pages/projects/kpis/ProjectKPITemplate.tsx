@@ -64,8 +64,8 @@ import {
   useSearchParams,
 } from 'react-router'
 
-import { HoverInfo } from '../gis/utils'
 import { MapHoverCard } from '../gis/MapHoverCard'
+import { HoverInfo } from '../gis/utils'
 
 const ICON_SIZE = 14
 const MAX_DEVICES = 3000 // Do not render device visualizations for more than this many devices

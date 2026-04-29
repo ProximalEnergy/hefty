@@ -59,6 +59,7 @@ notification_state_enum = Enum(
 
 claim_submission_channel_enum = Enum(
     enumerations.ClaimSubmissionChannel,
+    values_callable=lambda e: [m.value for m in e],
     name="claimsubmissionchannel",
     schema="operational",
     metadata=Base.metadata,
@@ -66,6 +67,7 @@ claim_submission_channel_enum = Enum(
 
 claim_status_enum = Enum(
     enumerations.ClaimStatus,
+    values_callable=lambda e: [m.value for m in e],
     name="claimstatus",
     schema="operational",
     metadata=Base.metadata,
@@ -73,6 +75,7 @@ claim_status_enum = Enum(
 
 claim_update_type_enum = Enum(
     enumerations.ClaimUpdateType,
+    values_callable=lambda e: [m.value for m in e],
     name="claimupdatetype",
     schema="operational",
     metadata=Base.metadata,
@@ -3276,6 +3279,18 @@ class Claim(Base):
     external_reference: Mapped[str | None]
 
     claim_config = relationship("ClaimConfig")
+    devices = relationship(
+        "ClaimDevice",
+        back_populates="claim",
+        lazy="selectin",
+        order_by="ClaimDevice.claim_device_id",
+    )
+    updates = relationship(
+        "ClaimUpdate",
+        back_populates="claim",
+        lazy="selectin",
+        order_by="ClaimUpdate.created_at",
+    )
 
 
 class ClaimDevice(Base):
@@ -3299,9 +3314,12 @@ class ClaimDevice(Base):
     oem_part_number: Mapped[str | None]
     notes: Mapped[str | None]
 
-    claim = relationship("Claim")
+    claim = relationship("Claim", back_populates="devices")
     device = relationship("Device")
-    event = relationship("Event", primaryjoin="ClaimDevice.event_id == Event.event_id")
+    event = relationship(
+        "Event",
+        primaryjoin="ClaimDevice.event_id == Event.event_id",
+    )
 
 
 class ClaimUpdate(Base):
@@ -3334,5 +3352,5 @@ class ClaimUpdate(Base):
         server_default=sa.func.now(),
     )
 
-    claim = relationship("Claim")
+    claim = relationship("Claim", back_populates="updates")
     user = relationship("User")

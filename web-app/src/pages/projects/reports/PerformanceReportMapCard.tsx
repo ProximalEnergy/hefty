@@ -12,8 +12,8 @@ import { useCallback, useContext, useState } from 'react'
 import type { MapMouseEvent } from 'react-map-gl/mapbox'
 import Map, { Layer, Source } from 'react-map-gl/mapbox'
 
-import type { HoverInfo } from '../gis/utils'
 import { MapHoverCard } from '../gis/MapHoverCard'
+import type { HoverInfo } from '../gis/utils'
 
 type PerformanceReportMapCardProps = {
   data: OperationalKPIData | undefined
@@ -297,4 +297,3 @@ export function PerformanceReportMapCard({
     </CustomCard>
   )
 }
-

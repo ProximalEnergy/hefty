@@ -6,7 +6,8 @@ unset VIRTUAL_ENV
 
 # Parse command line arguments
 SKIP_TESTS=false
-RUN_ALL=true
+RUN_ALL=false
+REQUESTED_DIFF_ONLY=true
 OFFLINE=false
 QUIET=true
 ALL_WARNINGS=false
@@ -26,10 +27,12 @@ while [ "$#" -gt 0 ]; do
             ;;
         --all)
             RUN_ALL=true
+            REQUESTED_DIFF_ONLY=false
             shift
             ;;
         --diff-only)
             RUN_ALL=false
+            REQUESTED_DIFF_ONLY=true
             shift
             ;;
         --offline)
@@ -1146,32 +1149,7 @@ diff_has() {
 }
 
 check_duplicate_functions_for_diff() {
-    local changed_files_file
-    local file
-    local status
-    local -a changed_code_files=()
-
-    while IFS= read -r file; do
-        if [ -f "$file" ] && [[ "$file" =~ \.(py|ts|tsx)$ ]]; then
-            changed_code_files+=("$file")
-        fi
-    done <<< "${DIFF_FILES}"
-
-    if [ "${#changed_code_files[@]}" -eq 0 ]; then
-        echo "No changed Python/TypeScript files for duplicate function check;" \
-            "skipping."
-        return 0
-    fi
-
-    changed_files_file=$(mktemp)
-    printf '%s\n' "${changed_code_files[@]}" >"${changed_files_file}"
-
-    ./_scripts/check_duplicate_functions.sh \
-        --changed-files-from "${changed_files_file}"
-    status=$?
-
-    rm -f "${changed_files_file}"
-    return "$status"
+    mise run root:duplicate_functions_diff "${DIFF_BASE}"
 }
 
 RUN_CORE=false
@@ -1338,7 +1316,7 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
     fi
     add_warning_check "Global: SQLAlchemy Return Methods" \
         "${SQLALCHEMY_RETURN_CHECK_CMD}"
-    if [ -n "${DIFF_FILES}" ]; then
+    if [ "${REQUESTED_DIFF_ONLY}" = "true" ] && [ -n "${DIFF_FILES}" ]; then
         add_warning_check "Global: Duplicate Function Names" \
             "check_duplicate_functions_for_diff"
     else

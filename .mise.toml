@@ -123,8 +123,8 @@ run = ["mise run web:install", "mise run web:build", "./_scripts/run_preview.sh"
 description = "Run quality checks"
 usage = '''
   flag "--static" help="Skip non-static tests"
-  flag "--all" help="Run all checks without diff filtering (default)"
-  flag "--diff-only" help="Run checks based on the diff vs dev"
+  flag "--all" help="Run all checks without diff filtering"
+  flag "--diff-only" help="Run checks based on the diff vs dev (default)"
   flag "--offline" help="Skip checks that need network access"
   flag "--all-warnings" help="Run warning checks for all areas"
   flag "--quiet" help="Keep reduced output (default behavior)"
@@ -259,6 +259,53 @@ run = "uv run --dev ruff format core/ api/ microservices/ pv-eem/"
 description = "Check for duplicate function names in Python and TypeScript using ast-grep"
 dir = "{{config_root}}"
 run = "./_scripts/check_duplicate_functions.sh"
+
+[tasks."root:duplicate_functions_diff"]
+description = "Check duplicate function names in changed Python and TypeScript files"
+dir = "{{config_root}}"
+usage = '''
+  arg "[base]" help="Base ref for diff (default: dev, then origin/dev)"
+'''
+run = """
+BASE_REF="${usage_base:-dev}"
+if [ -z "${usage_base:-}" ] \
+  && ! git rev-parse --verify --quiet "dev^{commit}" >/dev/null; then
+  if git rev-parse --verify --quiet "origin/dev^{commit}" >/dev/null; then
+    BASE_REF="origin/dev"
+  fi
+fi
+
+if ! git rev-parse --verify --quiet "${BASE_REF}^{commit}" >/dev/null; then
+  echo "Base ref '${BASE_REF}' not found."
+  exit 2
+fi
+
+CHANGED_FILES_FILE="$(mktemp)"
+trap 'rm -f "${CHANGED_FILES_FILE}"' EXIT
+if ! DIFF_FILES="$(./_scripts/diff_files_vs_dev.sh "${BASE_REF}")"; then
+  echo "Unable to detect changed files vs ${BASE_REF}."
+  exit 2
+fi
+
+printf '%s\n' "${DIFF_FILES}" | while IFS= read -r file; do
+  case "${file}" in
+    *.py|*.ts|*.tsx)
+      if [ -f "${file}" ]; then
+        printf '%s\n' "${file}"
+      fi
+      ;;
+  esac
+done >"${CHANGED_FILES_FILE}"
+
+if [ ! -s "${CHANGED_FILES_FILE}" ]; then
+  echo "No changed Python/TypeScript files for duplicate function check;"
+  echo "skipping."
+  exit 0
+fi
+
+./_scripts/check_duplicate_functions.sh \
+  --changed-files-from "${CHANGED_FILES_FILE}"
+"""
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
