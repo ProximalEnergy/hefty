@@ -203,7 +203,7 @@ def get_status_name_from_tag_id(*, tag_ids: list[int]):
 
 
 # -- vectorized status interpret --
-def _resolve_project_schema(
+def _resolve_project_schema_from_session(
     *,
     db: Session | None,
     schema: str | None,
@@ -244,7 +244,7 @@ async def get_status_interpret(
     )
 
     status_types = ["status_binary_id", "status_boolean_id", "status_string_id"]
-    project_schema = _resolve_project_schema(db=db, schema=schema)
+    project_schema = _resolve_project_schema_from_session(db=db, schema=schema)
     if project_schema is None:
         raise ValueError("project schema is required for status interpretation")
     tags_query = core.crud.project.tags.get_project_tags_v2(tag_ids=status_tags)

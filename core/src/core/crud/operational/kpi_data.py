@@ -193,7 +193,7 @@ def get_project_kpi_data_agg(
     return DbQuery(query=query, is_scalar=True)
 
 
-def get_kpi_data(
+def core_get_kpi_data(
     *,
     kpi_type_ids: list[int],
     start: datetime.date,

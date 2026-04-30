@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from core.crud.admin.users import get_user as crud_get_user
+from core.crud.admin.users import get_user_by_id as crud_get_user
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession

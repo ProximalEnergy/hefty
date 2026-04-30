@@ -178,7 +178,7 @@ async def remove_member(
     status_code=204,
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
-async def delete_team(
+async def delete_team_route(
     team_id: uuid.UUID, db: Annotated[AsyncSession, Depends(dependencies.get_async_db)]
 ):
     """Delete a team (admin only).

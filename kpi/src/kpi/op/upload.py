@@ -7,7 +7,7 @@ from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
     arrays_to_rows,
     get_application_name,
-    get_kpi_instances,
+    kpi_get_kpi_instances as get_kpi_instances,
     insert_device_kpi_data_bulk,
 )
 from kpi.op.context import get_context

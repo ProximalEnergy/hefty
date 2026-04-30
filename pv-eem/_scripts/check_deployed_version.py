@@ -230,7 +230,7 @@ def _resolve_deployed_version(
     return max(semvers), unique_tags
 
 
-def main() -> int:
+def main_check_deployed_version() -> int:
     function_name = _DEFAULT_FUNCTION_NAME
 
     try:
@@ -263,4 +263,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main_check_deployed_version())

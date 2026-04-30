@@ -24,7 +24,7 @@ def generate_password(*, length: int = 16) -> str:
     return password
 
 
-async def create_clerk_user(*, user: UserCreate, company_name_short: str):
+async def create_clerk_user_util(*, user: UserCreate, company_name_short: str):
     """Create a user in Clerk.
 
     Args:

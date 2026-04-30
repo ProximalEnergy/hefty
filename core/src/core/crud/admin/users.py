@@ -7,7 +7,7 @@ from core import models
 from core.db_query import DbQuery
 
 
-def get_user(*, user_id: str) -> DbQuery[models.User, Literal[True]]:
+def get_user_by_id(*, user_id: str) -> DbQuery[models.User, Literal[True]]:
     """Get a user by ID.
 
     Args:

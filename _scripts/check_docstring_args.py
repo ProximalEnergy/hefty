@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 
-def parse_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:
+def parse_check_docstring_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line arguments.
 
     Args:
@@ -46,7 +46,7 @@ def check_docstring_args(*, argv: Sequence[str] | None = None) -> int:
     Args:
         argv: Command line arguments.
     """
-    args = parse_args(argv=argv)
+    args = parse_check_docstring_args(argv=argv)
 
     # Determine target directory based on repository argument.
     if args.directory:

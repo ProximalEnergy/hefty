@@ -7,7 +7,6 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.interfaces import CalendarItemCreate, CalendarItemExceptionUpdate
 from app.logger import logger
@@ -339,66 +338,3 @@ async def create_or_update_calendar_item_exception(
         db_exception_to_return = fetched_after_commit
 
     return db_exception_to_return
-
-
-async def get_calendar_items(
-    *,
-    db: AsyncSession,
-    project_ids: list[UUID] | None = None,
-    notifications_only: bool = False,
-) -> list[models.CalendarItem]:
-    """Get calendar items from the database.
-
-    Args:
-        db (AsyncSession): Database session.
-        project_ids (list[UUID], optional): List of project IDs. Defaults to None.
-        notifications_only (bool, optional): If True, only return calendar items
-           that
-           have notifications configured. Defaults to False.
-
-    Returns:
-        list[models.CalendarItem]: List of calendar items with related data.
-    """
-    query = (
-        select(models.CalendarItem)
-        # Eagerly load all relationships needed by the calling endpoint.
-        .options(
-            selectinload(models.CalendarItem.category),
-            selectinload(models.CalendarItem.exceptions),
-            selectinload(models.CalendarItem.assignments),
-        )
-    )
-
-    if project_ids:
-        query = query.where(models.CalendarItem.project_id.in_(project_ids))
-
-    if notifications_only:
-        query = query.where(models.CalendarItem.notify_offsets.isnot(None))
-
-    result = await db.execute(query)
-    # Use .unique() to ensure each CalendarItem is returned only once
-    return list(result.scalars().unique().all())
-
-
-async def get_calendar_item_exceptions(
-    *,
-    db: AsyncSession,
-    calendar_item_ids: list[UUID] = [],
-) -> list[models.CalendarItemException]:
-    """Get calendar item exceptions from the database.
-
-    Args:
-        db (AsyncSession): Database session.
-        calendar_item_ids (list[UUID], optional): List of calendar item IDs.
-            Defaults to [].
-
-    Returns:
-        list[models.CalendarItemException]: List of calendar item exceptions.
-    """
-    query = select(models.CalendarItemException)
-    if len(calendar_item_ids) > 0:
-        query = query.where(
-            models.CalendarItemException.calendar_item_id.in_(calendar_item_ids)
-        )
-    result = await db.execute(query)
-    return list(result.scalars().all())

@@ -38,15 +38,14 @@ def configure_lambda_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,
         format=(
-            "%(asctime)s - %(levelname)s - %(process)d - "
-            "%(threadName)s - %(message)s"
+            "%(asctime)s - %(levelname)s - %(process)d - %(threadName)s - %(message)s"
         ),
         handlers=[logging.StreamHandler(sys.stdout)],
         force=True,
     )
 
 
-def load_secret_into_env(*, secret_name: str, region: str) -> None:
+def load_issues_pipeline_secret_into_env(*, secret_name: str, region: str) -> None:
     """Load a JSON secret into environment variables.
 
     Args:
@@ -85,7 +84,7 @@ def _load_issues_pipeline_secrets() -> None:
     """Load secrets before imports that read ``core.settings``."""
     region = os.getenv("AWS_REGION", "us-east-2")
     secret_name = os.getenv("ISSUES_PIPELINE_SECRET_NAME", _DEFAULT_SECRET_NAME)
-    load_secret_into_env(secret_name=secret_name, region=region)
+    load_issues_pipeline_secret_into_env(secret_name=secret_name, region=region)
 
 
 _load_issues_pipeline_secrets()

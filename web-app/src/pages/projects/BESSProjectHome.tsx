@@ -27,6 +27,7 @@ import {
 } from '@/utils/interval'
 import { projectDescription } from '@/utils/projectDescription'
 import { QUERY_TIME } from '@/utils/queryTiming'
+import { getContractKPIStatusColor } from '@/utils/statusColors'
 import {
   ActionIcon,
   Badge,
@@ -1407,36 +1408,6 @@ const ContractualKPIOverviewBESSProjectHome = ({
     return getKPIThresholdbyDate(contractKPI.threshold, new Date(), 'discrete')
   }
 
-  // Function to determine status color based on value vs threshold
-  const getStatusColor = (
-    value: number | null | undefined,
-    threshold: number | null | undefined,
-    unit?: string | null,
-  ) => {
-    if (
-      value === null ||
-      value === undefined ||
-      threshold === null ||
-      threshold === undefined
-    ) {
-      return theme.colors.gray[4] // Gray for no data
-    }
-
-    // For percentage KPIs, convert threshold to match the value format
-    const normalizedThreshold = unit === '%' ? threshold * 100 : threshold
-
-    // For KPIs where higher is better (most cases)
-    const percentage = (value / normalizedThreshold) * 100
-
-    if (percentage >= 100) {
-      return theme.colors.green[6] // Green - above threshold
-    } else if (percentage >= 90) {
-      return theme.colors.orange[6] // Orange - close to threshold
-    } else {
-      return theme.colors.red[6] // Red - below threshold
-    }
-  }
-
   // Function to format value with unit
   const formatBessContractKpiValue = (
     value: number | null | undefined,
@@ -1681,11 +1652,12 @@ const ContractualKPIOverviewBESSProjectHome = ({
               <Table.Tbody>
                 {contractualKPIs.map((kpi) => {
                   const threshold = getCurrentThreshold(kpi.kpi_type_id)
-                  const statusColor = getStatusColor(
-                    kpi.ytd_value,
+                  const statusColor = getContractKPIStatusColor({
+                    theme,
+                    value: kpi.ytd_value,
                     threshold,
-                    kpi.unit,
-                  )
+                    unit: kpi.unit,
+                  })
 
                   // Get counterparty information from contract KPI data
                   const contractKPI = contractKPIMap.get(kpi.kpi_type_id)

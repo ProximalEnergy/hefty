@@ -3,17 +3,13 @@ import { ActionIcon, Group, Stack, Text } from '@mantine/core'
 import { IconEdit, IconMail, IconPhone } from '@tabler/icons-react'
 import { Link } from 'react-router'
 
+import { getProjectOMContractorsTabPath } from '../../project-settings-paths'
+
 type ServiceDetailsProps = {
   projectId?: string
   isAdmin: boolean
   serviceContractor: OMContractorScope | null
   isContractorLoading: boolean
-}
-
-const omContractorsTab = (projectId?: string) => {
-  return projectId
-    ? `/projects/${projectId}/settings?tab=om-contractors`
-    : '/projects'
 }
 
 const linkStyle = {
@@ -27,7 +23,7 @@ export function ServiceDetails({
   serviceContractor,
   isContractorLoading,
 }: ServiceDetailsProps) {
-  const omContractorsPath = omContractorsTab(projectId)
+  const omContractorsPath = getProjectOMContractorsTabPath(projectId)
   const companyName =
     serviceContractor?.company_name_long ||
     serviceContractor?.company_name_short

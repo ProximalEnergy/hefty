@@ -15,7 +15,7 @@ from app._crud.admin.users import delete_user as delete_user_crud
 from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from app._utils.user_management import (
-    create_clerk_user,
+    create_clerk_user_util,
     delete_clerk_user,
     get_clerk_user_image_url,
     send_onboarding_email,
@@ -124,7 +124,7 @@ async def create_user_route(
         user: UserCreate payload containing Clerk and company details.
     """
     # Create user in Clerk
-    new_user_data = await create_clerk_user(
+    new_user_data = await create_clerk_user_util(
         user=user,
         company_name_short=user.company_name_short,
     )

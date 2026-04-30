@@ -85,6 +85,24 @@ def load_environment_variables() -> EnvironmentVariables:
     )
 
 
+def load_proximal_environment_variables() -> EnvironmentVariables:
+    """Load and validate environment variables required for proximal data."""
+    env_vars = load_environment_variables()
+    env_vars.require_environment()
+    env_vars.require_database_url()
+    env_vars.require_aws_s3_bucket_name()
+    env_vars.require_clickhouse_credentials()
+    return env_vars
+
+
+def load_error_notification_environment_variables() -> EnvironmentVariables:
+    """Load and validate environment variables required for error notifications."""
+    env_vars = load_environment_variables()
+    env_vars.require_environment()
+    env_vars.require_webhook_url()
+    return env_vars
+
+
 def _require_string(*, value: str | None, env_var_name: str) -> str:
     match value:
         case str():

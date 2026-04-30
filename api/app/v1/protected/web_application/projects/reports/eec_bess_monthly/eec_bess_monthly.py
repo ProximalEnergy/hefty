@@ -23,7 +23,7 @@ from core.crud.operational.contract_kpis import (
 from core.crud.operational.failure_modes import (
     get_failure_modes as crud_get_failure_modes,
 )
-from core.crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
+from core.crud.operational.kpi_data import core_get_kpi_data as crud_get_kpi_data
 from core.crud.operational.projects import get_projects as crud_get_projects
 from core.crud.operational.qse_integrations import (
     get_qse_integration_by_project_id as crud_get_qse_integration_by_project_id,

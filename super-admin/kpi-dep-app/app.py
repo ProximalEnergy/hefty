@@ -742,7 +742,7 @@ def load_sensor_instance_matrix() -> pd.DataFrame:
     return display_df
 
 
-def main() -> None:
+def main_kpi_dep_app() -> None:
     """Render the KPI type vs project table app."""
     load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
     st.set_page_config(page_title="KPI Types vs Projects", layout="wide")
@@ -1333,4 +1333,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main_kpi_dep_app()

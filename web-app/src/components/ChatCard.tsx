@@ -1,6 +1,7 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { determineTextColor } from '@/utils/colors'
+import { ChatMessageBubble } from '@/components/ChatMessageBubble'
+import { renderMarkdownToHtml } from '@/utils/renderMarkdown'
 import { useAuth, useUser } from '@clerk/react'
 import {
   ActionIcon,
@@ -10,7 +11,6 @@ import {
   Loader,
   MantineColorScheme,
   MantineTheme,
-  Paper,
   ScrollArea,
   Stack,
   Text,
@@ -118,23 +118,11 @@ export function ChatCard({
   const markdown = useMemo(() => new MarkdownIt(), [])
 
   const renderMarkdown = (content: string) => {
-    const renderedContent = markdown.render(content)
-    const styledContent = renderedContent
-      .replace(/<p>/g, '<p style="margin: 0">')
-      .replace(
-        /<code>/g,
-        '<code style="color: white; font-size: 0.875em; background-color: #333333; padding: 2px 4px; border-radius: 4px;">',
-      )
-      .replace(
-        /<pre>/g,
-        '<pre style="color: white; font-size: 0.875em; background-color: #333333; padding: 10px; border-radius: 4px; overflow-x: auto;">',
-      )
-      .replace(
-        // Add style to images to set max width:
-        /<img/g,
-        '<img style="width: 100%; height: auto;"',
-      )
-    return { __html: styledContent }
+    return renderMarkdownToHtml({
+      content,
+      markdown,
+      styleImages: true,
+    })
   }
 
   useEffect(() => {
@@ -375,9 +363,6 @@ export function ChatCard({
   const renderMessage = (message: IStep) => {
     const isUserMessage = message.type === 'user_message'
 
-    const userTextColor = determineTextColor(
-      theme.colors[theme.primaryColor][7],
-    )
     const contextElements =
       message.context && message.context.length > 0 ? (
         <ContextButtons
@@ -388,37 +373,14 @@ export function ChatCard({
       ) : null
 
     return (
-      <Group
+      <ChatMessageBubble
         key={message.id}
-        w="100%"
-        justify={isUserMessage ? 'flex-end' : 'flex-start'}
-      >
-        <Paper
-          p="xs"
-          maw={600}
-          color={theme.primaryColor}
-          style={{
-            backgroundColor: isUserMessage
-              ? theme.colors[theme.primaryColor][7]
-              : colorScheme === 'dark'
-                ? theme.colors.dark[7]
-                : theme.colors.gray[1],
-          }}
-        >
-          <Text
-            size="sm"
-            c={
-              isUserMessage
-                ? userTextColor
-                : colorScheme === 'dark'
-                  ? theme.colors.dark[0]
-                  : theme.colors.dark[7]
-            }
-            dangerouslySetInnerHTML={renderMarkdown(message.content)}
-          />
-          {contextElements}
-        </Paper>
-      </Group>
+        isUserMessage={isUserMessage}
+        contentHtml={renderMarkdown(message.content)}
+        contextElements={contextElements}
+        maxWidth={600}
+        paperColor={theme.primaryColor}
+      />
     )
   }
 

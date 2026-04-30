@@ -12,7 +12,7 @@ from app.domain.equipment.pv_module.parse_pan.s03_bandgap_parameters import (
     assign_bandgap_parameters_pan,
 )
 from app.domain.equipment.pv_module.parse_pan.s04_absolute_temp_coefficients import (
-    calc_absolute_temp_coefficients,
+    calc_pan_absolute_temp_coefficients,
 )
 from app.domain.equipment.pv_module.parse_pan.s05_single_diode_params import (
     solve_stc_parameters,
@@ -43,7 +43,7 @@ def parse_pan(*, file_content: bytes) -> dict[str, Any]:
     pv_module_data = assign_bandgap_parameters_pan(
         pv_module=pv_module_data,
     )
-    pv_module_data = calc_absolute_temp_coefficients(
+    pv_module_data = calc_pan_absolute_temp_coefficients(
         pv_module=pv_module_data,
     )
     pv_module_data = solve_stc_parameters(

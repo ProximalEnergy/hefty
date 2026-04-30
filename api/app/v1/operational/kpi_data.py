@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, utils
-from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
+from app._crud.operational.kpi_data import api_get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._dependencies.authentication import get_user
 from app._dependencies.filtering import (

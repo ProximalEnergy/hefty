@@ -2,7 +2,7 @@ import logging
 import uuid
 from typing import Annotated
 
-from core.crud.admin.users import get_user
+from core.crud.admin.users import get_user_by_id
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
 from core.utils.user_management import get_user_email_from_clerk
@@ -160,7 +160,7 @@ async def order_drone_inspection(
         company = companies[0]
 
         # Get user details for the email
-        user = await get_user(user_id=user_data.user_id).get_async(
+        user = await get_user_by_id(user_id=user_data.user_id).get_async(
             output_type=OutputType.SQLALCHEMY
         )
         if not user:

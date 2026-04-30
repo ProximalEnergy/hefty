@@ -81,7 +81,7 @@ def run_issues_for_projects(
     return results
 
 
-def main() -> None:
+def main_orchestrator() -> None:
     """CLI entrypoint for issues runs."""
     setup_logging(file_path=__file__)
     summaries = run_issues_for_projects()
@@ -94,4 +94,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main_orchestrator()

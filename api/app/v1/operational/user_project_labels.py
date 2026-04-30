@@ -213,7 +213,7 @@ async def update_user_project_label_route(
 
 
 @router.delete("/{user_project_label_id}", status_code=204)
-async def delete_user_project_label(
+async def delete_user_project_label_route(
     user_project_label_id: int,
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[UserAuthed, Depends(get_user)],

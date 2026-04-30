@@ -34,5 +34,5 @@ async def get_cmms_permissions(
 
     return [
         interfaces.CMMSPermission.model_validate(cmms_permission)
-        for cmms_permission in cmms_permissions
+        for cmms_permission, _ in cmms_permissions
     ]

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import interfaces
 from app._crud.operational.kpi_instances import (
-    get_kpi_instances as crud_get_kpi_instances,
+    api_get_kpi_instances as crud_get_kpi_instances,
 )
 from app.dependencies import get_is_superadmin_async
 

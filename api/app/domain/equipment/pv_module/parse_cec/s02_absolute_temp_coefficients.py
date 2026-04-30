@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 
-def calc_absolute_temp_coefficients(
+def calc_cec_absolute_temp_coefficients(
     *,
     cec_pv_module: dict,
 ) -> dict:

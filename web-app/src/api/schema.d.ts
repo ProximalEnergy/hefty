@@ -259,10 +259,10 @@ export interface paths {
         };
         get?: never;
         /**
-         * Bulk Update Notification Preferences
+         * Bulk Update Notification Preferences Route
          * @description Update multiple notification preferences.
          */
-        put: operations["bulk_update_notification_preferences_v1_admin_notification_preferences_bulk_put"];
+        put: operations["bulk_update_notification_preferences_route_v1_admin_notification_preferences_bulk_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -566,14 +566,14 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete Team
+         * Delete Team Route
          * @description Delete a team (admin only).
          *
          *     Args:
          *         team_id: Team identifier to delete.
          *         db: Database session.
          */
-        delete: operations["delete_team_v1_admin_teams__team_id__delete"];
+        delete: operations["delete_team_route_v1_admin_teams__team_id__delete"];
         options?: never;
         head?: never;
         /**
@@ -915,10 +915,10 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete All Notifications
+         * Delete All Notifications Route
          * @description Delete all IN_APP notifications for the requesting user.
          */
-        delete: operations["delete_all_notifications_v1_admin_notifications_delete_all_delete"];
+        delete: operations["delete_all_notifications_route_v1_admin_notifications_delete_all_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -975,10 +975,10 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete Notification
+         * Delete Notification Route
          * @description Delete a notification for the requesting user.
          */
-        delete: operations["delete_notification_v1_admin_notifications__notification_id__delete"];
+        delete: operations["delete_notification_route_v1_admin_notifications__notification_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2803,7 +2803,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete Contract
+         * Delete Contract Route
          * @description Delete a contract if it has no associated Contractual KPIs.
          *
          *         This endpoint will only delete contracts that don't have any Contractual
@@ -2814,7 +2814,7 @@ export interface paths {
          *         contract_id: Description for contract_id.
          *         db: Description for db.
          */
-        delete: operations["delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete"];
+        delete: operations["delete_contract_route_v1_operational_projects__project_id__contracts__contract_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3098,14 +3098,14 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete Project Document
+         * Delete Project Document Route
          * @description todo
          *
          *     Args:
          *         document_id: Description for document_id.
          *         db: Description for db.
          */
-        delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
+        delete: operations["delete_project_document_route_v1_operational_projects__project_id__documents__document_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3285,7 +3285,7 @@ export interface paths {
         get: operations["get_event_messages_route_v1_operational_projects__project_id__event_messages_get"];
         put?: never;
         /**
-         * Create Event Message
+         * Create Event Message Route
          * @description Create a new event message.
          *
          *         - Extracts @mentions from the message body
@@ -3310,7 +3310,7 @@ export interface paths {
          *         user_data: Description for user_data.
          *         api_prod: Description for api_prod.
          */
-        post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
+        post: operations["create_event_message"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3349,7 +3349,7 @@ export interface paths {
         put: operations["update_event_message"];
         post?: never;
         /**
-         * Delete Event Message
+         * Delete Event Message Route
          * @description Delete an existing event message (soft delete).
          *
          *         Validates:
@@ -3364,7 +3364,7 @@ export interface paths {
          *         event_message_id: Description for event_message_id.
          *         user_data: Description for user_data.
          */
-        delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
+        delete: operations["delete_event_message"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3380,7 +3380,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Toggle Event Chat Mute
+         * Toggle Event Chat Mute Route
          * @description Toggle mute status for an event chat.
          *
          *         Returns:
@@ -3391,7 +3391,7 @@ export interface paths {
          *         event_id: Description for event_id.
          *         user_data: Description for user_data.
          */
-        post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
+        post: operations["toggle_event_chat_mute"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3406,7 +3406,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Chat Mute Status
+         * Get Event Chat Mute Status Route
          * @description Get mute status for an event chat.
          *
          *         Returns:
@@ -3417,7 +3417,7 @@ export interface paths {
          *         event_id: Description for event_id.
          *         user_data: Description for user_data.
          */
-        get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
+        get: operations["get_event_chat_mute_status"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3436,7 +3436,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Upload Event Message Image
+         * Upload Event Message Image Route
          * @description Upload an image for an event message.
          *
          *         Validates:
@@ -3461,7 +3461,7 @@ export interface paths {
          *         event_message_id: Description for event_message_id.
          *         file: Description for file.
          */
-        post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
+        post: operations["upload_event_message_image"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3476,7 +3476,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Message Image Url
+         * Get Event Message Image Url Route
          * @description Get a presigned URL for an event message image.
          *
          *         Validates user has access to the event before generating URL.
@@ -3490,7 +3490,7 @@ export interface paths {
          *         event_id: Description for event_id.
          *         image_id: Description for image_id.
          */
-        get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
+        get: operations["get_event_message_image_url"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3519,7 +3519,7 @@ export interface paths {
          *         event_id: Description for event_id.
          *         event_message_id: Description for event_message_id.
          */
-        get: operations["get_event_message_images_route_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
+        get: operations["get_event_message_images"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3970,7 +3970,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Contract Kpis Route
+         * Get Project Contract Kpis Route
          * @description Get all contract KPIs for a project with counterparty information
          *
          *     Args:
@@ -3999,6 +3999,7 @@ export interface paths {
          *
          *     Args:
          *         project_id: Description for project_id.
+         *         project: Project dependency used to determine the default timezone.
          *         start: Description for start.
          *         end: Description for end.
          *         kpi_type_id: Description for kpi_type_id.
@@ -4779,7 +4780,7 @@ export interface paths {
         get: operations["get_projects"];
         put?: never;
         /**
-         * Create Project
+         * Create Project Route
          * @description Create a new project.
          *
          *     Args:
@@ -4787,7 +4788,7 @@ export interface paths {
          *         db: Description for db.
          *         user_data: Description for user_data.
          */
-        post: operations["create_project_v1_operational_projects_post"];
+        post: operations["create_project_route_v1_operational_projects_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5669,7 +5670,7 @@ export interface paths {
         put: operations["update_user_project_label"];
         post?: never;
         /**
-         * Delete User Project Label
+         * Delete User Project Label Route
          * @description Delete a project label for the requesting user.
          *
          *     Args:
@@ -5677,7 +5678,7 @@ export interface paths {
          *         db: Database session.
          *         user: Authenticated user data.
          */
-        delete: operations["delete_user_project_label_v1_operational_user_project_labels__user_project_label_id__delete"];
+        delete: operations["delete_user_project_label_route_v1_operational_user_project_labels__user_project_label_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5814,7 +5815,6 @@ export interface paths {
          *     Args:
          *         project_ids: Optional project IDs to filter the results.
          *         user_data: Authenticated user context used for access filtering.
-         *         db: Async database session.
          */
         get: operations["get_portfolio_calendar_events_v1_protected_web_application_portfolio_calendar_get"];
         put?: never;
@@ -6771,14 +6771,14 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete Event Cmms Ticket
+         * Delete Event Cmms Ticket Route
          * @description Delete an event-CMMS ticket relationship.
          *
          *     Args:
          *         project_db: The project database session.
          *         event_cmms_ticket_id: The event-CMMS ticket ID.
          */
-        delete: operations["delete_event_cmms_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets__event_cmms_ticket_id__delete"];
+        delete: operations["delete_event_cmms_ticket_route_v1_protected_web_application_projects__project_id__event_cmms_tickets__event_cmms_ticket_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -8043,8 +8043,8 @@ export interface components {
             /** Operational Project Ids */
             operational_project_ids: string[][];
         };
-        /** Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post */
-        Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
+        /** Body_upload_event_message_image */
+        Body_upload_event_message_image: {
             /** File */
             file: string;
         };
@@ -12894,7 +12894,7 @@ export interface operations {
             };
         };
     };
-    bulk_update_notification_preferences_v1_admin_notification_preferences_bulk_put: {
+    bulk_update_notification_preferences_route_v1_admin_notification_preferences_bulk_put: {
         parameters: {
             query?: never;
             header?: {
@@ -13363,7 +13363,7 @@ export interface operations {
             };
         };
     };
-    delete_team_v1_admin_teams__team_id__delete: {
+    delete_team_route_v1_admin_teams__team_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -13910,7 +13910,7 @@ export interface operations {
             };
         };
     };
-    delete_all_notifications_v1_admin_notifications_delete_all_delete: {
+    delete_all_notifications_route_v1_admin_notifications_delete_all_delete: {
         parameters: {
             query?: never;
             header?: {
@@ -14005,7 +14005,7 @@ export interface operations {
             };
         };
     };
-    delete_notification_v1_admin_notifications__notification_id__delete: {
+    delete_notification_route_v1_admin_notifications__notification_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -16739,7 +16739,7 @@ export interface operations {
             };
         };
     };
-    delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete: {
+    delete_contract_route_v1_operational_projects__project_id__contracts__contract_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -17167,7 +17167,7 @@ export interface operations {
             };
         };
     };
-    delete_project_document_v1_operational_projects__project_id__documents__document_id__delete: {
+    delete_project_document_route_v1_operational_projects__project_id__documents__document_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -17453,7 +17453,7 @@ export interface operations {
             };
         };
     };
-    create_event_message_v1_operational_projects__project_id__event_messages_post: {
+    create_event_message: {
         parameters: {
             query?: never;
             header?: {
@@ -17530,7 +17530,7 @@ export interface operations {
             };
         };
     };
-    delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete: {
+    delete_event_message: {
         parameters: {
             query?: never;
             header?: {
@@ -17565,7 +17565,7 @@ export interface operations {
             };
         };
     };
-    toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post: {
+    toggle_event_chat_mute: {
         parameters: {
             query?: never;
             header?: {
@@ -17602,7 +17602,7 @@ export interface operations {
             };
         };
     };
-    get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get: {
+    get_event_chat_mute_status: {
         parameters: {
             query?: never;
             header?: {
@@ -17639,7 +17639,7 @@ export interface operations {
             };
         };
     };
-    upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
+    upload_event_message_image: {
         parameters: {
             query?: never;
             header?: {
@@ -17655,7 +17655,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
+                "multipart/form-data": components["schemas"]["Body_upload_event_message_image"];
             };
         };
         responses: {
@@ -17681,7 +17681,7 @@ export interface operations {
             };
         };
     };
-    get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get: {
+    get_event_message_image_url: {
         parameters: {
             query?: never;
             header?: {
@@ -17719,7 +17719,7 @@ export interface operations {
             };
         };
     };
-    get_event_message_images_route_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
+    get_event_message_images: {
         parameters: {
             query?: never;
             header?: {
@@ -19566,7 +19566,7 @@ export interface operations {
             };
         };
     };
-    create_project_v1_operational_projects_post: {
+    create_project_route_v1_operational_projects_post: {
         parameters: {
             query?: never;
             header?: {
@@ -20927,7 +20927,7 @@ export interface operations {
             };
         };
     };
-    delete_user_project_label_v1_operational_user_project_labels__user_project_label_id__delete: {
+    delete_user_project_label_route_v1_operational_user_project_labels__user_project_label_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -22513,7 +22513,7 @@ export interface operations {
             };
         };
     };
-    delete_event_cmms_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets__event_cmms_ticket_id__delete: {
+    delete_event_cmms_ticket_route_v1_protected_web_application_projects__project_id__event_cmms_tickets__event_cmms_ticket_id__delete: {
         parameters: {
             query?: never;
             header?: {

@@ -37,7 +37,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def load_secret_into_env(*, secret_name: str, region: str) -> None:
+def load_calendar_notifications_secret_into_env(
+    *, secret_name: str, region: str
+) -> None:
     """Load a JSON secret into environment variables.
 
     Args:
@@ -81,7 +83,7 @@ def _load_calendar_notifications_secrets() -> None:
     """Load secrets from AWS Secrets Manager before importing core modules."""
     try:
         region = os.getenv("AWS_REGION", "us-east-2")
-        load_secret_into_env(
+        load_calendar_notifications_secret_into_env(
             secret_name="calendar/reminders",  # noqa: S106
             region=region,
         )

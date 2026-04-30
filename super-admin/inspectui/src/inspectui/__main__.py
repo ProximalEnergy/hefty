@@ -29,7 +29,7 @@ def _restore_tty_onlcr() -> None:
         pass
 
 
-def main() -> int:
+def main_inspectui() -> int:
     """Main entry point for the InspectUI application."""
     try:
         app = InspectUIApp()
@@ -44,4 +44,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main_inspectui())

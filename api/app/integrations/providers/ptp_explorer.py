@@ -412,7 +412,7 @@ async def get_endpoint_data(
     return _merge_ptp_data_responses(responses=responses)
 
 
-async def explore_ptp_api(*, token_manager: TokenManager) -> dict[str, Any]:
+async def explore_ptp_api_route(*, token_manager: TokenManager) -> dict[str, Any]:
     """Explore the PTP API structure and return a summary.
 
     This function queries the API to understand available markets, endpoints,

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, utils
 from app._crud.admin.notification_preferences import (
-    bulk_update_notification_preferences as crud_bulk_update_notification_preferences,
+    bulk_update_user_notification_preferences,
 )
 from app._crud.admin.notification_preferences import (
     get_user_notification_preferences as crud_get_user_notification_preferences,
@@ -59,7 +59,7 @@ async def get_user_notification_preferences_route(
     response_model=list[interfaces.NotificationPreference],
     description="Update multiple notification preferences.",
 )
-async def bulk_update_notification_preferences(
+async def bulk_update_notification_preferences_route(
     data: interfaces.NotificationPreferenceBulkUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
@@ -99,7 +99,7 @@ async def bulk_update_notification_preferences(
         )
 
     try:
-        preferences = await crud_bulk_update_notification_preferences(
+        preferences = await bulk_update_user_notification_preferences(
             db=db,
             user_id=user_data.user_id,
             project_ids=data.project_ids,

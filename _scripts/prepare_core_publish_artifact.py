@@ -13,7 +13,7 @@ from pathlib import Path
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
 
 
-def dependency_name(*, requirement: str) -> str:
+def publish_dependency_name(*, requirement: str) -> str:
     base = requirement.split(";", 1)[0].strip()
     if " @" in base:
         base = base.split(" @", 1)[0].strip()
@@ -31,7 +31,7 @@ def load_pyproject(*, path: Path) -> dict:
         return tomllib.load(file_handle)
 
 
-def load_dependencies(*, path: Path) -> list[str]:
+def load_publish_dependencies(*, path: Path) -> list[str]:
     data = load_pyproject(path=path)
     dependencies = data.get("project", {}).get("dependencies", [])
     if not isinstance(dependencies, list):
@@ -44,7 +44,7 @@ def load_dependencies(*, path: Path) -> list[str]:
 def dependency_map(*, requirements: list[str]) -> dict[str, str]:
     names: dict[str, str] = {}
     for requirement in requirements:
-        name = dependency_name(requirement=requirement)
+        name = publish_dependency_name(requirement=requirement)
         if name in names:
             raise ValueError(
                 f"Duplicate dependency entry for {name}: "
@@ -71,7 +71,7 @@ def requirement_specifiers(*, requirement: str) -> tuple[str, tuple[str, ...]]:
     return (name, specifiers)
 
 
-def is_bare_requirement(*, requirement: str) -> bool:
+def is_bare_publish_requirement(*, requirement: str) -> bool:
     stripped = requirement.strip()
     if ";" in stripped:
         return False
@@ -87,18 +87,18 @@ def expected_root_requirements(
     root_pyproject: Path,
     core_pyproject: Path,
 ) -> list[str]:
-    root_dependencies = load_dependencies(path=root_pyproject)
-    core_dependencies = load_dependencies(path=core_pyproject)
+    root_dependencies = load_publish_dependencies(path=root_pyproject)
+    core_dependencies = load_publish_dependencies(path=core_pyproject)
     root_by_name = dependency_map(requirements=root_dependencies)
     expected: list[str] = []
 
     for requirement in core_dependencies:
-        if not is_bare_requirement(requirement=requirement):
+        if not is_bare_publish_requirement(requirement=requirement):
             raise ValueError(
                 "Committed core dependency entries must stay blank for "
                 f"root-managed publish deps: {requirement}"
             )
-        name = dependency_name(requirement=requirement)
+        name = publish_dependency_name(requirement=requirement)
         if name not in root_by_name:
             raise ValueError(
                 f"Missing root dependency for core publish dependency: {name}"
@@ -216,7 +216,7 @@ def verify_wheel(
         )
 
 
-def parse_args() -> argparse.Namespace:
+def parse_core_publish_artifact_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Prepare and validate the publish-time core artifact.",
     )
@@ -243,7 +243,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def prepare_core_publish_artifact() -> int:
-    args = parse_args()
+    args = parse_core_publish_artifact_args()
 
     try:
         if args.command == "inject":

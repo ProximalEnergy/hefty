@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 import core.models as models
-from core.crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
+from core.crud.operational.kpi_data import core_get_kpi_data as crud_get_kpi_data
 from core.crud.operational.projects import get_projects as crud_get_projects
 from core.db_query import OutputType
 from core.enumerations import KPIType

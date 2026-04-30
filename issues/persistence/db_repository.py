@@ -4,10 +4,11 @@ import datetime
 import logging
 from uuid import UUID
 
-from core import crud
 from core.database import with_db
 from core.db_query import OutputType
 from core.dependencies import get_project_name_short
+
+from core import crud
 from issues.models.issue_candidate import IssueCandidate, IssueIdentity
 from issues.models.persistence_models import IssueRecord
 from issues.persistence.matcher import candidate_identity, index_active_issues
@@ -50,7 +51,7 @@ class DbIssueRepository:
         candidates: list[IssueCandidate],
     ) -> IssuePersistenceResult:
         """Create, match, and resolve issue episodes for one project run."""
-        project_schema = _resolve_project_schema(project_id=project_id)
+        project_schema = _resolve_project_schema_from_id(project_id=project_id)
         LOGGER.info(
             "\t\tApplying issue candidates for project_id=%s schema=%s run_time=%s "
             "candidate_count=%s",
@@ -216,7 +217,7 @@ class DbIssueRepository:
                 IssueRecord(
                     issue_id=int(row["issue_id"]),
                     device_id=int(row["device_id"]),
-                    tag_id=_parse_optional_int(raw=row["tag_id"]),
+                    tag_id=_coerce_optional_int(raw=row["tag_id"]),
                     issue_category_id=int(row["issue_category_id"]),
                     time_start=row["time_start"],
                     time_end=row["time_end"],
@@ -234,13 +235,13 @@ class DbIssueRepository:
         return indexed
 
 
-def _parse_optional_int(*, raw: object) -> int | None:
+def _coerce_optional_int(*, raw: object) -> int | None:
     if raw is None:
         return None
     return int(raw)
 
 
-def _resolve_project_schema(*, project_id: str) -> str:
+def _resolve_project_schema_from_id(*, project_id: str) -> str:
     try:
         project_uuid = UUID(project_id)
     except ValueError:

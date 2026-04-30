@@ -110,10 +110,10 @@ async def _async_main() -> int:
     return 0
 
 
-def main() -> int:
+def live_test_main() -> int:
     _load_environment()
     return asyncio.run(_async_main())
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(live_test_main())

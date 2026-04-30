@@ -403,7 +403,7 @@ async def search_contract_content(
 
 
 @router.delete("/{document_id}", response_model=interfaces.Message)
-async def delete_project_document(
+async def delete_project_document_route(
     document_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ) -> interfaces.Message:

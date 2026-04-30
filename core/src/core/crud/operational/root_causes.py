@@ -6,7 +6,7 @@ from core import models
 from core.db_query import DbQuery
 
 
-def get_root_causes(
+def get_root_causes_query(
     *,
     root_cause_ids: list[int] = [],
 ) -> DbQuery[models.RootCause, Literal[False]]:

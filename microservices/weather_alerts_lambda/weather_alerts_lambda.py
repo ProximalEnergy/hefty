@@ -35,7 +35,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def load_secret_into_env(*, secret_name: str, region: str) -> None:
+def load_weather_alerts_secret_into_env(*, secret_name: str, region: str) -> None:
     """Load a JSON secret into environment variables.
 
     Args:
@@ -58,7 +58,7 @@ async def _run_weather_alerts():
         # Load secrets first (if configured)
         secret_name = os.getenv("NWS_SECRET_NAME", "nws/weather/notifications")
         region = os.getenv("AWS_REGION", "us-east-2")
-        load_secret_into_env(secret_name=secret_name, region=region)
+        load_weather_alerts_secret_into_env(secret_name=secret_name, region=region)
 
         # Import here to avoid issues with Lambda environment
         from core.domain.notifications.weather_alerts import (  # noqa: PLC0415

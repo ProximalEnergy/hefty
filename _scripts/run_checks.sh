@@ -1152,6 +1152,10 @@ check_duplicate_functions_for_diff() {
     mise run root:duplicate_functions_diff "${DIFF_BASE}"
 }
 
+check_duplicate_classes_for_diff() {
+    mise run root:duplicate_classes_diff "${DIFF_BASE}"
+}
+
 RUN_CORE=false
 RUN_API=false
 RUN_MICRO=false
@@ -1322,6 +1326,13 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
     else
         add_warning_check "Global: Duplicate Function Names" \
             "mise run root:duplicate_functions"
+    fi
+    if [ "${REQUESTED_DIFF_ONLY}" = "true" ] && [ -n "${DIFF_FILES}" ]; then
+        add_warning_check "Global: Duplicate Class Names" \
+            "check_duplicate_classes_for_diff"
+    else
+        add_warning_check "Global: Duplicate Class Names" \
+            "mise run root:duplicate_classes"
     fi
 fi
 

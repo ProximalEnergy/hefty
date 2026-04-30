@@ -7,6 +7,11 @@ from zoneinfo import ZoneInfo
 
 import core.models as models
 import pandas as pd
+from core.crud.operational.calendar import (
+    get_calendar_item_assignments,
+    get_calendar_item_exceptions,
+    get_calendar_items,
+)
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType, postprocess_pandas_df
 from core.enumerations import KPIType, ProjectType, SensorType
@@ -65,6 +70,53 @@ class PortfolioHomeLongTerm(BaseModel):
 
 class PortfolioHome(PortfolioHomeShortTerm, PortfolioHomeLongTerm):
     """Combined short- and long-term portfolio home metrics."""
+
+
+def _calendar_value_or_none(*, value: Any) -> Any:
+    """Normalize pandas scalar nulls while preserving list-like values."""
+    if isinstance(value, list | tuple):
+        return value
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        return value
+    return value
+
+
+def _append_calendar_exception(
+    *,
+    exdates_by_item: dict[Any, list[str]],
+    calendar_item_id: Any,
+    exception_date: Any,
+) -> None:
+    """Append a cancelled exception date to the item map."""
+    if pd.isna(exception_date):
+        return
+    exdate = (
+        exception_date.isoformat()
+        if hasattr(exception_date, "isoformat")
+        else str(exception_date)
+    )
+    exdates_by_item.setdefault(calendar_item_id, []).append(exdate)
+
+
+def _append_calendar_assignment(
+    *,
+    assignees_by_item: dict[Any, dict[str, list[Any]]],
+    calendar_item_id: Any,
+    user_id: Any,
+    team_id: Any,
+) -> None:
+    """Append an assignment id to the item map."""
+    assignees = assignees_by_item.setdefault(
+        calendar_item_id,
+        {"assignee_user_ids": [], "assignee_team_ids": []},
+    )
+    if pd.notna(user_id):
+        assignees["assignee_user_ids"].append(user_id)
+    if pd.notna(team_id):
+        assignees["assignee_team_ids"].append(team_id)
 
 
 class PortfolioBessPowerAvailability(BaseModel):
@@ -958,14 +1010,12 @@ async def get_home(
 async def get_portfolio_calendar_events(
     project_ids: Annotated[list[UUID] | None, Query()] = None,
     user_data: UserAuthed = Depends(get_user),
-    db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get all calendar events for all projects in the user's portfolio.
 
     Args:
         project_ids: Optional project IDs to filter the results.
         user_data: Authenticated user context used for access filtering.
-        db: Async database session.
     """
     # If no project_ids provided, use all accessible projects
     if not project_ids:
@@ -979,35 +1029,65 @@ async def get_portfolio_calendar_events(
     if not accessible_project_ids:
         return []
 
-    # Fetch calendar items and all their related data in a single, efficient query
-    # NOTE: This requires updating your `crud_calendar.get_calendar_items` function.
-    # See the "Required Change" section below for details.
-    calendar_items_from_db = await crud_calendar.get_calendar_items(
-        db=db, project_ids=accessible_project_ids
+    calendar_items_query = get_calendar_items(
+        project_ids=accessible_project_ids,
+        include_related=False,
     )
+    calendar_items_df = cast(
+        pd.DataFrame,
+        await calendar_items_query.get_async(output_type=OutputType.PANDAS),
+    )
+
+    if calendar_items_df.empty:
+        return []
+
+    calendar_item_ids = list(calendar_items_df["calendar_item_id"])
+
+    exceptions_query = get_calendar_item_exceptions(calendar_item_ids=calendar_item_ids)
+    exceptions_df = cast(
+        pd.DataFrame,
+        await exceptions_query.get_async(output_type=OutputType.PANDAS),
+    )
+    exdates_by_item: dict[Any, list[str]] = {}
+    for exception in exceptions_df.itertuples(index=False):
+        if not exception.is_cancelled:
+            continue
+        _append_calendar_exception(
+            exdates_by_item=exdates_by_item,
+            calendar_item_id=exception.calendar_item_id,
+            exception_date=exception.exception_date,
+        )
+
+    assignments_query = get_calendar_item_assignments(
+        calendar_item_ids=calendar_item_ids
+    )
+    assignments_df = cast(
+        pd.DataFrame,
+        await assignments_query.get_async(output_type=OutputType.PANDAS),
+    )
+    assignees_by_item: dict[Any, dict[str, list[Any]]] = {}
+    for assignment in assignments_df.itertuples(index=False):
+        _append_calendar_assignment(
+            assignees_by_item=assignees_by_item,
+            calendar_item_id=assignment.calendar_item_id,
+            user_id=assignment.user_id,
+            team_id=assignment.team_id,
+        )
 
     # Shape the data into the final response model
     result_items = []
-    for item in calendar_items_from_db:
-        result_items.append(
-            {
-                # Include all direct fields from the ORM object
-                **{c.name: getattr(item, c.name) for c in item.__table__.columns},
-                # Add fields from eagerly loaded relationships
-                "color": item.category.color_code if item.category else None,
-                "exdates": [
-                    exc.exception_date.isoformat()
-                    for exc in item.exceptions
-                    if exc.is_cancelled
-                ],
-                "assignee_user_ids": [
-                    a.user_id for a in item.assignments if a.user_id is not None
-                ],
-                "assignee_team_ids": [
-                    a.team_id for a in item.assignments if a.team_id is not None
-                ],
-            }
+    for item in calendar_items_df.to_dict(orient="records"):
+        calendar_item_id = item["calendar_item_id"]
+        assignees = assignees_by_item.get(
+            calendar_item_id,
+            {"assignee_user_ids": [], "assignee_team_ids": []},
         )
+        result_items.append(
+            {key: _calendar_value_or_none(value=value) for key, value in item.items()}
+        )
+        result_items[-1]["exdates"] = exdates_by_item.get(calendar_item_id, [])
+        result_items[-1]["assignee_user_ids"] = assignees["assignee_user_ids"]
+        result_items[-1]["assignee_team_ids"] = assignees["assignee_team_ids"]
 
     return result_items
 

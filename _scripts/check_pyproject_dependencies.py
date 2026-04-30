@@ -18,7 +18,7 @@ SKIP_DIRS = {
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
 
 
-def dependency_name(*, requirement: str) -> str:
+def check_pyproject_dependency_name(*, requirement: str) -> str:
     base = requirement.split(";", 1)[0].strip()
     if " @" in base:
         base = base.split(" @", 1)[0].strip()
@@ -32,7 +32,10 @@ def dependency_name(*, requirement: str) -> str:
 
 
 def dependency_sort_key(*, requirement: str) -> tuple[str, str]:
-    return (dependency_name(requirement=requirement), requirement.lower())
+    return (
+        check_pyproject_dependency_name(requirement=requirement),
+        requirement.lower(),
+    )
 
 
 def check_list(
@@ -45,7 +48,7 @@ def check_list(
     if not dependencies:
         return
 
-    names = [dependency_name(requirement=dep) for dep in dependencies]
+    names = [check_pyproject_dependency_name(requirement=dep) for dep in dependencies]
     seen: dict[str, str] = {}
     duplicates: dict[str, list[str]] = {}
     for dep, name in zip(dependencies, names, strict=True):
@@ -82,7 +85,7 @@ def has_upper_bound(
     if " @" in base:
         return True
 
-    name = dependency_name(requirement=requirement)
+    name = check_pyproject_dependency_name(requirement=requirement)
     if name in allow_unbounded:
         return True
 
@@ -127,11 +130,11 @@ def managed_dependency_names(
             allow_unbounded=allow_unbounded,
         ):
             continue
-        managed_names.add(dependency_name(requirement=requirement))
+        managed_names.add(check_pyproject_dependency_name(requirement=requirement))
     return managed_names
 
 
-def is_bare_requirement(*, requirement: str) -> bool:
+def check_pyproject_is_bare_requirement(*, requirement: str) -> bool:
     stripped = requirement.strip()
     if ";" in stripped:
         return False
@@ -176,10 +179,10 @@ def check_pyproject(
         )
         if path.as_posix().endswith("core/pyproject.toml"):
             for requirement in dependencies:
-                name = dependency_name(requirement=requirement)
+                name = check_pyproject_dependency_name(requirement=requirement)
                 if name not in allow_unbounded:
                     continue
-                if is_bare_requirement(requirement=requirement):
+                if check_pyproject_is_bare_requirement(requirement=requirement):
                     continue
                 errors.append(
                     f"{path} [project.dependencies] must keep root-managed "

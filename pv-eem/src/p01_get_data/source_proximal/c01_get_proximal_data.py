@@ -6,6 +6,7 @@ from asyncio import Task
 import pandas as pd
 import polars as pl
 import psycopg2
+from _utils.environment_variables import load_proximal_environment_variables
 from interfaces import (
     Indeces,
     InverterEquipmentSeries,
@@ -28,7 +29,6 @@ from p01_get_data.source_proximal import (
     calc_axis_azimuth,
     combine_met_and_soiling_data,
     get_db_engine,
-    get_environment_variables,
     get_met_data,
     get_met_soiling,
     get_simulation_version,
@@ -54,7 +54,7 @@ async def from_proximal_db(
     """Run from_proximal_db."""
     logging.info("... Get Data")
     # --- Environment Variables ---
-    env_vars = get_environment_variables()
+    env_vars = load_proximal_environment_variables()
     environment = env_vars.require_environment()
     database_url = env_vars.require_database_url()
     aws_s3_bucket_name = env_vars.require_aws_s3_bucket_name()

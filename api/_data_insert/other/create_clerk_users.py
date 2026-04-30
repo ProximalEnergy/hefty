@@ -22,7 +22,7 @@ class UserDict(TypedDict):
     public_metadata: dict[Literal["parent_company"], str] | None
 
 
-def create_user(*, user: UserDict) -> None:
+def create_clerk_user_script(*, user: UserDict) -> None:
     """Create a user in Clerk.
 
     Args:
@@ -97,6 +97,6 @@ if __name__ == "__main__":
         exit()
 
     for user in users:
-        create_user(user=user)
+        create_clerk_user_script(user=user)
 
     logging.info("DO NOT CLEAR TERMINAL BEFORE GETTING PASSWORDS!")

@@ -356,7 +356,7 @@ def _run_app(*, stdscr: Any, repo_root: Path) -> int:
             sort_visible_changes()
 
 
-def main() -> int:
+def main_meta() -> int:
     """Run the meta TUI."""
     try:
         repo_root = _resolve_repo_root()
@@ -374,4 +374,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main_meta())

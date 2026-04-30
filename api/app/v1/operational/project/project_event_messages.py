@@ -764,8 +764,8 @@ async def get_event_messages_route(
     return [_model_to_pydantic_message(model=msg) for msg in message_models]
 
 
-@router.post("")
-async def create_event_message(
+@router.post("", operation_id="create_event_message")
+async def create_event_message_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
@@ -994,8 +994,8 @@ async def update_event_message_route(
     return event_message
 
 
-@router.delete("/{event_message_id}")
-async def delete_event_message(
+@router.delete("/{event_message_id}", operation_id="delete_event_message")
+async def delete_event_message_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
@@ -1053,8 +1053,8 @@ async def delete_event_message(
     return event_message
 
 
-@router.post("/{event_id}/mute")
-async def toggle_event_chat_mute(
+@router.post("/{event_id}/mute", operation_id="toggle_event_chat_mute")
+async def toggle_event_chat_mute_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
@@ -1078,8 +1078,8 @@ async def toggle_event_chat_mute(
     return {"muted": is_muted}
 
 
-@router.get("/{event_id}/mute-status")
-async def get_event_chat_mute_status(
+@router.get("/{event_id}/mute-status", operation_id="get_event_chat_mute_status")
+async def get_event_chat_mute_status_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     _: Annotated[None, Depends(dependencies.check_project_access_async)],
@@ -1179,8 +1179,10 @@ def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -
     return str(presigned_url)
 
 
-@router.post("/{event_id}/images/{event_message_id}")
-async def upload_event_message_image(
+@router.post(
+    "/{event_id}/images/{event_message_id}", operation_id="upload_event_message_image"
+)
+async def upload_event_message_image_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
@@ -1306,8 +1308,10 @@ async def upload_event_message_image(
     }
 
 
-@router.get("/{event_id}/images/{image_id}/url")
-async def get_event_message_image_url(
+@router.get(
+    "/{event_id}/images/{image_id}/url", operation_id="get_event_message_image_url"
+)
+async def get_event_message_image_url_route(
     *,
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     event_id: int,
@@ -1352,7 +1356,10 @@ async def get_event_message_image_url(
     }
 
 
-@router.get("/{event_id}/messages/{event_message_id}/images")
+@router.get(
+    "/{event_id}/messages/{event_message_id}/images",
+    operation_id="get_event_message_images",
+)
 async def get_event_message_images_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],

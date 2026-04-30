@@ -173,7 +173,7 @@ async def explore_ptp_api(
         Dictionary containing API structure summary.
     """
     try:
-        result = await ptp_explorer.explore_ptp_api(token_manager=tps_token)
+        result = await ptp_explorer.explore_ptp_api_route(token_manager=tps_token)
         return result
     except Exception as exc:
         raise HTTPException(

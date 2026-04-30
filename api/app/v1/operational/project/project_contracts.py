@@ -642,7 +642,7 @@ async def analyze_contract_document(
 
 
 @router.delete("/{contract_id}")
-async def delete_contract(
+async def delete_contract_route(
     project_id: UUID,
     contract_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],

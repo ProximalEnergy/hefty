@@ -8,6 +8,7 @@ import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import { useGetBatterySettlementDetails } from '@/api/v1/protected/web-application/projects/financial/battery_settlement'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
+import { ChatMessageBubble } from '@/components/ChatMessageBubble'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -15,8 +16,8 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
-import { determineTextColor } from '@/utils/colors'
 import { QUERY_TIME } from '@/utils/queryTiming'
+import { renderMarkdownToHtml } from '@/utils/renderMarkdown'
 import { useAuth } from '@clerk/react'
 import {
   ActionIcon,
@@ -33,8 +34,6 @@ import {
   Tabs,
   Text,
   Textarea,
-  useComputedColorScheme,
-  useMantineTheme,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconSend, IconSparkles } from '@tabler/icons-react'
@@ -44,7 +43,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import DOMPurify from 'dompurify'
 import MarkdownIt from 'markdown-it'
 import { Data } from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -78,8 +76,6 @@ const BatterySettlementPage = () => {
   const [inputValue, setInputValue] = useState<string>('')
   const [hasInitialAnalysis, setHasInitialAnalysis] = useState<boolean>(false)
   const viewportRef = useRef<HTMLDivElement>(null)
-  const theme = useMantineTheme()
-  const colorScheme = useComputedColorScheme()
   const markdown = useMemo(() => new MarkdownIt(), [])
   const { start, end } = useValidateDateRange({
     maxDays: 31,
@@ -553,21 +549,11 @@ const BatterySettlementPage = () => {
   }, [])
 
   const renderMarkdown = (content: string) => {
-    const renderedContent = markdown.render(content)
-    const styledContent = renderedContent
-      .replace(/<p>/g, '<p style="margin: 0">')
-      .replace(
-        /<code>/g,
-        '<code style="color: white; font-size: 0.875em; background-color: #333333; padding: 2px 4px; border-radius: 4px;">',
-      )
-      .replace(
-        /<pre>/g,
-        '<pre style="color: white; font-size: 0.875em; background-color: #333333; padding: 10px; border-radius: 4px; overflow-x: auto;">',
-      )
-    const sanitizedContent = DOMPurify.sanitize(styledContent, {
-      USE_PROFILES: { html: true },
+    return renderMarkdownToHtml({
+      content,
+      markdown,
+      sanitize: true,
     })
-    return { __html: sanitizedContent }
   }
 
   const startAnalysis = async (userMessage?: string) => {
@@ -698,42 +684,13 @@ const BatterySettlementPage = () => {
   }
 
   const renderMessage = (message: ChatMessage) => {
-    const isUserMessage = message.role === 'user'
-
-    const userTextColor = determineTextColor(
-      theme.colors[theme.primaryColor][7],
-    )
-
     return (
-      <Group
+      <ChatMessageBubble
         key={message.id}
-        w="100%"
-        justify={isUserMessage ? 'flex-end' : 'flex-start'}
-      >
-        <Paper
-          p="xs"
-          maw="80%"
-          style={{
-            backgroundColor: isUserMessage
-              ? theme.colors[theme.primaryColor][7]
-              : colorScheme === 'dark'
-                ? theme.colors.dark[7]
-                : theme.colors.gray[1],
-          }}
-        >
-          <Text
-            size="sm"
-            c={
-              isUserMessage
-                ? userTextColor
-                : colorScheme === 'dark'
-                  ? theme.colors.dark[0]
-                  : theme.colors.dark[7]
-            }
-            dangerouslySetInnerHTML={renderMarkdown(message.content)}
-          />
-        </Paper>
-      </Group>
+        isUserMessage={message.role === 'user'}
+        contentHtml={renderMarkdown(message.content)}
+        maxWidth="80%"
+      />
     )
   }
 

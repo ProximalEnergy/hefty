@@ -11,7 +11,7 @@ from app.domain.equipment.pv_module.parse_cec.s01_bandgap_parameters import (
     assign_bandgap_parameters_cec,
 )
 from app.domain.equipment.pv_module.parse_cec.s02_absolute_temp_coefficients import (
-    calc_absolute_temp_coefficients,
+    calc_cec_absolute_temp_coefficients,
 )
 
 
@@ -28,7 +28,7 @@ def adapt_cec_pv_module_to_proximal(
     adapted_cec_pv_module = assign_bandgap_parameters_cec(
         cec_pv_module=adapted_cec_pv_module,
     )
-    adapted_cec_pv_module = calc_absolute_temp_coefficients(
+    adapted_cec_pv_module = calc_cec_absolute_temp_coefficients(
         cec_pv_module=adapted_cec_pv_module,
     )
     adapted_cec_pv_module = calc_reference_params(

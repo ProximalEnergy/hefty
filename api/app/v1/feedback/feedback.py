@@ -2,7 +2,7 @@ import base64
 import logging
 from typing import Annotated
 
-from core.crud.admin.users import get_user
+from core.crud.admin.users import get_user_by_id
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
@@ -64,7 +64,7 @@ async def create_feedback_route(
     # Get user name from database if available
     user_name = "Unknown"
     try:
-        user = await get_user(user_id=user_id).get_async(
+        user = await get_user_by_id(user_id=user_id).get_async(
             output_type=OutputType.SQLALCHEMY
         )
         if user and user.name_long:

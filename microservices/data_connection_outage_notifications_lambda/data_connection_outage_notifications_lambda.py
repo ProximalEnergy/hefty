@@ -33,7 +33,9 @@ logger = logging.getLogger(__name__)
 _DEFAULT_SM_SECRET_ID = "microservices/data_connection_outage_notification"  # noqa: S105
 
 
-def load_secret_into_env(*, secret_name: str, region: str) -> None:
+def load_data_connection_outage_secret_into_env(
+    *, secret_name: str, region: str
+) -> None:
     """Load a JSON secret into environment variables.
 
     Args:
@@ -81,7 +83,9 @@ def _load_data_connection_outage_secrets() -> None:
             "DATA_CONNECTION_OUTAGE_SECRET_NAME",
             _DEFAULT_SM_SECRET_ID,
         )
-        load_secret_into_env(secret_name=secret_name, region=region)
+        load_data_connection_outage_secret_into_env(
+            secret_name=secret_name, region=region
+        )
     except Exception as e:
         logger.warning("Error loading secrets at startup: %s", e)
 

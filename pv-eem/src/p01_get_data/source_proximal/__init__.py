@@ -1,7 +1,4 @@
 # Get simulation config should not be imported here
-from p01_get_data.source_proximal.s00_get_environment_variables import (
-    get_environment_variables as get_environment_variables,
-)
 from p01_get_data.source_proximal.s01_qc_times import qc_times as qc_times
 from p01_get_data.source_proximal.s02_get_database_engine import (
     get_db_engine as get_db_engine,

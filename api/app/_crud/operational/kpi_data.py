@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, defer
 from core import models
 
 
-def get_kpi_data(
+def api_get_kpi_data(
     *,
     db: Session,
     start: datetime.date,

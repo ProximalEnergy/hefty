@@ -226,7 +226,7 @@ def arrays_to_rows(
     return data_rows
 
 
-def get_kpi_instances(
+def kpi_get_kpi_instances(
     project_id: UUID,
 ) -> list[int]:
     with with_db(schema=None) as db:

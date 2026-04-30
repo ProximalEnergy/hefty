@@ -162,7 +162,7 @@ const ContractCard = ({
     : null
   const summaryText = contract.contract_summary || 'Unknown'
 
-  const getStatusColor = (status: string) => {
+  const getContractHealthStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'good':
         return 'green'
@@ -689,7 +689,9 @@ const ContractCard = ({
                                 </Table.Td>
                                 <Table.Td style={{ textAlign: 'center' }}>
                                   <Badge
-                                    color={getStatusColor(kpi.status)}
+                                    color={getContractHealthStatusColor(
+                                      kpi.status,
+                                    )}
                                     variant="light"
                                     size="sm"
                                     style={{ opacity: 0.7 }}

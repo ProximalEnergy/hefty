@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, noload, selectinload
 from core import models
 
 
-def get_kpi_instances(
+def api_get_kpi_instances(
     *,
     db: Session,
     project_ids: list[UUID] | None = None,
@@ -57,7 +57,7 @@ def _get_kpi_instances_options(*, deep: bool):
     return options
 
 
-async def bulk_upsert_kpi_instances(
+async def bulk_upsert_kpi_instances_with_async_session(
     *,
     db: AsyncSession,
     rows: list[tuple[int, UUID, bool]],
@@ -93,7 +93,7 @@ async def bulk_upsert_kpi_instances(
     return int(cast(Any, result).rowcount or 0)
 
 
-async def bulk_delete_kpi_instances(
+async def bulk_delete_kpi_instances_with_async_session(
     *,
     db: AsyncSession,
     keys: list[tuple[int, UUID]],

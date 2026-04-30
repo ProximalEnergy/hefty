@@ -59,7 +59,7 @@ def create_vector_store(*, name: str) -> str:
     return vector_store.id
 
 
-def create_company_project(
+def insert_company_project_record(
     *,
     company_id: uuid.UUID,
     project_id: uuid.UUID,
@@ -108,7 +108,7 @@ project_id = get_project_id_from_name_short(name_short=PROJECT_NAME_SHORT)
 logging.info(f"Project ID: {project_id}")
 vector_store_id = create_vector_store(name=f"{COMPANY_NAME_SHORT}-{PROJECT_NAME_SHORT}")
 logging.info(f"Vector Store ID: {vector_store_id}")
-create_company_project(
+insert_company_project_record(
     company_id=company_id,
     project_id=project_id,
     vector_store_id=vector_store_id,

@@ -8,7 +8,7 @@ import sys
 import tomllib
 
 
-def parse_args() -> argparse.Namespace:
+def parse_pyproject_dependencies_changed_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Check whether project.dependencies changed between revisions.",
     )
@@ -18,7 +18,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_dependencies(*, revision: str, path: str) -> tuple[str, ...]:
+def load_revision_dependencies(*, revision: str, path: str) -> tuple[str, ...]:
     result = subprocess.run(
         ["git", "show", f"{revision}:{path}"],
         check=True,
@@ -34,14 +34,14 @@ def load_dependencies(*, revision: str, path: str) -> tuple[str, ...]:
 
 
 def pyproject_dependencies_changed() -> int:
-    args = parse_args()
+    args = parse_pyproject_dependencies_changed_args()
 
     try:
-        base_dependencies = load_dependencies(
+        base_dependencies = load_revision_dependencies(
             revision=args.base,
             path=args.path,
         )
-        head_dependencies = load_dependencies(
+        head_dependencies = load_revision_dependencies(
             revision=args.head,
             path=args.path,
         )

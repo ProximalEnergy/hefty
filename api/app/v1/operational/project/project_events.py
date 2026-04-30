@@ -11,7 +11,9 @@ import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
-from core.crud.operational.root_causes import get_root_causes as core_get_root_causes
+from core.crud.operational.root_causes import (
+    get_root_causes_query as core_get_root_causes,
+)
 from core.crud.project import event_losses as core_event_losses
 from core.crud.project import events as core_events
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod

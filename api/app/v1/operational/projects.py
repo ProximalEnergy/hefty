@@ -14,9 +14,11 @@ from sqlalchemy.orm import Session
 import core
 from app import dependencies, interfaces, utils
 from app._crud.operational.kpi_instances import (
-    get_kpi_instances as crud_get_kpi_instances,
+    api_get_kpi_instances as crud_get_kpi_instances,
 )
-from app._crud.operational.projects import create_project as crud_create_project
+from app._crud.operational.projects import (
+    create_project as crud_create_project,
+)
 from app._crud.operational.report_instances import (
     get_report_instances as crud_get_report_instances,
 )
@@ -209,7 +211,7 @@ async def get_project_route(
 
 
 @router.post("", response_model=interfaces.Project)
-async def create_project(
+async def create_project_route(
     project_in: interfaces.ProjectCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: UserAuthed = Depends(get_user),

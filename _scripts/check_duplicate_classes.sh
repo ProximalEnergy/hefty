@@ -34,44 +34,42 @@ collect_matches() {
     local rules
 
     rules=$(cat <<'EOF'
-id: python-function
-message: Collect Python function names
+id: python-class
+message: Collect Python class names
 severity: warning
 language: Python
 rule:
-  kind: function_definition
+  kind: class_definition
   has:
     field: name
     pattern: $NAME
 ---
-id: typescript-function
-message: Collect TypeScript function names
+id: typescript-class
+message: Collect TypeScript class names
 severity: warning
 language: TypeScript
 rule:
-  any:
-    - pattern: 'function $NAME($$$A) { $$$B }'
-    - pattern: 'async function $NAME($$$A) { $$$B }'
-    - pattern: 'const $NAME = ($$$A) => { $$$B }'
-    - pattern: 'const $NAME = async ($$$A) => { $$$B }'
+  kind: class_declaration
+  has:
+    field: name
+    pattern: $NAME
 ---
-id: tsx-function
-message: Collect TSX function names
+id: tsx-class
+message: Collect TSX class names
 severity: warning
 language: Tsx
 rule:
-  any:
-    - pattern: 'function $NAME($$$A) { $$$B }'
-    - pattern: 'async function $NAME($$$A) { $$$B }'
-    - pattern: 'const $NAME = ($$$A) => { $$$B }'
-    - pattern: 'const $NAME = async ($$$A) => { $$$B }'
+  kind: class_declaration
+  has:
+    field: name
+    pattern: $NAME
 EOF
 )
 
     sg scan --inline-rules "$rules" --json=stream \
         | jq -r '
             select(
-                .ruleId != "python-function"
+                .ruleId != "python-class"
                 or ((.charCount.leading? // 0) == 0)
             )
             | .metaVariables.single.NAME.text? as $name
@@ -86,11 +84,11 @@ EOF
         '
 }
 
-UNIQUE_FUNCS=$(
+UNIQUE_CLASSES=$(
     collect_matches | sort -t "$TAB" -k1,1 -k2,2 -k3,3n -u
 )
 
-printf '%s\n' "$UNIQUE_FUNCS" | awk \
+printf '%s\n' "$UNIQUE_CLASSES" | awk \
     -F '\t' \
     -v changed_files_from="$CHANGED_FILES_FROM" '
 BEGIN {
@@ -98,7 +96,7 @@ BEGIN {
     prev_file = ""
     current_lines = ""
     output = ""
-    func_count = 0
+    class_count = 0
     scope_to_changed = (changed_files_from != "")
     group_has_changed = 0
     repo_root = ENVIRON["PWD"]
@@ -144,23 +142,14 @@ function is_stub_file(file) {
     return 0
 }
 
-function is_allowed_duplicate(name, signature) {
-    if (name == "render") {
-        if (signature ~ /^def render\(self\)([[:space:]]*->[^:]+)?:$/) {
-            return 1
-        }
-    }
-    return 0
-}
-
-function flush_func() {
+function flush_class() {
     if (prev_name != "") {
         if (prev_file != "") {
             output = output "  - " prev_file ":" current_lines "\n"
         }
-        if (func_count > 1 && (!scope_to_changed || group_has_changed)) {
+        if (class_count > 1 && (!scope_to_changed || group_has_changed)) {
             if (!header_printed) {
-                print "Found duplicate function names:"
+                print "Found duplicate class names:"
                 header_printed = 1
             }
             print "- " prev_name " defined in:"
@@ -174,17 +163,8 @@ NF >= 4 {
     name = $1
     file = normalize_file($2)
     line = $3
-    signature = $4
 
-    if (is_alembic_migration(file)) {
-        next
-    }
-
-    if (name ~ /^__.*__$/ || name == "lambda_handler" || name == "health_check") {
-        next
-    }
-
-    if (is_stub_file(file) || is_allowed_duplicate(name, signature)) {
+    if (is_alembic_migration(file) || is_stub_file(file)) {
         next
     }
 
@@ -193,15 +173,15 @@ NF >= 4 {
     }
 
     if (name != prev_name) {
-        flush_func()
+        flush_class()
         prev_name = name
         prev_file = file
         current_lines = line
         output = ""
-        func_count = 1
+        class_count = 1
         group_has_changed = (file in changed_files)
     } else {
-        func_count++
+        class_count++
         if (file in changed_files) {
             group_has_changed = 1
         }
@@ -216,12 +196,12 @@ NF >= 4 {
 }
 
 END {
-    flush_func()
+    flush_class()
     if (failed == 0) {
         if (scope_to_changed) {
-            print "No duplicate function names found in changed files."
+            print "No duplicate class names found in changed files."
         } else {
-            print "No duplicate function names found."
+            print "No duplicate class names found."
         }
     }
     exit failed

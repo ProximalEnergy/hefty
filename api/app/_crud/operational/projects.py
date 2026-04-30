@@ -3,7 +3,7 @@ from datetime import timedelta
 
 import httpx
 import sqlalchemy as sa
-from core.crud.admin.users import get_user
+from core.crud.admin.users import get_user_by_id
 from core.database import Base
 from core.db_query import OutputType
 from core.enumerations import ProjectDataInterval, ProjectStatusType
@@ -337,7 +337,7 @@ async def create_project(
     company_name = str(company_id)  # fallback to ID
 
     try:
-        user = await get_user(user_id=user_id).get_async(
+        user = await get_user_by_id(user_id=user_id).get_async(
             output_type=OutputType.SQLALCHEMY
         )
         if user and user.name_long:

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 
-def parse_args() -> argparse.Namespace:
+def parse_switch_core_source_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -79,9 +79,9 @@ def update_pyproject_toml(*, pyproject_path: Path, use_editable: bool) -> bool:
     return True
 
 
-def main() -> None:
+def switch_core_source_main() -> None:
     """Main entry point."""
-    args = parse_args()
+    args = parse_switch_core_source_args()
     use_editable = args.mode == "editable"
 
     root_dir = Path(__file__).parent.parent
@@ -111,4 +111,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    switch_core_source_main()

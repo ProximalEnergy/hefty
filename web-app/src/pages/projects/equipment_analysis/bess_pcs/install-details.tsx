@@ -4,24 +4,17 @@ import { IconEdit } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { Link } from 'react-router'
 
+import {
+  getProjectInfoTabPath,
+  getProjectOMContractorsTabPath,
+} from '../../project-settings-paths'
+
 type InstallDetailsProps = {
   projectId?: string
   isAdmin: boolean
   placedInServiceDate?: string | null
   epcContractor: OMContractorScope | null
   isContractorLoading: boolean
-}
-
-const projectInfoTab = (projectId?: string) => {
-  return projectId
-    ? `/projects/${projectId}/settings?tab=project-info`
-    : '/projects'
-}
-
-const omContractorsTab = (projectId?: string) => {
-  return projectId
-    ? `/projects/${projectId}/settings?tab=om-contractors`
-    : '/projects'
 }
 
 const linkStyle = {
@@ -36,8 +29,8 @@ export function InstallDetails({
   epcContractor,
   isContractorLoading,
 }: InstallDetailsProps) {
-  const projectInfoPath = projectInfoTab(projectId)
-  const omContractorsPath = omContractorsTab(projectId)
+  const projectInfoPath = getProjectInfoTabPath(projectId)
+  const omContractorsPath = getProjectOMContractorsTabPath(projectId)
   const epcCompanyName =
     epcContractor?.company_name_long ||
     epcContractor?.company_name_short ||

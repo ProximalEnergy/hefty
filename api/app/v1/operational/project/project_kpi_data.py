@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
 from app import interfaces
-from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
+from app._crud.operational.kpi_data import api_get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
@@ -435,7 +435,7 @@ def get_project_kpi_summary_route(
     response_model=list[interfaces.ContractKPIs],
     operation_id="get_project_contract_kpis",
 )
-def get_contract_kpis_route(
+def get_project_contract_kpis_route(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
 ):
@@ -509,6 +509,7 @@ def get_contract_kpis_route(
 @router.get("/llm-kpis")
 def get_llm_kpis(
     project_id: uuid.UUID,
+    project: Annotated[interfaces.Project, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     kpi_type_id: int | None = None,
@@ -518,17 +519,24 @@ def get_llm_kpis(
 
     Args:
         project_id: Description for project_id.
+        project: Project dependency used to determine the default timezone.
         start: Description for start.
         end: Description for end.
         kpi_type_id: Description for kpi_type_id.
         db: Description for db.
     """
     kpi_type_ids = [kpi_type_id] if kpi_type_id is not None else []
+    if start is None or end is None:
+        end_date = pd.Timestamp.now(tz=project.time_zone).floor("D").date()
+        start_date = end_date - datetime.timedelta(days=1)
+    else:
+        start_date = start.date()
+        end_date = end.date()
 
     df = crud_get_kpi_data(
         db=db,
-        start=start,  # type: ignore
-        end=end,  # type: ignore
+        start=start_date,
+        end=end_date,
         project_ids=[project_id],
         kpi_type_ids=kpi_type_ids,
         include_device_data=True,

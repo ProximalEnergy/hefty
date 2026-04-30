@@ -124,7 +124,7 @@ async def create_event_cmms_ticket(
 @router.delete(
     "/{event_cmms_ticket_id}", response_model=interfaces.EventCMMSTicket | None
 )
-async def delete_event_cmms_ticket(
+async def delete_event_cmms_ticket_route(
     *,
     project_db: AsyncSession = Depends(get_project_db_async),
     event_cmms_ticket_id: int,

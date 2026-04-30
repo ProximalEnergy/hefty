@@ -38,7 +38,7 @@ const ICON_PROPS = {
 
 const GAP = 'md'
 
-const getStatusColor = (status: string) => {
+const getCMMSTicketStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case 'open':
       return 'green'
@@ -236,7 +236,7 @@ const CMMSTicketCard = ({
             </Stack>
             <Stack h="100%" align="flex-end" gap="xs">
               <Badge
-                color={getStatusColor(ticket.status || '')}
+                color={getCMMSTicketStatusColor(ticket.status || '')}
                 size="lg"
                 leftSection={getStatusIcon(ticket.status || '')}
               >

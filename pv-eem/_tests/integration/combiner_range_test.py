@@ -80,7 +80,7 @@ def _get_combiner_snapshot_table_path(*, file_name: str) -> Path:
     return _get_combiner_snapshot_dir() / file_name
 
 
-def _read_snapshot_metadata() -> dict[str, Any]:
+def _read_combiner_snapshot_metadata() -> dict[str, Any]:
     metadata_path = _get_combiner_snapshot_metadata_path()
     if not metadata_path.exists():
         raise FileNotFoundError(
@@ -92,7 +92,7 @@ def _read_snapshot_metadata() -> dict[str, Any]:
         return json.load(file_handle)
 
 
-def _read_snapshot_table(*, file_name: str) -> pd.DataFrame:
+def _read_combiner_snapshot_table(*, file_name: str) -> pd.DataFrame:
     table_path = _get_combiner_snapshot_table_path(file_name=file_name)
     if not table_path.exists():
         raise FileNotFoundError(
@@ -114,7 +114,7 @@ def _parse_optional_series(*, data_frame: pd.DataFrame, column: str) -> pd.Serie
     return pd.Series(index=data_frame.index, dtype="float64", name=column)
 
 
-def _raise_for_incompatible_pvsyst_snapshot(
+def _raise_for_incompatible_combiner_pvsyst_snapshot(
     *, simulation_inputs: SimulationInputs
 ) -> None:
     if (
@@ -138,7 +138,7 @@ def _cast_to_numpy_array(value: Any) -> Any:
 
 
 def _read_inputs_snapshot() -> SimulationInputs:
-    snapshot_metadata = _read_snapshot_metadata()
+    snapshot_metadata = _read_combiner_snapshot_metadata()
 
     project_data = snapshot_metadata["project"]
     project = object.__new__(Project)
@@ -152,12 +152,14 @@ def _read_inputs_snapshot() -> SimulationInputs:
     project.elevation = project_data["elevation"]
     project.cod = pd.Timestamp(project_data["cod"])
 
-    met_time_index_df = _read_snapshot_table(file_name="indeces_met_time_index.parquet")
+    met_time_index_df = _read_combiner_snapshot_table(
+        file_name="indeces_met_time_index.parquet"
+    )
     indeces = Indeces(
         met_time_index=MetTimeIndex(met_time_index_df),
         string_index=SystemSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_string_index.parquet"
                 ),
                 column="string_id",
@@ -165,7 +167,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
         module_equipment_index=ModuleEquipmentSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_module_equipment_index.parquet"
                 ),
                 column="module_equipment_id",
@@ -173,7 +175,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
         racking_equipment_index=RackingEquipmentSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_racking_equipment_index.parquet"
                 ),
                 column="racking_equipment_id",
@@ -181,7 +183,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
         inverter_equipment_index=InverterEquipmentSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_inverter_equipment_index.parquet"
                 ),
                 column="pcs_equipment_id",
@@ -189,7 +191,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
         combiner_device_index=SystemSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_combiner_device_index.parquet"
                 ),
                 column="combiner_device_id",
@@ -197,7 +199,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
         inverter_device_index=InverterDeviceSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_inverter_device_index.parquet"
                 ),
                 column="pcs_device_id",
@@ -205,7 +207,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
         transformer_device_index=TransformerDeviceSeries(
             _parse_series(
-                data_frame=_read_snapshot_table(
+                data_frame=_read_combiner_snapshot_table(
                     file_name="indeces_transformer_device_index.parquet"
                 ),
                 column="transformer_device_id",
@@ -213,7 +215,9 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
     )
 
-    quality_assurance_data = _read_snapshot_table(file_name="quality_assurance.parquet")
+    quality_assurance_data = _read_combiner_snapshot_table(
+        file_name="quality_assurance.parquet"
+    )
     quality_assurance = QualityAssurance(
         tier=MetTimeSeries(
             _parse_series(data_frame=quality_assurance_data, column="tier")
@@ -224,14 +228,14 @@ def _read_inputs_snapshot() -> SimulationInputs:
     )
 
     met_data = MetDataObserved(
-        met_data=_read_snapshot_table(file_name="met_data.parquet")
+        met_data=_read_combiner_snapshot_table(file_name="met_data.parquet")
     )
 
     simulation_config = SimulationConfig.initialize_with_overrides(
         **snapshot_metadata["simulation_config"]
     )
 
-    system_data = _read_snapshot_table(file_name="system.parquet")
+    system_data = _read_combiner_snapshot_table(file_name="system.parquet")
     system = System(
         string_id=SystemSeries(
             _parse_series(data_frame=system_data, column="string_id")
@@ -286,7 +290,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         met_name=SystemSeries(_parse_series(data_frame=system_data, column="met_name")),
     )
 
-    module_data = _read_snapshot_table(file_name="modules.parquet")
+    module_data = _read_combiner_snapshot_table(file_name="modules.parquet")
     modules = Module(
         module_equipment_id=ModuleEquipmentSeries(
             _parse_series(data_frame=module_data, column="module_equipment_id")
@@ -424,7 +428,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
     )
 
-    racking_data = _read_snapshot_table(file_name="rackings.parquet")
+    racking_data = _read_combiner_snapshot_table(file_name="rackings.parquet")
     rackings = Racking(
         racking_equipment_id=RackingEquipmentSeries(
             _parse_series(data_frame=racking_data, column="racking_equipment_id")
@@ -455,7 +459,7 @@ def _read_inputs_snapshot() -> SimulationInputs:
         ),
     )
 
-    inverter_data = _read_snapshot_table(file_name="inverters.parquet")
+    inverter_data = _read_combiner_snapshot_table(file_name="inverters.parquet")
     for array_column in [
         "power_max_at_reference_temp",
         "reference_temp",
@@ -587,7 +591,9 @@ def _install_inputs_loader_patch(*, monkeypatch: Any) -> None:
         for key, value in config_overrides.items():
             if hasattr(simulation_inputs.simulation_config, key):
                 setattr(simulation_inputs.simulation_config, key, value)
-        _raise_for_incompatible_pvsyst_snapshot(simulation_inputs=simulation_inputs)
+        _raise_for_incompatible_combiner_pvsyst_snapshot(
+            simulation_inputs=simulation_inputs
+        )
         return simulation_inputs
 
     monkeypatch.setattr(

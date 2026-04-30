@@ -15,7 +15,9 @@ from sqlalchemy import and_, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces
-from app._crud.operational.cmms_permissions import get_cmms_permissions_by_project_id
+from app._crud.operational.cmms_permissions import (
+    get_cmms_permissions_by_project_id_eager,
+)
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
 from core import models
@@ -103,7 +105,7 @@ async def get_cmms_tickets(
     """
     # First get integrations to see if there are any configured
 
-    cmms_permissions = await get_cmms_permissions_by_project_id(
+    cmms_permissions = await get_cmms_permissions_by_project_id_eager(
         db=db,
         company_id=user.company_id,
         project_id=project_id,

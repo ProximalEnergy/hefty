@@ -105,7 +105,7 @@ async def get_unread_notification_count_route(
     status_code=204,
     description="Delete all IN_APP notifications for the requesting user.",
 )
-async def delete_all_notifications(
+async def delete_all_notifications_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
@@ -241,7 +241,7 @@ async def mark_notification_unread(
     status_code=204,
     description="Delete a notification for the requesting user.",
 )
-async def delete_notification(
+async def delete_notification_route(
     notification_id: Annotated[int, Path(...)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],

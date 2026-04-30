@@ -21,7 +21,7 @@ from psycopg2.extras import RealDictCursor
 from .. import utils
 
 
-def get_projects(conn: Any) -> list[dict[str, Any]]:
+def get_all_projects_psycopg2(conn: Any) -> list[dict[str, Any]]:
     """Get all projects from operational.projects.
 
     Args:
@@ -698,7 +698,7 @@ def device_models_cli() -> None:
             application_name=utils.application_name(__file__),
         ) as conn:
             # Get all projects
-            projects = get_projects(conn)
+            projects = get_all_projects_psycopg2(conn)
             if not projects:
                 print("⚠️  No projects found in database.")
                 return

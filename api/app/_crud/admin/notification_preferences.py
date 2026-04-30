@@ -169,7 +169,7 @@ async def update_notification_preference(
     return preference
 
 
-async def bulk_update_notification_preferences(
+async def bulk_update_user_notification_preferences(
     *,
     db: AsyncSession,
     user_id: str,

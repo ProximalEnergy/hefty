@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
 
-async def get_cmms_permissions_by_project_id(
+async def get_cmms_permissions_by_project_id_eager(
     *,
     db: AsyncSession,
     company_id: UUID,

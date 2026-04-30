@@ -10,7 +10,7 @@ import tomllib
 from pathlib import Path
 
 
-def parse_args() -> argparse.Namespace:
+def parse_bump_core_version_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Bump core patch version if it is behind a base revision.",
     )
@@ -63,7 +63,7 @@ def write_bumped_version(*, pyproject_path: Path, new_version: str) -> None:
 
 
 def auto_bump_core_version() -> int:
-    args = parse_args()
+    args = parse_bump_core_version_args()
     pyproject_path = Path(args.pyproject_path)
 
     try:

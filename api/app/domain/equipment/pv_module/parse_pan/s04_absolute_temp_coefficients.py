@@ -6,7 +6,7 @@ PVsyst PAN files store:
 """
 
 
-def calc_absolute_temp_coefficients(
+def calc_pan_absolute_temp_coefficients(
     *,
     pv_module: dict,
 ) -> dict:
