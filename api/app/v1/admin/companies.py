@@ -63,7 +63,7 @@ async def get_companies_route(
     "/with-projects",
     response_model=list[interfaces.CompanyWithProjects],
 )
-async def get_companies_with_projects(
+async def get_companies_with_projects_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):

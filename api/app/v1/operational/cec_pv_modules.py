@@ -27,7 +27,7 @@ router = APIRouter(prefix="/cec-pv-modules", tags=["cec_pv_modules"])
 
 
 @router.get("", response_model=list[interfaces.CECPVModuleWithID])
-async def get_cec_pv_modules(
+async def get_cec_pv_modules_route(
     cec_pv_module_ids: Annotated[list[int], Query()] = [],
 ):
     """todo

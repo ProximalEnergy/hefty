@@ -175,7 +175,7 @@ async def get_project_contracts_route(
 
 
 @router.get("/{contract_id}/kpis")
-async def get_contract_kpis(
+async def get_contract_kpis_route(
     contract_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):

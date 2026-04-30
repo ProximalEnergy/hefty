@@ -15,7 +15,7 @@ router = APIRouter(prefix="/device-types", tags=["device_types"])
 @router.get(
     "", response_model=list[interfaces.DeviceType], operation_id="get_device_types"
 )
-async def get_device_types(
+async def get_device_types_route(
     device_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",
@@ -44,7 +44,7 @@ async def get_device_types(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_device_type_by_id",
 )
-async def get_device_type(device_type_id: int):
+async def get_device_type_route(device_type_id: int):
     """todo
 
     Args:

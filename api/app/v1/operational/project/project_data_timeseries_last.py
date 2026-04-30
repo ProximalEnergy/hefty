@@ -16,7 +16,7 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_data_timeseries_last(
+async def get_data_timeseries_last_route(
     project_db: Annotated[Session, Depends(get_project_db)],
     tag_ids: Annotated[list[int] | None, Query()] = None,
     device_type_ids: Annotated[list[int] | None, Query()] = None,

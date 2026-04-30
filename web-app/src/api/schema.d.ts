@@ -141,7 +141,7 @@ export interface paths {
          *         project_id: Project id to query.
          *         user_data: Requesting user context.
          */
-        get: operations["get_company_permissions_v1_admin_permissions_projects__project_id__company_get"];
+        get: operations["get_company_permissions_route_v1_admin_permissions_projects__project_id__company_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -298,14 +298,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Company Projects
+         * Get Company Projects Route
          * @description Get company-project records for the requesting user's company.
          *
          *     Args:
          *         project_id: Operational project UUID.
          *         user_data: Authenticated user context.
          */
-        get: operations["get_company_projects_v1_admin_company_projects_projects__project_id__get"];
+        get: operations["get_company_projects_route_v1_admin_company_projects_projects__project_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -381,7 +381,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Companies With Projects
+         * Get Companies With Projects Route
          * @description Get companies with aggregated project IDs accessible to the user.
          *
          *     Returns all companies that have at least one user with project access.
@@ -391,7 +391,7 @@ export interface paths {
          *         db: Async database session.
          *         user_data: Authenticated user data from dependency.
          */
-        get: operations["get_companies_with_projects_v1_admin_companies_with_projects_get"];
+        get: operations["get_companies_with_projects_route_v1_admin_companies_with_projects_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1778,13 +1778,13 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Cec Pv Modules
+         * Get Cec Pv Modules Route
          * @description todo
          *
          *     Args:
          *         cec_pv_module_ids: Description for cec_pv_module_ids.
          */
-        get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules_get"];
+        get: operations["get_cec_pv_modules_route_v1_operational_cec_pv_modules_get"];
         put?: never;
         /**
          * Upsert Cec Pv Modules Bulk Route
@@ -1956,7 +1956,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Device Types
+         * Get Device Types Route
          * @description todo
          *
          *     Args:
@@ -1982,7 +1982,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Device Type
+         * Get Device Type Route
          * @description todo
          *
          *     Args:
@@ -2508,7 +2508,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Calendar Items
+         * Get Calendar Items Route
          * @description Retrieve all calendar items for the specified project, including category color.
          *
          *     Args:
@@ -2516,7 +2516,7 @@ export interface paths {
          *         db: Description for db.
          *         user_data: Description for user_data.
          */
-        get: operations["get_calendar_items_v1_operational_projects__project_id__calendar_events_get"];
+        get: operations["get_calendar_items_route_v1_operational_projects__project_id__calendar_events_get"];
         put?: never;
         /**
          * Create Calendar Item Endpoint
@@ -2747,14 +2747,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Contract Kpis
+         * Get Contract Kpis Route
          * @description todo
          *
          *     Args:
          *         contract_id: Description for contract_id.
          *         db: Description for db.
          */
-        get: operations["get_contract_kpis_v1_operational_projects__project_id__contracts__contract_id__kpis_get"];
+        get: operations["get_contract_kpis_route_v1_operational_projects__project_id__contracts__contract_id__kpis_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2945,7 +2945,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Data Timeseries Last
+         * Get Data Timeseries Last Route
          * @description Fetch the latest timeseries data with optional filters and unit scaling.
          *
          *     Args:
@@ -2956,7 +2956,7 @@ export interface paths {
          *         device_ids: Optional device ids to filter by.
          *         include_ghost_tags: Include tags without sensor_type_id when True.
          */
-        get: operations["get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last_get"];
+        get: operations["get_data_timeseries_last_route_v1_operational_projects__project_id__data_timeseries_last_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12654,7 +12654,7 @@ export interface operations {
             };
         };
     };
-    get_company_permissions_v1_admin_permissions_projects__project_id__company_get: {
+    get_company_permissions_route_v1_admin_permissions_projects__project_id__company_get: {
         parameters: {
             query?: never;
             header?: {
@@ -12960,7 +12960,7 @@ export interface operations {
             };
         };
     };
-    get_company_projects_v1_admin_company_projects_projects__project_id__get: {
+    get_company_projects_route_v1_admin_company_projects_projects__project_id__get: {
         parameters: {
             query?: never;
             header?: {
@@ -13097,7 +13097,7 @@ export interface operations {
             };
         };
     };
-    get_companies_with_projects_v1_admin_companies_with_projects_get: {
+    get_companies_with_projects_route_v1_admin_companies_with_projects_get: {
         parameters: {
             query?: never;
             header?: {
@@ -15106,7 +15106,7 @@ export interface operations {
             };
         };
     };
-    get_cec_pv_modules_v1_operational_cec_pv_modules_get: {
+    get_cec_pv_modules_route_v1_operational_cec_pv_modules_get: {
         parameters: {
             query?: {
                 cec_pv_module_ids?: number[];
@@ -16298,7 +16298,7 @@ export interface operations {
             };
         };
     };
-    get_calendar_items_v1_operational_projects__project_id__calendar_events_get: {
+    get_calendar_items_route_v1_operational_projects__project_id__calendar_events_get: {
         parameters: {
             query?: never;
             header?: {
@@ -16669,7 +16669,7 @@ export interface operations {
             };
         };
     };
-    get_contract_kpis_v1_operational_projects__project_id__contracts__contract_id__kpis_get: {
+    get_contract_kpis_route_v1_operational_projects__project_id__contracts__contract_id__kpis_get: {
         parameters: {
             query?: never;
             header?: {
@@ -16934,7 +16934,7 @@ export interface operations {
             };
         };
     };
-    get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last_get: {
+    get_data_timeseries_last_route_v1_operational_projects__project_id__data_timeseries_last_get: {
         parameters: {
             query?: {
                 tag_ids?: number[] | null;

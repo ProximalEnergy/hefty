@@ -76,7 +76,7 @@ async def create_calendar_item_endpoint(
 
 
 @router.get("/calendar-events", response_model=list[CalendarItem])
-async def get_calendar_items(
+async def get_calendar_items_route(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserAuthed = Depends(get_user),

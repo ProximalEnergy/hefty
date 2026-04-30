@@ -170,7 +170,7 @@ async def delete_user_permission_route(
     dependencies=[Depends(dependencies.check_project_access_async)],
     summary="Get company permissions by project",
 )
-async def get_company_permissions(
+async def get_company_permissions_route(
     project_id: uuid.UUID,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):

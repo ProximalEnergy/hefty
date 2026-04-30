@@ -18,7 +18,7 @@ router = APIRouter(prefix="/company-projects", tags=["company-projects"])
     dependencies=[Depends(dependencies.check_project_access_async)],
     response_model=list[interfaces.CompanyProject],
 )
-async def get_company_projects(
+async def get_company_projects_route(
     project_id: UUID,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ) -> list[interfaces.CompanyProject]:
