@@ -33,14 +33,14 @@ def get_battery_settlement_details_dataframe(
     project: models.Project,
     token: str,
 ) -> pd.DataFrame:
-    """todo
+    """Fetch battery settlement data from PTP API and return as a DataFrame.
 
     Args:
-        identifier: Description for identifier.
-        start: Description for start.
-        end: Description for end.
-        project: Description for project.
-        token: Description for token.
+        identifier: The PTP identifier for the battery.
+        start: Start timestamp for the query.
+        end: End timestamp for the query.
+        project: Project model instance for timezone and metadata.
+        token: PTP API authentication token.
     """
     # Using new /ptp API structure
     url = "https://api.ptp.energy/ptp/ERCOTNodal/Battery-Settlement-Details/query"
@@ -108,15 +108,15 @@ async def get_battery_settlement_details(
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """todo
+    """Get battery settlement details and calculated metrics.
 
     Args:
-        user: Description for user.
-        start: Description for start.
-        end: Description for end.
-        project: Description for project.
-        tps_token: Description for tps_token.
-        db_async: Description for db_async.
+        user: Authenticated user.
+        start: Start datetime (filtered by data access permissions).
+        end: End datetime.
+        project: Project model instance.
+        tps_token: Token manager for PTP API.
+        db_async: Async database session.
     """
     qse_integration_query = (
         core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
@@ -185,21 +185,14 @@ async def get_battery_settlement_details(
         "RT_Reliability_Deployment_Imbalance_Amt",
     )
 
-    # Make a zero-aligned Series helper
-    def zero_series() -> pd.Series[float]:
-        """todo"""
-        return pd.Series(0.0, index=df.index, dtype="float64")
-
     # Safely fetch a numeric Series by column name, or a zero series if missing
     def s(col_name: str) -> pd.Series:  # no-star-syntax
-        """todo
+        """Safely fetch a numeric Series by column name, or a zero series if missing.
 
         Args:
-            col_name: Description for col_name.
+            col_name: The name of the column to fetch.
         """
-        if col_name in df.columns:
-            return pd.to_numeric(df[col_name], errors="coerce")
-        return zero_series()
+        return utils.get_numeric_series(df=df, col_name=col_name)
 
     # ---------- Derived metrics ----------
     out = pd.DataFrame(index=df.index)
@@ -238,8 +231,10 @@ async def get_battery_settlement_details(
     # Total energy revenue
     if ("RT Energy Revenue" in out.columns) or ("DA Energy Revenue" in out.columns):
         out["Total Energy Revenue"] = out.get(
-            "RT Energy Revenue", zero_series()
-        ).fillna(0.0) + out.get("DA Energy Revenue", zero_series()).fillna(0.0)
+            "RT Energy Revenue", utils.create_zero_series(index=df.index)
+        ).fillna(0.0) + out.get(
+            "DA Energy Revenue", utils.create_zero_series(index=df.index)
+        ).fillna(0.0)
 
     # Imbalance totals
     if (
@@ -253,9 +248,11 @@ async def get_battery_settlement_details(
     if ("Total Energy Revenue" in out.columns) or (
         "Total Imbalance Amount" in out.columns
     ):
-        out["Net Profit"] = out.get("Total Energy Revenue", zero_series()).fillna(
-            0.0
-        ) + out.get("Total Imbalance Amount", zero_series()).fillna(0.0)
+        out["Net Profit"] = out.get(
+            "Total Energy Revenue", utils.create_zero_series(index=df.index)
+        ).fillna(0.0) + out.get(
+            "Total Imbalance Amount", utils.create_zero_series(index=df.index)
+        ).fillna(0.0)
 
     # Profit per Throughput
     if ("Net Profit" in out.columns) and ("Throughput" in out.columns):

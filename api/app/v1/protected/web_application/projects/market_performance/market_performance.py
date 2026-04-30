@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
-from typing import Annotated, Any, cast
+from typing import Annotated, Any
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -421,16 +421,9 @@ async def get_market_performance_realtime(
     name = fields_df["name_long"].to_dict() if not fields_df.empty else {}
 
     # Calculate derived metrics similar to battery_settlement
-    def zero_series() -> pd.Series[float]:
-        """Create zero-filled series matching df index."""
-        return pd.Series(0.0, index=df_renamed.index, dtype="float64")
-
-    def s(*, col_name: str) -> pd.Series[Any]:
+    def s(*, col_name: str) -> pd.Series:
         """Safely fetch numeric series or return zero series."""
-        if col_name in df_renamed.columns:
-            series = pd.to_numeric(df_renamed[col_name], errors="coerce")
-            return cast(pd.Series[Any], series.fillna(0.0))
-        return zero_series()
+        return utils.get_numeric_series(df=df_renamed, col_name=col_name, fillna=0.0)
 
     # Calculate metrics
     calculated = pd.DataFrame(index=df_renamed.index)
@@ -464,13 +457,13 @@ async def get_market_performance_realtime(
     RT_AS_IMB = name.get("RT_Ancillary_Imbalance_Amt", "RT_Ancillary_Imbalance_Amt")
 
     # Net Profit calculation
-    total_revenue = zero_series()
+    total_revenue = utils.create_zero_series(index=df_renamed.index)
     if RT_EN_AMT in df_renamed.columns:
         total_revenue += s(col_name=RT_EN_AMT)
     if DA_EN_AMT in df_renamed.columns:
         total_revenue += s(col_name=DA_EN_AMT)
 
-    total_imbalance = zero_series()
+    total_imbalance = utils.create_zero_series(index=df_renamed.index)
     if BP_DEV in df_renamed.columns:
         total_imbalance += s(col_name=BP_DEV)
     if RT_AS_IMB in df_renamed.columns:

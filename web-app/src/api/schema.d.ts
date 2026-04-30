@@ -5909,15 +5909,15 @@ export interface paths {
         };
         /**
          * Get Battery Settlement Details
-         * @description todo
+         * @description Get battery settlement details and calculated metrics.
          *
          *     Args:
-         *         user: Description for user.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project: Description for project.
-         *         tps_token: Description for tps_token.
-         *         db_async: Description for db_async.
+         *         user: Authenticated user.
+         *         start: Start datetime (filtered by data access permissions).
+         *         end: End datetime.
+         *         project: Project model instance.
+         *         tps_token: Token manager for PTP API.
+         *         db_async: Async database session.
          */
         get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
         put?: never;

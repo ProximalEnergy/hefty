@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import hashlib
 import random
@@ -693,3 +695,33 @@ def parse_kpi_data_to_df(
     df = df.astype(float)
 
     return df
+
+
+def create_zero_series(*, index: pd.Index) -> pd.Series:
+    """Create a zero-filled pandas Series matching the provided index.
+
+    Args:
+        index: The index to use for the new Series.
+    """
+    return pd.Series(0.0, index=index, dtype="float64")
+
+
+def get_numeric_series(
+    *,
+    df: pd.DataFrame,
+    col_name: str,
+    fillna: float | None = None,
+) -> pd.Series:
+    """Safely fetch a numeric Series from a DataFrame or return a zero series.
+
+    Args:
+        df: The DataFrame to fetch from.
+        col_name: The column name to fetch.
+        fillna: Optional value to fill NaNs with if the column exists.
+    """
+    if col_name in df.columns:
+        series = pd.to_numeric(df[col_name], errors="coerce")
+        if fillna is not None:
+            series = series.fillna(fillna)
+        return series
+    return create_zero_series(index=df.index)
