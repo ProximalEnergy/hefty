@@ -65,7 +65,7 @@ def generate_presigned_url(*, file_key: str) -> str:
 
 
 @router.get("", response_model=list[interfaces.Document])
-async def get_project_documents(
+async def get_project_documents_route(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserAuthed, Depends(get_user)],

@@ -20,7 +20,7 @@ router = APIRouter(
     response_model=list[interfaces.NotificationType],
     description="Get all notification types.",
 )
-async def get_notification_types(
+async def get_notification_types_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
     """Get all notification types.

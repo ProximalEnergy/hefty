@@ -83,7 +83,7 @@ async def get_user_notifications(
     response_model=dict[str, int],
     description="Get count of unread IN_APP notifications for the requesting user.",
 )
-async def get_unread_notification_count(
+async def get_unread_notification_count_route(
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):
     """Return the unread IN_APP notification count for the requesting user.

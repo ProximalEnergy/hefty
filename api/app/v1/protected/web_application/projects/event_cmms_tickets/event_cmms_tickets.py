@@ -41,7 +41,7 @@ class _TicketWithScore(interfaces.CMMSTicket):
 
 
 @router.get("", response_model=list[interfaces.EventCMMSTicket])
-async def get_event_cmms_tickets(
+async def get_event_cmms_tickets_route(
     *,
     project: models.Project = Depends(get_project_api),
     event_cmms_ticket_ids: Annotated[list[int] | None, Query()] = None,

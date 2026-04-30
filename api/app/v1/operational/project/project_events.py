@@ -222,7 +222,7 @@ async def get_events(
 
 
 @router.get("/paginated-events", response_model=list[interfaces.PaginatedEvent])
-async def get_paginated_events(
+async def get_paginated_events_route(
     project_id: uuid.UUID,
     page: int,
     page_size: int = 20,
@@ -542,7 +542,7 @@ async def get_event_devices(
 
 
 @router.get("/get-events-summary", response_model=list[interfaces.EventSummary])
-async def get_events_summary(
+async def get_events_summary_route(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     open: bool = True,

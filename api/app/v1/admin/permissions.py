@@ -55,7 +55,7 @@ async def get_all_permissions():
     dependencies=[Depends(dependencies.check_project_access_async)],
     summary="Get user permissions by project",
 )
-async def get_user_permissions(
+async def get_user_permissions_route(
     project_id: uuid.UUID,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):

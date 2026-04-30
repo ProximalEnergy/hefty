@@ -55,7 +55,7 @@ class DevicesFilterRequest(BaseModel):
     operation_id="get_project_device_by_id",
     responses={404: {"description": DESCRIPTION_404}},
 )
-async def get_project_device(
+async def get_project_device_route(
     device_id: int,
     deep: custom_types.AnnotatedDeep = False,
     project_db: AsyncSession = Depends(get_project_db_async),

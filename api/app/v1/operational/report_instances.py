@@ -19,7 +19,7 @@ router = APIRouter(prefix="/report-instances", tags=["report_instances"])
     response_model=list[interfaces.ReportInstance],
     operation_id="get_report_instances",
 )
-async def get_report_instances(
+async def get_report_instances_route(
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     project_ids: Annotated[
         list[uuid.UUID] | None,

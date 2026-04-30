@@ -28,7 +28,7 @@ router = APIRouter(
     response_model=list[interfaces.NotificationPreference],
     description="Get notification preferences for the requesting user.",
 )
-async def get_user_notification_preferences(
+async def get_user_notification_preferences_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     project_ids: list[UUID] | None = Query(None, description="Filter by project IDs"),

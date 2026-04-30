@@ -43,7 +43,7 @@ router.include_router(notifications.router)
     "/user-type",
     response_model=interfaces.UserType,
 )
-async def get_user_type(
+async def get_user_type_route(
     _db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ):

@@ -118,7 +118,7 @@ async def create_team_route(
     response_model=list[TeamWithMembers],
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
-async def get_teams_with_members(
+async def get_teams_with_members_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_id: uuid.UUID = Query(...),
 ):

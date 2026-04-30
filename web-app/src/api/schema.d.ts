@@ -81,7 +81,7 @@ export interface paths {
          *         project_id: Project id to query.
          *         user_data: Requesting user context.
          */
-        get: operations["get_user_permissions_v1_admin_permissions_projects__project_id__user_get"];
+        get: operations["get_user_permissions_route_v1_admin_permissions_projects__project_id__user_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -234,10 +234,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get User Notification Preferences
+         * Get User Notification Preferences Route
          * @description Get notification preferences for the requesting user.
          */
-        get: operations["get_user_notification_preferences_v1_admin_notification_preferences_get"];
+        get: operations["get_user_notification_preferences_route_v1_admin_notification_preferences_get"];
         /**
          * Update Notification Preference Route
          * @description Update a notification preference.
@@ -278,10 +278,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Notification Types
+         * Get Notification Types Route
          * @description Get all notification types.
          */
-        get: operations["get_notification_types_v1_admin_notification_types_get"];
+        get: operations["get_notification_types_route_v1_admin_notification_types_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -489,14 +489,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Teams With Members
+         * Get Teams With Members Route
          * @description Get teams and members for a company (admin only).
          *
          *     Args:
          *         db: Database session.
          *         company_id: Company identifier to filter teams.
          */
-        get: operations["get_teams_with_members_v1_admin_teams_members_get"];
+        get: operations["get_teams_with_members_route_v1_admin_teams_members_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -892,10 +892,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Unread Notification Count
+         * Get Unread Notification Count Route
          * @description Get count of unread IN_APP notifications for the requesting user.
          */
-        get: operations["get_unread_notification_count_v1_admin_notifications_unread_count_get"];
+        get: operations["get_unread_notification_count_route_v1_admin_notifications_unread_count_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1012,14 +1012,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get User Type
+         * Get User Type Route
          * @description Get the requesting user's type.
          *
          *     Args:
          *         _db: Async database session (unused).
          *         user_data: Authenticated user context.
          */
-        get: operations["get_user_type_v1_admin_user_type_get"];
+        get: operations["get_user_type_route_v1_admin_user_type_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2973,7 +2973,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Device
+         * Get Project Device Route
          * @description Return a single project device with optional relationship data.
          *
          *     Args:
@@ -3030,7 +3030,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Documents
+         * Get Project Documents Route
          * @description todo
          *
          *     Args:
@@ -3038,7 +3038,7 @@ export interface paths {
          *         db: Description for db.
          *         user: Description for user.
          */
-        get: operations["get_project_documents_v1_operational_projects__project_id__documents_get"];
+        get: operations["get_project_documents_route_v1_operational_projects__project_id__documents_get"];
         put?: never;
         /**
          * Upload Project Document
@@ -3217,7 +3217,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Message Reactions
+         * Get Event Message Reactions Route
          * @description Get all reactions for a specific event message or all reactions for an event.
          *
          *         Path Parameters:
@@ -3234,7 +3234,7 @@ export interface paths {
          *         event_message_id: Description for event_message_id.
          *         event_id: Description for event_id.
          */
-        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
+        get: operations["get_event_message_reactions_route_v1_operational_projects__project_id__event_message_reactions_get"];
         put?: never;
         /**
          * Toggle Event Message Reaction
@@ -3269,7 +3269,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Messages
+         * Get Event Messages Route
          * @description Get all non-deleted messages for a specific event.
          *
          *         Query Parameters:
@@ -3282,7 +3282,7 @@ export interface paths {
          *         project_db: Description for project_db.
          *         event_id: Description for event_id.
          */
-        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
+        get: operations["get_event_messages_route_v1_operational_projects__project_id__event_messages_get"];
         put?: never;
         /**
          * Create Event Message
@@ -3507,7 +3507,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Message Images
+         * Get Event Message Images Route
          * @description Get all images for an event message with presigned URLs.
          *
          *         Returns:
@@ -3519,7 +3519,7 @@ export interface paths {
          *         event_id: Description for event_id.
          *         event_message_id: Description for event_message_id.
          */
-        get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
+        get: operations["get_event_message_images_route_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3565,7 +3565,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Paginated Events
+         * Get Paginated Events Route
          * @description Retrieve paginated events for a project with sorting and filtering.
          *
          *     Args:
@@ -3581,7 +3581,7 @@ export interface paths {
          *         device_ids: Filter to specific device IDs.
          *         project_db: Project database session.
          */
-        get: operations["get_paginated_events_v1_operational_projects__project_id__events_paginated_events_get"];
+        get: operations["get_paginated_events_route_v1_operational_projects__project_id__events_paginated_events_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3647,7 +3647,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Events Summary
+         * Get Events Summary Route
          * @description Generate a summary of events with device, failure mode, root cause, and loss.
          *
          *     Args:
@@ -3660,7 +3660,7 @@ export interface paths {
          *         project_id: UUID of the project (optional if project is provided).
          *         project: Project model from dependency injection.
          */
-        get: operations["get_events_summary_v1_operational_projects__project_id__events_get_events_summary_get"];
+        get: operations["get_events_summary_route_v1_operational_projects__project_id__events_get_events_summary_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4418,7 +4418,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Solar Position
+         * Get Solar Position Route
          * @description Get current solar position and related information for a project.
          *
          *     Args:
@@ -4430,7 +4430,7 @@ export interface paths {
          *         SolarPositionResponse: Solar position data including elevation, azimuth,
          *                               daytime status, and next sunrise time.
          */
-        get: operations["get_solar_position_v1_operational_projects__project_id__solar_position_get"];
+        get: operations["get_solar_position_route_v1_operational_projects__project_id__solar_position_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4630,7 +4630,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Tags By Regex
+         * Get Tags By Regex Route
          * @description todo
          *
          *     Args:
@@ -4639,7 +4639,7 @@ export interface paths {
          *         deep: Description for deep.
          *         project_db: Description for project_db.
          */
-        get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
+        get: operations["get_tags_by_regex_route_v1_operational_projects__project_id__tags_regex_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4758,7 +4758,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Projects
+         * Get Projects Route
          * @description todo
          *
          *     Args:
@@ -4802,7 +4802,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project
+         * Get Project Route
          * @description todo
          *
          *     Args:
@@ -5445,7 +5445,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Instances
+         * Get Report Instances Route
          * @description todo
          *
          *     Args:
@@ -5555,7 +5555,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Sensor Types
+         * Get Sensor Types Route
          * @description todo
          *
          *     Args:
@@ -5591,7 +5591,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Sensor Type
+         * Get Sensor Type Route
          * @description todo
          *
          *     Args:
@@ -6710,7 +6710,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Cmms Tickets
+         * Get Event Cmms Tickets Route
          * @description Get event-CMMS ticket relationships by various filters.
          *
          *     Args:
@@ -6722,7 +6722,7 @@ export interface paths {
          *         created_at_gte: The created at greater than or equal to.
          *         created_at_lte: The created at less than or equal to.
          */
-        get: operations["get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get"];
+        get: operations["get_event_cmms_tickets_route_v1_protected_web_application_projects__project_id__event_cmms_tickets_get"];
         put?: never;
         /**
          * Create Event Cmms Ticket
@@ -7741,7 +7741,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Tracking Angles
+         * Get Tracking Angles Route
          * @description Return tracker angle time series for the project.
          *
          *     Args:
@@ -7750,7 +7750,7 @@ export interface paths {
          *         project: Project used for location and time zone context.
          *         _auth: Authorization dependency (unused).
          */
-        get: operations["get_tracking_angles_v1_trackers_tracking_angles_get"];
+        get: operations["get_tracking_angles_route_v1_trackers_tracking_angles_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12542,7 +12542,7 @@ export interface operations {
             };
         };
     };
-    get_user_permissions_v1_admin_permissions_projects__project_id__user_get: {
+    get_user_permissions_route_v1_admin_permissions_projects__project_id__user_get: {
         parameters: {
             query?: never;
             header?: {
@@ -12825,7 +12825,7 @@ export interface operations {
             };
         };
     };
-    get_user_notification_preferences_v1_admin_notification_preferences_get: {
+    get_user_notification_preferences_route_v1_admin_notification_preferences_get: {
         parameters: {
             query?: {
                 /** @description Filter by project IDs */
@@ -12929,7 +12929,7 @@ export interface operations {
             };
         };
     };
-    get_notification_types_v1_admin_notification_types_get: {
+    get_notification_types_route_v1_admin_notification_types_get: {
         parameters: {
             query?: never;
             header?: {
@@ -13260,7 +13260,7 @@ export interface operations {
             };
         };
     };
-    get_teams_with_members_v1_admin_teams_members_get: {
+    get_teams_with_members_route_v1_admin_teams_members_get: {
         parameters: {
             query: {
                 company_id: string;
@@ -13877,7 +13877,7 @@ export interface operations {
             };
         };
     };
-    get_unread_notification_count_v1_admin_notifications_unread_count_get: {
+    get_unread_notification_count_route_v1_admin_notifications_unread_count_get: {
         parameters: {
             query?: never;
             header?: {
@@ -14069,7 +14069,7 @@ export interface operations {
             };
         };
     };
-    get_user_type_v1_admin_user_type_get: {
+    get_user_type_route_v1_admin_user_type_get: {
         parameters: {
             query?: never;
             header?: {
@@ -17057,7 +17057,7 @@ export interface operations {
             };
         };
     };
-    get_project_documents_v1_operational_projects__project_id__documents_get: {
+    get_project_documents_route_v1_operational_projects__project_id__documents_get: {
         parameters: {
             query?: never;
             header?: {
@@ -17342,7 +17342,7 @@ export interface operations {
             };
         };
     };
-    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
+    get_event_message_reactions_route_v1_operational_projects__project_id__event_message_reactions_get: {
         parameters: {
             query?: {
                 event_message_id?: number | null;
@@ -17417,7 +17417,7 @@ export interface operations {
             };
         };
     };
-    get_event_messages_v1_operational_projects__project_id__event_messages_get: {
+    get_event_messages_route_v1_operational_projects__project_id__event_messages_get: {
         parameters: {
             query: {
                 event_id: number;
@@ -17719,7 +17719,7 @@ export interface operations {
             };
         };
     };
-    get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
+    get_event_message_images_route_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
         parameters: {
             query?: never;
             header?: {
@@ -17798,7 +17798,7 @@ export interface operations {
             };
         };
     };
-    get_paginated_events_v1_operational_projects__project_id__events_paginated_events_get: {
+    get_paginated_events_route_v1_operational_projects__project_id__events_paginated_events_get: {
         parameters: {
             query: {
                 page: number;
@@ -17915,7 +17915,7 @@ export interface operations {
             };
         };
     };
-    get_events_summary_v1_operational_projects__project_id__events_get_events_summary_get: {
+    get_events_summary_route_v1_operational_projects__project_id__events_get_events_summary_get: {
         parameters: {
             query?: {
                 open?: boolean;
@@ -19098,7 +19098,7 @@ export interface operations {
             };
         };
     };
-    get_solar_position_v1_operational_projects__project_id__solar_position_get: {
+    get_solar_position_route_v1_operational_projects__project_id__solar_position_get: {
         parameters: {
             query?: {
                 timestamp?: string | null;
@@ -19343,7 +19343,7 @@ export interface operations {
             };
         };
     };
-    get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get: {
+    get_tags_by_regex_route_v1_operational_projects__project_id__tags_regex_get: {
         parameters: {
             query: {
                 regex: string;
@@ -22396,7 +22396,7 @@ export interface operations {
             };
         };
     };
-    get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get: {
+    get_event_cmms_tickets_route_v1_protected_web_application_projects__project_id__event_cmms_tickets_get: {
         parameters: {
             query?: {
                 event_cmms_ticket_ids?: number[] | null;
@@ -23809,7 +23809,7 @@ export interface operations {
             };
         };
     };
-    get_tracking_angles_v1_trackers_tracking_angles_get: {
+    get_tracking_angles_route_v1_trackers_tracking_angles_get: {
         parameters: {
             query: {
                 start: string;

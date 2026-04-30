@@ -740,7 +740,7 @@ async def send_notifications_for_message(
 
 # --- API Endpoints ---
 @router.get("")
-async def get_event_messages(
+async def get_event_messages_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: Annotated[int, Query(...)],
@@ -1353,7 +1353,7 @@ async def get_event_message_image_url(
 
 
 @router.get("/{event_id}/messages/{event_message_id}/images")
-async def get_event_message_images(
+async def get_event_message_images_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",

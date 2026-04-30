@@ -32,7 +32,7 @@ router = APIRouter(prefix="/sensor-types", tags=["sensor_types"])
 @router.get(
     "", response_model=list[interfaces.SensorType], operation_id="get_sensor_types"
 )
-async def get_sensor_types(
+async def get_sensor_types_route(
     sensor_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",
@@ -65,7 +65,7 @@ async def get_sensor_types(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_sensor_type",
 )
-async def get_sensor_type(sensor_type_id: int):
+async def get_sensor_type_route(sensor_type_id: int):
     """todo
 
     Args:

@@ -31,7 +31,7 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 @router.get("", response_model=list[interfaces.Project], operation_id="get_projects")
-async def get_projects(
+async def get_projects_route(
     *,
     project_ids: Annotated[list[UUID] | None, Query()] = None,
     project_ids_excluded: Annotated[list[UUID] | None, Query()] = None,
@@ -175,7 +175,7 @@ async def get_projects(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_project_by_id",
 )
-async def get_project(
+async def get_project_route(
     project_id: UUID,
     user_data: UserAuthed = Depends(get_user),
 ):

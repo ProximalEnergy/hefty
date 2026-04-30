@@ -61,7 +61,7 @@ def _string_to_reaction_type(*, reaction_type_str: str) -> enumerations.Reaction
 
 # --- API Endpoints ---
 @router.get("")
-async def get_event_message_reactions(
+async def get_event_message_reactions_route(
     *,
     project_db: Annotated[
         AsyncSession,

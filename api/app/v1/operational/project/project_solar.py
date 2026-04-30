@@ -25,7 +25,7 @@ class SolarPositionResponse(BaseModel):
 
 
 @router.get("/position", response_model=SolarPositionResponse)
-def get_solar_position(
+def get_solar_position_route(
     project: Annotated[models.Project, Depends(get_project_api)],
     timestamp: datetime.datetime | None = None,
 ):

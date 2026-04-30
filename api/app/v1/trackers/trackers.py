@@ -11,7 +11,7 @@ router = APIRouter(prefix="/trackers", tags=["trackers"])
 
 
 @router.get("/tracking-angles")
-def get_tracking_angles(
+def get_tracking_angles_route(
     start: datetime.datetime,
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],

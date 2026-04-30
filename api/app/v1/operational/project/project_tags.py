@@ -87,7 +87,7 @@ async def get_project_tags(
 
 
 @router.get("/regex", response_model=list[interfaces.TagV1])
-async def get_tags_by_regex(
+async def get_tags_by_regex_route(
     regex: Annotated[str, Query()],
     limit: Annotated[int, Query()] = 200,
     deep: custom_types.AnnotatedDeep = False,
