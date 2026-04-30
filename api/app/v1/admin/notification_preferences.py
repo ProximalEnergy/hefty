@@ -126,8 +126,9 @@ async def bulk_update_notification_preferences(
     "",
     response_model=interfaces.NotificationPreference,
     description="Update a notification preference.",
+    operation_id="update_notification_preference",
 )
-async def update_notification_preference(
+async def update_notification_preference_route(
     data: interfaces.NotificationPreferenceUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],

@@ -162,8 +162,12 @@ async def create_user_project_label(
     )
 
 
-@router.put("/{user_project_label_id}", response_model=UserProjectLabel)
-async def update_user_project_label(
+@router.put(
+    "/{user_project_label_id}",
+    response_model=UserProjectLabel,
+    operation_id="update_user_project_label",
+)
+async def update_user_project_label_route(
     user_project_label_id: int,
     user_project_label: UserProjectLabelCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],

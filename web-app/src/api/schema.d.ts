@@ -239,10 +239,10 @@ export interface paths {
          */
         get: operations["get_user_notification_preferences_v1_admin_notification_preferences_get"];
         /**
-         * Update Notification Preference
+         * Update Notification Preference Route
          * @description Update a notification preference.
          */
-        put: operations["update_notification_preference_v1_admin_notification_preferences_put"];
+        put: operations["update_notification_preference"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3326,7 +3326,7 @@ export interface paths {
         };
         get?: never;
         /**
-         * Update Event Message
+         * Update Event Message Route
          * @description Update an existing event message.
          *
          *         Validates:
@@ -3346,7 +3346,7 @@ export interface paths {
          *         message: Description for message.
          *         user_data: Description for user_data.
          */
-        put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
+        put: operations["update_event_message"];
         post?: never;
         /**
          * Delete Event Message
@@ -5657,7 +5657,7 @@ export interface paths {
         };
         get?: never;
         /**
-         * Update User Project Label
+         * Update User Project Label Route
          * @description Update a project label for the requesting user.
          *
          *     Args:
@@ -5666,7 +5666,7 @@ export interface paths {
          *         db: Database session.
          *         user: Authenticated user data.
          */
-        put: operations["update_user_project_label_v1_operational_user_project_labels__user_project_label_id__put"];
+        put: operations["update_user_project_label"];
         post?: never;
         /**
          * Delete User Project Label
@@ -12859,7 +12859,7 @@ export interface operations {
             };
         };
     };
-    update_notification_preference_v1_admin_notification_preferences_put: {
+    update_notification_preference: {
         parameters: {
             query?: never;
             header?: {
@@ -17491,7 +17491,7 @@ export interface operations {
             };
         };
     };
-    update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put: {
+    update_event_message: {
         parameters: {
             query?: never;
             header?: {
@@ -20890,7 +20890,7 @@ export interface operations {
             };
         };
     };
-    update_user_project_label_v1_operational_user_project_labels__user_project_label_id__put: {
+    update_user_project_label: {
         parameters: {
             query?: never;
             header?: {
