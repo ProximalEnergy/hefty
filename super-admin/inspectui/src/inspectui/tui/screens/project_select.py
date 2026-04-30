@@ -182,8 +182,12 @@ class ProjectSelectScreen(BaseScreen):
         self.draw_status_bar(status[: width - 1])
         self.refresh()
 
-    def handle_input(self, key: int) -> None:
-        """Handle keyboard input."""
+    def handle_screen_event(self, *, key: int) -> None:
+        """Handle keyboard input event."""
+        self._handle_project_select_event(key=key)
+
+    def _handle_project_select_event(self, *, key: int) -> None:
+        """Process project selection keyboard events."""
         if self.loading or self.error:
             if key == ord("q"):
                 self._go_back()
@@ -223,7 +227,7 @@ class ProjectSelectScreen(BaseScreen):
             self._refresh_projects()
             return
 
-        should_continue, selected = self.selector.handle_input(key)
+        should_continue, selected = self.selector.handle_list_selector_event(key=key)
 
         if should_continue:
             if key == ord(" "):

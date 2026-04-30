@@ -76,8 +76,12 @@ class MainMenuScreen(BaseScreen):
 
         self.refresh()
 
-    def handle_input(self, key: int) -> None:
-        """Handle keyboard input."""
+    def handle_screen_event(self, *, key: int) -> None:
+        """Handle keyboard input event."""
+        self._handle_main_menu_event(key=key)
+
+    def _handle_main_menu_event(self, *, key: int) -> None:
+        """Process main menu keyboard events."""
         if key == ord("q"):
             self.app.quit()
 

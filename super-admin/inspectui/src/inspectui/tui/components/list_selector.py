@@ -87,8 +87,12 @@ class ListSelector[T]:
             else:
                 self.stdscr.addstr(y, 0, full_text)
 
-    def handle_input(self, key: int) -> tuple[bool, list[T] | None]:
-        """Handle keyboard input.
+    def handle_list_selector_event(
+        self,
+        *,
+        key: int,
+    ) -> tuple[bool, list[T] | None]:
+        """Handle keyboard input event.
 
         Args:
             key: The key code from getch().

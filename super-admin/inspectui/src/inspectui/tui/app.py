@@ -53,7 +53,7 @@ class InspectUIApp:
             if self.current_screen:
                 self.current_screen.render()
                 key = stdscr.getch()
-                self.current_screen.handle_input(key)
+                self.current_screen.handle_screen_event(key=key)
 
         # Save config on exit
         self.config_manager.save()

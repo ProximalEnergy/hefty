@@ -271,8 +271,12 @@ class TestResultsScreen(BaseScreen):
         self.draw_status_bar(status[: width - 1])
         self.refresh()
 
-    def handle_input(self, key: int) -> None:
-        """Handle keyboard input."""
+    def handle_screen_event(self, *, key: int) -> None:
+        """Handle keyboard input event."""
+        self._handle_test_results_event(key=key)
+
+    def _handle_test_results_event(self, *, key: int) -> None:
+        """Process test results keyboard events."""
         height, _ = self.get_dimensions()
         _, max_display = self._results_layout(height=height)
         visible = self._visible_results()

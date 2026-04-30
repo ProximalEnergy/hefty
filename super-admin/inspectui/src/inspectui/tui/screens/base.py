@@ -27,8 +27,8 @@ class BaseScreen(ABC):
         """Render the screen content."""
 
     @abstractmethod
-    def handle_input(self, key: int) -> None:
-        """Handle keyboard input.
+    def handle_screen_event(self, *, key: int) -> None:
+        """Handle keyboard input event.
 
         Args:
             key: The key code from getch().
