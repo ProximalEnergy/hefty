@@ -53,8 +53,8 @@ class AcronymLookup:
     """Lookup utility for PTP acronyms.
 
     Note: Some acronyms appear multiple times with different granularities
-    and endpoints. Use get_all() to get all matches, or get() with endpoint
-    parameter to get a specific match.
+    and endpoints. Use get_all_by_keyname() to get all matches, or get()
+    with endpoint parameter to get a specific match.
     """
 
     def __init__(self, csv_path: Path | None = None):
@@ -115,7 +115,7 @@ class AcronymLookup:
         # Return first match if no endpoint specified
         return matches[0]
 
-    def get_all(self, keyname: str) -> list[AcronymInfo]:
+    def get_all_by_keyname(self, keyname: str) -> list[AcronymInfo]:
         """Get all occurrences of an acronym.
 
         Some acronyms appear multiple times with different granularities
@@ -288,7 +288,7 @@ def get_all_acronym_info(keyname: str) -> list[AcronymInfo]:
     Returns:
         List of AcronymInfo objects, empty list if not found.
     """
-    return get_lookup().get_all(keyname)
+    return get_lookup().get_all_by_keyname(keyname)
 
 
 def get_acronym_description(keyname: str, endpoint: str | None = None) -> str | None:
