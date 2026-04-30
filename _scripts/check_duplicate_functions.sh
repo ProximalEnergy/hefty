@@ -133,6 +133,13 @@ function is_alembic_migration(file) {
     return 0
 }
 
+function is_stub_file(file) {
+    if (file ~ /\.pyi$/) {
+        return 1
+    }
+    return 0
+}
+
 function is_allowed_duplicate(name, signature) {
     if (name == "render") {
         if (signature ~ /^def render\(self\)([[:space:]]*->[^:]+)?:$/) {
@@ -173,7 +180,7 @@ NF >= 4 {
         next
     }
 
-    if (is_allowed_duplicate(name, signature)) {
+    if (is_stub_file(file) || is_allowed_duplicate(name, signature)) {
         next
     }
 
