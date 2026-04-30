@@ -26,8 +26,10 @@ import {
 } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { Data } from 'plotly.js'
-import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
+
+import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const MAX_DAYS = 7
 
@@ -42,23 +44,9 @@ const ProjectEquipmentAnalysisTracker = () => {
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
   const navigate = useNavigate()
   const [view, setView] = useState<'block' | 'row'>('block')
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'realtime' || tab === 'current-day') {
-      return tab
-    }
-    if (isSuperadmin && tab === 'long-term') {
-      return tab
-    }
-    return 'current-day'
-  }, [isSuperadmin, searchParams])
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'current-day'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, searchParams, setTab } = useEquipmentAnalysisTab({
+    isSuperadmin,
+  })
   const tabPanelRef = useRef<HTMLDivElement>(null)
   const selectedBlockId = searchParams.get('deviceId')
 

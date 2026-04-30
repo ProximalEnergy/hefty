@@ -13,9 +13,10 @@ import { useProjectFilter } from '@/hooks/custom'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
-import { useMemo, useRef } from 'react'
-import { useParams, useSearchParams } from 'react-router'
+import { useRef } from 'react'
+import { useParams } from 'react-router'
 
+import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 import { EquipmentHeader } from './equipment-header'
 import { Realtime } from './realtime/realtime'
 
@@ -46,27 +47,10 @@ const EquipmentAnalysisBESSPCSPage = () => {
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   const project = useSelectProject(projectId!)
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-
-    if (tab === 'realtime' || tab === 'current-day') {
-      return tab
-    }
-
-    if (isSuperadmin && tab === 'long-term') {
-      return tab
-    }
-
-    return 'realtime'
-  }, [isSuperadmin, searchParams])
-
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'realtime'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, setTab } = useEquipmentAnalysisTab({
+    isSuperadmin,
+    defaultTab: 'realtime',
+  })
 
   const tabPanelRef = useRef<HTMLDivElement>(null)
   const { start, end } = useValidateDateRange({

@@ -5,8 +5,9 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useProjectFilter } from '@/hooks/custom'
 import { Stack, Tabs, Text } from '@mantine/core'
-import { useMemo } from 'react'
-import { useParams, useSearchParams } from 'react-router'
+import { useParams } from 'react-router'
+
+import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const CircuitPage = () => {
   useProjectFilter({
@@ -17,23 +18,7 @@ const CircuitPage = () => {
   const userType = useGetUserType({})
   const isSuperadmin =
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'realtime' || tab === 'current-day') {
-      return tab
-    }
-    if (isSuperadmin && tab === 'long-term') {
-      return tab
-    }
-    return 'current-day'
-  }, [isSuperadmin, searchParams])
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'current-day'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, setTab } = useEquipmentAnalysisTab({ isSuperadmin })
   const project = useSelectProject(projectId!)
 
   if (project.isLoading) {

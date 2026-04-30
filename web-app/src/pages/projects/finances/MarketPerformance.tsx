@@ -4,9 +4,9 @@ import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/fin
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import { useSearchParamTab } from '@/hooks/useSearchParamTab'
 import { Group, Skeleton, Stack, Tabs, Text } from '@mantine/core'
-import { useMemo } from 'react'
-import { useParams, useSearchParams } from 'react-router'
+import { useParams } from 'react-router'
 
 import { LongTermTab } from './LongTermTab'
 import { FinancesRealtimeTab } from './RealtimeTab'
@@ -15,7 +15,6 @@ import { WeekViewTab } from './WeekViewTab'
 const MarketPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const project = useSelectProject(projectId!)
-  const [searchParams, setSearchParams] = useSearchParams()
 
   const qseAccess = useGetQSEAccess({
     pathParams: { projectId: projectId! },
@@ -23,20 +22,10 @@ const MarketPerformance = () => {
   })
   const hasQSEAccess = qseAccess.data?.has_access === true
 
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'realtime' || tab === 'week-view' || tab === 'long-term') {
-      return tab
-    }
-    return 'realtime'
-  }, [searchParams])
-
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'realtime'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, setTab } = useSearchParamTab({
+    tabs: ['realtime', 'week-view', 'long-term'] as const,
+    defaultTab: 'realtime',
+  })
 
   // Get QSE provider and node name from realtime price endpoint
   const { data: priceData, isLoading: priceLoading } = useGetRealtimePrice({

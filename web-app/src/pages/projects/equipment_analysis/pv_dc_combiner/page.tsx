@@ -20,8 +20,10 @@ import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import RealTime from '@/pages/projects/device_details/RealTime'
 import { Checkbox, Group, HoverCard, Stack, Tabs, Text } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
+
+import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const MAX_DAYS = 1
 
@@ -35,24 +37,10 @@ const EquipmentAnalysisPVDCCombinerPage = () => {
   const userType = useGetUserType({})
   const isSuperadmin =
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
-  const [searchParams, setSearchParams] = useSearchParams()
   const [checked, setChecked] = useState(false)
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'realtime' || tab === 'current-day') {
-      return tab
-    }
-    if (isSuperadmin && tab === 'long-term') {
-      return tab
-    }
-    return 'current-day'
-  }, [isSuperadmin, searchParams])
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'current-day'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, searchParams, setTab } = useEquipmentAnalysisTab({
+    isSuperadmin,
+  })
   const tabPanelRef = useRef<HTMLDivElement>(null)
 
   // Handle block dropdown change

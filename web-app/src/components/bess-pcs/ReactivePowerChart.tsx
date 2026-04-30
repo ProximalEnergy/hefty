@@ -14,15 +14,15 @@ const REACTIVE_SENSORS: number[] = [
   SensorTypeEnum.BESS_PCS_MODULE_GROUP_REACTIVE_POWER,
 ]
 
-interface ReactivePowerChartProps {
+interface BessPcsReactivePowerChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
   maxCapacityMWac: number | null
 }
 
-export const ReactivePowerChart = ({
+export const BessPcsReactivePowerChart = ({
   realtimeData,
   maxCapacityMWac,
-}: ReactivePowerChartProps) => {
+}: BessPcsReactivePowerChartProps) => {
   const { projectId } = useParams<{
     projectId: string
   }>()

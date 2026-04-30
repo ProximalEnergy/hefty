@@ -1,0 +1,29 @@
+name: Duplicate Function Check
+
+on:
+  pull_request:
+    branches: [dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  duplicate-functions:
+    name: Duplicate Function Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install ast-grep
+        run: mise install ast-grep
+
+      - name: Run duplicate function check
+        run: mise run root:duplicate_functions

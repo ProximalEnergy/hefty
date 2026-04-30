@@ -14,6 +14,7 @@ import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { DataTimeSeries } from '@/hooks/types'
+import { useAutoUpdatingTimeRange } from '@/hooks/useAutoUpdatingTimeRange'
 import { alignLossSeries, parseIntervalMinutes } from '@/utils/alignLossSeries'
 import {
   getInterval,
@@ -38,7 +39,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import type * as Plotly from 'plotly.js'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 // Extend dayjs with timezone support
@@ -119,30 +120,12 @@ const PowerPlotPVZoom = () => {
 
   const project = useSelectProject(projectId!)
 
-  // Auto-update time range for "last 24 hours" view
-  useEffect(() => {
-    if (!isAutoUpdating) return
-
-    const updateTimeRange = () => {
-      const {
-        startTime: newStartTime,
-        endTime: newEndTime,
-        interval: newInterval,
-      } = getLast24HourTimeRange()
-
-      setEndTime(newEndTime)
-      setStartTime(newStartTime)
-      setInterval(newInterval)
-    }
-
-    // Update immediately
-    updateTimeRange()
-
-    // Then update every minute to keep the range current
-    const intervalId = window.setInterval(updateTimeRange, 60 * 1000)
-
-    return () => window.clearInterval(intervalId)
-  }, [isAutoUpdating])
+  useAutoUpdatingTimeRange({
+    isAutoUpdating,
+    setEndTime,
+    setStartTime,
+    setTimeSeriesInterval: setInterval,
+  })
 
   // TODO: Remove this in favor of a new database table.
   const includeSoiling = !['sigurd'].includes(project.data?.name_short || '')

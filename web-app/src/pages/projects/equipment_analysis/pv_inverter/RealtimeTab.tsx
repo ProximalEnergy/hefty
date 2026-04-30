@@ -14,7 +14,7 @@ import { ActivePowerChartPvPcs } from '@/components/pv-pcs/ActivePowerChart'
 import { DCVoltageChartPvPcs } from '@/components/pv-pcs/DCVoltageChart'
 import { EfficiencyChart } from '@/components/pv-pcs/EfficiencyChart'
 import { EfficiencyLevelCard } from '@/components/pv-pcs/EfficiencyLevelCard'
-import { ReactivePowerChart } from '@/components/pv-pcs/ReactivePowerChart'
+import { PvPcsReactivePowerChart } from '@/components/pv-pcs/ReactivePowerChart'
 import { PVPCSStatsCards } from '@/components/pv-pcs/StatsCards'
 import { StatusAndErrorCodes } from '@/components/pv-pcs/StatusAndErrorCodes'
 import { useGetDevicesV2 } from '@/hooks/api'
@@ -490,7 +490,7 @@ const PVInverterRealtimeTab = () => {
         }
       />
 
-      <ReactivePowerChart
+      <PvPcsReactivePowerChart
         realtimeData={realtimeData}
         maxCapacityMWac={maxCapacityMWac}
       />

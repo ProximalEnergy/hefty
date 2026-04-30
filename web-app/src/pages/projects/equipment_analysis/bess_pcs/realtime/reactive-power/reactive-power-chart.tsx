@@ -1,17 +1,17 @@
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
-import { ReactivePowerChart as SharedReactivePowerChart } from '@/components/bess-pcs/ReactivePowerChart'
+import { BessPcsReactivePowerChart } from '@/components/bess-pcs/ReactivePowerChart'
 
-type ReactivePowerChartProps = {
+type BessPcsRealtimeReactivePowerChartProps = {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
   maxCapacityMWac: number | null
 }
 
-export function ReactivePowerChart({
+export function BessPcsRealtimeReactivePowerChart({
   realtimeData,
   maxCapacityMWac,
-}: ReactivePowerChartProps) {
+}: BessPcsRealtimeReactivePowerChartProps) {
   return (
-    <SharedReactivePowerChart
+    <BessPcsReactivePowerChart
       realtimeData={realtimeData}
       maxCapacityMWac={maxCapacityMWac}
     />

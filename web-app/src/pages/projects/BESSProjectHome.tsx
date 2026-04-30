@@ -17,9 +17,10 @@ import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { MarketStatsGrid } from '@/components/stats/MarketStatsGrid'
+import { useAutoUpdatingTimeRange } from '@/hooks/useAutoUpdatingTimeRange'
 import { KPICards } from '@/pages/projects/components/KPICards'
 import { ProjectLabels } from '@/pages/projects/components/ProjectLabels'
-import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
+import { getCurrentContractKpiThreshold } from '@/pages/projects/contractKpiThresholds'
 import {
   getInterval,
   getLast24HourTimeRange,
@@ -190,30 +191,12 @@ const PowerPlotBESS = () => {
   const project = useSelectProject(projectId!)
   const projectTimeZone = project.data?.time_zone ?? 'UTC'
 
-  // Auto-update time range for "last 24 hours" view
-  useEffect(() => {
-    if (!isAutoUpdating) return
-
-    const updateTimeRange = () => {
-      const {
-        startTime: newStartTime,
-        endTime: newEndTime,
-        interval: newInterval,
-      } = getLast24HourTimeRange()
-
-      setEndTime(newEndTime)
-      setStartTime(newStartTime)
-      setInterval(newInterval)
-    }
-
-    // Update immediately
-    updateTimeRange()
-
-    // Then update every minute to keep the range current
-    const intervalId = window.setInterval(updateTimeRange, 60 * 1000)
-
-    return () => window.clearInterval(intervalId)
-  }, [isAutoUpdating])
+  useAutoUpdatingTimeRange({
+    isAutoUpdating,
+    setEndTime,
+    setStartTime,
+    setTimeSeriesInterval: setInterval,
+  })
 
   const data = useGetTimeSeries({
     pathParams: { project_id: projectId || '-1' },
@@ -1400,14 +1383,6 @@ const ContractualKPIOverviewBESSProjectHome = ({
     return new Map(contractKPIData.data.map((ck) => [ck.kpi_type_id, ck]))
   }, [contractKPIData.data])
 
-  // Function to get threshold value for current date
-  const getCurrentThreshold = (kpiTypeId: number) => {
-    const contractKPI = contractKPIMap.get(kpiTypeId)
-    if (!contractKPI?.threshold?.values) return null
-
-    return getKPIThresholdbyDate(contractKPI.threshold, new Date(), 'discrete')
-  }
-
   // Function to format value with unit
   const formatBessContractKpiValue = (
     value: number | null | undefined,
@@ -1651,7 +1626,10 @@ const ContractualKPIOverviewBESSProjectHome = ({
               </Table.Thead>
               <Table.Tbody>
                 {contractualKPIs.map((kpi) => {
-                  const threshold = getCurrentThreshold(kpi.kpi_type_id)
+                  const threshold = getCurrentContractKpiThreshold({
+                    contractKPIMap,
+                    kpiTypeId: kpi.kpi_type_id,
+                  })
                   const statusColor = getContractKPIStatusColor({
                     theme,
                     value: kpi.ytd_value,

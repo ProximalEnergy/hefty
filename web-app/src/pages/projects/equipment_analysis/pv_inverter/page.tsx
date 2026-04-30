@@ -57,8 +57,9 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { PlotType } from 'plotly.js'
 import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 
+import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 import PVInverterRealtimeTab from './RealtimeTab'
 
 dayjs.extend(utc)
@@ -203,23 +204,7 @@ const PCSEquipmentAnalysis = () => {
   const [initialSliderValueSet, setInitialSliderValueSet] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const intervalRef = useRef<number | null>(null)
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'realtime' || tab === 'current-day') {
-      return tab
-    }
-    if (isSuperadmin && tab === 'long-term') {
-      return tab
-    }
-    return 'current-day'
-  }, [isSuperadmin, searchParams])
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'current-day'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, setTab } = useEquipmentAnalysisTab({ isSuperadmin })
   const tabPanelRef = useRef<HTMLDivElement>(null)
   const { start, end } = useValidateDateRange({})
 

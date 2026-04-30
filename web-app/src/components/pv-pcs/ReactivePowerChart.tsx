@@ -6,15 +6,15 @@ import type { Data, PlotRelayoutEvent } from 'plotly.js'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
-interface ReactivePowerChartProps {
+interface PvPcsReactivePowerChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
   maxCapacityMWac: number | null
 }
 
-export const ReactivePowerChart = ({
+export const PvPcsReactivePowerChart = ({
   realtimeData,
   maxCapacityMWac,
-}: ReactivePowerChartProps) => {
+}: PvPcsReactivePowerChartProps) => {
   const { projectId } = useParams<{ projectId: string }>()
 
   const [userZoomed, setUserZoomed] = useState(false)

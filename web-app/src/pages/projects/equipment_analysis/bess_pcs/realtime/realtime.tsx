@@ -9,7 +9,7 @@ import { ACVoltageChartBessPcsRealtime } from './ac-voltage/ac-voltage-chart'
 import { ActivePowerChartBessPcsRealtime } from './active-power/active-power-chart'
 import { DCVoltageChartBessPcsRealtime } from './dc-voltage/dc-voltage-chart'
 import { IGBTTemperatureChartBessPcsRealtime } from './igbt-temperature/igbt-temperature-chart'
-import { ReactivePowerChart } from './reactive-power/reactive-power-chart'
+import { BessPcsRealtimeReactivePowerChart } from './reactive-power/reactive-power-chart'
 import { RealtimeStats } from './stats/realtime-stats'
 import { useRealtimeSources } from './use-realtime-sources'
 
@@ -39,7 +39,7 @@ export function Realtime() {
         maxCapacityMWac={maxCapacityMwac}
       />
 
-      <ReactivePowerChart
+      <BessPcsRealtimeReactivePowerChart
         realtimeData={sources.pcsRealtime}
         maxCapacityMWac={maxCapacityMwac}
       />

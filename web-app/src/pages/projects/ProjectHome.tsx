@@ -14,8 +14,8 @@ import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
 import { TopEventsTableCard } from '@/pages/projects/TopEventsTableCard'
 import { KPICards } from '@/pages/projects/components/KPICards'
 import { ProjectLabels } from '@/pages/projects/components/ProjectLabels'
+import { getCurrentContractKpiThreshold } from '@/pages/projects/contractKpiThresholds'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
-import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { projectDescription } from '@/utils/projectDescription'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { getContractKPIStatusColor } from '@/utils/statusColors'
@@ -135,14 +135,6 @@ const ContractualKPIOverviewProjectHome = ({
     if (!contractKPIData.data) return new Map()
     return new Map(contractKPIData.data.map((ck) => [ck.kpi_type_id, ck]))
   }, [contractKPIData.data])
-
-  // Function to get threshold value for current date
-  const getCurrentThreshold = (kpiTypeId: number) => {
-    const contractKPI = contractKPIMap.get(kpiTypeId)
-    if (!contractKPI?.threshold?.values) return null
-
-    return getKPIThresholdbyDate(contractKPI.threshold, new Date(), 'discrete')
-  }
 
   // Function to format value with unit
   const formatProjectContractKpiValue = (
@@ -387,7 +379,10 @@ const ContractualKPIOverviewProjectHome = ({
               </Table.Thead>
               <Table.Tbody>
                 {contractualKPIs.map((kpi) => {
-                  const threshold = getCurrentThreshold(kpi.kpi_type_id)
+                  const threshold = getCurrentContractKpiThreshold({
+                    contractKPIMap,
+                    kpiTypeId: kpi.kpi_type_id,
+                  })
                   const statusColor = getContractKPIStatusColor({
                     theme,
                     value: kpi.ytd_value,

@@ -199,7 +199,7 @@ const ContractCard = ({
   const contractualKPIs = contractualKpiData ?? []
 
   // Function to get threshold value for current date (simplified version)
-  const getCurrentThreshold = (kpiTypeId: number) => {
+  const getContractCardCurrentThreshold = (kpiTypeId: number) => {
     if (!kpis) return null
 
     const contractKPI = kpis.find((kpi) => kpi.kpi_type_id === kpiTypeId)
@@ -640,7 +640,9 @@ const ContractCard = ({
                                   </Table.Td>
                                   <Table.Td style={{ textAlign: 'center' }}>
                                     {formatContractCardValue(
-                                      getCurrentThreshold(row.kpi_type_id),
+                                      getContractCardCurrentThreshold(
+                                        row.kpi_type_id,
+                                      ),
                                       row.unit,
                                       true,
                                     )}
@@ -653,7 +655,7 @@ const ContractCard = ({
                                         backgroundColor:
                                           getStatusColorFromValue(
                                             row.ytd_value,
-                                            getCurrentThreshold(
+                                            getContractCardCurrentThreshold(
                                               row.kpi_type_id,
                                             ),
                                             row.unit,

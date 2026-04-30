@@ -26,7 +26,9 @@ import {
 import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
 import { useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router'
+import { useParams } from 'react-router'
+
+import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const SystemPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -38,23 +40,10 @@ const SystemPerformance = () => {
   const userType = useGetUserType({})
   const isSuperadmin =
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = useMemo(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'realtime' || tab === 'current-day') {
-      return tab
-    }
-    if (isSuperadmin && tab === 'long-term') {
-      return tab
-    }
-    return 'current-day'
-  }, [isSuperadmin, searchParams])
-  const setTab = (value: string | null) => {
-    const nextTab = value || 'current-day'
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', nextTab)
-    setSearchParams(nextParams, { replace: true })
-  }
+  const { activeTab, setTab } = useEquipmentAnalysisTab({
+    isSuperadmin,
+    realtimeForStandardUsers: false,
+  })
   const tabPanelRef = useRef<HTMLDivElement>(null)
   const { start, end } = useValidateDateRange({})
 

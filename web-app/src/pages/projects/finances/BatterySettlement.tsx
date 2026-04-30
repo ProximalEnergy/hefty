@@ -548,7 +548,7 @@ const BatterySettlementPage = () => {
     }
   }, [])
 
-  const renderMarkdown = (content: string) => {
+  const renderBatterySettlementMarkdown = (content: string) => {
     return renderMarkdownToHtml({
       content,
       markdown,
@@ -683,12 +683,12 @@ const BatterySettlementPage = () => {
     startAnalysis(inputValue)
   }
 
-  const renderMessage = (message: ChatMessage) => {
+  const renderBatterySettlementMessage = (message: ChatMessage) => {
     return (
       <ChatMessageBubble
         key={message.id}
         isUserMessage={message.role === 'user'}
-        contentHtml={renderMarkdown(message.content)}
+        contentHtml={renderBatterySettlementMarkdown(message.content)}
         maxWidth="80%"
       />
     )
@@ -953,7 +953,7 @@ const BatterySettlementPage = () => {
                     style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}
                   >
                     <Stack gap="md" p="xs">
-                      {messages.map(renderMessage)}
+                      {messages.map(renderBatterySettlementMessage)}
                       {showLoading && (
                         <Text size="sm" c="dimmed">
                           {LOADING_MESSAGES[loadingIdx]}

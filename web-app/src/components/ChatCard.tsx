@@ -117,7 +117,7 @@ export function ChatCard({
 
   const markdown = useMemo(() => new MarkdownIt(), [])
 
-  const renderMarkdown = (content: string) => {
+  const renderChatCardMarkdown = (content: string) => {
     return renderMarkdownToHtml({
       content,
       markdown,
@@ -360,7 +360,7 @@ export function ChatCard({
     )
   }
 
-  const renderMessage = (message: IStep) => {
+  const renderChatCardMessage = (message: IStep) => {
     const isUserMessage = message.type === 'user_message'
 
     const contextElements =
@@ -376,7 +376,7 @@ export function ChatCard({
       <ChatMessageBubble
         key={message.id}
         isUserMessage={isUserMessage}
-        contentHtml={renderMarkdown(message.content)}
+        contentHtml={renderChatCardMarkdown(message.content)}
         contextElements={contextElements}
         maxWidth={600}
         paperColor={theme.primaryColor}
@@ -391,7 +391,7 @@ export function ChatCard({
       ) : (
         <ScrollArea w="100%" flex={1} viewportRef={viewportRef}>
           <Stack w="100%" gap="sm">
-            {messages.map(renderMessage)}
+            {messages.map(renderChatCardMessage)}
             {isLoading && (
               <div
                 style={{

@@ -1148,10 +1148,6 @@ diff_has() {
     echo "${DIFF_FILES}" | grep -E -q "${pattern}"
 }
 
-check_duplicate_functions_for_diff() {
-    mise run root:duplicate_functions_diff "${DIFF_BASE}"
-}
-
 check_duplicate_classes_for_diff() {
     mise run root:duplicate_classes_diff "${DIFF_BASE}"
 }
@@ -1313,6 +1309,13 @@ if [ "${RUN_ROOT}" = "true" ]; then
 fi
 
 # Global checks
+if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
+    || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] \
+    || [ "${RUN_WEB}" = "true" ]; then
+    add_check "Global: Duplicate Function Names" \
+        "mise run root:duplicate_functions"
+fi
+
 if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
     SQLALCHEMY_RETURN_CHECK_CMD="mise run root:sqlalchemy_return"
     if [ "${ALL_WARNINGS}" = "true" ]; then
@@ -1320,13 +1323,6 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
     fi
     add_warning_check "Global: SQLAlchemy Return Methods" \
         "${SQLALCHEMY_RETURN_CHECK_CMD}"
-    if [ "${REQUESTED_DIFF_ONLY}" = "true" ] && [ -n "${DIFF_FILES}" ]; then
-        add_warning_check "Global: Duplicate Function Names" \
-            "check_duplicate_functions_for_diff"
-    else
-        add_warning_check "Global: Duplicate Function Names" \
-            "mise run root:duplicate_functions"
-    fi
     if [ "${REQUESTED_DIFF_ONLY}" = "true" ] && [ -n "${DIFF_FILES}" ]; then
         add_warning_check "Global: Duplicate Class Names" \
             "check_duplicate_classes_for_diff"
