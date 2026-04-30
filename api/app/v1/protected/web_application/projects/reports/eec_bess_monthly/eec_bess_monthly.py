@@ -1205,7 +1205,7 @@ def build_portfolio_kpi_table_rows(
 
     column_order = list(df.columns)
 
-    def sort_key(idx):  # no-star-syntax
+    def portfolio_project_sort_key(idx):  # no-star-syntax
         def row_key(x: str) -> tuple[int, int, str]:  # no-star-syntax
             if x == selected_project:
                 return (0, 0, "")
@@ -1216,7 +1216,7 @@ def build_portfolio_kpi_table_rows(
 
         return [row_key(str(x)) for x in idx]
 
-    df = df.sort_index(key=sort_key)
+    df = df.sort_index(key=portfolio_project_sort_key)
 
     header_row = [
         Paragraph("<b>Project</b>", header_style),

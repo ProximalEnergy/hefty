@@ -31,7 +31,7 @@ def dependency_name(*, requirement: str) -> str:
     return base.lower().replace("_", "-")
 
 
-def sort_key(*, requirement: str) -> tuple[str, str]:
+def dependency_sort_key(*, requirement: str) -> tuple[str, str]:
     return (dependency_name(requirement=requirement), requirement.lower())
 
 
@@ -58,7 +58,9 @@ def check_list(
         joined = ", ".join(entries)
         errors.append(f"{label} has duplicate entries for {name}: {joined}")
 
-    expected = sorted(dependencies, key=lambda dep: sort_key(requirement=dep))
+    expected = sorted(
+        dependencies, key=lambda dep: dependency_sort_key(requirement=dep)
+    )
     if dependencies != expected:
         ordered = ", ".join(expected)
         errors.append(f"{label} is not sorted. Expected: {ordered}")
