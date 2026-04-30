@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated
 
 import pandas as pd
-from core.crud.admin.users import get_users as get_users_core
+from core.crud.admin.users import get_users
 from core.db_query import OutputType
 from core.enumerations import UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -31,8 +31,9 @@ router = APIRouter(prefix="/users", tags=["users"])
     "",
     dependencies=[Depends(authorization.require_jwt_or_api_superadmin)],
     response_model=list[interfaces.UserWithProjects],
+    operation_id="get_users",
 )
-async def get_users(
+async def get_users_route(
     user_data: Annotated[UserAuthed, Depends(get_user)],
     company_ids: list[uuid.UUID] | None = Query(default=None),
     user_ids: list[str] | None = Query(default=None),
@@ -60,7 +61,7 @@ async def get_users(
                 ),
             )
 
-    users = await get_users_core(company_ids=company_ids, user_ids=user_ids).get_async(
+    users = await get_users(company_ids=company_ids, user_ids=user_ids).get_async(
         output_type=OutputType.PANDAS
     )
 
@@ -98,7 +99,7 @@ async def get_self_company(
     Args:
         user_data: Context data injected from the authentication middleware.
     """
-    users = await get_users_core(company_ids=[user_data.company_id]).get_async(
+    users = await get_users(company_ids=[user_data.company_id]).get_async(
         output_type=OutputType.PANDAS
     )
 

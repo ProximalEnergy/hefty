@@ -596,7 +596,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Users
+         * Get Users Route
          * @description List users along with their operational project assignments.
          *
          *     Args:
@@ -605,7 +605,7 @@ export interface paths {
          *         user_ids: Optional list of Clerk user IDs to filter by.
          *         include_image_urls: Whether to request profile images from Clerk.
          */
-        get: operations["get_users_v1_admin_users_get"];
+        get: operations["get_users"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13433,7 +13433,7 @@ export interface operations {
             };
         };
     };
-    get_users_v1_admin_users_get: {
+    get_users: {
         parameters: {
             query?: {
                 company_ids?: string[] | null;
