@@ -137,7 +137,11 @@ jobs:
               base: process.env.BRANCH_TO,
               head: process.env.BRANCH_FROM,
               title: `Merge changes from ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
-              body: `This PR merges application changes (${{ steps.diff.outputs.changed_apps }}) from \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
+              body:
+                `This PR merges application changes (${{ steps.diff.outputs.changed_apps }}) ` +
+                `from \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. ` +
+                `Contributors are assigned as reviewers. ` +
+                `Please review your changes carefully and merge when appropriate.`,
               draft: false,
             });
 
