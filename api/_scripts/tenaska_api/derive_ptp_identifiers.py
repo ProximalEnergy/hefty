@@ -264,7 +264,7 @@ async def _run_chain(
     return generator_id, resource_id, settlement_point_id
 
 
-async def run(entity_id: str) -> dict[str, str | None]:
+async def run_identifier_derivation(entity_id: str) -> dict[str, str | None]:
     """Derive all identifiers for the given qse_project_identifier (Entity ID).
 
     Args:
@@ -307,7 +307,7 @@ def derive_ptp_identifiers() -> int:
         print("Error: qse_project_identifier is required", file=sys.stderr)
         return 1
 
-    result = asyncio.run(run(entity_id))
+    result = asyncio.run(run_identifier_derivation(entity_id))
 
     if args.json:
         provider_config = {

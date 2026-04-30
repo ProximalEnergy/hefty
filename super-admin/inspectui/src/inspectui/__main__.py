@@ -33,7 +33,7 @@ def main() -> int:
     """Main entry point for the InspectUI application."""
     try:
         app = InspectUIApp()
-        result = curses.wrapper(app.run)
+        result = curses.wrapper(app.run_application_loop)
         _restore_tty_onlcr()
         return result or 0
     except KeyboardInterrupt:

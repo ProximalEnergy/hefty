@@ -28,7 +28,7 @@ class InspectUIApp:
         self.current_screen: BaseScreen | None = None
         self.running: bool = True
 
-    def run(self, stdscr: curses.window) -> int:
+    def run_application_loop(self, stdscr: curses.window) -> int:
         """Main application loop."""
         self.stdscr = stdscr
         curses.curs_set(0)

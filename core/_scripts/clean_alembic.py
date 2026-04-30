@@ -180,7 +180,9 @@ class MigrationCleaner:
 
         return False
 
-    def run(self, dry_run: bool = False, latest_only: bool = False) -> None:
+    def run_cleaning_process(
+        self, dry_run: bool = False, latest_only: bool = False
+    ) -> None:
         """
         Run the cleaning process on all migration files.
 
@@ -281,7 +283,7 @@ def run_clean_alembic_cli():
 
     try:
         cleaner = MigrationCleaner(args.migrations_dir)
-        cleaner.run(dry_run=args.dry_run, latest_only=args.latest)
+        cleaner.run_cleaning_process(dry_run=args.dry_run, latest_only=args.latest)
     except Exception as e:
         print(f"Error: {e}")  # noqa: T201
         return 1

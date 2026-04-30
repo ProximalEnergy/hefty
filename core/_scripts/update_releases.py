@@ -153,7 +153,7 @@ class ReleaseUpdater:
         else:
             return 0
 
-    def run(self, message: str) -> None:
+    def run_release_update(self, message: str) -> None:
         """Main method to update releases with the given message.
 
         Args:
@@ -184,7 +184,7 @@ def run_update_releases_cli():
 
     try:
         updater = ReleaseUpdater(args.project_root)
-        updater.run(args.message)
+        updater.run_release_update(args.message)
         return 0
     except Exception as e:
         print(f"Failed to update releases: {e}")  # noqa: T201

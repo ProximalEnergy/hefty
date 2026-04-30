@@ -29,7 +29,7 @@ class SensorTypeUniquePerDeviceTest(BaseTest):
         ),
     ]
 
-    def run(self, cache: "CacheManager") -> TestResult:
+    def run_test(self, cache: "CacheManager") -> TestResult:
         """Run duplicate sensor-type check per device."""
         sensor_type_ids = self.get_param("sensor_type_ids") or []
         if not sensor_type_ids:
@@ -130,7 +130,7 @@ class ParentDeviceTypeAllowlistTest(BaseTest):
         ),
     ]
 
-    def run(self, cache: "CacheManager") -> TestResult:
+    def run_test(self, cache: "CacheManager") -> TestResult:
         """Run parent device type allowlist validation."""
         raw_rules = self.get_param("child_parent_type_rules")
         try:
@@ -323,7 +323,7 @@ class RequiredDeviceModelsTest(BaseTest):
         ),
     ]
 
-    def run(self, cache: "CacheManager") -> TestResult:
+    def run_test(self, cache: "CacheManager") -> TestResult:
         """Require ``device_model_id`` for configured device types."""
         type_ids = _coerce_device_type_ids(self.get_param("device_type_ids"))
         if not type_ids:

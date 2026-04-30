@@ -66,7 +66,7 @@ class BaseTest(ABC):
         return self._param_values.copy()
 
     @abstractmethod
-    def run(self, cache: "CacheManager") -> TestResult:
+    def run_test(self, cache: "CacheManager") -> TestResult:
         """Run the test and return a result.
 
         Args:
@@ -75,6 +75,11 @@ class BaseTest(ABC):
         Returns:
             TestResult with the test outcome.
         """
+        pass
+
+    def run(self, cache: "CacheManager") -> TestResult:
+        """Backward-compatible alias for test execution."""
+        return self.run_test(cache)
 
     def skip(self, reason: str) -> TestResult:
         """Return a skipped result."""
