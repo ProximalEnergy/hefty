@@ -33,7 +33,7 @@ def load_dependencies(*, revision: str, path: str) -> tuple[str, ...]:
     return tuple(sorted(normalized))
 
 
-def main() -> int:
+def pyproject_dependencies_changed() -> int:
     args = parse_args()
 
     try:
@@ -57,4 +57,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(pyproject_dependencies_changed())

@@ -686,7 +686,7 @@ def preview_update(
     )
 
 
-def main() -> None:
+def device_models_cli() -> None:
     """Main interactive loop."""
     print("=" * 60)
     print("Device Model Update Script")
@@ -1018,4 +1018,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    device_models_cli()

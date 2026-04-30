@@ -94,7 +94,7 @@ def run_mypy(
     return completed.returncode
 
 
-def main() -> int:
+def run_root_pinned_mypy() -> int:
     parser = build_parser()
     args, mypy_args = parser.parse_known_args()
 
@@ -114,4 +114,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_root_pinned_mypy())

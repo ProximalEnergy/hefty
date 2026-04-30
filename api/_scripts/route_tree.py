@@ -1590,7 +1590,7 @@ document.getElementById('search').addEventListener('input', (event) => {
     return "\n".join(html_parts)
 
 
-def main() -> int:
+def route_tree() -> int:
     """Run the dependency report."""
     parser = argparse.ArgumentParser(
         description="Report FastAPI route tree",
@@ -1675,4 +1675,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(route_tree())

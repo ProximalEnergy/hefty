@@ -605,7 +605,7 @@ def take_screenshots(*, routes: list[str], output_dir: Path) -> list[Path]:
     return shots
 
 
-def main() -> None:
+def web_screenshot() -> None:
     """Entry point."""
     changed_files = changed_files_vs_dev()
     web_files = [
@@ -638,4 +638,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    web_screenshot()

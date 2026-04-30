@@ -287,7 +287,7 @@ async def run(entity_id: str) -> dict[str, str | None]:
     }
 
 
-def main() -> int:
+def derive_ptp_identifiers() -> int:
     """CLI entrypoint: parse args, run derivation, print results."""
     parser = argparse.ArgumentParser(
         description="Derive PTP identifiers from qse_project_identifier (Entity ID)"
@@ -347,4 +347,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(derive_ptp_identifiers())

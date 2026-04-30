@@ -224,7 +224,7 @@ def update_enumerations_file(
     return False
 
 
-def main() -> None:
+def validate_enums() -> None:
     """Run enum validation against the database and update enumerations.py if needed."""
     # Get database session without schema override (uses default schema mapping)
     session = get_db_session(schema=None)
@@ -313,4 +313,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    validate_enums()

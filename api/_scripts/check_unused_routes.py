@@ -301,7 +301,7 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
     return found_paths
 
 
-def main() -> int:
+def check_unused_routes() -> int:
     """
     Main entry point for the script.
     """
@@ -386,4 +386,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(check_unused_routes())

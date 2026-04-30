@@ -242,7 +242,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:
+def prepare_core_publish_artifact() -> int:
     args = parse_args()
 
     try:
@@ -267,4 +267,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(prepare_core_publish_artifact())

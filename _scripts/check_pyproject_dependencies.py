@@ -286,7 +286,7 @@ def workspace_root_bounded_dependencies(*, root: Path) -> set[str]:
     return managed_dependencies
 
 
-def main() -> int:
+def check_pyproject_dependencies() -> int:
     root = Path.cwd()
     root_pyproject = root / "pyproject.toml"
     root_bounded, root_group_bounded = workspace_root_dependencies(root=root)
@@ -315,4 +315,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(check_pyproject_dependencies())

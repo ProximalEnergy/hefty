@@ -40,7 +40,7 @@ def parse_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(*, argv: Sequence[str] | None = None) -> int:
+def check_docstring_args(*, argv: Sequence[str] | None = None) -> int:
     """Run semgrep check.
 
     Args:
@@ -87,4 +87,4 @@ def main(*, argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(check_docstring_args())

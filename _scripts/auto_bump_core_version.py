@@ -62,7 +62,7 @@ def write_bumped_version(*, pyproject_path: Path, new_version: str) -> None:
     pyproject_path.write_text(updated_text, encoding="utf-8")
 
 
-def main() -> int:
+def auto_bump_core_version() -> int:
     args = parse_args()
     pyproject_path = Path(args.pyproject_path)
 
@@ -117,4 +117,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(auto_bump_core_version())
