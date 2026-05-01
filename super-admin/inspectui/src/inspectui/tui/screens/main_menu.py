@@ -12,6 +12,7 @@ from inspectui.core.csv_loader import (
 from inspectui.tui.colors import PAIR_HEADER, PAIR_HIGHLIGHT
 from inspectui.tui.components.text_input import get_text_input
 from inspectui.tui.screens.base import BaseScreen
+from inspectui.tui.screens.capacity_check import CapacityCheckScreen
 from inspectui.tui.screens.project_select import ProjectSelectScreen
 from inspectui.tui.screens.test_results import TestResultsScreen
 from inspectui.tui.screens.test_select import TestSelectScreen
@@ -27,6 +28,7 @@ class MainMenuScreen(BaseScreen):
         ("Manage Active Projects", "project_select"),
         ("Download Active Projects (Database)", "download_active_db"),
         ("Load Active Projects (CSV)", "load_active_csv"),
+        ("Capacity Field Check", "capacity_check"),
         ("Run Tests (Active Projects)", "test_select"),
         ("Last Test Run Results", "last_test_results"),
         ("Quit", "quit"),
@@ -105,6 +107,12 @@ class MainMenuScreen(BaseScreen):
             self._download_active_projects_from_database()
         elif action == "load_active_csv":
             self._load_active_projects_from_csv()
+        elif action == "capacity_check":
+            active = self.app.get_active_project_names()
+            if not active:
+                self._show_message(message="No active projects selected.")
+                return
+            self.app.switch_screen(CapacityCheckScreen(self.app))
         elif action == "test_select":
             active = self.app.get_active_project_names()
             if not active:

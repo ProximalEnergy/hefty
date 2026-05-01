@@ -140,6 +140,13 @@ def load_devices_csv(*, path: Path) -> list[DeviceInfo]:
                     column="device_model_id",
                     row_num=row_num,
                 )
+            capacity_energy_dc: float | None = None
+            if "capacity_energy_dc" in row:
+                capacity_energy_dc = _parse_optional_float(
+                    cell=row["capacity_energy_dc"],
+                    column="capacity_energy_dc",
+                    row_num=row_num,
+                )
             rows.append(
                 DeviceInfo(
                     device_id=_parse_required_int(
@@ -169,6 +176,7 @@ def load_devices_csv(*, path: Path) -> list[DeviceInfo]:
                         column="capacity_ac",
                         row_num=row_num,
                     ),
+                    capacity_energy_dc=capacity_energy_dc,
                     device_model_id=dmid,
                 )
             )

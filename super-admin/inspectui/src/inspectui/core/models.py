@@ -52,6 +52,7 @@ class DeviceInfo:
     parent_device_id: int | None
     capacity_dc: float | None
     capacity_ac: float | None
+    capacity_energy_dc: float | None = None
     device_model_id: int | None = None
 
     @property

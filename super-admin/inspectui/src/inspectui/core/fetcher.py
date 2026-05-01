@@ -53,7 +53,7 @@ class DataFetcher:
         query = """
             SELECT device_id, device_type_id, name_short, name_long,
                    parent_device_id, capacity_dc, capacity_ac,
-                   device_model_id
+                   capacity_energy_dc, device_model_id
             FROM devices
             ORDER BY device_id
         """
@@ -67,6 +67,7 @@ class DataFetcher:
                 parent_device_id=row["parent_device_id"],
                 capacity_dc=row["capacity_dc"],
                 capacity_ac=row["capacity_ac"],
+                capacity_energy_dc=row["capacity_energy_dc"],
                 device_model_id=row["device_model_id"],
             )
             for row in rows

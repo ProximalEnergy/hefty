@@ -80,6 +80,20 @@ class TestCsvLoader(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0].device_model_id, 42)
 
+    def test_capacity_energy_dc_optional_column(self) -> None:
+        """Optional capacity_energy_dc column is parsed when present."""
+        content = (
+            "device_id,device_type_id,name_short,name_long,parent_device_id,"
+            "capacity_dc,capacity_ac,capacity_energy_dc\n"
+            "10,27,a,b,,1.5,,120\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "devices.csv"
+            p.write_text(content, encoding="utf-8")
+            rows = load_devices_csv(path=p)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].capacity_energy_dc, 120)
+
     def test_extra_columns_ignored(self) -> None:
         """Extra columns (e.g. from Google Sheets) are ignored."""
         content = (
