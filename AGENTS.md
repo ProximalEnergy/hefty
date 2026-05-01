@@ -1,6 +1,11 @@
 # General
 - code lines are shorter than 88 characters
 - write descriptive function names
+- Do not ignore knip, mypy, or ruff failures. Fix them.
+
+# Database
+- Do not create alembic migrations from feature/bugfix branches before PR review.
+- Use the `DbQuery` pattern for CRUD/database access.
 
 # Plans
 - Make the plan extremely concise. Sacrifice grammar for the sake of concision.
