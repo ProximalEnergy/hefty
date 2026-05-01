@@ -38,7 +38,7 @@ dev = [
     "mypy==1.19.1",
     "pandas-stubs~=3.0",
     "pyarrow-stubs>=20.0.0.20250928,<21",
-    "ruff==0.15.6",
+    "ruff==0.15.8",
     "types-psycopg2>=2.9.21.20250318,<3",
     "types-requests>=2.31.0.6,<3",
     "vulture>=2.14,<3",
