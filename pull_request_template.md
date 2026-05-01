@@ -1,3 +1,9 @@
+## High Impact Changes
+- [ ] Core
+- [ ] pyproject.tomls
+- [ ] package.jsons
+- [ ] alembic
+
 ## Checklist
 - [ ] I confirmed there are no console warnings or errors in the `api` or `web-app` related to this change.
 - [ ] I confirmed changed pages (from either `web-app` changes directly or via underlying `core`/`api` functions) loaded correctly.

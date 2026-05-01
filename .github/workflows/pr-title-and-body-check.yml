@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# PR Title Scope Sync
+# PR Title and Body Check
 # ─────────────────────────────────────────────────────────────────────────────
 # Automatically keeps PR titles prefixed with the sorted, bracketed list of
 # every top-level folder touched by the PR's changed files.
@@ -45,7 +45,7 @@
 #
 # ─────────────────────────────────────────────────────────────────────────────
 
-name: PR Title Scope Sync
+name: PR Title and Body Check
 
 on:
   pull_request:
@@ -57,7 +57,7 @@ on:
       - synchronize # New commits pushed to the PR branch
       - reopened # PR was re-opened after being closed
 
-# The workflow needs write access to pull requests so it can PATCH the title.
+# The workflow needs write access to pull requests so it can PATCH PR fields.
 # All other permissions are left at their default (read or none).
 permissions:
   pull-requests: write
@@ -70,11 +70,11 @@ permissions:
 # current title, independently prepend a new scope prefix, and produce a
 # title with duplicate bracket groups like "[api] [api, core] Description".
 concurrency:
-  group: pr-title-${{ github.event.pull_request.number }}
+  group: pr-title-and-body-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  sync-title-scopes:
+  sync-title-and-body:
     if: |
       github.event.pull_request.base.ref == 'dev' &&
       github.event.pull_request.head.ref != 'dev' &&
@@ -201,3 +201,84 @@ jobs:
             -d "$(jq -n --arg title "$NEW_TITLE" '{"title": $title}')"
 
           echo "✅ PR title updated successfully."
+
+      - name: Auto-update PR high impact checkboxes
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pullNumber = context.payload.pull_request.number;
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner,
+                repo,
+                pull_number: pullNumber,
+                per_page: 100,
+              },
+            );
+            const paths = files.map((file) => file.filename);
+
+            const impacts = {
+              Core: paths.some((path) => path.startsWith("core/")),
+              "pyproject.tomls": paths.some(
+                (path) => path === "pyproject.toml" ||
+                  path.endsWith("/pyproject.toml"),
+              ),
+              "package.jsons": paths.some(
+                (path) => path === "package.json" ||
+                  path.endsWith("/package.json"),
+              ),
+              alembic: paths.some(
+                (path) => path.includes("_alembic_migrations/") ||
+                  path.includes("/alembic/versions/"),
+              ),
+            };
+
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+            const oldBody = pullRequest.body ?? "";
+
+            let inHighImpactSection = false;
+            const newBody = oldBody
+              .split("\n")
+              .map((line) => {
+                if (/^#+\s+High Impact Changes\s*$/.test(line)) {
+                  inHighImpactSection = true;
+                  return line;
+                }
+                if (inHighImpactSection && /^#+\s+/.test(line)) {
+                  inHighImpactSection = false;
+                }
+                if (!inHighImpactSection) {
+                  return line;
+                }
+
+                const match = line.match(/^- \[[ xX]\] (.+?)\s*$/);
+                if (!match || !(match[1] in impacts)) {
+                  return line;
+                }
+
+                const label = match[1];
+                const mark = impacts[label] ? "x" : " ";
+                return `- [${mark}] ${label}`;
+              })
+              .join("\n");
+
+            if (newBody === oldBody) {
+              core.info("High Impact checkboxes already correct.");
+              return;
+            }
+
+            await github.rest.pulls.update({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              body: newBody,
+            });
+            core.info("Updated High Impact checkboxes.");

@@ -94,6 +94,54 @@ update_pr_screenshots_section() {
     >/dev/null 2>&1 || true
 }
 
+check_high_impact_boxes() {
+  local body="$1"
+  local core_checked="$2"
+  local pyproject_checked="$3"
+  local package_json_checked="$4"
+  local alembic_checked="$5"
+
+  awk \
+    -v core_checked="${core_checked}" \
+    -v pyproject_checked="${pyproject_checked}" \
+    -v package_json_checked="${package_json_checked}" \
+    -v alembic_checked="${alembic_checked}" '
+    /^#+[[:space:]]+High Impact Changes[[:space:]]*$/ {
+      in_high_impact = 1
+      print
+      next
+    }
+    in_high_impact && /^#+[[:space:]]+/ {
+      in_high_impact = 0
+    }
+    function marker(is_checked) {
+      if (is_checked == "true") {
+        return "x"
+      }
+      return " "
+    }
+    in_high_impact && /^- \[[ xX]\] Core[[:space:]]*$/ {
+      print "- [" marker(core_checked) "] Core"
+      next
+    }
+    in_high_impact && /^- \[[ xX]\] pyproject\.tomls[[:space:]]*$/ {
+      print "- [" marker(pyproject_checked) "] pyproject.tomls"
+      next
+    }
+    in_high_impact && /^- \[[ xX]\] package\.jsons[[:space:]]*$/ {
+      print "- [" marker(package_json_checked) "] package.jsons"
+      next
+    }
+    in_high_impact && /^- \[[ xX]\] alembic[[:space:]]*$/ {
+      print "- [" marker(alembic_checked) "] alembic"
+      next
+    }
+    {
+      print
+    }
+  ' <<<"${body}"
+}
+
 if [[ $# -ne 0 ]]; then
   echo "Unknown option: $1" >&2
   usage
@@ -151,6 +199,10 @@ fi
 seen_labels=","
 labels=()
 changed_files=()
+has_core_impact="false"
+has_pyproject_impact="false"
+has_package_json_impact="false"
+has_alembic_impact="false"
 
 add_label() {
   local label="$1"
@@ -160,8 +212,30 @@ add_label() {
   fi
 }
 
+mark_high_impact_change_for_file() {
+  local file="$1"
+  [[ -z "${file}" ]] && return
+
+  if [[ "${file}" == core/* ]]; then
+    has_core_impact="true"
+  fi
+  if [[ "${file}" == *pyproject.toml ]]; then
+    has_pyproject_impact="true"
+  fi
+  if [[ "${file}" == *package.json ]]; then
+    has_package_json_impact="true"
+  fi
+  if [[ "${file}" == *_alembic_migrations/* ]] || \
+    [[ "${file}" == */alembic/versions/* ]]; then
+    has_alembic_impact="true"
+  fi
+}
+
 for line in "${status_lines[@]}"; do
   IFS=$'\t' read -r status path_a path_b <<<"${line}"
+  mark_high_impact_change_for_file "${path_a}"
+  mark_high_impact_change_for_file "${path_b}"
+
   code="${status:0:1}"
   file="${path_a}"
   if [[ "${code}" == "R" || "${code}" == "C" ]]; then
@@ -312,6 +386,13 @@ if [[ -z "${pr_title}" || -z "${pr_body}" ]]; then
   echo "Error: codex did not return expected TITLE/BODY format." >&2
   exit 1
 fi
+
+pr_body="$(check_high_impact_boxes \
+  "${pr_body}" \
+  "${has_core_impact}" \
+  "${has_pyproject_impact}" \
+  "${has_package_json_impact}" \
+  "${has_alembic_impact}")"
 
 gh pr edit "${pr_number}" --title "${pr_title}" --body "${pr_body}"
 
