@@ -2,4 +2,4 @@
 # path in MISE_OVERRIDE_CONFIG_FILENAMES (see amplify.yml).
 [tools]
 node = "24.13"
-pnpm = "10.29"
+pnpm = "10.33"
