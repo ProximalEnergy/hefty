@@ -8,8 +8,14 @@ from app.v1.ai.battery_settlement_analysis import (
 from app.v1.ai.daily_performance_summary import (
     router as daily_performance_summary_router,
 )
+from app.v1.ai.historical_claim_extract import (
+    router as historical_claim_extract_router,
+)
 from app.v1.ai.root_cause import router as root_cause_router
 from app.v1.ai.voice_chat import router as voice_chat_router
+from app.v1.ai.warranty_claim_pdf_assist import (
+    router as warranty_claim_pdf_assist_router,
+)
 from app.v1.commissioning import commissioning
 from app.v1.development import development
 from app.v1.feedback import feedback
@@ -25,6 +31,8 @@ router.include_router(battery_settlement_analysis_router)
 router.include_router(daily_performance_summary_router)
 router.include_router(voice_chat_router)
 router.include_router(root_cause_router)
+router.include_router(warranty_claim_pdf_assist_router)
+router.include_router(historical_claim_extract_router)
 router.include_router(commissioning.router)
 router.include_router(development.router)
 router.include_router(feedback.router)

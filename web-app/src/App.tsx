@@ -39,6 +39,7 @@ import { CompanyThemeManager } from './components/CompanyThemeManager'
 import { PageLoader } from './components/Loading'
 // Development
 import RequiresUserType from './components/admin/RequiresUserType'
+import ClaimDetail from './components/warranty-claims/ClaimDetail'
 import { useTheme } from './contexts/ThemeContext.utils'
 import { usePageViewTracking } from './hooks/usePageViewTracking'
 // Profile
@@ -137,6 +138,7 @@ import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPITemplatePage from './pages/projects/kpis/ProjectKPITemplate'
 import ProjectKPIHome from './pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import SparePartsPage from './pages/projects/maintenance/SpareParts'
+import WarrantyClaims from './pages/projects/maintenance/warranty-claims/WarrantyClaims'
 import BESSMonthlyReport from './pages/projects/reports/BESSMonthlyReport'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
 import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
@@ -434,6 +436,11 @@ const ClerkProviderWithRoutes = () => {
               {/* Maintenance */}
               <Route path="maintenance">
                 <Route path="spare-parts" element={<SparePartsPage />} />
+                <Route path="warranty-claims" element={<WarrantyClaims />} />
+                <Route
+                  path="warranty-claims/:claimId"
+                  element={<ClaimDetail />}
+                />
               </Route>
 
               {/* KPIs */}

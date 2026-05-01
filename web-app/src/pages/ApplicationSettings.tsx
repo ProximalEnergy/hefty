@@ -1,5 +1,6 @@
 import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
 import {
+  NotificationChannelEnum,
   NotificationSeverityEnum,
   NotificationTypeEnum,
   ProjectStatusTypeEnum,
@@ -82,7 +83,8 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 const PER_PROJECT_WEATHER_SEVERITY = 'PER_PROJECT'
 
-type WeatherNotificationChannel = 'in_app' | 'email'
+type WeatherNotificationChannel =
+  (typeof NotificationChannelEnum)[keyof typeof NotificationChannelEnum]
 type WeatherSeverityValue = 'OFF' | 'INFO' | 'WARNING' | 'CRITICAL'
 type WeatherBulkSeverityValue =
   | typeof PER_PROJECT_WEATHER_SEVERITY
@@ -103,14 +105,14 @@ const getWeatherNotificationSeverityValue = ({
   type: NotificationType
 }): WeatherSeverityValue => {
   const enabled =
-    channel === 'in_app'
+    channel === NotificationChannelEnum.IN_APP
       ? (preference?.in_app_enabled ?? type.in_app_enabled_default)
       : (preference?.email_enabled ?? type.email_enabled_default)
 
   if (!enabled) return 'OFF'
 
   const severity =
-    channel === 'in_app'
+    channel === NotificationChannelEnum.IN_APP
       ? (preference?.in_app_min_severity ??
         type.in_app_severity_default ??
         'info')
@@ -551,7 +553,7 @@ function WeatherPanel({
   const derivedBulkInAppSeverity = useMemo(
     () =>
       getBulkWeatherSeverityValue({
-        channel: 'in_app',
+        channel: NotificationChannelEnum.IN_APP,
         preferencesMap,
         projects: sortedProjects,
         weatherTypes,
@@ -561,7 +563,7 @@ function WeatherPanel({
   const derivedBulkEmailSeverity = useMemo(
     () =>
       getBulkWeatherSeverityValue({
-        channel: 'email',
+        channel: NotificationChannelEnum.EMAIL,
         preferencesMap,
         projects: sortedProjects,
         weatherTypes,
@@ -731,7 +733,7 @@ function WeatherPanel({
     selectedSeverity: WeatherSeverityValue
   }) => {
     const resetBulkWeatherSeverityOverride = () => {
-      if (channel === 'in_app') {
+      if (channel === NotificationChannelEnum.IN_APP) {
         setBulkInAppSeverityOverride(null)
         return
       }
@@ -747,7 +749,7 @@ function WeatherPanel({
         {
           project_ids: projectIds,
           notification_type_ids: notificationTypeIds,
-          ...(channel === 'in_app'
+          ...(channel === NotificationChannelEnum.IN_APP
             ? { in_app_enabled: false }
             : { email_enabled: false }),
         },
@@ -767,7 +769,7 @@ function WeatherPanel({
       {
         project_ids: projectIds,
         notification_type_ids: notificationTypeIds,
-        ...(channel === 'in_app'
+        ...(channel === NotificationChannelEnum.IN_APP
           ? {
               in_app_enabled: true,
               in_app_min_severity: normalizedSeverity,
@@ -803,7 +805,7 @@ function WeatherPanel({
               if (selectedSeverity === PER_PROJECT_WEATHER_SEVERITY) return
 
               updateAllWeatherNotificationSeverities({
-                channel: 'in_app',
+                channel: NotificationChannelEnum.IN_APP,
                 selectedSeverity,
               })
             }}
@@ -824,7 +826,7 @@ function WeatherPanel({
               if (selectedSeverity === PER_PROJECT_WEATHER_SEVERITY) return
 
               updateAllWeatherNotificationSeverities({
-                channel: 'email',
+                channel: NotificationChannelEnum.EMAIL,
                 selectedSeverity,
               })
             }}
@@ -867,12 +869,12 @@ function WeatherPanel({
                       type.notification_type_id,
                     )
                     const inAppValue = getWeatherNotificationSeverityValue({
-                      channel: 'in_app',
+                      channel: NotificationChannelEnum.IN_APP,
                       preference,
                       type,
                     })
                     const emailValue = getWeatherNotificationSeverityValue({
-                      channel: 'email',
+                      channel: NotificationChannelEnum.EMAIL,
                       preference,
                       type,
                     })

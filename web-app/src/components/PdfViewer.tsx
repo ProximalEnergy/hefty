@@ -121,18 +121,24 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
           onLoadError={(error) => console.error('PDF load error:', error)}
           inputRef={documentRef}
         >
-          {Array.from({ length: numPages || 0 }, (_, index) => (
-            <Page
-              key={`page_${index + 1}`}
-              pageNumber={index + 1}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-              customTextRenderer={searchText ? textRenderer : undefined}
-              onLoadError={(error) =>
-                console.warn(`Page ${index + 1} load error:`, error)
-              }
-            />
-          ))}
+          {Array.from({ length: numPages || 0 }, (_, index) => {
+            const pageNumber = index + 1
+            const pageKey = `page_${pageNumber}`
+            const pageLoadErrorMessage = `Page ${pageNumber} load error:`
+
+            return (
+              <Page
+                key={pageKey}
+                pageNumber={pageNumber}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                customTextRenderer={searchText ? textRenderer : undefined}
+                onLoadError={(error) =>
+                  console.warn(pageLoadErrorMessage, error)
+                }
+              />
+            )
+          })}
         </Document>
       </Box>
     )

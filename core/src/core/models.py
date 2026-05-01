@@ -3291,6 +3291,12 @@ class Claim(Base):
         lazy="selectin",
         order_by="ClaimUpdate.created_at",
     )
+    attachments = relationship(
+        "ClaimAttachment",
+        back_populates="claim",
+        lazy="selectin",
+        order_by="ClaimAttachment.uploaded_at",
+    )
 
 
 class ClaimDevice(Base):
@@ -3354,3 +3360,53 @@ class ClaimUpdate(Base):
 
     claim = relationship("Claim", back_populates="updates")
     user = relationship("User")
+    attachments = relationship(
+        "ClaimAttachment",
+        back_populates="claim_update",
+        lazy="selectin",
+    )
+
+
+class ClaimAttachment(Base):
+    __tablename__ = "claim_attachments"
+
+    claim_attachment_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    claim_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.claims.claim_id", ondelete="CASCADE"),
+    )
+    claim_update_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(
+            "project.claim_updates.claim_update_id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+    s3_key: Mapped[str]
+    filename: Mapped[str]
+    content_type: Mapped[str | None]
+    uploaded_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+
+    claim = relationship("Claim", back_populates="attachments")
+    claim_update = relationship("ClaimUpdate", back_populates="attachments")
+
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "claim_id",
+            "filename",
+            name="uq_claim_attachments_claim_filename",
+        ),
+        sa.UniqueConstraint(
+            "s3_key",
+            name="uq_claim_attachments_s3_key",
+        ),
+        sa.Index(
+            "ix_claim_attachments_claim_update_id",
+            "claim_update_id",
+        ),
+    )

@@ -241,7 +241,7 @@ class DbQuery[T, S]:
 
         result = executor.execute(self.query)
 
-        if not result.returns_rows:
+        if getattr(result, "returns_rows", True) is False:
             return None
 
         if self.is_scalar:

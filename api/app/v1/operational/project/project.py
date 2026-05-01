@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from app.dependencies import check_project_access_async
 from app.v1.operational.project import (
     project_calendar,
+    project_claims,
     project_cmms_permissions,
     project_cmms_tickets,
     project_contracts,
@@ -34,6 +35,7 @@ router = APIRouter(
     dependencies=[Depends(check_project_access_async)],
 )
 router.include_router(project_calendar.router)
+router.include_router(project_claims.router)
 router.include_router(project_cmms_permissions.router)
 router.include_router(project_cmms_tickets.router)
 router.include_router(project_contracts.router)

@@ -22,6 +22,7 @@ export interface Device {
   capacity_ac: number | null
   point: Point | null
   polygon: MultiPolygon | null
+  serial_number?: string | null
   device_type?: DeviceType
   name_full?: string
   cec_pv_module_id?: number

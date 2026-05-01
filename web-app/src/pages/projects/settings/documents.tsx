@@ -9,158 +9,20 @@ import {
 import CustomCard from '@/components/CustomCard'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
+import { ProjectDocumentUploadButton } from '@/components/ProjectDocumentUploadButton'
 import {
   ActionIcon,
-  Button,
   Group,
   LoadingOverlay,
-  Modal,
   ScrollArea,
   Stack,
   Table,
   Text,
-  Tooltip,
 } from '@mantine/core'
-import {
-  Dropzone,
-  FileRejection,
-  FileWithPath,
-  PDF_MIME_TYPE,
-} from '@mantine/dropzone'
 import { notifications } from '@mantine/notifications'
-import { IconInfoCircle, IconTrash } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { IconTrash } from '@tabler/icons-react'
+import { useEffect } from 'react'
 import { Link } from 'react-router'
-
-function AdminContactInfo() {
-  const label =
-    'For document upload permission, please contact an administrator.'
-
-  return (
-    <Tooltip label={label} withArrow>
-      <IconInfoCircle
-        style={{
-          marginLeft: '4px',
-          color: 'var(--mantine-color-gray-6)',
-        }}
-      />
-    </Tooltip>
-  )
-}
-
-interface FileUploadProps {
-  projectId: string
-  disabled: boolean
-}
-
-function FileUpload({
-  projectId,
-  uploadMutation,
-  disabled,
-}: FileUploadProps & {
-  uploadMutation: ReturnType<typeof useUploadProjectDocument>
-  disabled: boolean
-}) {
-  const MAX_MB = 40
-
-  const [opened, setOpened] = useState(false)
-  const [file, setFile] = useState<FileWithPath | null>(null)
-
-  const handleProjectDocumentsDrop = (files: FileWithPath[]) => {
-    setFile(files[0])
-  }
-
-  const handleReject = (fileRejections: FileRejection[]) => {
-    fileRejections.forEach(({ file, errors }) => {
-      if (errors[0]?.code === 'file-too-large') {
-        notifications.show({
-          title: 'File too large',
-          message: `${file.name} exceeds the ${MAX_MB}MB limit`,
-          color: 'red',
-        })
-      } else {
-        notifications.show({
-          title: 'Invalid file',
-          message: `${file.name} is not a valid file type`,
-          color: 'red',
-        })
-      }
-    })
-  }
-
-  const handleUpload = () => {
-    if (file) {
-      uploadMutation.mutate({ projectId, file })
-      setOpened(false)
-      setFile(null)
-    }
-  }
-
-  return (
-    <>
-      {!disabled && (
-        <Button onClick={() => setOpened(true)}>Upload Document</Button>
-      )}
-      {disabled && (
-        <Group>
-          <Button disabled>Upload Document</Button>
-          <AdminContactInfo />
-        </Group>
-      )}
-      <Modal
-        opened={opened}
-        onClose={() => {
-          setOpened(false)
-          setFile(null)
-        }}
-        title="Upload Document"
-      >
-        <Stack>
-          {file ? (
-            <Text>File selected: {file.name}</Text>
-          ) : (
-            <Dropzone
-              onDrop={handleProjectDocumentsDrop}
-              onReject={handleReject}
-              maxSize={MAX_MB * 1024 ** 2}
-              accept={PDF_MIME_TYPE}
-              multiple={false}
-            >
-              <Stack style={{ pointerEvents: 'none' }}>
-                <Text size="xl" inline>
-                  Drag file here or click to select file
-                </Text>
-                <Text size="sm" c="dimmed" inline mt={7}>
-                  File should not exceed {MAX_MB}mb
-                </Text>
-              </Stack>
-            </Dropzone>
-          )}
-          <Group w="100%">
-            <Button
-              flex={1}
-              onClick={() => {
-                setOpened(false)
-                setFile(null)
-              }}
-              variant="outline"
-            >
-              Cancel
-            </Button>
-            <Button
-              flex={1}
-              onClick={handleUpload}
-              loading={uploadMutation.isPending}
-              disabled={!file}
-            >
-              Upload
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </>
-  )
-}
 
 const checkPermissions = (
   permissions: ReturnType<typeof useGetUserPermissions>['data'],
@@ -266,7 +128,7 @@ const Documents = ({ projectId }: DocumentsProps) => {
             </>
           )}
         </Text>
-        <FileUpload
+        <ProjectDocumentUploadButton
           projectId={projectId}
           uploadMutation={uploadMutation}
           disabled={!canCreateDocuments}

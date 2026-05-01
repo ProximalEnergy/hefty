@@ -868,7 +868,7 @@ class EventMessageUpdate(BaseModel):
     )
 
 
-@router.put("/{event_message_id}", operation_id="update_event_message")
+@router.put("/{event_message_id}")
 async def update_event_message_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],

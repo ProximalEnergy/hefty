@@ -1,3 +1,4 @@
+import { ReactionTypeEnum } from '@/api/enumerations'
 import { useGetUsers } from '@/api/v1/admin/users'
 import {
   useGetEventMessageReactions,
@@ -123,25 +124,25 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
 
   // Extended emoji reactions (must match ReactionType enum in core)
   const emojiReactions = [
-    { emoji: '👍', type: 'thumbs_up', label: 'Thumbs up' },
-    { emoji: '👎', type: 'thumbs_down', label: 'Thumbs down' },
-    { emoji: '👀', type: 'eyes', label: 'Eyes' },
-    { emoji: '❓', type: 'question_mark', label: 'Question' },
-    { emoji: '❤️', type: 'heart', label: 'Heart' },
-    { emoji: '😂', type: 'laughing', label: 'Laughing' },
-    { emoji: '😮', type: 'surprised', label: 'Surprised' },
-    { emoji: '😢', type: 'sad', label: 'Sad' },
-    { emoji: '😡', type: 'angry', label: 'Angry' },
-    { emoji: '🔥', type: 'fire', label: 'Fire' },
-    { emoji: '🎉', type: 'party', label: 'Party' },
-    { emoji: '✅', type: 'check', label: 'Check' },
-    { emoji: '👏', type: 'clap', label: 'Clap' },
-    { emoji: '💯', type: 'hundred', label: '100' },
-    { emoji: '🚀', type: 'rocket', label: 'Rocket' },
-    { emoji: '💡', type: 'lightbulb', label: 'Lightbulb' },
-    { emoji: '⭐', type: 'star', label: 'Star' },
-    { emoji: '🎯', type: 'target', label: 'Target' },
-    { emoji: '🙏', type: 'pray', label: 'Pray' },
+    { emoji: '👍', type: ReactionTypeEnum.THUMBS_UP, label: 'Thumbs up' },
+    { emoji: '👎', type: ReactionTypeEnum.THUMBS_DOWN, label: 'Thumbs down' },
+    { emoji: '👀', type: ReactionTypeEnum.EYES, label: 'Eyes' },
+    { emoji: '❓', type: ReactionTypeEnum.QUESTION_MARK, label: 'Question' },
+    { emoji: '❤️', type: ReactionTypeEnum.HEART, label: 'Heart' },
+    { emoji: '😂', type: ReactionTypeEnum.LAUGHING, label: 'Laughing' },
+    { emoji: '😮', type: ReactionTypeEnum.SURPRISED, label: 'Surprised' },
+    { emoji: '😢', type: ReactionTypeEnum.SAD, label: 'Sad' },
+    { emoji: '😡', type: ReactionTypeEnum.ANGRY, label: 'Angry' },
+    { emoji: '🔥', type: ReactionTypeEnum.FIRE, label: 'Fire' },
+    { emoji: '🎉', type: ReactionTypeEnum.PARTY, label: 'Party' },
+    { emoji: '✅', type: ReactionTypeEnum.CHECK, label: 'Check' },
+    { emoji: '👏', type: ReactionTypeEnum.CLAP, label: 'Clap' },
+    { emoji: '💯', type: ReactionTypeEnum.HUNDRED, label: '100' },
+    { emoji: '🚀', type: ReactionTypeEnum.ROCKET, label: 'Rocket' },
+    { emoji: '💡', type: ReactionTypeEnum.LIGHTBULB, label: 'Lightbulb' },
+    { emoji: '⭐', type: ReactionTypeEnum.STAR, label: 'Star' },
+    { emoji: '🎯', type: ReactionTypeEnum.TARGET, label: 'Target' },
+    { emoji: '🙏', type: ReactionTypeEnum.PRAY, label: 'Pray' },
   ]
 
   const { data: messages, isLoading } = useGetEventMessages({

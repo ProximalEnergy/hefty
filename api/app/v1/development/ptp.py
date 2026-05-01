@@ -161,7 +161,7 @@ async def get_ptp_endpoint_data(
 
 
 @router.get("/explore")
-async def explore_ptp_api(
+async def explore_ptp_api_dev_route(
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
 ):
     """Explore the PTP API structure and return a comprehensive summary.

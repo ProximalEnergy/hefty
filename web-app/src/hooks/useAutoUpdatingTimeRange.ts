@@ -34,10 +34,5 @@ export const useAutoUpdatingTimeRange = ({
     const intervalId = window.setInterval(updateTimeRange, 60 * 1000)
 
     return () => window.clearInterval(intervalId)
-  }, [
-    isAutoUpdating,
-    setEndTime,
-    setStartTime,
-    setTimeSeriesInterval,
-  ])
+  }, [isAutoUpdating, setEndTime, setStartTime, setTimeSeriesInterval])
 }

@@ -344,6 +344,46 @@ export const useGetDevicesV2 = ({
   })
 }
 
+export const useUpdateDeviceSerialNumber = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      deviceId,
+      serialNumber,
+    }: {
+      projectId: string
+      deviceId: number
+      serialNumber: string | null
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'patch',
+        url: `${baseURL}/v1/operational/projects/${projectId}/devices/${deviceId}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        data: {
+          serial_number: serialNumber,
+        },
+      })
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['getDevice'] })
+      queryClient.invalidateQueries({ queryKey: ['getDevicesV2'] })
+      queryClient.invalidateQueries({
+        queryKey: [
+          'getDevice',
+          { projectId: variables.projectId, deviceId: variables.deviceId },
+        ],
+      })
+    },
+  })
+}
+
 export const useGetTags = ({
   pathParams,
   queryParams = {},

@@ -150,11 +150,11 @@ export const projectLinks: DropdownLink[] = [
         label: 'Drone Inspections',
         requiresPV: true,
       },
-      // Warranty TBD - placeholder for future
-      // {
-      //   to: (projectId: string) => `/projects/${projectId}/maintenance/warranty`,
-      //   label: 'Warranty',
-      // },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/maintenance/warranty-claims`,
+        label: 'Warranty Claims',
+      },
     ],
   },
   {

@@ -1,3 +1,4 @@
+import { PVBudgetedSoilingModeEnum } from '@/api/enumerations'
 import { useGetUserSelf } from '@/api/v1/admin/users'
 import type { PVBudgetedSeries } from '@/api/v1/operational/project/pv_budgeted_data'
 import {
@@ -54,6 +55,14 @@ const COLUMN_HEADERS = [
   'GHI',
 ] as const
 
+function isPerTimestampSoilingMode(soilingMode: string | null): boolean {
+  return soilingMode?.toLowerCase() === PVBudgetedSoilingModeEnum.PER_TIMESTAMP
+}
+
+function isFixedSoilingMode(soilingMode: string | null): boolean {
+  return soilingMode?.toLowerCase() === PVBudgetedSoilingModeEnum.FIXED
+}
+
 const getVisibleColumns = (
   soilingMode: string | null,
   hasData: boolean = false,
@@ -66,7 +75,7 @@ const getVisibleColumns = (
   }
 
   // Hide soiling percentage column if not in per_timestamp mode
-  if (soilingMode !== 'per_timestamp' && soilingMode !== 'PER_TIMESTAMP') {
+  if (!isPerTimestampSoilingMode(soilingMode)) {
     columns = columns.filter((header) => header !== 'Soiling percentage')
   }
 
@@ -87,7 +96,7 @@ const getVisibleColumnKeys = (
   // Keep order in sync with headers: POI, POA, Soiling %, Temperature, GHI
   keys.push('poi_ac_power')
   keys.push('poa')
-  if (soilingMode === 'per_timestamp' || soilingMode === 'PER_TIMESTAMP') {
+  if (isPerTimestampSoilingMode(soilingMode)) {
     keys.push('soiling_percentage')
   }
   keys.push('temperature')
@@ -109,7 +118,7 @@ function parseLine(line: string, soilingMode: string | null): GridRow {
     ghi: toNum(g),
   }
 
-  if (soilingMode === 'per_timestamp' || soilingMode === 'PER_TIMESTAMP') {
+  if (isPerTimestampSoilingMode(soilingMode)) {
     result.soiling_percentage = toNum(s)
   }
 
@@ -276,8 +285,12 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
 
   const normalizeSoilingMode = (mode: string | null) => {
     if (!mode) return null
-    if (mode.toLowerCase() === 'per_timestamp') return 'per_timestamp'
-    if (mode.toLowerCase() === 'fixed') return 'fixed'
+    if (mode.toLowerCase() === PVBudgetedSoilingModeEnum.PER_TIMESTAMP) {
+      return PVBudgetedSoilingModeEnum.PER_TIMESTAMP
+    }
+    if (mode.toLowerCase() === PVBudgetedSoilingModeEnum.FIXED) {
+      return PVBudgetedSoilingModeEnum.FIXED
+    }
     return mode
   }
 
@@ -384,10 +397,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
           row.poa !== null
 
         // If soiling mode is per_timestamp, also require soiling_percentage
-        if (
-          seriesMeta.soiling_mode === 'per_timestamp' ||
-          seriesMeta.soiling_mode === 'PER_TIMESTAMP'
-        ) {
+        if (isPerTimestampSoilingMode(seriesMeta.soiling_mode)) {
           return (
             hasRequiredFields &&
             row.soiling_percentage !== undefined &&
@@ -399,11 +409,11 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
       })
 
       if (validRows.length === 0) {
-        const requiredFields =
-          seriesMeta.soiling_mode === 'per_timestamp' ||
-          seriesMeta.soiling_mode === 'PER_TIMESTAMP'
-            ? 'POI AC power, POA, and Soiling percentage'
-            : 'POI AC power and POA'
+        const requiredFields = isPerTimestampSoilingMode(
+          seriesMeta.soiling_mode,
+        )
+          ? 'POI AC power, POA, and Soiling percentage'
+          : 'POI AC power and POA'
         alert(`Please provide data for at least ${requiredFields} columns`)
         return
       }
@@ -418,11 +428,9 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
         ghi: row.ghi ?? null,
         poa: row.poa!,
         temperature: row.temperature ?? null,
-        soiling_percentage:
-          seriesMeta.soiling_mode === 'per_timestamp' ||
-          seriesMeta.soiling_mode === 'PER_TIMESTAMP'
-            ? (row.soiling_percentage ?? null)
-            : null,
+        soiling_percentage: isPerTimestampSoilingMode(seriesMeta.soiling_mode)
+          ? (row.soiling_percentage ?? null)
+          : null,
       }))
 
       // Prepare series metadata
@@ -857,8 +865,14 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
                   label="Soiling Mode"
                   placeholder="Select mode"
                   data={[
-                    { value: 'fixed', label: 'Fixed' },
-                    { value: 'per_timestamp', label: 'Per Timestamp' },
+                    {
+                      value: PVBudgetedSoilingModeEnum.FIXED,
+                      label: 'Fixed',
+                    },
+                    {
+                      value: PVBudgetedSoilingModeEnum.PER_TIMESTAMP,
+                      label: 'Per Timestamp',
+                    },
                     { value: '', label: 'None' },
                   ]}
                   value={seriesMeta.soiling_mode}
@@ -886,10 +900,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
                         typeof value === 'number' ? value : undefined,
                     }))
                   }
-                  disabled={
-                    seriesMeta.soiling_mode !== 'fixed' &&
-                    seriesMeta.soiling_mode !== 'FIXED'
-                  }
+                  disabled={!isFixedSoilingMode(seriesMeta.soiling_mode)}
                 />
                 <TextInput
                   size="xs"
@@ -1007,9 +1018,9 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
                               </>
                             ) : h === 'POA' ||
                               (h === 'Soiling percentage' &&
-                                (seriesMeta.soiling_mode === 'per_timestamp' ||
-                                  seriesMeta.soiling_mode ===
-                                    'PER_TIMESTAMP')) ? (
+                                isPerTimestampSoilingMode(
+                                  seriesMeta.soiling_mode,
+                                )) ? (
                               <>
                                 {h}
                                 <Text component="span" c="red" inherit>

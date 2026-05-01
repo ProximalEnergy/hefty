@@ -1,4 +1,4 @@
-import { NotificationTypeEnum } from '@/api/enumerations'
+import { NotificationStateEnum, NotificationTypeEnum } from '@/api/enumerations'
 import {
   type NotificationPage,
   useDeleteAllNotifications,
@@ -147,7 +147,9 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
   useEffect(() => {
     notificationsPages?.pages.forEach((page) => {
       page.notifications.forEach((notification) => {
-        const isUnread = (notification as { state?: string }).state === 'unread'
+        const isUnread =
+          (notification as { state?: string }).state ===
+          NotificationStateEnum.UNREAD
         const shouldAutoMarkRead =
           isUnread && isPastWeatherNotification(notification)
         if (!shouldAutoMarkRead) {

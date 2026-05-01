@@ -1,3 +1,5 @@
+import { TimeIntervalEnum } from '@/api/enumerations'
+
 export const getInterval = (start: string, end: string): string => {
   const startTime = new Date(start)
   const endTime = new Date(end)
@@ -5,11 +7,11 @@ export const getInterval = (start: string, end: string): string => {
   const diffInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60)
 
   if (diffInMinutes <= 300) {
-    return '1min'
+    return TimeIntervalEnum.ONE_MINUTE
   } else if (diffInMinutes <= 300 * 5) {
-    return '5min'
+    return TimeIntervalEnum.FIVE_MINUTES
   } else {
-    return '15min'
+    return TimeIntervalEnum.FIFTEEN_MINUTES
   }
 }
 
@@ -37,7 +39,12 @@ export const roundTime = (
   direction: 'up' | 'down',
 ): string => {
   const date = new Date(time)
-  const intervalValue = interval === '1min' ? 1 : interval === '5min' ? 5 : 15
+  const intervalValue =
+    interval === TimeIntervalEnum.ONE_MINUTE
+      ? 1
+      : interval === TimeIntervalEnum.FIVE_MINUTES
+        ? 5
+        : 15
   const minutes = date.getMinutes()
   const roundedMinutes =
     direction === 'down'

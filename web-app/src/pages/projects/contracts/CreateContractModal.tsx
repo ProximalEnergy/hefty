@@ -21,6 +21,7 @@ import {
   Grid,
   Group,
   HoverCard,
+  Loader,
   Modal,
   ScrollArea,
   Select,
@@ -182,12 +183,13 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const [storeOnCalendar, setStoreOnCalendar] = useState(true)
   const pdfRef = useRef<PdfViewerHandle | null>(null)
 
-  const { data: documents, isLoading } = useGetProjectDocuments({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: opened && !!projectId, // Only fetch when modal is open and projectId exists
-    },
-  })
+  const { data: documents, isLoading: documentsLoading } =
+    useGetProjectDocuments({
+      pathParams: { projectId: projectId || '-1' },
+      queryOptions: {
+        enabled: opened && !!projectId, // Only fetch when modal is open and projectId exists
+      },
+    })
 
   const { data: project } = useSelectProject(projectId ?? '')
 
@@ -679,14 +681,21 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
                     </>
                   )}
                 </Text>
-                {documentOptions.length > 0 ? (
+                {documentsLoading ? (
+                  <Stack gap="xs" align="center" py="md">
+                    <Loader size="sm" />
+                    <Text size="sm" c="dimmed" ta="center">
+                      Loading documents…
+                    </Text>
+                  </Stack>
+                ) : documentOptions.length > 0 ? (
                   <Select
                     label="Select Document"
                     placeholder="Choose a document to analyze"
                     data={documentOptions}
                     value={selectedDocument}
                     onChange={setSelectedDocument}
-                    disabled={isLoading}
+                    disabled={documentsLoading}
                     required
                     size="md"
                   />
@@ -740,7 +749,28 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
 
             {/* PDF Viewer or Placeholder */}
             <Card withBorder p="md" style={{ flex: 1 }}>
-              {documentOptions.length === 0 ? (
+              {documentsLoading ? (
+                <Box
+                  style={{
+                    height: 'calc(100% - 80px)',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: isDarkMode
+                      ? theme.colors.dark[5]
+                      : theme.colors.gray[1],
+                  }}
+                >
+                  <Stack align="center" gap="md">
+                    <Loader />
+                    <Text size="lg" c="dimmed" ta="center">
+                      Loading documents…
+                    </Text>
+                  </Stack>
+                </Box>
+              ) : documentOptions.length === 0 ? (
                 <Box
                   style={{
                     height: 'calc(100% - 80px)',

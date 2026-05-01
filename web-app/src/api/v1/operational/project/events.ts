@@ -41,6 +41,57 @@ type BulkCreateEventsPayload = components['schemas']['BulkCreateEventsRequest']
 export type DroneAnomaly = components['schemas']['DroneAnomaly']
 
 type EventSummary = components['schemas']['EventSummary']
+type ProjectEvent = components['schemas']['Event']
+
+export const useGetEventsForDevice = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    device_ids: number[]
+    open?: boolean
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events`,
+  }
+  return useCustomQuery<ProjectEvent[]>({
+    axiosConfig,
+    queryName: 'getEventsForDevice',
+    pathParams,
+    queryParams: { open: false, ...queryParams },
+    queryOptions,
+  })
+}
+
+export const useGetProjectEvents = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    device_ids?: number[]
+    open?: boolean
+    time_end_gte?: string
+    time_end_lt?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events`,
+  }
+  return useCustomQuery<ProjectEvent[]>({
+    axiosConfig,
+    queryName: 'getProjectEvents',
+    pathParams,
+    queryParams,
+    queryOptions,
+  })
+}
 
 export const useGetEventsSummary = ({
   pathParams,

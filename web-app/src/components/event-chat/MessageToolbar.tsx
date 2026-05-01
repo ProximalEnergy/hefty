@@ -1,3 +1,4 @@
+import { ReactionTypeEnum } from '@/api/enumerations'
 import {
   ActionIcon,
   Group,
@@ -89,7 +90,9 @@ export function MessageToolbar({
       <ActionIcon
         variant="subtle"
         size="sm"
-        onClick={(e) => handleReactionClick(messageId, 'thumbs_up', e)}
+        onClick={(e) =>
+          handleReactionClick(messageId, ReactionTypeEnum.THUMBS_UP, e)
+        }
         title="👍 Thumbs up"
       >
         👍
@@ -97,7 +100,9 @@ export function MessageToolbar({
       <ActionIcon
         variant="subtle"
         size="sm"
-        onClick={(e) => handleReactionClick(messageId, 'eyes', e)}
+        onClick={(e) =>
+          handleReactionClick(messageId, ReactionTypeEnum.EYES, e)
+        }
         title="👀 Looking"
       >
         👀
@@ -105,7 +110,9 @@ export function MessageToolbar({
       <ActionIcon
         variant="subtle"
         size="sm"
-        onClick={(e) => handleReactionClick(messageId, 'question_mark', e)}
+        onClick={(e) =>
+          handleReactionClick(messageId, ReactionTypeEnum.QUESTION_MARK, e)
+        }
         title="❓ Question"
       >
         ❓

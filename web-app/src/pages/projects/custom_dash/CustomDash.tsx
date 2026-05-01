@@ -1,3 +1,7 @@
+import {
+  DefaultKPITimeRangeEnum,
+  DefaultTimeRangeEnum,
+} from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
 import {
@@ -83,16 +87,16 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const defaultTimeRanges = {
-  Today: 3,
-  Yesterday: 4,
-  'Past 2 Days': 1,
-  'Past 3 Days': 2,
+  Today: DefaultTimeRangeEnum.TODAY,
+  Yesterday: DefaultTimeRangeEnum.YESTERDAY,
+  'Past 2 Days': DefaultTimeRangeEnum.PAST_TWO_DAYS,
+  'Past 3 Days': DefaultTimeRangeEnum.PAST_THREE_DAYS,
 }
 const defaultKPITimeRanges = {
-  '1 Month': 1,
-  'Year to Date': 2,
-  'Beginning of Life': 3,
-  'Month to Date': 4,
+  '1 Month': DefaultKPITimeRangeEnum.ONE_MONTH,
+  'Year to Date': DefaultKPITimeRangeEnum.YEAR_TO_DATE,
+  'Beginning of Life': DefaultKPITimeRangeEnum.BEGINNING_OF_LIFE,
+  'Month to Date': DefaultKPITimeRangeEnum.MONTH_TO_DATE,
 }
 
 const CUSTOM_DASH_DRAWER_SIZE = '50%'

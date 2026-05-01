@@ -17,7 +17,13 @@ from typing import Annotated, Any, cast
 
 import numpy as np
 import pandas as pd
-from core.enumerations import NotificationSeverity, UserTypeEnum
+from core.enumerations import (
+    ClaimStatus,
+    ClaimSubmissionChannel,
+    ClaimUpdateType,
+    NotificationSeverity,
+    UserTypeEnum,
+)
 from fastapi.encoders import jsonable_encoder
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
@@ -542,6 +548,7 @@ class DeviceModel(BaseModel):
 
     device_model_id: int
     device_type_id: int
+    company_id: uuid.UUID
     brand: str
     model: str
 
@@ -575,6 +582,7 @@ class Device(BaseModel):
     capacity_ac: float | None
     point: Point | None
     polygon: MultiPolygon | None
+    serial_number: str | None = None
 
     device_type: DeviceType | None = None
     name_full: str | None = None
@@ -2037,3 +2045,173 @@ class CMMSTicket(BaseModel):
     cmms_device_name: str | None = None
     link: str | None = None
     json_raw: dict | None = None
+
+
+# --- Warranty Claims ---
+
+
+class ClaimConfigCreate(BaseModel):
+    """Payload to create a claim config."""
+
+    counterparty_company_id: uuid.UUID
+    project_id: uuid.UUID | None = None
+    default_submission_channel: ClaimSubmissionChannel
+    default_contact: str | None = None
+    portal_url: str | None = None
+
+
+class ClaimConfigUpdate(BaseModel):
+    """Payload to patch fields on a claim config."""
+
+    counterparty_company_id: uuid.UUID | None = None
+    default_submission_channel: ClaimSubmissionChannel | None = None
+    default_contact: str | None = None
+    portal_url: str | None = None
+
+
+class ClaimConfigResponse(BaseModel):
+    """Claim config returned from the API."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    claim_config_id: int
+    submitter_company_id: uuid.UUID
+    counterparty_company_id: uuid.UUID
+    project_id: uuid.UUID | None
+    default_submission_channel: ClaimSubmissionChannel
+    default_contact: str | None
+    portal_url: str | None
+    counterparty_name: str | None = None
+
+
+class ClaimCreate(BaseModel):
+    """Payload to create a draft claim."""
+
+    claim_config_id: int
+    summary: str | None = None
+    external_reference: str | None = None
+
+
+class ClaimUpdate(BaseModel):
+    """Payload to update claim fields."""
+
+    summary: str | None = None
+    external_reference: str | None = None
+    status: ClaimStatus | None = None
+
+
+class ClaimSubmit(BaseModel):
+    """Optional email overrides when submitting a draft claim."""
+
+    email_subject: str | None = None
+    email_body: str | None = None
+    cc_emails: list[str] | None = None
+    bcc_emails: list[str] | None = None
+
+
+class ClaimDeviceCreate(BaseModel):
+    """Payload to add a device to a claim."""
+
+    device_id: int
+    event_id: int | None = None
+    oem_serial_number: str | None = None
+    oem_part_number: str | None = None
+    notes: str | None = None
+
+
+class ClaimDeviceUpdate(BaseModel):
+    """Payload to update a device on a claim."""
+
+    device_id: int | None = None
+    event_id: int | None = None
+    oem_serial_number: str | None = None
+    oem_part_number: str | None = None
+    notes: str | None = None
+
+
+class ClaimDeviceResponse(BaseModel):
+    """A device attached to a claim."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    claim_device_id: int
+    claim_id: int
+    device_id: int
+    event_id: int | None
+    oem_serial_number: str | None
+    oem_part_number: str | None
+    notes: str | None
+    device_name: str | None = None
+
+
+class ClaimUpdateCreate(BaseModel):
+    """Payload to add a claim update (note, status change)."""
+
+    update_type: ClaimUpdateType
+    from_status: ClaimStatus | None = None
+    to_status: ClaimStatus | None = None
+    message: str | None = None
+    created_at: datetime.datetime | None = None
+
+
+class ClaimUpdateResponse(BaseModel):
+    """A single update entry on a claim timeline."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    claim_update_id: int
+    claim_id: int
+    update_type: ClaimUpdateType
+    from_status: ClaimStatus | None
+    to_status: ClaimStatus | None
+    message: str | None
+    user_id: str
+    created_at: datetime.datetime
+    user_name: str | None = None
+
+
+class ClaimAttachment(BaseModel):
+    """Claim attachment metadata."""
+
+    claim_id: int
+    s3_key: str
+    filename: str
+    content_type: str | None = None
+    uploaded_at: str | None = None
+    url: str | None = None
+    claim_update_id: int | None = None
+
+
+class ClaimListItem(BaseModel):
+    """Claim summary for the overview table."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    claim_id: int
+    claim_config_id: int
+    status: ClaimStatus
+    summary: str | None
+    external_reference: str | None
+    counterparty_name: str | None = None
+    created_at: datetime.datetime | None = None
+    updated_at: datetime.datetime | None = None
+    device_count: int = 0
+    claim_event_ids: list[int] = Field(default_factory=list)
+
+
+class ClaimDetailResponse(BaseModel):
+    """Full claim detail with devices and updates."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    claim_id: int
+    claim_config_id: int
+    status: ClaimStatus
+    summary: str | None
+    external_reference: str | None
+    counterparty_name: str | None = None
+    created_at: datetime.datetime | None = None
+    updated_at: datetime.datetime | None = None
+    devices: list[ClaimDeviceResponse] = []
+    updates: list[ClaimUpdateResponse] = []
+    attachments: list[ClaimAttachment] = []

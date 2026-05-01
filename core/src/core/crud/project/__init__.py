@@ -1,4 +1,6 @@
 from . import (
+    claim_attachments,
+    claims,
     cmms_devices,
     cmms_tickets,
     data,
@@ -20,6 +22,8 @@ from . import (
 __all__ = [
     "cmms_devices",
     "cmms_tickets",
+    "claim_attachments",
+    "claims",
     "pv_dc_combiners",
     "data",
     "data_expected",

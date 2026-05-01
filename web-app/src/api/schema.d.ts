@@ -1201,6 +1201,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/ai/warranty-claim-pdf-assist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Warranty Claim Pdf Assist
+         * @description Map claim context to PDF AcroForm field values or suggest overlay positions.
+         *
+         *     Args:
+         *         request: Mode, context, and either AcroForm fields or page images.
+         */
+        post: operations["warranty_claim_pdf_assist_v1_ai_warranty_claim_pdf_assist_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ai/projects/{project_id}/historical-claim-extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Historical Claim Extract
+         * @description Extract historical warranty claim fields from uploaded PDFs.
+         *
+         *     Args:
+         *         project_id: Project UUID from the path and access-control scope.
+         *         context_json: JSON string for HistoricalClaimContext.
+         *         files: PDFs to analyze (claim form + supporting docs).
+         *         model: Optional OpenAI model override.
+         */
+        post: operations["historical_claim_extract_v1_ai_projects__project_id__historical_claim_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/commissioning/projects/{project_id}/system/import": {
         parameters: {
             query?: never;
@@ -1515,7 +1564,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Explore Ptp Api
+         * Explore Ptp Api Dev Route
          * @description Explore the PTP API structure and return a comprehensive summary.
          *
          *     This endpoint queries the API to understand available markets, endpoints,
@@ -1524,7 +1573,7 @@ export interface paths {
          *     Returns:
          *         Dictionary containing API structure summary.
          */
-        get: operations["explore_ptp_api_v1_development_ptp_explore_get"];
+        get: operations["explore_ptp_api_dev_route_v1_development_ptp_explore_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2601,6 +2650,358 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/claims/configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Claim Configs Route
+         * @description List claim configs for this project.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         db: Async DB session.
+         *         user: Authenticated user.
+         */
+        get: operations["get_claim_configs_route_v1_operational_projects__project_id__claims_configs_get"];
+        put?: never;
+        /**
+         * Create Claim Config Route
+         * @description Create a new claim config for this project.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         payload: Claim config data.
+         *         db: Async DB session.
+         *         user: Authenticated user.
+         */
+        post: operations["create_claim_config_route_v1_operational_projects__project_id__claims_configs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/configs/{claim_config_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Claim Config Route
+         * @description Delete a claim config. Refused if any claims reference it.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         claim_config_id: Config to delete.
+         *         db: Operational-schema async DB session (for the config).
+         *         project_db: Project-scoped async DB session (for counting claims).
+         *         user: Authenticated user.
+         */
+        delete: operations["delete_claim_config_route_v1_operational_projects__project_id__claims_configs__claim_config_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Claim Config
+         * @description Update fields on a claim config.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         claim_config_id: Config to update.
+         *         payload: Fields to patch.
+         *         db: Async DB session.
+         *         user: Authenticated user.
+         */
+        patch: operations["patch_claim_config_v1_operational_projects__project_id__claims_configs__claim_config_id__patch"];
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Claims Route
+         * @description List all claims for a project.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         db: Project-scoped async DB session.
+         */
+        get: operations["get_project_claims_route_v1_operational_projects__project_id__claims_get"];
+        put?: never;
+        /**
+         * Create Claim Route
+         * @description Create a new draft claim.
+         *
+         *     Args:
+         *         payload: Claim creation data.
+         *         db: Async DB session.
+         *         user: Authenticated user.
+         */
+        post: operations["create_claim_route_v1_operational_projects__project_id__claims_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/event-data-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Claim Event Data Csv
+         * @description Export the selected claim event's surrounding device data as CSV.
+         *
+         *     Args:
+         *         event_id: Event whose device data should be exported.
+         *         project: Project scoped by the route path.
+         *         project_db: Project-scoped database session.
+         */
+        get: operations["get_claim_event_data_csv_v1_operational_projects__project_id__claims_event_data_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Claim Route
+         * @description Get full claim detail.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         claim_id: Claim primary key.
+         *         db: Project-scoped async DB session.
+         */
+        get: operations["get_claim_route_v1_operational_projects__project_id__claims__claim_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Claim Route
+         * @description Delete a claim and all of its attachments.
+         *
+         *     Drafts can be deleted by any user; non-draft claims can only be
+         *     deleted by admins (or superadmins). Removing the claim also
+         *     permanently deletes any attachment files from S3.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         claim_id: Claim primary key.
+         *         db: Project-scoped async DB session.
+         *         user: Authenticated user.
+         */
+        delete: operations["delete_claim_route_v1_operational_projects__project_id__claims__claim_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Claim
+         * @description Update mutable claim fields.
+         *
+         *     Args:
+         *         claim_id: Claim primary key.
+         *         payload: Fields to update.
+         *         db: Async DB session.
+         */
+        patch: operations["patch_claim_v1_operational_projects__project_id__claims__claim_id__patch"];
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Claim Device
+         * @description Add a device to a claim.
+         *
+         *     Args:
+         *         claim_id: Parent claim id.
+         *         payload: Device data.
+         *         db: Async DB session.
+         */
+        post: operations["add_claim_device_v1_operational_projects__project_id__claims__claim_id__devices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}/devices/{claim_device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Claim Device
+         * @description Remove a device from a claim.
+         *
+         *     Args:
+         *         claim_id: Claim id from route path.
+         *         claim_device_id: PK of the claim device.
+         *         db: Async DB session.
+         */
+        delete: operations["remove_claim_device_v1_operational_projects__project_id__claims__claim_id__devices__claim_device_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Claim Device
+         * @description Update fields on a claim device.
+         *
+         *     Args:
+         *         claim_id: Claim id from route path.
+         *         claim_device_id: PK of the claim device.
+         *         payload: Updated device fields.
+         *         db: Async DB session.
+         */
+        patch: operations["patch_claim_device_v1_operational_projects__project_id__claims__claim_id__devices__claim_device_id__patch"];
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Claim Update
+         * @description Record a claim update.
+         *
+         *     Args:
+         *         claim_id: Parent claim id.
+         *         payload: Update data.
+         *         db: Async DB session.
+         *         user: Authenticated user.
+         */
+        post: operations["add_claim_update_v1_operational_projects__project_id__claims__claim_id__updates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Attachments
+         * @description List attachments for a claim.
+         *
+         *     Args:
+         *         claim_id: Claim id.
+         *         db: Project-scoped async DB session.
+         */
+        get: operations["get_attachments_v1_operational_projects__project_id__claims__claim_id__attachments_get"];
+        put?: never;
+        /**
+         * Upload Attachment
+         * @description Upload an attachment for a claim.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         claim_id: Claim id.
+         *         db: Project-scoped async DB session.
+         *         file: Uploaded file.
+         *         claim_update_id: Optional update to associate the attachment with.
+         */
+        post: operations["upload_attachment_v1_operational_projects__project_id__claims__claim_id__attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}/attachments/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Attachment
+         * @description Delete an attachment.
+         *
+         *     Args:
+         *         claim_id: Claim id.
+         *         filename: Name of the file to remove.
+         *         db: Project-scoped async DB session.
+         */
+        delete: operations["delete_attachment_v1_operational_projects__project_id__claims__claim_id__attachments__filename__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/claims/{claim_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Claim
+         * @description Submit a draft claim: update status and email.
+         *
+         *     Args:
+         *         project_id: Project UUID.
+         *         claim_id: Claim id.
+         *         payload: Optional email subject/body and CC/BCC overrides.
+         *         db: Async DB session.
+         *         user: Authenticated user data.
+         */
+        post: operations["submit_claim_v1_operational_projects__project_id__claims__claim_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/cmms-permissions": {
         parameters: {
             query?: never;
@@ -2987,7 +3388,16 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Patch Project Device Route
+         * @description Update editable fields for a project device.
+         *
+         *     Args:
+         *         device_id: Identifier of the device to update.
+         *         payload: Device fields to update.
+         *         project_db: Database session for the current project.
+         */
+        patch: operations["patch_project_device"];
         trace?: never;
     };
     "/v1/operational/projects/{project_id}/devices": {
@@ -3346,7 +3756,7 @@ export interface paths {
          *         message: Description for message.
          *         user_data: Description for user_data.
          */
-        put: operations["update_event_message"];
+        put: operations["update_event_message_route_v1_operational_projects__project_id__event_messages__event_message_id__put"];
         post?: never;
         /**
          * Delete Event Message Route
@@ -5667,7 +6077,7 @@ export interface paths {
          *         db: Database session.
          *         user: Authenticated user data.
          */
-        put: operations["update_user_project_label"];
+        put: operations["update_user_project_label_route_v1_operational_user_project_labels__user_project_label_id__put"];
         post?: never;
         /**
          * Delete User Project Label Route
@@ -7852,6 +8262,40 @@ export interface components {
             api_key: string | null;
         };
         /**
+         * AcroFieldPayload
+         * @description One AcroForm widget/input detected in the PDF.
+         */
+        AcroFieldPayload: {
+            /** Field Name */
+            field_name: string;
+            /**
+             * Field Type
+             * @default
+             */
+            field_type: string;
+            /** Page */
+            page: number;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /** Rect */
+            rect?: number[];
+            /**
+             * Existing Value
+             * @default
+             */
+            existing_value: string;
+            /** Nearby Label */
+            nearby_label?: string | null;
+            /** Nearby Label Source */
+            nearby_label_source?: ("left" | "above") | null;
+        };
+        /**
          * AssignPatternSensorTypeRequest
          * @description todo
          */
@@ -8026,6 +8470,15 @@ export interface components {
             /** Screenshot */
             screenshot?: string | null;
         };
+        /** Body_historical_claim_extract_v1_ai_projects__project_id__historical_claim_extract_post */
+        Body_historical_claim_extract_v1_ai_projects__project_id__historical_claim_extract_post: {
+            /** Context Json */
+            context_json: string;
+            /** Files */
+            files: string[];
+            /** Model */
+            model?: string | null;
+        };
         /** Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post */
         Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post: {
             /** File */
@@ -8042,6 +8495,13 @@ export interface components {
             user_ids: string[];
             /** Operational Project Ids */
             operational_project_ids: string[][];
+        };
+        /** Body_upload_attachment_v1_operational_projects__project_id__claims__claim_id__attachments_post */
+        Body_upload_attachment_v1_operational_projects__project_id__claims__claim_id__attachments_post: {
+            /** File */
+            file: string;
+            /** Claim Update Id */
+            claim_update_id?: number | null;
         };
         /** Body_upload_event_message_image */
         Body_upload_event_message_image: {
@@ -8621,6 +9081,461 @@ export interface components {
             override_end_time?: string | null;
         };
         /**
+         * CandidateEvent
+         * @description An event that could be linked to a claim device row.
+         */
+        CandidateEvent: {
+            /** Event Id */
+            event_id: number;
+            /** Device Id */
+            device_id: number;
+            /**
+             * Time Start
+             * Format: date-time
+             */
+            time_start: string;
+            /** Time End */
+            time_end?: string | null;
+            /** Failure Mode */
+            failure_mode?: string | null;
+        };
+        /**
+         * ClaimAttachment
+         * @description Claim attachment metadata.
+         */
+        ClaimAttachment: {
+            /** Claim Id */
+            claim_id: number;
+            /** S3 Key */
+            s3_key: string;
+            /** Filename */
+            filename: string;
+            /** Content Type */
+            content_type?: string | null;
+            /** Uploaded At */
+            uploaded_at?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Claim Update Id */
+            claim_update_id?: number | null;
+        };
+        /**
+         * ClaimConfigCreate
+         * @description Payload to create a claim config.
+         */
+        ClaimConfigCreate: {
+            /**
+             * Counterparty Company Id
+             * Format: uuid
+             */
+            counterparty_company_id: string;
+            /** Project Id */
+            project_id?: string | null;
+            default_submission_channel: components["schemas"]["ClaimSubmissionChannel"];
+            /** Default Contact */
+            default_contact?: string | null;
+            /** Portal Url */
+            portal_url?: string | null;
+        };
+        /**
+         * ClaimConfigResponse
+         * @description Claim config returned from the API.
+         */
+        ClaimConfigResponse: {
+            /** Claim Config Id */
+            claim_config_id: number;
+            /**
+             * Submitter Company Id
+             * Format: uuid
+             */
+            submitter_company_id: string;
+            /**
+             * Counterparty Company Id
+             * Format: uuid
+             */
+            counterparty_company_id: string;
+            /** Project Id */
+            project_id: string | null;
+            default_submission_channel: components["schemas"]["ClaimSubmissionChannel"];
+            /** Default Contact */
+            default_contact: string | null;
+            /** Portal Url */
+            portal_url: string | null;
+            /** Counterparty Name */
+            counterparty_name?: string | null;
+        };
+        /**
+         * ClaimConfigUpdate
+         * @description Payload to patch fields on a claim config.
+         */
+        ClaimConfigUpdate: {
+            /** Counterparty Company Id */
+            counterparty_company_id?: string | null;
+            default_submission_channel?: components["schemas"]["ClaimSubmissionChannel"] | null;
+            /** Default Contact */
+            default_contact?: string | null;
+            /** Portal Url */
+            portal_url?: string | null;
+        };
+        /**
+         * ClaimContextPayload
+         * @description Structured claim context for the model.
+         */
+        ClaimContextPayload: {
+            /** Project */
+            project?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Project Name
+             * @default
+             */
+            project_name: string;
+            /**
+             * Company Name
+             * @default
+             */
+            company_name: string;
+            /**
+             * User First Name
+             * @default
+             */
+            user_first_name: string;
+            /**
+             * User Last Name
+             * @default
+             */
+            user_last_name: string;
+            /**
+             * User Email
+             * @default
+             */
+            user_email: string;
+            /**
+             * Claim Id Display
+             * @default
+             */
+            claim_id_display: string;
+            /**
+             * Phone
+             * @default
+             */
+            phone: string;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+            /**
+             * External Reference
+             * @default
+             */
+            external_reference: string;
+            /**
+             * Oem Name
+             * @default
+             */
+            oem_name: string;
+            /**
+             * Today Date Display
+             * @default
+             */
+            today_date_display: string;
+            /**
+             * Declaration Date Display
+             * @default
+             */
+            declaration_date_display: string;
+            /**
+             * First Issue Date Display
+             * @default
+             */
+            first_issue_date_display: string;
+            /** Previous Claim Example */
+            previous_claim_example?: {
+                [key: string]: unknown;
+            };
+            /** Events */
+            events?: components["schemas"]["ClaimEventPayload"][];
+            /** Devices */
+            devices?: components["schemas"]["ClaimDevicePayload"][];
+        };
+        /**
+         * ClaimCreate
+         * @description Payload to create a draft claim.
+         */
+        ClaimCreate: {
+            /** Claim Config Id */
+            claim_config_id: number;
+            /** Summary */
+            summary?: string | null;
+            /** External Reference */
+            external_reference?: string | null;
+        };
+        /**
+         * ClaimDetailResponse
+         * @description Full claim detail with devices and updates.
+         */
+        ClaimDetailResponse: {
+            /** Claim Id */
+            claim_id: number;
+            /** Claim Config Id */
+            claim_config_id: number;
+            status: components["schemas"]["ClaimStatus"];
+            /** Summary */
+            summary: string | null;
+            /** External Reference */
+            external_reference: string | null;
+            /** Counterparty Name */
+            counterparty_name?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * Devices
+             * @default []
+             */
+            devices: components["schemas"]["ClaimDeviceResponse"][];
+            /**
+             * Updates
+             * @default []
+             */
+            updates: components["schemas"]["ClaimUpdateResponse"][];
+            /**
+             * Attachments
+             * @default []
+             */
+            attachments: components["schemas"]["ClaimAttachment"][];
+        };
+        /**
+         * ClaimDeviceCreate
+         * @description Payload to add a device to a claim.
+         */
+        ClaimDeviceCreate: {
+            /** Device Id */
+            device_id: number;
+            /** Event Id */
+            event_id?: number | null;
+            /** Oem Serial Number */
+            oem_serial_number?: string | null;
+            /** Oem Part Number */
+            oem_part_number?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /**
+         * ClaimDevicePayload
+         * @description One device row from the claim wizard.
+         */
+        ClaimDevicePayload: {
+            /**
+             * Device Name
+             * @default
+             */
+            device_name: string;
+            /**
+             * Device Brand
+             * @default
+             */
+            device_brand: string;
+            /**
+             * Device Model
+             * @default
+             */
+            device_model: string;
+            /**
+             * Oem Serial Number
+             * @default
+             */
+            oem_serial_number: string;
+            /**
+             * Oem Part Number
+             * @default
+             */
+            oem_part_number: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Event Id */
+            event_id?: number | null;
+        };
+        /**
+         * ClaimDeviceResponse
+         * @description A device attached to a claim.
+         */
+        ClaimDeviceResponse: {
+            /** Claim Device Id */
+            claim_device_id: number;
+            /** Claim Id */
+            claim_id: number;
+            /** Device Id */
+            device_id: number;
+            /** Event Id */
+            event_id: number | null;
+            /** Oem Serial Number */
+            oem_serial_number: string | null;
+            /** Oem Part Number */
+            oem_part_number: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Device Name */
+            device_name?: string | null;
+        };
+        /**
+         * ClaimDeviceUpdate
+         * @description Payload to update a device on a claim.
+         */
+        ClaimDeviceUpdate: {
+            /** Device Id */
+            device_id?: number | null;
+            /** Event Id */
+            event_id?: number | null;
+            /** Oem Serial Number */
+            oem_serial_number?: string | null;
+            /** Oem Part Number */
+            oem_part_number?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /**
+         * ClaimEventPayload
+         * @description One event related to the claim.
+         */
+        ClaimEventPayload: {
+            /** Event Id */
+            event_id?: number | null;
+            /** Device Id */
+            device_id?: number | null;
+            /**
+             * Time Start
+             * @default
+             */
+            time_start: string;
+            /**
+             * Time End
+             * @default
+             */
+            time_end: string;
+            /**
+             * Failure Mode
+             * @default
+             */
+            failure_mode: string;
+            /**
+             * Root Cause
+             * @default
+             */
+            root_cause: string;
+        };
+        /**
+         * ClaimListItem
+         * @description Claim summary for the overview table.
+         */
+        ClaimListItem: {
+            /** Claim Id */
+            claim_id: number;
+            /** Claim Config Id */
+            claim_config_id: number;
+            status: components["schemas"]["ClaimStatus"];
+            /** Summary */
+            summary: string | null;
+            /** External Reference */
+            external_reference: string | null;
+            /** Counterparty Name */
+            counterparty_name?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * Device Count
+             * @default 0
+             */
+            device_count: number;
+            /** Claim Event Ids */
+            claim_event_ids?: number[];
+        };
+        /**
+         * ClaimStatus
+         * @enum {string}
+         */
+        ClaimStatus: "draft" | "submitted" | "in_progress" | "resolved" | "closed";
+        /**
+         * ClaimSubmissionChannel
+         * @enum {string}
+         */
+        ClaimSubmissionChannel: "email" | "portal" | "hybrid" | "unknown";
+        /**
+         * ClaimSubmit
+         * @description Optional email overrides when submitting a draft claim.
+         */
+        ClaimSubmit: {
+            /** Email Subject */
+            email_subject?: string | null;
+            /** Email Body */
+            email_body?: string | null;
+            /** Cc Emails */
+            cc_emails?: string[] | null;
+            /** Bcc Emails */
+            bcc_emails?: string[] | null;
+        };
+        /**
+         * ClaimUpdate
+         * @description Payload to update claim fields.
+         */
+        ClaimUpdate: {
+            /** Summary */
+            summary?: string | null;
+            /** External Reference */
+            external_reference?: string | null;
+            status?: components["schemas"]["ClaimStatus"] | null;
+        };
+        /**
+         * ClaimUpdateCreate
+         * @description Payload to add a claim update (note, status change).
+         */
+        ClaimUpdateCreate: {
+            update_type: components["schemas"]["ClaimUpdateType"];
+            from_status?: components["schemas"]["ClaimStatus"] | null;
+            to_status?: components["schemas"]["ClaimStatus"] | null;
+            /** Message */
+            message?: string | null;
+            /** Created At */
+            created_at?: string | null;
+        };
+        /**
+         * ClaimUpdateResponse
+         * @description A single update entry on a claim timeline.
+         */
+        ClaimUpdateResponse: {
+            /** Claim Update Id */
+            claim_update_id: number;
+            /** Claim Id */
+            claim_id: number;
+            update_type: components["schemas"]["ClaimUpdateType"];
+            from_status: components["schemas"]["ClaimStatus"] | null;
+            to_status: components["schemas"]["ClaimStatus"] | null;
+            /** Message */
+            message: string | null;
+            /** User Id */
+            user_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** User Name */
+            user_name?: string | null;
+        };
+        /**
+         * ClaimUpdateType
+         * @enum {string}
+         */
+        ClaimUpdateType: "status_change" | "submission" | "oem_message" | "note" | "parts" | "field_visit";
+        /**
          * Company
          * @description Company model.
          */
@@ -9117,6 +10032,8 @@ export interface components {
             capacity_ac: number | null;
             point: components["schemas"]["Point"] | null;
             polygon: components["schemas"]["MultiPolygon"] | null;
+            /** Serial Number */
+            serial_number?: string | null;
             device_type?: components["schemas"]["DeviceType"] | null;
             /** Name Full */
             name_full?: string | null;
@@ -9190,10 +10107,23 @@ export interface components {
             device_model_id: number;
             /** Device Type Id */
             device_type_id: number;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
             /** Brand */
             brand: string;
             /** Model */
             model: string;
+        };
+        /**
+         * DeviceSerialNumberUpdate
+         * @description Request model for updating a project's device serial number.
+         */
+        DeviceSerialNumberUpdate: {
+            /** Serial Number */
+            serial_number?: string | null;
         };
         /**
          * DeviceStatus
@@ -9849,6 +10779,57 @@ export interface components {
             loss_daily_energy: number | null;
         };
         /**
+         * ExtractedDevice
+         * @description Suggested device row for the historical claim.
+         */
+        ExtractedDevice: {
+            /** Device Id */
+            device_id?: number | null;
+            /** Device Type Id */
+            device_type_id?: number | null;
+            /**
+             * Device Name Hint
+             * @default
+             */
+            device_name_hint: string;
+            /**
+             * Oem Serial Number
+             * @default
+             */
+            oem_serial_number: string;
+            /**
+             * Oem Part Number
+             * @default
+             */
+            oem_part_number: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Event Id */
+            event_id?: number | null;
+        };
+        /**
+         * ExtractedUpdate
+         * @description Suggested timeline update for the historical claim.
+         */
+        ExtractedUpdate: {
+            /** Update Type */
+            update_type: string;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** From Status */
+            from_status?: string | null;
+            /** To Status */
+            to_status?: string | null;
+        };
+        /**
          * FailureMode
          * @description Failuremode model.
          */
@@ -9906,6 +10887,38 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HistoricalClaimExtractResponse
+         * @description Structured suggestions for populating a historical warranty claim.
+         */
+        HistoricalClaimExtractResponse: {
+            /** Claim Config Id */
+            claim_config_id?: number | null;
+            /** Oem Name Suggested */
+            oem_name_suggested?: string | null;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+            /** External Reference */
+            external_reference?: string | null;
+            /**
+             * Status
+             * @default closed
+             */
+            status: string;
+            /** Claim Date */
+            claim_date?: string | null;
+            /** Devices */
+            devices?: components["schemas"]["ExtractedDevice"][];
+            /** Updates */
+            updates?: components["schemas"]["ExtractedUpdate"][];
+            /** Device Event Candidates */
+            device_event_candidates?: {
+                [key: string]: components["schemas"]["CandidateEvent"][];
+            };
         };
         /**
          * Inverter
@@ -10769,6 +11782,25 @@ export interface components {
             loss_total_financial: number | null;
             /** Root Cause */
             root_cause: string;
+        };
+        /**
+         * PdfAnnotationSuggestion
+         * @description One text overlay in PDF display coordinates (width 612pt, top-left origin).
+         */
+        PdfAnnotationSuggestion: {
+            /** Page */
+            page: number;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** Text */
+            text: string;
+            /**
+             * Font Size
+             * @default 11
+             */
+            font_size: number;
         };
         /**
          * Permission
@@ -12220,6 +13252,21 @@ export interface components {
             ctx?: Record<string, never>;
         };
         /**
+         * VisionPagePayload
+         * @description One rasterized PDF page for vision placement.
+         */
+        VisionPagePayload: {
+            /** Page Number */
+            page_number: number;
+            /** Image Base64 */
+            image_base64: string;
+            /**
+             * Media Type
+             * @default image/png
+             */
+            media_type: string;
+        };
+        /**
          * VoiceChatSessionRequest
          * @description todo
          */
@@ -12239,6 +13286,36 @@ export interface components {
             client_secret: string;
             /** Expires At */
             expires_at: string;
+        };
+        /**
+         * WarrantyClaimPdfAssistRequest
+         * @description Request for AcroForm fill mapping or vision overlay suggestions.
+         */
+        WarrantyClaimPdfAssistRequest: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "acro" | "vision";
+            claim_context: components["schemas"]["ClaimContextPayload"];
+            /** Model */
+            model?: string | null;
+            /** Acro Fields */
+            acro_fields?: components["schemas"]["AcroFieldPayload"][] | null;
+            /** Pages */
+            pages?: components["schemas"]["VisionPagePayload"][] | null;
+        };
+        /**
+         * WarrantyClaimPdfAssistResponse
+         * @description Mapped Acro values and/or overlay annotations.
+         */
+        WarrantyClaimPdfAssistResponse: {
+            /** Acro Values */
+            acro_values?: {
+                [key: string]: string;
+            } | null;
+            /** Annotations */
+            annotations?: components["schemas"]["PdfAnnotationSuggestion"][] | null;
         };
         /**
          * ZeitviewInspection
@@ -14341,6 +15418,79 @@ export interface operations {
             };
         };
     };
+    warranty_claim_pdf_assist_v1_ai_warranty_claim_pdf_assist_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WarrantyClaimPdfAssistRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WarrantyClaimPdfAssistResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    historical_claim_extract_v1_ai_projects__project_id__historical_claim_extract_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_historical_claim_extract_v1_ai_projects__project_id__historical_claim_extract_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoricalClaimExtractResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     put_project_system_import_v1_commissioning_projects__project_id__system_import_put: {
         parameters: {
             query?: never;
@@ -14759,7 +15909,7 @@ export interface operations {
             };
         };
     };
-    explore_ptp_api_v1_development_ptp_explore_get: {
+    explore_ptp_api_dev_route_v1_development_ptp_explore_get: {
         parameters: {
             query?: never;
             header?: {
@@ -16482,6 +17632,662 @@ export interface operations {
             };
         };
     };
+    get_claim_configs_route_v1_operational_projects__project_id__claims_configs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimConfigResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_claim_config_route_v1_operational_projects__project_id__claims_configs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimConfigCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimConfigResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_claim_config_route_v1_operational_projects__project_id__claims_configs__claim_config_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+                claim_config_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_claim_config_v1_operational_projects__project_id__claims_configs__claim_config_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+                claim_config_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimConfigUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimConfigResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_claims_route_v1_operational_projects__project_id__claims_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_claim_route_v1_operational_projects__project_id__claims_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimListItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_claim_event_data_csv_v1_operational_projects__project_id__claims_event_data_csv_get: {
+        parameters: {
+            query: {
+                event_id: number;
+            };
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_claim_route_v1_operational_projects__project_id__claims__claim_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_claim_route_v1_operational_projects__project_id__claims__claim_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_claim_v1_operational_projects__project_id__claims__claim_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimListItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_claim_device_v1_operational_projects__project_id__claims__claim_id__devices_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimDeviceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimDeviceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_claim_device_v1_operational_projects__project_id__claims__claim_id__devices__claim_device_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                claim_device_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_claim_device_v1_operational_projects__project_id__claims__claim_id__devices__claim_device_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                claim_device_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimDeviceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimDeviceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_claim_update_v1_operational_projects__project_id__claims__claim_id__updates_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimUpdateCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimUpdateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_attachments_v1_operational_projects__project_id__claims__claim_id__attachments_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimAttachment"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_attachment_v1_operational_projects__project_id__claims__claim_id__attachments_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_attachment_v1_operational_projects__project_id__claims__claim_id__attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimAttachment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_attachment_v1_operational_projects__project_id__claims__claim_id__attachments__filename__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                claim_id: number;
+                filename: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_claim_v1_operational_projects__project_id__claims__claim_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+                claim_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ClaimSubmit"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_cmms_permissions_v1_operational_projects__project_id__cmms_permissions_get: {
         parameters: {
             query?: never;
@@ -17019,6 +18825,52 @@ export interface operations {
             };
         };
     };
+    patch_project_device: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                device_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceSerialNumberUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Device"];
+                };
+            };
+            /** @description Device not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_devices_v2: {
         parameters: {
             query?: never;
@@ -17491,7 +19343,7 @@ export interface operations {
             };
         };
     };
-    update_event_message: {
+    update_event_message_route_v1_operational_projects__project_id__event_messages__event_message_id__put: {
         parameters: {
             query?: never;
             header?: {
@@ -20890,7 +22742,7 @@ export interface operations {
             };
         };
     };
-    update_user_project_label: {
+    update_user_project_label_route_v1_operational_user_project_labels__user_project_label_id__put: {
         parameters: {
             query?: never;
             header?: {

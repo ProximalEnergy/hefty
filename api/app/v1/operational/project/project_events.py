@@ -100,7 +100,6 @@ async def get_events(
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # Use the CRUD function to get events with device information
     events_query = core_events.get_events_with_device_info(
         device_ids=device_ids,
         time_end_gte=time_end_gte,

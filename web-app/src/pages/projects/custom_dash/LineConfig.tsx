@@ -1,4 +1,4 @@
-import { SensorTypeEnum } from '@/api/enumerations'
+import { AggregationMethodEnum, SensorTypeEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
 import { Tag } from '@/hooks/projectTags'
 import { Device } from '@/hooks/types'
@@ -218,7 +218,7 @@ const LineConfig = ({
                   data={[
                     { value: 'none', label: 'None' },
                     { value: 'sum', label: 'Sum' },
-                    { value: 'avg', label: 'Mean' },
+                    { value: AggregationMethodEnum.AVERAGE, label: 'Mean' },
                     { value: 'median', label: 'Median' },
                     { value: 'min', label: 'Minimum' },
                     { value: 'max', label: 'Maximum' },

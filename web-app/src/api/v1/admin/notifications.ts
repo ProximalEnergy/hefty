@@ -1,3 +1,4 @@
+import { NotificationStateEnum } from '@/api/enumerations'
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
@@ -129,7 +130,7 @@ export const useMarkNotificationAsRead = () => {
             ...page,
             notifications: page.notifications.map((notification) =>
               notification.notification_id === notificationId
-                ? { ...notification, state: 'read' }
+                ? { ...notification, state: NotificationStateEnum.READ }
                 : notification,
             ),
           }))
@@ -208,7 +209,7 @@ export const useMarkNotificationAsUnread = () => {
             ...page,
             notifications: page.notifications.map((notification) =>
               notification.notification_id === notificationId
-                ? { ...notification, state: 'unread' }
+                ? { ...notification, state: NotificationStateEnum.UNREAD }
                 : notification,
             ),
           }))
@@ -428,8 +429,9 @@ export const useMarkAllNotificationsAsRead = () => {
           const nextPages = data.pages.map((page) => ({
             ...page,
             notifications: page.notifications.map((notification) =>
-              (notification as { state?: string }).state === 'unread'
-                ? { ...notification, state: 'read' }
+              (notification as { state?: string }).state ===
+              NotificationStateEnum.UNREAD
+                ? { ...notification, state: NotificationStateEnum.READ }
                 : notification,
             ),
           }))

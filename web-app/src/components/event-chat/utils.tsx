@@ -1,3 +1,4 @@
+import { ReactionTypeEnum } from '@/api/enumerations'
 import { Text } from '@mantine/core'
 import React from 'react'
 
@@ -14,25 +15,25 @@ export const ALLOWED_IMAGE_TYPES = [
 // Helper function to get reaction emoji
 export function getReactionEmoji(reactionType: string): string {
   const emojiMap: Record<string, string> = {
-    thumbs_up: '👍',
-    thumbs_down: '👎',
-    eyes: '👀',
-    question_mark: '❓',
-    heart: '❤️',
-    laughing: '😂',
-    surprised: '😮',
-    sad: '😢',
-    angry: '😡',
-    fire: '🔥',
-    party: '🎉',
-    check: '✅',
-    clap: '👏',
-    hundred: '💯',
-    rocket: '🚀',
-    lightbulb: '💡',
-    star: '⭐',
-    target: '🎯',
-    pray: '🙏',
+    [ReactionTypeEnum.THUMBS_UP]: '👍',
+    [ReactionTypeEnum.THUMBS_DOWN]: '👎',
+    [ReactionTypeEnum.EYES]: '👀',
+    [ReactionTypeEnum.QUESTION_MARK]: '❓',
+    [ReactionTypeEnum.HEART]: '❤️',
+    [ReactionTypeEnum.LAUGHING]: '😂',
+    [ReactionTypeEnum.SURPRISED]: '😮',
+    [ReactionTypeEnum.SAD]: '😢',
+    [ReactionTypeEnum.ANGRY]: '😡',
+    [ReactionTypeEnum.FIRE]: '🔥',
+    [ReactionTypeEnum.PARTY]: '🎉',
+    [ReactionTypeEnum.CHECK]: '✅',
+    [ReactionTypeEnum.CLAP]: '👏',
+    [ReactionTypeEnum.HUNDRED]: '💯',
+    [ReactionTypeEnum.ROCKET]: '🚀',
+    [ReactionTypeEnum.LIGHTBULB]: '💡',
+    [ReactionTypeEnum.STAR]: '⭐',
+    [ReactionTypeEnum.TARGET]: '🎯',
+    [ReactionTypeEnum.PRAY]: '🙏',
   }
   return emojiMap[reactionType] || reactionType
 }

@@ -1,7 +1,31 @@
 import { getCompanyLogoUrl } from '@/utils/cdn'
+import { getParentCompanyLogoSpec } from '@/utils/parentCompanyLogoSpec'
 import { useUser } from '@clerk/react'
 import { Image, Stack, Title, useComputedColorScheme } from '@mantine/core'
 import { useEffect } from 'react'
+
+const SimpleParentCompanyLogo = ({
+  parentCompany,
+}: {
+  parentCompany: string
+}) => {
+  const computedColorScheme = useComputedColorScheme()
+  const spec = getParentCompanyLogoSpec(
+    parentCompany,
+    computedColorScheme === 'dark',
+  )
+  return (
+    <Image
+      src={getCompanyLogoUrl(spec.filename)}
+      h={spec.height ?? '70%'}
+      style={
+        spec.invertInDarkMode && computedColorScheme === 'dark'
+          ? { filter: 'brightness(0) invert(1)' }
+          : undefined
+      }
+    />
+  )
+}
 
 const ProximalLogo = () => {
   const computedColorScheme = useComputedColorScheme()
@@ -139,48 +163,25 @@ const Logo = () => {
           </>
         )
       case 'catl':
-        return <Image src={getCompanyLogoUrl('logo_catl.svg')} h="50%" />
       case 'excelsior':
-        return <Image src={getCompanyLogoUrl('logo_excelsior.svg')} h="70%" />
       case 'cleanamps_energy':
-        return (
-          <Image src={getCompanyLogoUrl('logo_cleanamps_energy.svg')} h="35%" />
-        )
       case 'strata':
-        return <Image src={getCompanyLogoUrl('logo_strata.svg')} h="70%" />
       case 'origis_energy':
-        return <Image src={getCompanyLogoUrl('logo_origis.svg')} h="70%" />
       case 'swift_current_energy':
-        return <Image src={getCompanyLogoUrl('logo_swift.svg')} h="70%" />
       case 'first_solar':
-        return <Image src={getCompanyLogoUrl('logo_first_solar.svg')} h="70%" />
+      case 'lightsource_bp':
+      case 'lydian_energy':
+      case 'goshe_energy_storage':
+      case 'doral_renewables':
+        return <SimpleParentCompanyLogo parentCompany={parentCompany} />
       case 'desri':
         return <DESRILogo />
       case 'terabase_energy':
         return <TerabaseLogo />
-      case 'lightsource_bp':
-        return (
-          <Image src={getCompanyLogoUrl('logo_lightsource_bp.png')} h="70%" />
-        )
       case 'oriden':
         return <OdenLogo />
-      case 'lydian_energy':
-        return (
-          <Image src={getCompanyLogoUrl('logo_lydian_energy.webp')} h="70%" />
-        )
-      case 'goshe_energy_storage':
-        return (
-          <Image
-            src={getCompanyLogoUrl('logo_goshe_energy_storage.svg')}
-            h="70%"
-          />
-        )
       case 'sable_point_energy':
         return <SablePointEnergyLogo />
-      case 'doral_renewables':
-        return (
-          <Image src={getCompanyLogoUrl('logo_doral_renewables.svg')} h="70%" />
-        )
       case 'anesco':
         return <AnescoLogo />
     }

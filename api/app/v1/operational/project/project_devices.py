@@ -49,6 +49,12 @@ class DevicesFilterRequest(BaseModel):
     fields: Annotated[list[str], Query()] = []
 
 
+class DeviceSerialNumberUpdate(BaseModel):
+    """Request model for updating a project's device serial number."""
+
+    serial_number: str | None = None
+
+
 @router.get(
     "/{device_id}",
     response_model=interfaces.Device,
@@ -78,6 +84,61 @@ async def get_project_device_route(
     )
     utils.check_404(value=device, detail=DESCRIPTION_404)
     return device
+
+
+@router.patch(
+    "/{device_id}",
+    response_model=interfaces.Device,
+    operation_id="patch_project_device",
+    responses={404: {"description": DESCRIPTION_404}},
+)
+async def patch_project_device_route(
+    device_id: int,
+    payload: DeviceSerialNumberUpdate,
+    project_db: AsyncSession = Depends(get_project_db_async),
+):
+    """Update editable fields for a project device.
+
+    Args:
+        device_id: Identifier of the device to update.
+        payload: Device fields to update.
+        project_db: Database session for the current project.
+    """
+    device = await project_db.get(core.models.Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=404, detail=DESCRIPTION_404)
+    serial_number = payload.serial_number.strip() if payload.serial_number else None
+    device.serial_number = serial_number or None
+    await project_db.commit()
+    await project_db.refresh(device)
+    return interfaces.Device(
+        device_id=device.device_id,
+        device_id_path=device.device_id_path,
+        device_type_id=device.device_type_id,
+        device_model_id=device.device_model_id,
+        cec_pv_inverter_id=device.cec_pv_inverter_id,
+        cec_pv_module_id=device.cec_pv_module_id,
+        pv_module_id=device.pv_module_id,
+        parent_device_id=device.parent_device_id,
+        logical=device.logical,
+        name_short=device.name_short,
+        name_long=device.name_long,
+        capacity_dc=device.capacity_dc,
+        capacity_ac=device.capacity_ac,
+        point=(
+            interfaces.Point.model_validate(device.point)
+            if device.point is not None
+            else None
+        ),
+        polygon=(
+            interfaces.MultiPolygon.model_validate(device.polygon)
+            if device.polygon is not None
+            else None
+        ),
+        serial_number=device.serial_number,
+        device_type=None,
+        name_full=None,
+    )
 
 
 @router.post(

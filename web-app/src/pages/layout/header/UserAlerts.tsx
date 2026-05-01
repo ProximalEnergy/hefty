@@ -1,3 +1,4 @@
+import { NotificationStateEnum } from '@/api/enumerations'
 import type * as types from '@/api/schema'
 import { useGetUnreadNotificationCount } from '@/api/v1/admin/notifications'
 import { baseURL } from '@/urlConfig'
@@ -61,7 +62,8 @@ const UserAlerts = () => {
 
             // Only show toast if notification is unread and was created recently
             const isUnread =
-              (latestNotification as { state?: string }).state === 'unread'
+              (latestNotification as { state?: string }).state ===
+              NotificationStateEnum.UNREAD
 
             if (isUnread && notificationAge <= recentThreshold) {
               const formatted = formatNotification(

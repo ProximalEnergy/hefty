@@ -1,4 +1,9 @@
-import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
+import {
+  DeviceTypeEnum,
+  PGDataTypeEnum,
+  SensorTypeEnum,
+  TimeIntervalEnum,
+} from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetDataTimeSeriesV3 } from '@/api/v1/operational/project/project_data'
 import { useGetPvExpected } from '@/api/v1/operational/project/project_pv_expected'
@@ -59,7 +64,9 @@ const DataBrowsing = () => {
   const [tagNameMode, setTagNameMode] = useState<'name_full' | 'name_scada'>(
     'name_full',
   )
-  const [interval, setInterval] = useState<string>('5min')
+  const [interval, setInterval] = useState<string>(
+    TimeIntervalEnum.FIVE_MINUTES,
+  )
   const [pvExpectedNighttimeLosses, setPvExpectedNighttimeLosses] =
     useState(false)
   const [showTags, setShowTags] = useState<
@@ -69,11 +76,11 @@ const DataBrowsing = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('')
   const [hasLoadedTagsFromUrl, setHasLoadedTagsFromUrl] = useState(false)
   const intervalOptions = {
-    '1min': '1 minute',
-    '5min': '5 minutes',
-    '15min': '15 minutes',
-    '30min': '30 minutes',
-    '1hour': '1 hour',
+    [TimeIntervalEnum.ONE_MINUTE]: '1 minute',
+    [TimeIntervalEnum.FIVE_MINUTES]: '5 minutes',
+    [TimeIntervalEnum.FIFTEEN_MINUTES]: '15 minutes',
+    [TimeIntervalEnum.THIRTY_MINUTES]: '30 minutes',
+    [TimeIntervalEnum.ONE_HOUR]: '1 hour',
   }
   const { start, end } = useValidateDateRange({})
   const project = useSelectProject(projectId!)
@@ -247,7 +254,7 @@ const DataBrowsing = () => {
         device_id: device.device_id,
         sensor_type: sensorType,
         in_tsdb: false,
-        pg_data_type_id: 0,
+        pg_data_type_id: PGDataTypeEnum.UNKNOWN,
         data_type_id: null,
         data_type: null,
         name_short: null,
@@ -412,7 +419,7 @@ const DataBrowsing = () => {
           device_id: deviceId,
           sensor_type: sensorType,
           in_tsdb: false,
-          pg_data_type_id: 0,
+          pg_data_type_id: PGDataTypeEnum.UNKNOWN,
           data_type_id: null,
           data_type: null,
           name_short: null,
@@ -1091,7 +1098,9 @@ const DataBrowsing = () => {
                 value: key,
               }))}
               value={interval}
-              onChange={(value) => setInterval(value || '5min')}
+              onChange={(value) =>
+                setInterval(value || TimeIntervalEnum.FIVE_MINUTES)
+              }
               flex={1}
             />
           </Group>

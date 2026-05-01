@@ -238,6 +238,7 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                             "Inverter Warranty",
                             "BESS Warranty",
                             "PV Module Warranty",
+                            "Warranty Claim Form",
                             "Other",
                         ],
                     },
@@ -487,7 +488,8 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
     ]
 
     system_prompt = f"""
-       Extract the contract fields. If unknown, use null.
+       Extract the contract fields. If unknown, use JSON null, not the string
+       "null".
        For `counterparty_name`, make it the name of the company that provides
        the services. IMPORTANT: The counterparty should NOT be the user's
        company. The user's company is: {user_company_name or "not specified"}.
@@ -495,13 +497,13 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
        services TO the user's company.
        For `term_end_date`, you may have to calculate it based on the
        `term_start_date` and the length of the term.
-       For `contract_summary`, make it 8-10 sentences.
+       For `contract_summary`, make it 3-5 concise sentences.
        For `important_dates`, extract only such dates that involved parties
        would want to put on their calendars. For example, the end of term, the
-       first renewal date, payment deadlines, etc.
+       first renewal date, payment deadlines, etc. Return at most 5 dates.
 
        For `source_references`, provide both a document location description
-       and the exact quoted paragraph (max 3 sentences).
+       and the exact quoted paragraph (max 1 sentence).
        - For location, use descriptive references like: 'in section 2.1',
        'on page 3', 'in the introduction', 'in the terms section',
        'in the contact information', etc.
@@ -511,7 +513,7 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
     """
 
     resp = client.responses.create(  # type: ignore
-        model="gpt-4o-mini",  # good at tool calling; use your preferred
+        model="gpt-5-mini",  # good at tool calling; use your preferred
         input=[
             {
                 "role": "user",
@@ -529,8 +531,8 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
             "type": "function",
             "name": "extract_contract_fields",
         },  # force single function
-        temperature=0,
-        max_output_tokens=2000,
+        max_output_tokens=6000,
+        reasoning={"effort": "minimal"},
     )
 
     logging.info(f"Response: {resp}")

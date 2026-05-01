@@ -1,4 +1,4 @@
-import { NotificationTypeEnum } from '@/api/enumerations'
+import { NotificationStateEnum, NotificationTypeEnum } from '@/api/enumerations'
 import type { NotificationPage } from '@/api/v1/admin/notifications'
 import { formatNotification } from '@/utils/notificationFormatters'
 import { formatRelativeTime } from '@/utils/relativeTime'
@@ -37,7 +37,10 @@ type NotificationTypeId =
   (typeof NotificationTypeEnum)[keyof typeof NotificationTypeEnum]
 type NotificationData = Record<string, unknown>
 type FormattedNotification = ReturnType<typeof formatNotification>
-type ReadState = 'read' | 'unread'
+type ReadState = (typeof NotificationStateEnum)[keyof Pick<
+  typeof NotificationStateEnum,
+  'READ' | 'UNREAD'
+>]
 
 type NavigationAction =
   | {
@@ -183,8 +186,11 @@ const NotificationsEntry = ({
       projectId: notification.project_id,
     },
   )
-  const isUnread = (notification as { state?: string }).state === 'unread'
-  const readState: ReadState = isUnread ? 'unread' : 'read'
+  const isUnread =
+    (notification as { state?: string }).state === NotificationStateEnum.UNREAD
+  const readState: ReadState = isUnread
+    ? NotificationStateEnum.UNREAD
+    : NotificationStateEnum.READ
   const relativeTime = formatRelativeTime(notification.created_at)
   const severityColor = getSeverityColor(notification.severity)
   const severityLabel = getSeverityLabel(notification.severity)
@@ -205,11 +211,11 @@ const NotificationsEntry = ({
       run: () => void
     }
   > = {
-    unread: {
+    [NotificationStateEnum.UNREAD]: {
       label: 'Mark as read',
       run: () => onMarkAsRead(notification.notification_id),
     },
-    read: {
+    [NotificationStateEnum.READ]: {
       label: 'Mark as unread',
       run: () => onMarkAsUnread(notification.notification_id),
     },
