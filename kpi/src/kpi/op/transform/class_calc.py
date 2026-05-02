@@ -1,6 +1,6 @@
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.domain.util import daily_mean_across_devices, date_local, diff, filter_mask
 from kpi.infra.pvlib_integration import theoretical_poa_irradiance
@@ -29,7 +29,7 @@ class DailyMeanAcrossDevices(BaseCalc):
 
     value: Required
     date_local_5m: Required
-    device_type: DeviceType
+    device_type: DeviceTypeEnum
 
     def run(self, dataset: xr.Dataset) -> xr.DataArray:
         return daily_mean_across_devices(

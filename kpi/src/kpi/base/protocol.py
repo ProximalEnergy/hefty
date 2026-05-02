@@ -3,7 +3,7 @@ from warnings import WarningMessage
 
 import pandas as pd
 import xarray as xr
-from core.enumerations import SensorType
+from core.enumerations import SensorTypeEnum
 
 from core import models
 
@@ -31,7 +31,7 @@ class DeviceProtocol(NodeProtocol, Protocol):
 
 
 class SensorProtocol(NodeProtocol, Protocol):
-    sensor_type: SensorType
+    sensor_type: SensorTypeEnum
 
     def run(
         self,

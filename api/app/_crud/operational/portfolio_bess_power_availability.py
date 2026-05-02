@@ -10,7 +10,7 @@ import core.models as models
 import pandas as pd
 from core.crud.project.devices import get_project_devices
 from core.db_query import OutputType
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -54,7 +54,7 @@ async def _get_pcs_capacity_metrics(
         project_schema: Project schema name_short.
     """
     devices_df = await get_project_devices(
-        device_type_ids=[DeviceType.BESS_PCS],
+        device_type_ids=[DeviceTypeEnum.BESS_PCS],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     if devices_df.empty:
@@ -103,8 +103,8 @@ async def get_portfolio_bess_power_availability_metrics(
             models.OperationalDataTimeseries.project_id.in_(ids),
             models.OperationalDataTimeseries.sensor_type_id.in_(
                 [
-                    int(SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER),
-                    int(SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER),
+                    int(SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER),
+                    int(SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER),
                 ],
             ),
         )
@@ -121,8 +121,8 @@ async def get_portfolio_bess_power_availability_metrics(
     discharge_sum: dict[uuid.UUID, float] = defaultdict(float)
     seen: set[uuid.UUID] = set()
 
-    charge_id = int(SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER)
-    discharge_id = int(SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER)
+    charge_id = int(SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER)
+    discharge_id = int(SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER)
 
     for row in rows:
         pid = row.project_id

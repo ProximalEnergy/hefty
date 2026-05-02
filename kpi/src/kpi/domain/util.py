@@ -1,7 +1,7 @@
 import warnings
 
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.base.exception import ValidationError
 from kpi.base.util import coord
@@ -137,7 +137,7 @@ def filter_capacity(
 def daily_mean_across_devices(
     *,
     value: xr.DataArray,
-    device_type: DeviceType,
+    device_type: DeviceTypeEnum,
     date_local_5m: xr.DataArray,
 ) -> xr.DataArray:
     is_valid_sum = (
@@ -156,7 +156,7 @@ def daily_mean_across_grouped_devices(
     *,
     value: xr.DataArray,
     device_mapping: xr.DataArray,
-    device_type: DeviceType,
+    device_type: DeviceTypeEnum,
     date_local_5m: xr.DataArray,
 ) -> xr.DataArray:
     is_valid_sum = (

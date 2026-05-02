@@ -35,8 +35,10 @@ async def get_user_in_app_notifications(
         )
         .where(
             models.NotificationState.user_id == user_id,
-            models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
-            models.NotificationState.state != enumerations.NotificationState.DELETED,
+            models.NotificationState.channel
+            == enumerations.NotificationChannelEnum.IN_APP,
+            models.NotificationState.state
+            != enumerations.NotificationStateEnum.DELETED,
         )
         .order_by(models.Notification.created_at.desc())
     )
@@ -70,13 +72,13 @@ async def mark_notification_as_read(
     query = select(models.NotificationState).where(
         models.NotificationState.notification_id == notification_id,
         models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
+        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
     )
     result = await db.execute(query)
     notification_state = result.scalar_one_or_none()
 
     if notification_state:
-        notification_state.state = enumerations.NotificationState.READ
+        notification_state.state = enumerations.NotificationStateEnum.READ
         await db.commit()
         await db.refresh(notification_state)
         return notification_state
@@ -103,13 +105,13 @@ async def mark_notification_as_unread(
     query = select(models.NotificationState).where(
         models.NotificationState.notification_id == notification_id,
         models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
+        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
     )
     result = await db.execute(query)
     notification_state = result.scalar_one_or_none()
 
     if notification_state:
-        notification_state.state = enumerations.NotificationState.UNREAD
+        notification_state.state = enumerations.NotificationStateEnum.UNREAD
         await db.commit()
         await db.refresh(notification_state)
         return notification_state
@@ -136,13 +138,13 @@ async def delete_notification(
     query = select(models.NotificationState).where(
         models.NotificationState.notification_id == notification_id,
         models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
+        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
     )
     result = await db.execute(query)
     notification_state = result.scalar_one_or_none()
 
     if notification_state:
-        notification_state.state = enumerations.NotificationState.DELETED
+        notification_state.state = enumerations.NotificationStateEnum.DELETED
         await db.commit()
         await db.refresh(notification_state)
         return notification_state
@@ -166,15 +168,15 @@ async def delete_all_notifications(
     """
     query = select(models.NotificationState).where(
         models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
-        models.NotificationState.state != enumerations.NotificationState.DELETED,
+        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
+        models.NotificationState.state != enumerations.NotificationStateEnum.DELETED,
     )
     result = await db.execute(query)
     notification_states = result.scalars().all()
 
     count = 0
     for notification_state in notification_states:
-        notification_state.state = enumerations.NotificationState.DELETED
+        notification_state.state = enumerations.NotificationStateEnum.DELETED
         count += 1
 
     if count > 0:
@@ -199,15 +201,15 @@ async def mark_all_notifications_as_read(
     """
     query = select(models.NotificationState).where(
         models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
-        models.NotificationState.state == enumerations.NotificationState.UNREAD,
+        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
+        models.NotificationState.state == enumerations.NotificationStateEnum.UNREAD,
     )
     result = await db.execute(query)
     notification_states = result.scalars().all()
 
     count = 0
     for notification_state in notification_states:
-        notification_state.state = enumerations.NotificationState.READ
+        notification_state.state = enumerations.NotificationStateEnum.READ
         count += 1
 
     if count > 0:
@@ -232,7 +234,7 @@ def get_unread_notification_count(
     """
     query = select(func.count(models.NotificationState.notification_state_id)).where(
         models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
-        models.NotificationState.state == enumerations.NotificationState.UNREAD,
+        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
+        models.NotificationState.state == enumerations.NotificationStateEnum.UNREAD,
     )
     return DbQuery(query=query, is_scalar=True)

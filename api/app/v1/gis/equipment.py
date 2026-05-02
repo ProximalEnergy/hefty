@@ -6,7 +6,12 @@ import pandas as pd
 import polars as pl
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
+from core.enumerations import (
+    DeviceTypeEnum,
+    KPITypeEnum,
+    ProjectStatusType,
+    SensorTypeEnum,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -164,12 +169,12 @@ async def _get_latest_combiner_power_by_device(
         if parent_device is None:
             continue
 
-        if parent_device.device_type_id == DeviceType.PV_INVERTER_MODULE:
+        if parent_device.device_type_id == DeviceTypeEnum.PV_INVERTER_MODULE:
             pcs_id = parent_device.parent_device_id
             if pcs_id is not None:
                 parent_pcs_ids.append(typing.cast(int, pcs_id))
                 combiner_to_parent_pcs_id[dev_id] = typing.cast(int, pcs_id)
-        elif parent_device.device_type_id == DeviceType.PV_INVERTER:
+        elif parent_device.device_type_id == DeviceTypeEnum.PV_INVERTER:
             parent_pcs_ids.append(typing.cast(int, parent_id))
             combiner_to_parent_pcs_id[dev_id] = typing.cast(int, parent_id)
 
@@ -178,7 +183,7 @@ async def _get_latest_combiner_power_by_device(
         return {}
 
     all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_INVERTER_MODULE],
+        device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
         parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     all_pcs_modules_df = all_pcs_modules_df.copy()
@@ -199,7 +204,7 @@ async def _get_latest_combiner_power_by_device(
 
     latest_current_by_combiner = await _get_latest_scaled_sensor_values_by_device(
         device_ids=device_ids,
-        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT.value],
+        sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT.value],
         project_schema=project_schema,
     )
     if not latest_current_by_combiner:
@@ -209,7 +214,7 @@ async def _get_latest_combiner_power_by_device(
     if module_ids:
         latest_voltage_by_module = await _get_latest_scaled_sensor_values_by_device(
             device_ids=module_ids,
-            sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE.value],
+            sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE.value],
             project_schema=project_schema,
         )
         voltage_by_module = {
@@ -223,7 +228,7 @@ async def _get_latest_combiner_power_by_device(
     if using_pcs_level_voltage:
         latest_voltage_by_pcs = await _get_latest_scaled_sensor_values_by_device(
             device_ids=parent_pcs_ids,
-            sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE.value],
+            sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE.value],
             project_schema=project_schema,
         )
         voltage_by_pcs = {
@@ -415,7 +420,7 @@ async def get_tracker_by_block(
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.TRACKER_ROW],
+        device_type_ids=[DeviceTypeEnum.TRACKER_ROW],
         device_id_descendent_of=block_id,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
@@ -426,8 +431,8 @@ async def get_tracker_by_block(
             start=start,
             end=end,
             kpi_type_ids=[
-                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
-                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
+                KPITypeEnum.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+                KPITypeEnum.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
             ],
             project_ids=[project.project_id],
             include_device_data=True,
@@ -493,7 +498,7 @@ async def get_bess_enclosure(
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.BESS_ENCLOSURE]
+        device_type_ids=[DeviceTypeEnum.BESS_ENCLOSURE]
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     features = [
@@ -571,14 +576,14 @@ async def get_devices_in_viewport(
 
     # 2. Fetch power data for any PCS (type 2) devices if not already fetched as primary
     if (
-        power_device_type_id != DeviceType.PV_INVERTER
+        power_device_type_id != DeviceTypeEnum.PV_INVERTER
     ):  # Check if PCS wasn't the primary type
         # Identify PCS devices that are in the viewport AND don't already have
         # their data fetched
         pcs_to_fetch_ids = [
             dev.device_id
             for dev in devices
-            if dev.device_type_id == DeviceType.PV_INVERTER
+            if dev.device_type_id == DeviceTypeEnum.PV_INVERTER
             and dev.device_id not in all_device_extra_data
         ]
         if pcs_to_fetch_ids:
@@ -596,7 +601,7 @@ async def get_devices_in_viewport(
     met_station_to_fetch_ids = [
         dev.device_id
         for dev in devices
-        if dev.device_type_id == DeviceType.MET_STATION
+        if dev.device_type_id == DeviceTypeEnum.MET_STATION
         and dev.device_id not in all_device_extra_data
     ]
     if met_station_to_fetch_ids:
@@ -651,17 +656,17 @@ async def get_devices_in_viewport(
         extra_data_for_this_device = all_device_extra_data.get(device.device_id)
 
         if extra_data_for_this_device:
-            if device.device_type_id == DeviceType.TRACKER_ROW:
+            if device.device_type_id == DeviceTypeEnum.TRACKER_ROW:
                 device_dict["tracker_data"] = extra_data_for_this_device
             # Assuming PCS (2, 13) and Combiner (9) expect their data under "power_data"
             # and utility_expected returns the payload directly for these types.
             elif device.device_type_id in [
-                DeviceType.PV_INVERTER,
-                DeviceType.PV_DC_COMBINER,
-                DeviceType.BESS_PCS,
+                DeviceTypeEnum.PV_INVERTER,
+                DeviceTypeEnum.PV_DC_COMBINER,
+                DeviceTypeEnum.BESS_PCS,
             ]:
                 device_dict["power_data"] = extra_data_for_this_device
-            elif device.device_type_id == DeviceType.MET_STATION:
+            elif device.device_type_id == DeviceTypeEnum.MET_STATION:
                 # extra_data_for_this_device should be the dict like {poa: val, ...}
                 device_dict["met_station_values"] = extra_data_for_this_device
             # Add other device type specific data handling here if
@@ -669,15 +674,15 @@ async def get_devices_in_viewport(
         else:
             # Ensure keys for power_data or tracker_data are present (as None)
             # for frontend consistency if expected
-            if device.device_type_id == DeviceType.TRACKER_ROW:
+            if device.device_type_id == DeviceTypeEnum.TRACKER_ROW:
                 device_dict["tracker_data"] = None
             elif device.device_type_id in [
-                DeviceType.PV_INVERTER,
-                DeviceType.PV_DC_COMBINER,
-                DeviceType.BESS_PCS,
+                DeviceTypeEnum.PV_INVERTER,
+                DeviceTypeEnum.PV_DC_COMBINER,
+                DeviceTypeEnum.BESS_PCS,
             ]:
                 device_dict["power_data"] = None
-            elif device.device_type_id == DeviceType.MET_STATION:
+            elif device.device_type_id == DeviceTypeEnum.MET_STATION:
                 device_dict["met_station_values"] = None
             # Met stations (type 4) etc. won't have these keys added here
             # unless explicitly handled
@@ -754,8 +759,8 @@ async def utility_expected(
             detail="All device IDs must be of the same type.",
         )
     # --- Handle Tracker Row Case ---
-    if first_device_type_id == DeviceType.TRACKER_ROW:
-        sensor_type_ids = [SensorType.TRACKER_ROW_POSITION.value]
+    if first_device_type_id == DeviceTypeEnum.TRACKER_ROW:
+        sensor_type_ids = [SensorTypeEnum.TRACKER_ROW_POSITION.value]
 
         try:
             latest_query = (
@@ -814,15 +819,15 @@ async def utility_expected(
     # --- Determine Parameters based on Device Type ---
     pv_dc_combiner_case = False
     sensor_type_ids = []  # Initialize for non-combiner case
-    if first_device_type_id == DeviceType.PV_INVERTER:
-        sensor_type_ids = [SensorType.PV_INVERTER_AC_POWER]
+    if first_device_type_id == DeviceTypeEnum.PV_INVERTER:
+        sensor_type_ids = [SensorTypeEnum.PV_INVERTER_AC_POWER]
         # Add fallback expected metric IDs for PCS (expected_metric_type_id 2)
         # Try with soiling first (10), then without soiling (9), then with
         # degradation (3), then without degradation (4)
         expected_metric_ids_fallback = [10, 9, 4, 3]
         multiplier = 1_000.0  # Raw data presumed in kW?
         expected_device_ids_for_query = device_ids
-    elif first_device_type_id == DeviceType.PV_DC_COMBINER:
+    elif first_device_type_id == DeviceTypeEnum.PV_DC_COMBINER:
         # Add fallback expected metric IDs for Combiner (expected_metric_type_id 1)
         # Try with soiling first (8), then without soiling (7), then with
         # degradation (1), then without degradation (2)
@@ -830,8 +835,8 @@ async def utility_expected(
         multiplier = 1 / 1_000  # V * A = W -> kW
         expected_device_ids_for_query = device_ids
         pv_dc_combiner_case = True
-    elif first_device_type_id == DeviceType.BESS_PCS.value:  # BESS PCS
-        sensor_type_ids = [SensorType.BESS_PCS_AC_POWER]  # BESS PCS AC Power
+    elif first_device_type_id == DeviceTypeEnum.BESS_PCS.value:  # BESS PCS
+        sensor_type_ids = [SensorTypeEnum.BESS_PCS_AC_POWER]  # BESS PCS AC Power
         # BESS devices don't have expected power data like PV devices
         expected_metric_ids_fallback = []
         multiplier = 1_000.0  # Raw data presumed in kW?
@@ -843,14 +848,14 @@ async def utility_expected(
         )
 
     use_latest_power_snapshot = first_device_type_id in {
-        DeviceType.PV_INVERTER,
-        DeviceType.PV_DC_COMBINER,
+        DeviceTypeEnum.PV_INVERTER,
+        DeviceTypeEnum.PV_DC_COMBINER,
     }
     if use_latest_power_snapshot:
-        if first_device_type_id == DeviceType.PV_INVERTER:
+        if first_device_type_id == DeviceTypeEnum.PV_INVERTER:
             actual_by_device = await _get_latest_scaled_sensor_values_by_device(
                 device_ids=device_ids,
-                sensor_type_ids=[SensorType.PV_INVERTER_AC_POWER.value],
+                sensor_type_ids=[SensorTypeEnum.PV_INVERTER_AC_POWER.value],
                 project_schema=project_schema,
                 multiplier=1_000.0,
             )
@@ -933,13 +938,13 @@ async def utility_expected(
                 continue
 
             # If parent is a PCS Module (type 3), get its parent (the PCS)
-            if parent_device.device_type_id == DeviceType.PV_INVERTER_MODULE:
+            if parent_device.device_type_id == DeviceTypeEnum.PV_INVERTER_MODULE:
                 pcs_id = parent_device.parent_device_id
                 if pcs_id is not None:
                     parent_pcs_ids.append(typing.cast(int, pcs_id))
                     combiner_to_parent_pcs_id[dev_id] = typing.cast(int, pcs_id)
             # If parent is already a PCS (type 2), use it directly
-            elif parent_device.device_type_id == DeviceType.PV_INVERTER:
+            elif parent_device.device_type_id == DeviceTypeEnum.PV_INVERTER:
                 parent_pcs_ids.append(typing.cast(int, parent_id))
                 combiner_to_parent_pcs_id[dev_id] = typing.cast(int, parent_id)
             else:
@@ -963,7 +968,7 @@ async def utility_expected(
 
         # DB Call 1: Fetch all relevant PV Inverter Modules using parent IDs
         all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
-            device_type_ids=[DeviceType.PV_INVERTER_MODULE],
+            device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
             parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         all_pcs_modules_df = all_pcs_modules_df.copy()
@@ -997,7 +1002,7 @@ async def utility_expected(
         # DB Call for current tags (combiners)
         tags_current_pl = await core.crud.project.tags.get_project_tags_v2(
             device_ids=device_ids,
-            sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
+            sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
         if tags_current_pl.is_empty():
@@ -1009,13 +1014,13 @@ async def utility_expected(
         using_pcs_level_voltage = False
         tags_voltage_pl = await core.crud.project.tags.get_project_tags_v2(
             device_ids=module_ids,
-            sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE],
+            sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE],
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
         if tags_voltage_pl.is_empty():
             tags_voltage_pl = await core.crud.project.tags.get_project_tags_v2(
                 device_ids=parent_pcs_ids,  # Use PCS device IDs for fallback
-                sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE],
+                sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE],
             ).get_async(output_type=OutputType.POLARS, schema=project_schema)
             using_pcs_level_voltage = True
 
@@ -1311,10 +1316,10 @@ async def get_met_station_latest_values(
         return {}
 
     met_sensor_type_to_field = {
-        SensorType.MET_STATION_POA.value: "poa",
-        SensorType.MET_STATION_GHI.value: "ghi",
-        SensorType.MET_STATION_AMBIENT_TEMPERATURE.value: "ambient_temp",
-        SensorType.MET_STATION_WIND_SPEED.value: "wind_speed",
+        SensorTypeEnum.MET_STATION_POA.value: "poa",
+        SensorTypeEnum.MET_STATION_GHI.value: "ghi",
+        SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE.value: "ambient_temp",
+        SensorTypeEnum.MET_STATION_WIND_SPEED.value: "wind_speed",
     }
     project_schema = utils.get_project_schema(project_db=project_db)
 

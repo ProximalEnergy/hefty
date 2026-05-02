@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING, Any
 
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 
 from inspectui.core.models import TestResult
 from inspectui.core.tests.base import BaseTest, TestParameter, TestRegistry
@@ -294,7 +294,7 @@ def _coerce_device_type_ids(raw: object) -> list[int]:
 def _device_type_label(*, type_id: int) -> str:
     """Human-readable device type name when ``DeviceType`` has the value."""
     try:
-        return f"{DeviceType(type_id).name} ({type_id})"
+        return f"{DeviceTypeEnum(type_id).name} ({type_id})"
     except ValueError:
         return f"device_type_id={type_id}"
 

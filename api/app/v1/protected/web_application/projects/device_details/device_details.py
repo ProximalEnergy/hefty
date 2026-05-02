@@ -8,8 +8,8 @@ import polars as pl
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, TimeOffset
-from core.enumerations import SensorType as SensorTypeEnum
+from core.enumerations import DeviceTypeEnum, TimeOffset
+from core.enumerations import SensorTypeEnum as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsorted
 from pydantic import BaseModel
@@ -388,18 +388,18 @@ async def get_vertical_controller(
     """
     SUPPORTED_DEVICE_TYPE_IDS_BY_TECHNOLOGY: dict[Literal["pv", "bess"], list[int]] = {
         "pv": [
-            DeviceType.PV_INVERTER,
-            DeviceType.PV_INVERTER_MODULE,
-            DeviceType.PV_DC_COMBINER,
-            DeviceType.TRACKER_ROW,
+            DeviceTypeEnum.PV_INVERTER,
+            DeviceTypeEnum.PV_INVERTER_MODULE,
+            DeviceTypeEnum.PV_DC_COMBINER,
+            DeviceTypeEnum.TRACKER_ROW,
         ],
         "bess": [
-            DeviceType.BESS_PCS,
-            DeviceType.BESS_PCS_MODULE_GROUP,
-            DeviceType.BESS_PCS_MODULE,
-            DeviceType.BESS_DC_SKID,
-            DeviceType.BESS_BANK,
-            DeviceType.BESS_STRING,
+            DeviceTypeEnum.BESS_PCS,
+            DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
+            DeviceTypeEnum.BESS_PCS_MODULE,
+            DeviceTypeEnum.BESS_DC_SKID,
+            DeviceTypeEnum.BESS_BANK,
+            DeviceTypeEnum.BESS_STRING,
         ],
     }
 
@@ -431,9 +431,9 @@ async def get_vertical_controller(
     # Determine the block device type ID based on the technology.
     # The block device is the greatest common ancestor of the returned devices.
     if device_technology == "pv":
-        block_device_type_id = DeviceType.PV_BLOCK
+        block_device_type_id = DeviceTypeEnum.PV_BLOCK
     else:
-        block_device_type_id = DeviceType.BESS_BLOCK
+        block_device_type_id = DeviceTypeEnum.BESS_BLOCK
 
     # Get the block associated with the device_id
     block_df = await core.crud.project.devices.get_project_devices(

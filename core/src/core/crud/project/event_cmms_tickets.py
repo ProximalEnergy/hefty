@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import ClauseElement
 import core.crud.project.devices as crud_devices
 import core.models as models
 from core.db_query import DbQuery, OutputType
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 
 
 def get_event_cmms_tickets(
@@ -305,8 +305,8 @@ async def get_suggested_events_with_score_from_ticket(
         where_conditions.append(e.device_id.in_(device_list))
 
     tracker_penalty_types = [
-        DeviceType.TRACKER_ROW.value,
-        DeviceType.TRACKER_ZONE.value,
+        DeviceTypeEnum.TRACKER_ROW.value,
+        DeviceTypeEnum.TRACKER_ZONE.value,
     ]
     tracker_penalty = sa.case(
         (d.device_type_id.in_(tracker_penalty_types), sa.literal(-20)),
@@ -515,8 +515,8 @@ async def get_suggested_tickets_with_score_from_event(
         where_conditions.append(cd.device_id.in_(device_list))
 
     tracker_penalty_types = [
-        DeviceType.TRACKER_ROW.value,
-        DeviceType.TRACKER_ZONE.value,
+        DeviceTypeEnum.TRACKER_ROW.value,
+        DeviceTypeEnum.TRACKER_ZONE.value,
     ]
     tracker_penalty = sa.case(
         (d.device_type_id.in_(tracker_penalty_types), sa.literal(-20)),

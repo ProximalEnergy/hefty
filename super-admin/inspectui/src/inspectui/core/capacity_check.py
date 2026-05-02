@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 
 from core import models
 from inspectui.core.models import DeviceInfo
@@ -18,7 +18,7 @@ CapacityFieldName = str
 class CapacityRequirement:
     """A device type and capacity field that must be populated."""
 
-    device_type: DeviceType
+    device_type: DeviceTypeEnum
     field_name: CapacityFieldName
 
     @property
@@ -61,39 +61,39 @@ class CapacityCheckRow:
 
 
 CAPACITY_REQUIREMENTS: tuple[CapacityRequirement, ...] = (
-    CapacityRequirement(DeviceType.PV_INVERTER, capacity_dc),
-    CapacityRequirement(DeviceType.PV_INVERTER, capacity_ac),
-    CapacityRequirement(DeviceType.PV_INVERTER_MODULE, capacity_dc),
-    CapacityRequirement(DeviceType.PV_INVERTER_MODULE, capacity_ac),
-    CapacityRequirement(DeviceType.METER, capacity_ac),
-    CapacityRequirement(DeviceType.PV_BLOCK, capacity_dc),
-    CapacityRequirement(DeviceType.PV_BLOCK, capacity_ac),
-    CapacityRequirement(DeviceType.PPC, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_BLOCK, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_PCS, capacity_ac),
-    CapacityRequirement(DeviceType.PV_MVT, capacity_dc),
-    CapacityRequirement(DeviceType.PV_MVT, capacity_ac),
-    CapacityRequirement(DeviceType.PV_MV_COLLECTOR_CIRCUIT, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_MV_COLLECTOR_CIRCUIT, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PV_INVERTER, capacity_dc),
+    CapacityRequirement(DeviceTypeEnum.PV_INVERTER, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PV_INVERTER_MODULE, capacity_dc),
+    CapacityRequirement(DeviceTypeEnum.PV_INVERTER_MODULE, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.METER, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PV_BLOCK, capacity_dc),
+    CapacityRequirement(DeviceTypeEnum.PV_BLOCK, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PPC, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_BLOCK, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_PCS, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PV_MVT, capacity_dc),
+    CapacityRequirement(DeviceTypeEnum.PV_MVT, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT, capacity_ac),
     CapacityRequirement(
-        DeviceType.PV_MV_COLLECTOR_CIRCUIT_METER,
+        DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER,
         capacity_ac,
     ),
     CapacityRequirement(
-        DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER,
+        DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER,
         capacity_ac,
     ),
-    CapacityRequirement(DeviceType.BESS_MV_AUX_METER, capacity_ac),
-    CapacityRequirement(DeviceType.PV_FEEDER, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_FEEDER, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_MVT, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_STRING, capacity_dc),
-    CapacityRequirement(DeviceType.BESS_STRING, capacity_energy_dc),
-    CapacityRequirement(DeviceType.DC_FIELD, capacity_dc),
-    CapacityRequirement(DeviceType.BESS_CELL, capacity_energy_dc),
-    CapacityRequirement(DeviceType.BESS_PCS_MODULE_GROUP, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_PCS_MODULE, capacity_ac),
-    CapacityRequirement(DeviceType.BESS_MODULE, capacity_energy_dc),
+    CapacityRequirement(DeviceTypeEnum.BESS_MV_AUX_METER, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.PV_FEEDER, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_FEEDER, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_MVT, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_STRING, capacity_dc),
+    CapacityRequirement(DeviceTypeEnum.BESS_STRING, capacity_energy_dc),
+    CapacityRequirement(DeviceTypeEnum.DC_FIELD, capacity_dc),
+    CapacityRequirement(DeviceTypeEnum.BESS_CELL, capacity_energy_dc),
+    CapacityRequirement(DeviceTypeEnum.BESS_PCS_MODULE_GROUP, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_PCS_MODULE, capacity_ac),
+    CapacityRequirement(DeviceTypeEnum.BESS_MODULE, capacity_energy_dc),
 )
 
 

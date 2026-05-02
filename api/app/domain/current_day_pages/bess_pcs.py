@@ -2,7 +2,7 @@ import datetime
 
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import SensorType, TimeOffset
+from core.enumerations import SensorTypeEnum, TimeOffset
 from sqlalchemy.orm import Session
 
 import core
@@ -31,7 +31,7 @@ async def get_bess_pcs_data(
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     tags_df = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.BESS_PCS_AC_POWER],
+        sensor_type_ids=[SensorTypeEnum.BESS_PCS_AC_POWER],
         deep=True,
     ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 

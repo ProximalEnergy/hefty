@@ -3,7 +3,7 @@ SoH, Temperature, voltage, and other miscellaneous kpis.
 """
 
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
@@ -38,7 +38,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_bank_soh_d(
         soh: xr.DataArray,
     ) -> xr.DataArray:
-        return soh.mean(dim=coord(DeviceType.BESS_BANK))
+        return soh.mean(dim=coord(DeviceTypeEnum.BESS_BANK))
 
     # BESS_STRING_SOH (54)
     @method_calc(
@@ -57,7 +57,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_string_soh_d(
         soh: xr.DataArray,
     ) -> xr.DataArray:
-        return soh.mean(dim=coord(DeviceType.BESS_STRING))
+        return soh.mean(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # =======================================================
     # Degradation
@@ -101,7 +101,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_string_min_module_temp_d(
         temp: xr.DataArray,
     ) -> xr.DataArray:
-        return temp.min(dim=coord(DeviceType.BESS_STRING))
+        return temp.min(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # BESS_STRING_MAX_MODULE_TEMP (60)
     @method_calc(
@@ -120,7 +120,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_string_max_module_temp_d(
         temp: xr.DataArray,
     ) -> xr.DataArray:
-        return temp.max(dim=coord(DeviceType.BESS_STRING))
+        return temp.max(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # BESS_STRING_AVG_MODULE_TEMP (61)
     @method_calc(
@@ -143,7 +143,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=temp,
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -168,7 +168,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=temp,
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -189,7 +189,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_max_cell_temperature_d(
         temp: xr.DataArray,
     ) -> xr.DataArray:
-        return temp.max(dim=coord(DeviceType.BESS_STRING))
+        return temp.max(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # BESS_STRING_MIN_CELL_TEMPERATURE (74)
     @method_calc(
@@ -208,7 +208,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_min_cell_temperature_d(
         temp: xr.DataArray,
     ) -> xr.DataArray:
-        return temp.min(dim=coord(DeviceType.BESS_STRING))
+        return temp.min(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # =======================================================
     # Voltage
@@ -231,7 +231,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_min_cell_voltage_d(
         voltage: xr.DataArray,
     ) -> xr.DataArray:
-        return voltage.min(dim=coord(DeviceType.BESS_STRING))
+        return voltage.min(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # BESS_STRING_AVG_CELL_VOLTAGE (65)
     @method_calc(
@@ -254,7 +254,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=voltage,
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -275,7 +275,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_max_cell_voltage_d(
         voltage: xr.DataArray,
     ) -> xr.DataArray:
-        return voltage.max(dim=coord(DeviceType.BESS_STRING))
+        return voltage.max(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # =======================================================
     # Current
@@ -302,7 +302,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=current,
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -323,7 +323,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_max_string_current_amps_d(
         current: xr.DataArray,
     ) -> xr.DataArray:
-        return current.max(dim=coord(DeviceType.BESS_STRING))
+        return current.max(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # BESS_STRING_MIN_CURRENT (69)
     @method_calc(
@@ -342,7 +342,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     def project_min_string_current_amps_d(
         current: xr.DataArray,
     ) -> xr.DataArray:
-        return current.min(dim=coord(DeviceType.BESS_STRING))
+        return current.min(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # BESS_STRING_AVG_CURRENT_WHILE_CHARGING (70)
     @method_calc(
@@ -371,7 +371,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=current.where(is_charging(c_rate)),
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -404,6 +404,6 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=current.where(is_discharging(c_rate)),
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )

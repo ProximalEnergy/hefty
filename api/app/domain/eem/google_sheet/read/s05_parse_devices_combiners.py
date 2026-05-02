@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 from core.db_query import OutputType
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -24,7 +24,7 @@ async def parse_devices_combiners(
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     combiners = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_DC_COMBINER],
+        device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     combiners = combiners[["name_long", "device_id"]].rename(
         columns={"device_id": "combiner_device_id"},

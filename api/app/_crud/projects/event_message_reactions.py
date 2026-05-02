@@ -59,7 +59,7 @@ def get_event_message_reaction(
     *,
     event_message_id: int,
     user_id: str,
-    reaction_type: enumerations.ReactionType,
+    reaction_type: enumerations.ReactionTypeEnum,
 ) -> DbQuery[models.EventMessageReaction, Literal[True]]:
     """Get a specific reaction if it exists.
 
@@ -82,7 +82,7 @@ async def create_event_message_reaction(
     db: AsyncSession,
     event_message_id: int,
     user_id: str,
-    reaction_type: enumerations.ReactionType,
+    reaction_type: enumerations.ReactionTypeEnum,
 ) -> models.EventMessageReaction:
     """Create a new event message reaction.
 

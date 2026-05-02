@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
@@ -206,7 +206,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=is_available,
-            device_type=DeviceType.PV_INVERTER,
+            device_type=DeviceTypeEnum.PV_INVERTER,
             date_local_5m=date_local_5m,
         )
 
@@ -228,7 +228,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     def project_pcs_energy_production_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.PV_INVERTER))
+        return energy.sum(dim=coord(DeviceTypeEnum.PV_INVERTER))
 
     # =======================================================
     # PV Inverter Module KPIs
@@ -251,7 +251,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     def project_inverter_module_energy_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.PV_INVERTER_MODULE))
+        return energy.sum(dim=coord(DeviceTypeEnum.PV_INVERTER_MODULE))
 
     @method_calc(
         source=Required(project_inverter_module_energy_kwh_d),
@@ -304,7 +304,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=is_available,
-            device_type=DeviceType.TRACKER_ROW,
+            device_type=DeviceTypeEnum.TRACKER_ROW,
             date_local_5m=date_local_5m,
         )
 
@@ -334,7 +334,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=abs(position - setpoint),
-            device_type=DeviceType.TRACKER_ROW,
+            device_type=DeviceTypeEnum.TRACKER_ROW,
             date_local_5m=date_local_5m,
         )
 
@@ -347,7 +347,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         setpoint: xr.DataArray,
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
-        median_setpoint = setpoint.median(dim=coord(DeviceType.TRACKER_ROW))
+        median_setpoint = setpoint.median(dim=coord(DeviceTypeEnum.TRACKER_ROW))
         return abs(setpoint - median_setpoint).groupby(date_local(date_local_5m)).mean()
 
     @method_calc(
@@ -358,10 +358,10 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         setpoint: xr.DataArray,
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
-        median_setpoint = setpoint.median(dim=coord(DeviceType.TRACKER_ROW))
+        median_setpoint = setpoint.median(dim=coord(DeviceTypeEnum.TRACKER_ROW))
         return daily_mean_across_devices(
             value=abs(setpoint - median_setpoint),
-            device_type=DeviceType.TRACKER_ROW,
+            device_type=DeviceTypeEnum.TRACKER_ROW,
             date_local_5m=date_local_5m,
         )
 
@@ -383,7 +383,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         return daily_mean_across_grouped_devices(
             value=is_available,
             device_mapping=device_mapping,
-            device_type=DeviceType.PV_BLOCK,
+            device_type=DeviceTypeEnum.PV_BLOCK,
             date_local_5m=date_local_5m,
         )
 
@@ -405,7 +405,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         return daily_mean_across_grouped_devices(
             value=abs(position - setpoint),
             device_mapping=device_mapping,
-            device_type=DeviceType.PV_BLOCK,
+            device_type=DeviceTypeEnum.PV_BLOCK,
             date_local_5m=date_local_5m,
         )
 
@@ -423,9 +423,9 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_grouped_devices(
-            value=abs(setpoint - setpoint.median(dim=coord(DeviceType.TRACKER_ROW))),
+            value=abs(setpoint - setpoint.median(dim=coord(DeviceTypeEnum.TRACKER_ROW))),
             device_mapping=device_mapping,
-            device_type=DeviceType.PV_BLOCK,
+            device_type=DeviceTypeEnum.PV_BLOCK,
             date_local_5m=date_local_5m,
         )
 
@@ -470,7 +470,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
             date_local_5m = date_noon
 
         percentile_99 = first_normalization.quantile(
-            0.99, dim=coord(DeviceType.PV_DC_COMBINER)
+            0.99, dim=coord(DeviceTypeEnum.PV_DC_COMBINER)
         ).drop_vars("quantile")
         second_normalization = first_normalization / percentile_99
         result = second_normalization.groupby(date_local(date_local_5m)).mean()
@@ -484,7 +484,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     def project_avg_combiner_field_health_d(
         field_health: xr.DataArray,
     ) -> xr.DataArray:
-        result = field_health.mean(dim=coord(DeviceType.PV_DC_COMBINER))
+        result = field_health.mean(dim=coord(DeviceTypeEnum.PV_DC_COMBINER))
         return result.where(filter_mask(filter_by=result, min_value=0, max_value=1))
 
     # MODULE_STATE_OF_HEALTH_BY_COMBINER (17)
@@ -572,7 +572,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     def project_combiner_module_excess_degradation_d(
         module_excess_degradation: xr.DataArray,
     ) -> xr.DataArray:
-        return module_excess_degradation.mean(dim=coord(DeviceType.PV_DC_COMBINER))
+        return module_excess_degradation.mean(dim=coord(DeviceTypeEnum.PV_DC_COMBINER))
 
     # PV_DC_COMBINER_MECHANICAL_AVAILABILITY (101)
     @method_calc(
@@ -595,6 +595,6 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=is_available,
-            device_type=DeviceType.PV_DC_COMBINER,
+            device_type=DeviceTypeEnum.PV_DC_COMBINER,
             date_local_5m=date_local_5m,
         )

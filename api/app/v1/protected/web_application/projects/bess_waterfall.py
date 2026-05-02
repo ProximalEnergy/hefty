@@ -2,7 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from core.enumerations import KPIType
+from core.enumerations import KPITypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -65,13 +65,13 @@ async def get_project_bess_waterfall(
             status_code=404,
             detail="Missing BESS energy capacity metadata for project",
         )
-    project_charged_kpi = KPIType.BESS_PROJECT_ENERGY_CHARGED.value
-    aux_energy_kpi = KPIType.BESS_MV_AUX_METER_ENERGY.value
-    feeder_charged_kpi = KPIType.BESS_CIRCUIT_ENERGY_CHARGED.value
-    string_charged_kpi = KPIType.BESS_STRING_ENERGY_CHARGED.value
-    string_discharged_kpi = KPIType.BESS_STRING_ENERGY_DISCHARGED.value
-    feeder_discharged_kpi = KPIType.BESS_CIRCUIT_ENERGY_DISCHARGED.value
-    project_discharged_kpi = KPIType.PROJECT_ENERGY_DISCHARGED.value
+    project_charged_kpi = KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED.value
+    aux_energy_kpi = KPITypeEnum.BESS_MV_AUX_METER_ENERGY.value
+    feeder_charged_kpi = KPITypeEnum.BESS_CIRCUIT_ENERGY_CHARGED.value
+    string_charged_kpi = KPITypeEnum.BESS_STRING_ENERGY_CHARGED.value
+    string_discharged_kpi = KPITypeEnum.BESS_STRING_ENERGY_DISCHARGED.value
+    feeder_discharged_kpi = KPITypeEnum.BESS_CIRCUIT_ENERGY_DISCHARGED.value
+    project_discharged_kpi = KPITypeEnum.PROJECT_ENERGY_DISCHARGED.value
 
     all_kpis = [
         project_charged_kpi,
@@ -180,7 +180,7 @@ async def get_project_bess_aux_energy_daily_avg(
         start: Start date for KPI aggregation.
         end: End date for KPI aggregation.
     """
-    aux_energy_kpi = KPIType.BESS_MV_AUX_METER_ENERGY.value
+    aux_energy_kpi = KPITypeEnum.BESS_MV_AUX_METER_ENERGY.value
     kpi_data = await crud_get_kpi_data_async(
         db=db,
         start=start,

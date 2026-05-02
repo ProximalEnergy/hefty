@@ -4,7 +4,7 @@ Status and event-based kpis, namely availability
 
 import numpy as np
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import daily_mean_across_devices, date_local
 from kpi.op.field_registry import FieldRegistry
@@ -42,7 +42,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=availability,
-            device_type=DeviceType.BESS_PCS,
+            device_type=DeviceTypeEnum.BESS_PCS,
             date_local_5m=date_local_5m,
         )
 
@@ -69,7 +69,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - event),
-            device_type=DeviceType.BESS_PCS_MODULE,
+            device_type=DeviceTypeEnum.BESS_PCS_MODULE,
             date_local_5m=date_local_5m,
         )
 
@@ -96,7 +96,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - status),
-            device_type=DeviceType.BESS_BANK,
+            device_type=DeviceTypeEnum.BESS_BANK,
             date_local_5m=date_local_5m,
         )
 

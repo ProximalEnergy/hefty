@@ -479,7 +479,7 @@ async def get_timeseries_v3(
         # Get values and convert to list, handling None/NaN
         values = df[col].tolist()
         this_tag = [t for t in tags if t.tag_id == tag_id][0]
-        if this_tag.pg_data_type_id == core.enumerations.PGDataType.TEXT:
+        if this_tag.pg_data_type_id == core.enumerations.PGDataTypeEnum.TEXT:
             y_values = [
                 cast(float | str | None, str(val) if pd.notna(val) else None)
                 for val in values

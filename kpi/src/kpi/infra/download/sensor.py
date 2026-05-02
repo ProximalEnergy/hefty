@@ -6,7 +6,7 @@ from core.crud.operational.sensor_types import get_sensor_types
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.tags import get_project_tags_v2
 from core.database import with_db
-from core.enumerations import OutputType, SensorType, TimeOffset
+from core.enumerations import OutputType, SensorTypeEnum, TimeOffset
 from kpi.base.exception import NoDownloadedDataError
 from kpi.infra.download.async_runner import run_in_loop
 from pydantic import ConfigDict, validate_call
@@ -121,7 +121,7 @@ def get_sensor_types_map(sensor_type_id_list: list[int]) -> dict[int, int]:
 
 
 def get_existing_columns_df(
-    tag_df: pd.DataFrame, data_raw: pd.DataFrame, sensor_type: SensorType
+    tag_df: pd.DataFrame, data_raw: pd.DataFrame, sensor_type: SensorTypeEnum
 ) -> pd.DataFrame:
     desired_tags = tag_df[tag_df[models.Tag.sensor_type_id.name] == sensor_type.value]
     existing_columns = [

@@ -42,20 +42,23 @@ class EventMessageReaction(BaseModel):
     created_at: datetime.datetime
 
 
-def _string_to_reaction_type(*, reaction_type_str: str) -> enumerations.ReactionType:
+def _string_to_reaction_type(
+    *, reaction_type_str: str
+) -> enumerations.ReactionTypeEnum:
     """Convert string reaction type to ReactionType enum.
 
     Args:
         reaction_type_str: Description for reaction_type_str.
     """
     try:
-        return enumerations.ReactionType(reaction_type_str)
+        return enumerations.ReactionTypeEnum(reaction_type_str)
     except ValueError:
         # If not a valid enum value, raise error
+        valid_types = ", ".join(e.value for e in enumerations.ReactionTypeEnum)
         raise HTTPException(
             status_code=400,
             detail=f"Invalid reaction_type: {reaction_type_str}. "
-            f"Valid types: {', '.join([e.value for e in enumerations.ReactionType])}",
+            f"Valid types: {valid_types}",
         )
 
 

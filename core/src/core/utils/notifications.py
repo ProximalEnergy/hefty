@@ -205,7 +205,7 @@ async def determine_notification_recipients(
 
 async def ensure_notification_states_exist(
     *,
-    notification_types: Sequence[enumerations.NotificationType],
+    notification_types: Sequence[enumerations.NotificationTypeEnum],
 ) -> None:
     """Ensure notifications of given types have notification states created.
 
@@ -282,7 +282,7 @@ async def ensure_notification_states_exist(
                                     db=db,
                                     notification_id=notification.notification_id,
                                     user_id=preference.user_id,
-                                    channel=enumerations.NotificationChannel.IN_APP,
+                                    channel=enumerations.NotificationChannelEnum.IN_APP,
                                 )
                                 logger.info(
                                     f"Created missing in-app state for user "
@@ -305,7 +305,7 @@ async def ensure_notification_states_exist(
                                     db=db,
                                     notification_id=notification.notification_id,
                                     user_id=preference.user_id,
-                                    channel=enumerations.NotificationChannel.EMAIL,
+                                    channel=enumerations.NotificationChannelEnum.EMAIL,
                                 )
                                 logger.info(
                                     f"Created missing email state for user "
@@ -344,7 +344,7 @@ async def ensure_notification_states_exist(
                                     db=db,
                                     notification_id=notification.notification_id,
                                     user_id=user.user_id,
-                                    channel=enumerations.NotificationChannel.IN_APP,
+                                    channel=enumerations.NotificationChannelEnum.IN_APP,
                                 )
                                 logger.info(
                                     f"Created missing default in-app state for "
@@ -396,7 +396,7 @@ async def send_notification_email(
                 db=db,
                 notification_id=notification_id,
                 user_id=user_id,
-                channel=enumerations.NotificationChannel.EMAIL,
+                channel=enumerations.NotificationChannelEnum.EMAIL,
             )
             if summary is not None:
                 summary["emails_sent"] = summary.get("emails_sent", 0) + 1

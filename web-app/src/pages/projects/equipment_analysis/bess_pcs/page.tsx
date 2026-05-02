@@ -1,5 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, UserTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisBESSPCS } from '@/api/v1/protected/web-application/projects/equipment-analysis/bess_pcs'
 import CustomCard from '@/components/CustomCard'
@@ -41,10 +41,9 @@ const EquipmentAnalysisBESSPCSPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
   const isAdmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.ADMIN ||
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    userType.data?.user_type_id === UserTypeEnum.ADMIN ||
+    userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
 
   const project = useSelectProject(projectId!)
   const { activeTab, setTab } = useEquipmentAnalysisTab({

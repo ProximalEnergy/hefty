@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload, noload
 
 from core import models
 from core.db_query import DbQuery
-from core.enumerations import SensorType
+from core.enumerations import SensorTypeEnum
 
 
 def get_project_device_options(*, deep: bool, include_name_long: bool = False) -> Any:
@@ -79,7 +79,7 @@ def get_project_devices(
         tag_exists = (
             exists()
             .where(models.Tag.device_id == models.Device.device_id)
-            .where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
+            .where(models.Tag.sensor_type_id != SensorTypeEnum.GHOST_UNKNOWN)
         )
         stmt = stmt.where(tag_exists)
     if device_id_descendent_of is not None:
@@ -169,7 +169,7 @@ async def get_project_devices_async(
         tag_exists = (
             exists()
             .where(models.Tag.device_id == models.Device.device_id)
-            .where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
+            .where(models.Tag.sensor_type_id != SensorTypeEnum.GHOST_UNKNOWN)
         )
         stmt = stmt.where(tag_exists)
     if device_id_descendent_of is not None:

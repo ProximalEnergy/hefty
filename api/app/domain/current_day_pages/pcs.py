@@ -4,7 +4,7 @@ from typing import Any
 import pandas as pd
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, SensorType, TimeInterval, TimeOffset
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum, TimeInterval, TimeOffset
 from fastapi import HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
@@ -196,7 +196,7 @@ async def get_equipment_analysis_pcs_data(
     # Get block devices
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_block = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_BLOCK],
+        device_type_ids=[DeviceTypeEnum.PV_BLOCK],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_block_device_id_to_name_long = dict(
         zip(
@@ -211,7 +211,7 @@ async def get_equipment_analysis_pcs_data(
 
     # Get block tags
     tags_block = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.PV_BLOCK_AC_POWER],
+        sensor_type_ids=[SensorTypeEnum.PV_BLOCK_AC_POWER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     tags_block_tag_id_to_device_id = dict(
         zip(
@@ -226,7 +226,7 @@ async def get_equipment_analysis_pcs_data(
     # PCSs
     # Get PCS devices
     devices_pcs = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_INVERTER],
+        device_type_ids=[DeviceTypeEnum.PV_INVERTER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_pcs_device_id_to_name_long = dict(
         zip(
@@ -241,7 +241,7 @@ async def get_equipment_analysis_pcs_data(
 
     # Get PCS tags
     tags_pcs = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.PV_INVERTER_AC_POWER],
+        sensor_type_ids=[SensorTypeEnum.PV_INVERTER_AC_POWER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     tags_pcs_tag_id_to_device_id = dict(
         zip(
@@ -256,7 +256,7 @@ async def get_equipment_analysis_pcs_data(
     # PCS MODULEs
     # Get PCS module devices
     devices_pcs_module = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_INVERTER_MODULE],
+        device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_pcs_module_device_id_to_name_long = dict(
         zip(
@@ -267,7 +267,7 @@ async def get_equipment_analysis_pcs_data(
 
     # Get PCS module tags
     tags_pcs_module = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.PV_INVERTER_MODULE_AC_POWER],
+        sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     tags_pcs_module_tag_id_to_device_id = dict(
         zip(

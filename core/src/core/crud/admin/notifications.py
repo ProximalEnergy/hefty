@@ -212,8 +212,10 @@ async def create_notification_state(
     db: AsyncSession,
     notification_id: int,
     user_id: str,
-    channel: enumerations.NotificationChannel,
-    state: enumerations.NotificationState = enumerations.NotificationState.UNREAD,
+    channel: enumerations.NotificationChannelEnum,
+    state: enumerations.NotificationStateEnum = (
+        enumerations.NotificationStateEnum.UNREAD
+    ),
 ) -> models.NotificationState:
     """Create a notification state for a user.
 

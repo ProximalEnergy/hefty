@@ -11,7 +11,7 @@ import pandas as pd
 import psycopg2
 import xarray as xr
 from core.database import with_db
-from core.enumerations import KPIType
+from core.enumerations import KPITypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.infra.xarray_to_pandas import (
     xarray_device_time_series_to_pandas,
@@ -178,7 +178,7 @@ def arrays_to_rows(
     device_data: xr.DataArray | None,
     version: str,
     project_id: UUID,
-    kpi_type: KPIType,
+    kpi_type: KPITypeEnum,
     start: datetime.date,
     end: datetime.date,
 ) -> list[KPIDataRow]:

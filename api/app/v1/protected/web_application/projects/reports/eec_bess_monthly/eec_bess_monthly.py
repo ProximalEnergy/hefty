@@ -39,7 +39,7 @@ from core.domain.kpis.rte import get_project_rte as core_get_project_rte
 from core.domain.kpis.rte import (
     get_project_rte_from_modules as core_get_project_rte_from_modules,
 )
-from core.enumerations import DeviceType, KPIType, SensorType, TimeInterval
+from core.enumerations import DeviceTypeEnum, KPITypeEnum, SensorTypeEnum, TimeInterval
 from pydantic import BaseModel
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -652,7 +652,7 @@ def section_two_column_metrics(
     # calc_delta is now imported from report_utils as calc_delta_percentage
 
     # ---- data ----
-    soh_mean = kpi_means.get(KPIType.BESS_STRING_SOH)
+    soh_mean = kpi_means.get(KPITypeEnum.BESS_STRING_SOH)
     soh_actual_display = (
         format_percentage_value(value=soh_mean) if soh_mean is not None else "—"
     )
@@ -661,7 +661,7 @@ def section_two_column_metrics(
         if soh_mean is not None
         else "—"
     )
-    cycle_count_sum = kpi_sums.get(KPIType.BESS_STRING_CYCLE_COUNT)
+    cycle_count_sum = kpi_sums.get(KPITypeEnum.BESS_STRING_CYCLE_COUNT)
     monthly_cycles_actual = (
         f"{cycle_count_sum:.2f}" if cycle_count_sum is not None else "—"
     )
@@ -681,7 +681,7 @@ def section_two_column_metrics(
         if ytd_cycles is not None
         else "—"
     )
-    average_soc_mean = kpi_means.get(KPIType.PROJECT_AVERAGE_SOC_PERCENT)
+    average_soc_mean = kpi_means.get(KPITypeEnum.PROJECT_AVERAGE_SOC_PERCENT)
     average_soc_actual = (
         format_percentage_value(value=average_soc_mean)
         if average_soc_mean is not None
@@ -695,7 +695,7 @@ def section_two_column_metrics(
         if average_soc_mean is not None
         else "—"
     )
-    resting_soc_mean = kpi_means.get(KPIType.BESS_STRING_RESTING_SOC_PERCENT)
+    resting_soc_mean = kpi_means.get(KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT)
     resting_soc_actual = (
         format_percentage_value(value=resting_soc_mean)
         if resting_soc_mean is not None
@@ -2898,13 +2898,13 @@ async def get_report_kpi_data(
         Tuple of (kpi_sums, kpi_means, soc_stats).
     """
     kpi_type_ids = [
-        KPIType.BESS_STRING_CYCLE_COUNT.value,
-        KPIType.BESS_STRING_SOH.value,
-        KPIType.BESS_STRING_RESTING_SOC_PERCENT.value,
-        KPIType.PROJECT_AVERAGE_SOC_PERCENT.value,
-        KPIType.PROJECT_ENERGY_DISCHARGED.value,
-        KPIType.BESS_PROJECT_ENERGY_CHARGED.value,
-        KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE.value,
+        KPITypeEnum.BESS_STRING_CYCLE_COUNT.value,
+        KPITypeEnum.BESS_STRING_SOH.value,
+        KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT.value,
+        KPITypeEnum.PROJECT_AVERAGE_SOC_PERCENT.value,
+        KPITypeEnum.PROJECT_ENERGY_DISCHARGED.value,
+        KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED.value,
+        KPITypeEnum.BESS_PROJECT_STRING_SOC_BALANCE_SCORE.value,
     ]
     kpi_data_query = crud_get_kpi_data(
         start=start,
@@ -2918,7 +2918,7 @@ async def get_report_kpi_data(
     )
 
     project_soc_tags = await crud_get_project_tags_v2(
-        sensor_type_ids=[SensorType.PROJECT_SOC_PERCENT]
+        sensor_type_ids=[SensorTypeEnum.PROJECT_SOC_PERCENT]
     ).get_async(output_type=OutputType.POLARS, schema=project.name_short)
     tag_id = project_soc_tags["tag_id"][0]
 
@@ -2942,7 +2942,7 @@ async def get_report_kpi_data(
     means = kpi_df[["kpi_type_id", "project_data"]].groupby("kpi_type_id").mean()
 
     degradation = await yearly_degradation_rate_from_soh(
-        kpi_type_id=KPIType.BESS_STRING_SOH,
+        kpi_type_id=KPITypeEnum.BESS_STRING_SOH,
         start=start,
         end=end,
         project=project,
@@ -2951,7 +2951,7 @@ async def get_report_kpi_data(
         start=start.replace(month=1, day=1),
         end=end,
         project_ids=[project.project_id],
-        kpi_type_ids=[KPIType.BESS_STRING_CYCLE_COUNT.value],
+        kpi_type_ids=[KPITypeEnum.BESS_STRING_CYCLE_COUNT.value],
         include_device_data=False,
     )
     ytd_cycles_df = await ytd_cycles.get_async(output_type=OutputType.PANDAS)
@@ -2991,14 +2991,14 @@ async def create_radar_chart(
         included_projects.append(str(project_id))
     included_projects_uuid = [uuid.UUID(project_id) for project_id in included_projects]
     kpi_type_ids = [
-        KPIType.BESS_STRING_ENERGY_DISCHARGED,
-        KPIType.BESS_PCS_AVAILABILITY,
-        KPIType.BESS_PCS_MODULE_AVAILABILITY,
-        KPIType.BESS_STRING_AVAILABILITY,
-        KPIType.BESS_BANK_AVAILABILITY,
-        KPIType.BESS_STRING_RESTING_SOC_PERCENT,
-        KPIType.PROJECT_ENERGY_DISCHARGED,
-        KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE,
+        KPITypeEnum.BESS_STRING_ENERGY_DISCHARGED,
+        KPITypeEnum.BESS_PCS_AVAILABILITY,
+        KPITypeEnum.BESS_PCS_MODULE_AVAILABILITY,
+        KPITypeEnum.BESS_STRING_AVAILABILITY,
+        KPITypeEnum.BESS_BANK_AVAILABILITY,
+        KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
+        KPITypeEnum.PROJECT_ENERGY_DISCHARGED,
+        KPITypeEnum.BESS_PROJECT_STRING_SOC_BALANCE_SCORE,
     ]
     df = await crud_get_kpi_data(
         kpi_type_ids=[kpi_type.value for kpi_type in kpi_type_ids],
@@ -3013,7 +3013,7 @@ async def create_radar_chart(
 
     # Real $ / MWh Delivered and $ / MW Virtual Trades:
     dollars_per_mwh = (
-        df[df["kpi_type_id"] == KPIType.PROJECT_ENERGY_DISCHARGED][
+        df[df["kpi_type_id"] == KPITypeEnum.PROJECT_ENERGY_DISCHARGED][
             ["project_id", "project_data"]
         ]
         .groupby("project_id")
@@ -3068,7 +3068,7 @@ async def create_radar_chart(
 
     # Energy Yield (MWh / MW)
     energy_discharged = (
-        df[df["kpi_type_id"] == KPIType.PROJECT_ENERGY_DISCHARGED][
+        df[df["kpi_type_id"] == KPITypeEnum.PROJECT_ENERGY_DISCHARGED][
             ["project_id", "project_data"]
         ]
         .groupby("project_id")
@@ -3086,10 +3086,10 @@ async def create_radar_chart(
         df[
             df["kpi_type_id"].isin(
                 [
-                    KPIType.BESS_PCS_AVAILABILITY.value,
-                    KPIType.BESS_PCS_MODULE_AVAILABILITY.value,
-                    KPIType.BESS_STRING_AVAILABILITY.value,
-                    KPIType.BESS_BANK_AVAILABILITY.value,
+                    KPITypeEnum.BESS_PCS_AVAILABILITY.value,
+                    KPITypeEnum.BESS_PCS_MODULE_AVAILABILITY.value,
+                    KPITypeEnum.BESS_STRING_AVAILABILITY.value,
+                    KPITypeEnum.BESS_BANK_AVAILABILITY.value,
                 ]
             )
         ][["project_id", "project_data"]]
@@ -3099,9 +3099,9 @@ async def create_radar_chart(
     )
 
     # Balance of Strings (100% = perfectly balanced)
-    balance = df[df["kpi_type_id"] == KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE][
-        ["project_id", "project_data"]
-    ]
+    balance = df[
+        df["kpi_type_id"] == KPITypeEnum.BESS_PROJECT_STRING_SOC_BALANCE_SCORE
+    ][["project_id", "project_data"]]
     balance.loc[
         (balance["project_data"] > 1.0) | (balance["project_data"] < 0.0),
         "project_data",
@@ -3440,7 +3440,7 @@ async def build_event_data(
         )
 
     all_devices = await crud_get_project_devices_async(
-        db=project_db, device_type_ids=[DeviceType.BESS_PCS_MODULE]
+        db=project_db, device_type_ids=[DeviceTypeEnum.BESS_PCS_MODULE]
     )
     total_ac_power_capacity = float(sum((x.capacity_ac or 0.0) for x in all_devices))
     total_energy_capacity = (
@@ -3701,7 +3701,7 @@ async def get_contract_uec(
         return pd.DataFrame(columns=["uec"])
     contract_uec = contract_kpis[
         contract_kpis["kpi_type_id"]
-        == KPIType.BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY
+        == KPITypeEnum.BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY
     ].iloc[0]
 
     threshold = contract_uec.get("threshold")
@@ -3937,10 +3937,10 @@ async def generate_eec_bess_monthly_report(
     )
     other_tps_data = {
         "Total Energy Discharged": kpi_sums.loc[
-            KPIType.PROJECT_ENERGY_DISCHARGED.value, "project_data"
+            KPITypeEnum.PROJECT_ENERGY_DISCHARGED.value, "project_data"
         ],
         "Total Energy Charged": kpi_sums.loc[
-            KPIType.BESS_PROJECT_ENERGY_CHARGED.value, "project_data"
+            KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED.value, "project_data"
         ],
     }
     (

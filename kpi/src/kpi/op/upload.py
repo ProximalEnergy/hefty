@@ -1,7 +1,7 @@
 import warnings
 
 import xarray as xr
-from core.enumerations import KPIType
+from core.enumerations import KPITypeEnum
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 
 class UploadModel(BaseModel):
-    kpi_type: KPIType
+    kpi_type: KPITypeEnum
     version: str
     project_var: str
     device_var: str | None = None

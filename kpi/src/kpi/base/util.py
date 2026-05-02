@@ -1,5 +1,5 @@
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 
 
-def coord(device_type: DeviceType) -> str:
+def coord(device_type: DeviceTypeEnum) -> str:
     return device_type.name.lower()

@@ -9,7 +9,7 @@ import core.models as models
 from core.crud.operational.kpi_data import core_get_kpi_data as crud_get_kpi_data
 from core.crud.operational.projects import get_projects as crud_get_projects
 from core.db_query import OutputType
-from core.enumerations import KPIType
+from core.enumerations import KPITypeEnum
 
 
 async def get_project_rte(
@@ -29,10 +29,10 @@ async def get_project_rte(
     Returns:
         A dictionary of project IDs to RTE values.
     """
-    STRING_ENERGY_CHARGED_KPI_ID = KPIType.BESS_STRING_ENERGY_CHARGED.value
-    STRING_ENERGY_DISCHARGED_KPI_ID = KPIType.BESS_STRING_ENERGY_DISCHARGED.value
-    PROJECT_SOC_INCREASE_KPI_ID = KPIType.BESS_PROJECT_CHARGE_CYCLES.value
-    PROJECT_SOC_DECREASE_KPI_ID = KPIType.BESS_PROJECT_DISCHARGE_CYCLES.value
+    STRING_ENERGY_CHARGED_KPI_ID = KPITypeEnum.BESS_STRING_ENERGY_CHARGED.value
+    STRING_ENERGY_DISCHARGED_KPI_ID = KPITypeEnum.BESS_STRING_ENERGY_DISCHARGED.value
+    PROJECT_SOC_INCREASE_KPI_ID = KPITypeEnum.BESS_PROJECT_CHARGE_CYCLES.value
+    PROJECT_SOC_DECREASE_KPI_ID = KPITypeEnum.BESS_PROJECT_DISCHARGE_CYCLES.value
 
     THRESHOLD = 0.2
 
@@ -133,12 +133,12 @@ async def get_project_rte_from_modules(
     Returns:
         A dictionary of project IDs to RTE values.
     """
-    pcs_module_energy_charged_kpi_id = KPIType.BESS_PCS_MODULE_ENERGY_CHARGED.value
+    pcs_module_energy_charged_kpi_id = KPITypeEnum.BESS_PCS_MODULE_ENERGY_CHARGED.value
     pcs_module_energy_discharged_kpi_id = (
-        KPIType.BESS_PCS_MODULE_ENERGY_DISCHARGED.value
+        KPITypeEnum.BESS_PCS_MODULE_ENERGY_DISCHARGED.value
     )
-    project_soc_increase_kpi_id = KPIType.BESS_PROJECT_CHARGE_CYCLES.value
-    project_soc_decrease_kpi_id = KPIType.BESS_PROJECT_DISCHARGE_CYCLES.value
+    project_soc_increase_kpi_id = KPITypeEnum.BESS_PROJECT_CHARGE_CYCLES.value
+    project_soc_decrease_kpi_id = KPITypeEnum.BESS_PROJECT_DISCHARGE_CYCLES.value
 
     threshold = 0.2
 
@@ -264,17 +264,17 @@ async def get_and_calculate_rte(
         return np.nan
     match rte_type:
         case "POI":
-            charged_kpi_id = KPIType.BESS_PROJECT_ENERGY_CHARGED.value
-            discharged_kpi_id = KPIType.PROJECT_ENERGY_DISCHARGED.value
+            charged_kpi_id = KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED.value
+            discharged_kpi_id = KPITypeEnum.PROJECT_ENERGY_DISCHARGED.value
         case "POI_NO_AUX":
-            charged_kpi_id = KPIType.BESS_PROJECT_ENERGY_CHARGED_NO_AUX.value
-            discharged_kpi_id = KPIType.PROJECT_ENERGY_DISCHARGED.value
+            charged_kpi_id = KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED_NO_AUX.value
+            discharged_kpi_id = KPITypeEnum.PROJECT_ENERGY_DISCHARGED.value
         case "FEEDER":
-            charged_kpi_id = KPIType.BESS_CIRCUIT_ENERGY_CHARGED.value
-            discharged_kpi_id = KPIType.BESS_CIRCUIT_ENERGY_DISCHARGED.value
+            charged_kpi_id = KPITypeEnum.BESS_CIRCUIT_ENERGY_CHARGED.value
+            discharged_kpi_id = KPITypeEnum.BESS_CIRCUIT_ENERGY_DISCHARGED.value
         case "DC":
-            charged_kpi_id = KPIType.BESS_STRING_ENERGY_CHARGED.value
-            discharged_kpi_id = KPIType.BESS_STRING_ENERGY_DISCHARGED.value
+            charged_kpi_id = KPITypeEnum.BESS_STRING_ENERGY_CHARGED.value
+            discharged_kpi_id = KPITypeEnum.BESS_STRING_ENERGY_DISCHARGED.value
         case _:
             raise ValueError(f"Unsupported RTE type: {rte_type}")
     df = await crud_get_kpi_data(

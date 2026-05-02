@@ -1,5 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, UserTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetOMContractorScopes } from '@/api/v1/operational/project/om_contractors'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
@@ -45,11 +45,11 @@ export default function ProjectInfoModal({
   const computedColorScheme = useComputedColorScheme()
 
   const isUserAdmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.ADMIN ||
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    userType.data?.user_type_id === UserTypeEnum.ADMIN ||
+    userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
 
   const isUserSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
 
   // Helper function to get icon styling for dark mode support
   const getIconStyle = () => ({

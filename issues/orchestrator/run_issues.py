@@ -15,7 +15,7 @@ if __package__ is None or __package__ == "":
         sys.path.insert(0, str(core_src))
 
 from core.db_query import OutputType
-from core.enumerations import ProjectStatusType, ProjectType
+from core.enumerations import ProjectStatusType, ProjectTypeEnum
 
 from core import crud
 from issues.logging_utils import setup_logging
@@ -37,7 +37,7 @@ def discover_project_ids() -> list[str]:
     projects = (
         crud.operational.projects.get_projects(
             project_status_type_ids=[ProjectStatusType.ACTIVE],
-            project_type_ids=[ProjectType.PV, ProjectType.PVS],
+            project_type_ids=[ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
         ).get(output_type=OutputType.SQLALCHEMY)
         or []
     )

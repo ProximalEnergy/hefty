@@ -1,5 +1,5 @@
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.base.util import coord
 from kpi.domain.util import date_local, diff
@@ -60,7 +60,7 @@ def pv_dc_combiner_module_excess_degradation(
         trkr_scores = exceeds_theoretical.groupby(date).sum()
 
         # Remove bad trackers (scores < mean * 0.9)
-        mean_score = trkr_scores.mean(dim=DeviceType.MET_STATION.name.lower())
+        mean_score = trkr_scores.mean(dim=DeviceTypeEnum.MET_STATION.name.lower())
         good_trackers = trkr_scores >= (mean_score * 0.9)
         return met_station_poa.where(
             good_trackers.sel({TimeCoords.DATE_LOCAL.value: date_local_5m}).drop_vars(
@@ -77,7 +77,7 @@ def pv_dc_combiner_module_excess_degradation(
 
         # generic clear sky check
         median_poa = met_station_clean_poa_5m.median(
-            dim=DeviceType.MET_STATION.name.lower()
+            dim=DeviceTypeEnum.MET_STATION.name.lower()
         )
         good_irr = median_poa >= min_poa
 
@@ -94,13 +94,13 @@ def pv_dc_combiner_module_excess_degradation(
 
         # Good if mean 1d change <= max_poa_1d
         good_der = (
-            met_station_poa_1d.mean(dim=DeviceType.MET_STATION.name.lower())
+            met_station_poa_1d.mean(dim=DeviceTypeEnum.MET_STATION.name.lower())
             <= max_poa_1d
         )
 
         # Calculate rolling standard deviation across devices
         project_std_across_devices = met_station_clean_poa_5m.std(
-            dim=DeviceType.MET_STATION.name.lower()
+            dim=DeviceTypeEnum.MET_STATION.name.lower()
         )
         std_rolling_15_minute_average = (
             project_std_across_devices.rolling(
@@ -136,7 +136,7 @@ def pv_dc_combiner_module_excess_degradation(
         """
         # Calculate the mean DC field health across all combiners for each day
         mean_dc_field_health = pv_dc_combiner_field_health_d.mean(
-            dim=DeviceType.PV_DC_COMBINER.name.lower()
+            dim=DeviceTypeEnum.PV_DC_COMBINER.name.lower()
         )
         # Cap scaled mean at 0.975 so the threshold never exceeds 0.975.
         effective_mean_dc_field_health = (mean_dc_field_health * 0.975).clip(max=0.975)
@@ -174,7 +174,7 @@ def pv_dc_combiner_module_excess_degradation(
         power_factor_good_idx = power_factor >= 0.98
         return power_good_idx & setpoint_good_idx & power_factor_good_idx
 
-    inverter = inverter_module_to_inverter.rename(coord(DeviceType.PV_INVERTER))
+    inverter = inverter_module_to_inverter.rename(coord(DeviceTypeEnum.PV_INVERTER))
 
     def _pcs_from_child_module_good_indices_5m() -> xr.DataArray:
         """
@@ -230,8 +230,8 @@ def pv_dc_combiner_module_excess_degradation(
         combiner_good_indices_all_d = (
             combiner_good_indices_d
             & block_good_indices_d.sel(
-                {coord(DeviceType.PV_BLOCK): combiner_to_block}
-            ).drop_vars(coord(DeviceType.PV_BLOCK))
+                {coord(DeviceTypeEnum.PV_BLOCK): combiner_to_block}
+            ).drop_vars(coord(DeviceTypeEnum.PV_BLOCK))
             & project_good_indices_1d
         )
 
@@ -270,8 +270,8 @@ def pv_dc_combiner_module_excess_degradation(
         combiner_actual_power_5m = (
             combiner_current_amps_5m
             * pv_inverter_voltage_v_5m.sel(
-                {coord(DeviceType.PV_INVERTER): combiner_to_inverter}
-            ).drop_vars(coord(DeviceType.PV_INVERTER))
+                {coord(DeviceTypeEnum.PV_INVERTER): combiner_to_inverter}
+            ).drop_vars(coord(DeviceTypeEnum.PV_INVERTER))
         ) / 1000
 
         # converting 5 minute power to kwh by dividing by 12 (5 minutes * 12 = 1 hour)
@@ -308,7 +308,7 @@ def pv_dc_combiner_module_excess_degradation(
 
     # if less than 15% of devices reporting, then skip that particular day
     valid_percentage = module_degradation.notnull().mean(
-        dim=DeviceType.PV_DC_COMBINER.name.lower()
+        dim=DeviceTypeEnum.PV_DC_COMBINER.name.lower()
     )
 
     validity_mask = valid_percentage >= 0.15

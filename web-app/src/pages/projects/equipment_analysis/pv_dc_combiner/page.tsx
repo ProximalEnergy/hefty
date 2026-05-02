@@ -2,7 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import {
   DeviceTypeEnum,
   ProjectTypeEnum,
-  UserTypeEnumEnum,
+  UserTypeEnum,
 } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -35,8 +35,7 @@ const EquipmentAnalysisPVDCCombinerPage = () => {
   const navigate = useNavigate()
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const [checked, setChecked] = useState(false)
   const { activeTab, searchParams, setTab } = useEquipmentAnalysisTab({
     isSuperadmin,

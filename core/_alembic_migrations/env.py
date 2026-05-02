@@ -11,8 +11,16 @@ from sqlalchemy import MetaData, engine_from_config, pool, text
 # access to the values within the .ini file in use.
 config = context.config
 
+
+def escape_config_parser_interpolation(*, value: str) -> str:
+    return value.replace("%", "%%")
+
+
 # Set the SQLALchemy database URL
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option(
+    "sqlalchemy.url",
+    escape_config_parser_interpolation(value=DATABASE_URL),
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

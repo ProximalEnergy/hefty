@@ -1,5 +1,5 @@
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import resting_soc
 from kpi.domain.util import coord, fill_accumulator
@@ -208,7 +208,7 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
         average across all string devices for each 5-minute interval.
         String devices with missing SOH are excluded from the average.
         """
-        return soh.mean(dim=coord(DeviceType.BESS_STRING))
+        return soh.mean(dim=coord(DeviceTypeEnum.BESS_STRING))
 
     # =======================================================
     # Events
@@ -264,7 +264,7 @@ class TransformBessEvaluate(FieldRegistry[CalcProtocol]):
         Project PCS Availability Per 5-Minute Interval
         average across all PCS devices for each 5-minute interval.
         """
-        return availability.mean(dim=coord(DeviceType.BESS_PCS))
+        return availability.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     @method_calc(
         project_pcs_availability=Required(project_pcs_availability_5m),

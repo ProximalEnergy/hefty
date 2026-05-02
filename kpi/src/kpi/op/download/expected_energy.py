@@ -1,7 +1,7 @@
 import xarray as xr
 from core.crud.project.data_expected import get_project_data_expected
 from core.db_query import OutputType
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
@@ -18,7 +18,7 @@ from core import models
 
 class ExpectedEnergyModel(BaseModel, NoInputs):
     expected_metric_id: int
-    device_type: DeviceType
+    device_type: DeviceTypeEnum
     project_level: bool = False
     scale: float | None = None
     offset: float | None = None

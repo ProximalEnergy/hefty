@@ -41,11 +41,11 @@ SEVERITY_THRESHOLDS = {
 }
 
 # NWS / summary / payload keys -> notification enum (DB notification_type_id)
-VALID_WEATHER_TYPES: dict[str, enumerations.NotificationType] = {
-    "hail": enumerations.NotificationType.HAIL,
-    "tornado": enumerations.NotificationType.TORNADO,
-    "wind": enumerations.NotificationType.WIND,
-    "fire": enumerations.NotificationType.FIRE,
+VALID_WEATHER_TYPES: dict[str, enumerations.NotificationTypeEnum] = {
+    "hail": enumerations.NotificationTypeEnum.HAIL,
+    "tornado": enumerations.NotificationTypeEnum.TORNADO,
+    "wind": enumerations.NotificationTypeEnum.WIND,
+    "fire": enumerations.NotificationTypeEnum.FIRE,
 }
 
 # User-facing labels in emails (risk wording, not NWS "alert")
@@ -461,7 +461,7 @@ async def _check_project_against_polygons(
                     db=db,
                     notification_id=notification.notification_id,
                     user_id=user_id,
-                    channel=enumerations.NotificationChannel.IN_APP,
+                    channel=enumerations.NotificationChannelEnum.IN_APP,
                 )
                 summary["in_app_notifications"] += 1
             except Exception as e:

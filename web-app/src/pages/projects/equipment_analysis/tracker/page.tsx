@@ -2,7 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import {
   DeviceTypeEnum,
   ProjectTypeEnum,
-  UserTypeEnumEnum,
+  UserTypeEnum,
 } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { useGetTrackerEquipmentAnalysis } from '@/api/v1/protected/web-application/projects/equipment-analysis/tracker'
@@ -40,8 +40,7 @@ const ProjectEquipmentAnalysisTracker = () => {
 
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const navigate = useNavigate()
   const [view, setView] = useState<'block' | 'row'>('block')
   const { activeTab, searchParams, setTab } = useEquipmentAnalysisTab({

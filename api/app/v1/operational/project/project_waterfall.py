@@ -8,7 +8,12 @@ from core.crud.operational.kpi_data import get_project_kpi_data_agg
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
-from core.enumerations import EventLossType, KPIType, ProjectType, SensorType
+from core.enumerations import (
+    EventLossTypeEnum,
+    KPITypeEnum,
+    ProjectTypeEnum,
+    SensorTypeEnum,
+)
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -104,9 +109,9 @@ async def get_project_waterfall(
     if start_dt is None or end_dt is None:
         raise ValueError("start and end must not be None")
     match project.project_type_id:
-        case ProjectType.PV:
+        case ProjectTypeEnum.PV:
             meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
-                sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
+                sensor_type_ids=[SensorTypeEnum.METER_ACTIVE_POWER],
                 deep=True,
             ).get_async(
                 output_type=OutputType.POLARS,
@@ -131,11 +136,13 @@ async def get_project_waterfall(
 
             series_meter = df_meter.iloc[:, 0]
             series_meter.name = "Meter Active Power"
-        case ProjectType.BESS:
+        case ProjectTypeEnum.BESS:
             return []
-        case ProjectType.PVS:
+        case ProjectTypeEnum.PVS:
             meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
-                sensor_type_ids=[SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER],
+                sensor_type_ids=[
+                    SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+                ],
                 deep=True,
             ).get_async(
                 output_type=OutputType.POLARS,
@@ -202,7 +209,7 @@ async def get_project_waterfall(
         time_gte=start,
         time_lt=end,
         event_ids=df_events.index.tolist(),
-        event_loss_type_id=EventLossType.PROXIMAL_ENERGY,
+        event_loss_type_id=EventLossTypeEnum.PROXIMAL_ENERGY,
     )
     # Map aggregated losses to events DataFrame
     # Event losses are stored as power (5-min intervals), divide by 12 to convert to MWh
@@ -288,7 +295,7 @@ async def get_project_waterfall(
     )
     curtailment_agg = await get_project_kpi_data_agg(
         project_id=project.project_id,
-        kpi_type_id=KPIType.PV_PROJECT_CURTAILMENT,
+        kpi_type_id=KPITypeEnum.PV_PROJECT_CURTAILMENT,
         start=kpi_start,
         end=kpi_end_exclusive,
         aggregation_method="sum",

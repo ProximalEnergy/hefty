@@ -117,7 +117,7 @@ async def _run_data_connection_outage_notifications() -> dict:
 
     from core import enumerations, models  # noqa: PLC0415
 
-    notification_type = enumerations.NotificationType.DATA_CONNECTION_OUTAGE
+    notification_type = enumerations.NotificationTypeEnum.DATA_CONNECTION_OUTAGE
     notification_severity = enumerations.NotificationSeverity.CRITICAL
 
     async def project_name_long_for_delivery(
@@ -199,7 +199,7 @@ async def _run_data_connection_outage_notifications() -> dict:
                 db=db,
                 notification_id=notification_id,
                 user_id=user_id,
-                channel=enumerations.NotificationChannel.IN_APP,
+                channel=enumerations.NotificationChannelEnum.IN_APP,
             )
 
     async def active_outage_notifications_with_no_states(

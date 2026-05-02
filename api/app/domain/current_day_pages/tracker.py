@@ -3,7 +3,7 @@ from typing import Annotated
 
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, KPIType, SensorType
+from core.enumerations import DeviceTypeEnum, KPITypeEnum, SensorTypeEnum
 from fastapi import Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
@@ -37,8 +37,8 @@ async def get_tracker_data(
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[
-            DeviceType.PV_BLOCK,
-            DeviceType.TRACKER_ROW,
+            DeviceTypeEnum.PV_BLOCK,
+            DeviceTypeEnum.TRACKER_ROW,
         ],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_df = devices_df.copy()
@@ -52,8 +52,10 @@ async def get_tracker_data(
         )
     )
     block_device_id_to_tracker_row_ids = utils.map_ancestors_to_descendents(
-        ancestors=devices_df[devices_df["device_type_id"] == DeviceType.PV_BLOCK],
-        descendents=devices_df[devices_df["device_type_id"] == DeviceType.TRACKER_ROW],
+        ancestors=devices_df[devices_df["device_type_id"] == DeviceTypeEnum.PV_BLOCK],
+        descendents=devices_df[
+            devices_df["device_type_id"] == DeviceTypeEnum.TRACKER_ROW
+        ],
     )
 
     # Get KPI data
@@ -63,10 +65,10 @@ async def get_tracker_data(
             start=start,
             end=end,
             kpi_type_ids=[
-                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
-                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
-                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
-                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
+                KPITypeEnum.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
+                KPITypeEnum.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
+                KPITypeEnum.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+                KPITypeEnum.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
             ],
             project_ids=[project.project_id],
             include_device_data=True,
@@ -159,7 +161,7 @@ async def get_tracker_by_pv_block_id_data(
     # Get tracker rows that are descendants of the pv block
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.TRACKER_ROW],
+        device_type_ids=[DeviceTypeEnum.TRACKER_ROW],
         device_id_descendent_of=pv_block_id,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
@@ -167,8 +169,8 @@ async def get_tracker_by_pv_block_id_data(
     tags = await core.crud.project.tags.get_project_tags_v2(
         device_ids=devices_df["device_id"].astype(int).tolist(),
         sensor_type_ids=[
-            SensorType.TRACKER_ROW_POSITION,
-            SensorType.TRACKER_ROW_SETPOINT,
+            SensorTypeEnum.TRACKER_ROW_POSITION,
+            SensorTypeEnum.TRACKER_ROW_SETPOINT,
         ],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
@@ -199,7 +201,7 @@ async def get_tracker_by_pv_block_id_data(
 
     tags_ids_position = natsorted(
         tags.loc[
-            tags["sensor_type_id"] == SensorType.TRACKER_ROW_POSITION,
+            tags["sensor_type_id"] == SensorTypeEnum.TRACKER_ROW_POSITION,
             "tag_id",
         ]
         .astype(int)
@@ -207,7 +209,7 @@ async def get_tracker_by_pv_block_id_data(
     )
     tags_ids_setpoint = natsorted(
         tags.loc[
-            tags["sensor_type_id"] == SensorType.TRACKER_ROW_SETPOINT,
+            tags["sensor_type_id"] == SensorTypeEnum.TRACKER_ROW_SETPOINT,
             "tag_id",
         ]
         .astype(int)

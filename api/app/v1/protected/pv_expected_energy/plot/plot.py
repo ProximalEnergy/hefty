@@ -7,7 +7,7 @@ from app._utils.recursive_parents import get_recursive_parents
 from core.crud.operational.device_types import get_device_types
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
@@ -105,24 +105,24 @@ async def utility_expected_route(
     device = device_df.to_dict("records")[0]
 
     # Meter
-    if device["device_type_id"] == DeviceType.METER:
-        sensor_type_ids = [SensorType.METER_ACTIVE_POWER]
+    if device["device_type_id"] == DeviceTypeEnum.METER:
+        sensor_type_ids = [SensorTypeEnum.METER_ACTIVE_POWER]
         expected_metric_id_clean = 11 if not warranted_degradation else 5
         expected_metric_id_soiled = 12 if not warranted_degradation else 6
         multiplier = 1_000.0
         expected_device_ids = [1]
         pv_dc_combiner = False
     # PV Inverter
-    elif device["device_type_id"] == DeviceType.PV_INVERTER:
-        sensor_type_ids = [SensorType.PV_INVERTER_AC_POWER]
+    elif device["device_type_id"] == DeviceTypeEnum.PV_INVERTER:
+        sensor_type_ids = [SensorTypeEnum.PV_INVERTER_AC_POWER]
         expected_metric_id_clean = 9 if not warranted_degradation else 3
         expected_metric_id_soiled = 10 if not warranted_degradation else 4
         multiplier = 1_000.0
         expected_device_ids = [device_id]
         pv_dc_combiner = False
     # PV DC Combiner
-    elif device["device_type_id"] == DeviceType.PV_DC_COMBINER:
-        sensor_type_ids = [SensorType.PV_DC_COMBINER_CURRENT]
+    elif device["device_type_id"] == DeviceTypeEnum.PV_DC_COMBINER:
+        sensor_type_ids = [SensorTypeEnum.PV_DC_COMBINER_CURRENT]
         expected_metric_id_clean = 7 if not warranted_degradation else 1
         expected_metric_id_soiled = 8 if not warranted_degradation else 2
         multiplier = 1 / 1_000
@@ -135,7 +135,7 @@ async def utility_expected_route(
     # If combiner, need to pull PCS module voltage and combiner current
     if pv_dc_combiner:
         device_pv_inverter_df = await core.crud.project.devices.get_project_devices(
-            device_type_ids=[DeviceType.PV_INVERTER],
+            device_type_ids=[DeviceTypeEnum.PV_INVERTER],
             device_id_path_ancestor_of=device["device_id_path"],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         if device_pv_inverter_df.empty:
@@ -144,7 +144,7 @@ async def utility_expected_route(
 
         devices_pv_inverter_modules_df = (
             await core.crud.project.devices.get_project_devices(
-                device_type_ids=[DeviceType.PV_INVERTER_MODULE],
+                device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
                 device_id_descendent_of=int(device_pv_inverter["device_id"]),
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         )
@@ -156,7 +156,7 @@ async def utility_expected_route(
         tags_pv_inverter_module_voltage = (
             await core.crud.project.tags.get_project_tags_v2(
                 device_ids=device_ids_pv_inverter_modules,
-                sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE],
+                sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE],
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         )
 
@@ -167,13 +167,13 @@ async def utility_expected_route(
             tags_pv_inverter_module_voltage = (
                 await core.crud.project.tags.get_project_tags_v2(
                     device_ids=[int(device_pv_inverter["device_id"])],
-                    sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE],
+                    sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE],
                 ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
             )
 
         tags_pv_dc_combiner_current = await core.crud.project.tags.get_project_tags_v2(
             device_ids=[device_id],
-            sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
+            sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
         data_timeseries_instance = await DataTimeseries(
@@ -283,7 +283,7 @@ async def utility_expected_route(
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.SENSOR_TYPE_IDS,
-        filter_values=[SensorType.MET_STATION_POA],
+        filter_values=[SensorTypeEnum.MET_STATION_POA],
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -297,7 +297,7 @@ async def utility_expected_route(
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.SENSOR_TYPE_IDS,
-        filter_values=[SensorType.MET_STATION_SOIL_PERCENT],
+        filter_values=[SensorTypeEnum.MET_STATION_SOIL_PERCENT],
         query_start=start,
         query_end=end,
         project_db=project_db,

@@ -1,5 +1,5 @@
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
 from kpi.op.context import get_context
@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 
 class EventsModel(BaseModel, NoInputs):
-    device_type: DeviceType
+    device_type: DeviceTypeEnum
     project_level: bool = False
 
 

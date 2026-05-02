@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -62,13 +62,13 @@ async def get_combiner_block_performance(
 
     # Get descendent pv_dc_combiner devices of requests pv_block
     devices_combiner_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_DC_COMBINER],
+        device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
         device_id_descendent_of=int(device_block["device_id"]),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get tags for combiner current
     tags_df = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
+        sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         device_ids=devices_combiner_df["device_id"].astype(int).tolist(),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 

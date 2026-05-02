@@ -1,6 +1,6 @@
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.exception import KpiError
 from kpi.base.util import coord
 from kpi.op.field import NoInputs
@@ -10,8 +10,8 @@ from core import models
 
 
 class DeviceHierarchyModel(BaseModel, NoInputs):
-    child_device_type: DeviceType
-    parent_device_type: DeviceType
+    child_device_type: DeviceTypeEnum
+    parent_device_type: DeviceTypeEnum
 
     def device_type_ids(self) -> set[int]:
         return {self.child_device_type.value, self.parent_device_type.value}

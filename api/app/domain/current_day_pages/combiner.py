@@ -4,7 +4,7 @@ from typing import Annotated
 import pandas as pd
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from fastapi import Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
@@ -53,7 +53,7 @@ async def get_equipment_analysis_combiner_data(
     # Get combiner devices
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_combiner_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_DC_COMBINER],
+        device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_combiner_df = devices_combiner_df.copy()
     devices_combiner_df["name_long"] = devices_combiner_df["name_long"].fillna("")
@@ -62,7 +62,7 @@ async def get_equipment_analysis_combiner_data(
     # Get combiner current tags
     tags_combiner_current = await core.crud.project.tags.get_project_tags_v2(
         in_tsdb=True,
-        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
+        sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     device_id_to_device = {

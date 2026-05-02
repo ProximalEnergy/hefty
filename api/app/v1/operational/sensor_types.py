@@ -8,7 +8,7 @@ from core.crud.operational.sensor_types import (
 )
 from core.database import get_db
 from core.db_query import OutputType
-from core.enumerations import SensorType, UserTypeEnum
+from core.enumerations import SensorTypeEnum, UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -103,7 +103,7 @@ def create_sensor_type_route(
         )
 
     # Get next available ID if not provided
-    if sensor_type.sensor_type_id == SensorType.GHOST_UNKNOWN:
+    if sensor_type.sensor_type_id == SensorTypeEnum.GHOST_UNKNOWN:
         sensor_type.sensor_type_id = crud_get_next_sensor_type_id(db=db)
 
     try:

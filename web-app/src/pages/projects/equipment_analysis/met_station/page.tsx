@@ -3,7 +3,7 @@ import {
   DeviceTypeEnum,
   ProjectTypeEnum,
   SensorTypeEnum,
-  UserTypeEnumEnum,
+  UserTypeEnum,
 } from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -30,8 +30,7 @@ const EquipmentAnalysisMetStationPage = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const userType = useGetUserType({})
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const { activeTab, setTab } = useEquipmentAnalysisTab({ isSuperadmin })
 
   const { start, end } = useValidateDateRange({

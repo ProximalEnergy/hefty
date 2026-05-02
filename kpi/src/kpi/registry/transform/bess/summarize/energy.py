@@ -3,7 +3,7 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 """
 
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
@@ -38,7 +38,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     def project_string_energy_charged_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_STRING), min_count=1)
+        return energy.sum(dim=coord(DeviceTypeEnum.BESS_STRING), min_count=1)
 
     # BESS_STRING_ENERGY_DISCHARGED (41)
 
@@ -56,7 +56,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     def project_string_energy_discharged_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_STRING), min_count=1)
+        return energy.sum(dim=coord(DeviceTypeEnum.BESS_STRING), min_count=1)
 
     # =======================================================
     # PCS Module level
@@ -80,7 +80,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     def project_pcs_module_energy_charged_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_PCS_MODULE), min_count=1)
+        return energy.sum(dim=coord(DeviceTypeEnum.BESS_PCS_MODULE), min_count=1)
 
     # BESS_PCS_MODULE_ENERGY_DISCHARGED (114)
 
@@ -100,7 +100,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     def project_pcs_module_energy_discharged_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_PCS_MODULE), min_count=1)
+        return energy.sum(dim=coord(DeviceTypeEnum.BESS_PCS_MODULE), min_count=1)
 
     # =======================================================
     # PCS level
@@ -121,7 +121,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     def project_pcs_energy_charged_dc_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
+        return energy.sum(dim=coord(DeviceTypeEnum.BESS_PCS), min_count=1)
 
     # BESS_PCS_ENERGY_DISCHARGED_DC (88)
     pcs_energy_discharged_dc_kwh_d = Field[CalcProtocol](
@@ -138,7 +138,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     def project_pcs_energy_discharged_dc_kwh_d(
         energy: xr.DataArray,
     ) -> xr.DataArray:
-        return energy.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
+        return energy.sum(dim=coord(DeviceTypeEnum.BESS_PCS), min_count=1)
 
     @method_calc(
         discharge_5m=Required(Eval.pcs_energy_discharged_dc_kwh_5m),
@@ -187,8 +187,8 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         discharge, the charging period is determined at the meter level.
         See `maximum_continuous_discharged_energy` for more details.
         """
-        discharge = pcs_discharge_5m.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
-        charge = pcs_charge_5m.sum(dim=coord(DeviceType.BESS_PCS), min_count=1)
+        discharge = pcs_discharge_5m.sum(dim=coord(DeviceTypeEnum.BESS_PCS), min_count=1)
+        charge = pcs_charge_5m.sum(dim=coord(DeviceTypeEnum.BESS_PCS), min_count=1)
         return maximum_continuous_discharged_energy(
             energy=discharge - charge,
             is_charging=project_charge_5m > 1e-6,
@@ -216,7 +216,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         energy: xr.DataArray,
     ) -> xr.DataArray:
         return energy.sum(
-            dim=coord(DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
+            dim=coord(DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
         )
 
     # BESS_CIRCUIT_ENERGY_DISCHARGED (112)
@@ -237,7 +237,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         energy: xr.DataArray,
     ) -> xr.DataArray:
         return energy.sum(
-            dim=coord(DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
+            dim=coord(DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER), min_count=1
         )
 
     # =======================================================

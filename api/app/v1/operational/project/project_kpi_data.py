@@ -15,7 +15,7 @@ from core.domain.kpis.rte import (
 from core.domain.kpis.rte import (
     get_project_rte as core_get_project_rte,
 )
-from core.enumerations import KPIType
+from core.enumerations import KPITypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
@@ -50,7 +50,7 @@ router = APIRouter(
 
 
 async def get_aggregation_method_for_kpi_type(
-    *, db: AsyncSession, kpi_type_id: KPIType
+    *, db: AsyncSession, kpi_type_id: KPITypeEnum
 ) -> Literal["avg", "sum"]:
     """
     Retrieve the aggregation method for a given KPI type from the database.
@@ -89,7 +89,7 @@ class ProjectKPIData(BaseModel):
 async def get_project_aggregated_kpi_data_freq(
     *,
     project_id: uuid.UUID,
-    kpi_type_id: KPIType,
+    kpi_type_id: KPITypeEnum,
     start: datetime.date | None = None,
     end: datetime.date | None = None,
     frequency: Literal["month", "year"] | None = None,
@@ -146,7 +146,7 @@ async def get_project_aggregated_kpi_data_freq(
 async def get_project_aggregated_kpi_data(
     *,
     project_id: uuid.UUID,
-    kpi_type_id: KPIType,
+    kpi_type_id: KPITypeEnum,
     start: datetime.date | None = None,
     end: datetime.date | None = None,
     aggregation: Literal["avg", "sum"] | None = None,

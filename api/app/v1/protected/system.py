@@ -13,7 +13,7 @@ from core.crud.project.data_timeseries import (
 )
 from core.crud.project.tags import get_project_tags_v2
 from core.db_query import OutputType
-from core.enumerations import SensorType, TimeOffset
+from core.enumerations import SensorTypeEnum, TimeOffset
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -147,16 +147,19 @@ async def get_meter_power_and_expected_power_v3(
             df_expected_power.loc[night, "value"] = loss_mw
 
     # Dynamically build sensor_type_name_shorts
-    sensor_type_ids = [SensorType.METER_ACTIVE_POWER, SensorType.PV_EXPECTED_POWER]
+    sensor_type_ids = [
+        SensorTypeEnum.METER_ACTIVE_POWER,
+        SensorTypeEnum.PV_EXPECTED_POWER,
+    ]
     if include_storage:
         sensor_type_ids.extend(
             [
-                SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
-                SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
+                SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
+                SensorTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
             ],
         )
     if include_setpoint:
-        sensor_type_ids.append(SensorType.PPC_ACTIVE_POWER_SETPOINT)
+        sensor_type_ids.append(SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT)
 
     tags_pl = await get_project_tags_v2(
         sensor_type_ids=sensor_type_ids,
@@ -255,8 +258,8 @@ async def get_meter_power_and_expected_power_v3(
         exp_data = MeterPowerAndExpectedPowerV3Trace(
             x=df_expected_power.index.tolist(),
             y=df_expected_power["value"].values.tolist(),
-            sensor_type_id=SensorType.PV_EXPECTED_POWER,
-            name=sensor_type_id_to_name_long[SensorType.PV_EXPECTED_POWER],
+            sensor_type_id=SensorTypeEnum.PV_EXPECTED_POWER,
+            name=sensor_type_id_to_name_long[SensorTypeEnum.PV_EXPECTED_POWER],
         )
         data.append(exp_data)
     return data

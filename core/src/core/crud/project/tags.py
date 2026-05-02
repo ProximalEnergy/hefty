@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload, noload
 
 from core import models
 from core.db_query import DbQuery
-from core.enumerations import SensorType
+from core.enumerations import SensorTypeEnum
 
 
 def _get_project_tag_options(*, deep: bool) -> Any:
@@ -152,7 +152,7 @@ def get_project_tags_v2(
             )
     if not include_ghost_tags:
         stmt = stmt.where(models.Tag.device_id != 0)
-        stmt = stmt.where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
+        stmt = stmt.where(models.Tag.sensor_type_id != SensorTypeEnum.GHOST_UNKNOWN)
     return DbQuery(query=stmt, is_scalar=False)
 
 

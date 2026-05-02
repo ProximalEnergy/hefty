@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from core import models
 from core.db_query import DbQuery
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 
 
 def get_data_timeseries_latest_by_device_type(
@@ -25,16 +25,16 @@ def get_data_timeseries_latest_by_device_type(
     """
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
-            DeviceType.PV_INVERTER.value: [
-                SensorType.PV_INVERTER_AC_POWER.value,
-                SensorType.PV_INVERTER_AC_POWER_SETPOINT.value,
+            DeviceTypeEnum.PV_INVERTER.value: [
+                SensorTypeEnum.PV_INVERTER_AC_POWER.value,
+                SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT.value,
             ],
-            DeviceType.PV_DC_COMBINER.value: [
-                SensorType.PV_DC_COMBINER_CURRENT.value,
+            DeviceTypeEnum.PV_DC_COMBINER.value: [
+                SensorTypeEnum.PV_DC_COMBINER_CURRENT.value,
             ],
-            DeviceType.TRACKER_ROW.value: [
-                SensorType.TRACKER_ROW_POSITION.value,
-                SensorType.TRACKER_ROW_SETPOINT.value,
+            DeviceTypeEnum.TRACKER_ROW.value: [
+                SensorTypeEnum.TRACKER_ROW_POSITION.value,
+                SensorTypeEnum.TRACKER_ROW_SETPOINT.value,
             ],
         }
         sensor_type_ids = device_type_id_to_sensor_type_ids.get(device_type_id, [])

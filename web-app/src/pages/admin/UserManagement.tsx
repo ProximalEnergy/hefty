@@ -3,7 +3,7 @@ import {
   useDeleteUser,
   useUpdateUserProjects,
 } from '@/api/admin'
-import { UserTypeEnumEnum } from '@/api/enumerations'
+import { UserTypeEnum } from '@/api/enumerations'
 import { useGetCompanies } from '@/api/v1/admin/companies'
 import { useGetUserSelf, useGetUsers } from '@/api/v1/admin/users'
 import { useGetProjects } from '@/api/v1/operational/projects'
@@ -160,7 +160,7 @@ const UserManagement = () => {
     queryParams: {
       // If the user is a superadmin, show all users. Otherwise, show only users from the same company.
       company_ids:
-        self.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+        self.data?.user_type_id === UserTypeEnum.SUPERADMIN
           ? undefined
           : [self.data?.company_id || ''],
     },
@@ -175,7 +175,7 @@ const UserManagement = () => {
   // Non-superadmin: only companies that already have users (for table + modal).
   const companies = useGetCompanies({
     queryParams:
-      self.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+      self.data?.user_type_id === UserTypeEnum.SUPERADMIN
         ? {}
         : { company_ids: uniqueCompanyIds },
   })

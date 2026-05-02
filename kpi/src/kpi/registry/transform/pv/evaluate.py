@@ -1,6 +1,6 @@
 import numpy as np
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.util import date_local, diff, filter_mask
@@ -77,7 +77,7 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
     def project_poa_irradiance_w_m2_5m(
         irradiance: xr.DataArray,
     ) -> xr.DataArray:
-        return irradiance.mean(dim=coord(DeviceType.MET_STATION))
+        return irradiance.mean(dim=coord(DeviceTypeEnum.MET_STATION))
 
     @method_calc(
         irradiance=Required(project_poa_irradiance_w_m2_5m),
@@ -101,7 +101,7 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
         poa_threshold = 90
         epsilon = 1e-6
         project_mean_irradiance = met_poa.where(met_poa >= minimum_irradiance).mean(
-            dim=coord(DeviceType.MET_STATION)
+            dim=coord(DeviceTypeEnum.MET_STATION)
         )
         power_filtered = power.where(project_mean_irradiance > poa_threshold)
 
@@ -128,12 +128,12 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
         current_threshold_amps = 10
         pcs_power_threshold = 5
         project_mean_irradiance = met_poa.where(met_poa >= minimum_irradiance).mean(
-            dim=coord(DeviceType.MET_STATION)
+            dim=coord(DeviceTypeEnum.MET_STATION)
         )
 
         power_broadcasted = pcs_power.sel(
-            {coord(DeviceType.PV_INVERTER): combiner_to_inverter}
-        ).drop_vars(coord(DeviceType.PV_INVERTER))
+            {coord(DeviceTypeEnum.PV_INVERTER): combiner_to_inverter}
+        ).drop_vars(coord(DeviceTypeEnum.PV_INVERTER))
 
         is_valid = (project_mean_irradiance > poa_threshold) & (
             power_broadcasted > pcs_power_threshold

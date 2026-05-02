@@ -605,7 +605,7 @@ async def send_notifications_for_message(
     event_chat_recipient_ids -= muted_user_ids
 
     event_chat_notification_type_id = (
-        enumerations.NotificationType.EVENT_CHAT_MESSAGE.value
+        enumerations.NotificationTypeEnum.EVENT_CHAT_MESSAGE.value
     )
 
     if is_first_message:
@@ -702,7 +702,7 @@ async def send_notifications_for_message(
                 db=db,
                 notification_id=notification.notification_id,
                 user_id=user_id,
-                channel=enumerations.NotificationChannel.IN_APP,
+                channel=enumerations.NotificationChannelEnum.IN_APP,
             )
         except Exception as e:
             logger.error(f"Failed to create in-app state for user {user_id}: {e}")

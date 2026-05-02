@@ -22,7 +22,7 @@ import datetime
 import warnings
 
 from asyncpg.exceptions import ProtocolViolationError  # type: ignore[import-untyped]
-from core.enumerations import KPIType, ProjectID
+from core.enumerations import KPITypeEnum, ProjectID
 from kpi.base.exception import (
     DatasetAccessError,
     MissingDataError,
@@ -81,8 +81,8 @@ def lambda_handler(event, _context):
     with observe():
         output_kpis: set[str] = set()
         for kpi_type_id in event.kpi_type_ids:
-            if kpi_type_id in KPIType:
-                output_kpis.add(KPIType(kpi_type_id).name)
+            if kpi_type_id in KPITypeEnum:
+                output_kpis.add(KPITypeEnum(kpi_type_id).name)
                 continue
             warnings.warn(
                 f"Ignoring unknown KPI type id in lambda payload: {kpi_type_id}",

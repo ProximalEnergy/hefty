@@ -12,7 +12,7 @@ from sqlalchemy.sql import func
 
 from core import models
 from core.db_query import DbQuery
-from core.enumerations import EventLossType
+from core.enumerations import EventLossTypeEnum
 
 
 def get_event_losses(
@@ -137,7 +137,7 @@ def get_event_losses_summary_in_sql(
         sa.case(
             (
                 event_losses_table.c.event_loss_type_id
-                == EventLossType.PROXIMAL_ENERGY,
+                == EventLossTypeEnum.PROXIMAL_ENERGY,
                 clean_loss,
             ),
             else_=0.0,
@@ -147,7 +147,7 @@ def get_event_losses_summary_in_sql(
         sa.case(
             (
                 event_losses_table.c.event_loss_type_id
-                == EventLossType.PROXIMAL_FINANCIAL,
+                == EventLossTypeEnum.PROXIMAL_FINANCIAL,
                 clean_loss,
             ),
             else_=0.0,
@@ -157,7 +157,7 @@ def get_event_losses_summary_in_sql(
         sa.case(
             (
                 event_losses_table.c.event_loss_type_id
-                == EventLossType.PROXIMAL_PV_DC_CAPACITY,
+                == EventLossTypeEnum.PROXIMAL_PV_DC_CAPACITY,
                 clean_loss,
             ),
             else_=0.0,

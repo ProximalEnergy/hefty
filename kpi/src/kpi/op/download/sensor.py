@@ -1,6 +1,6 @@
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from kpi.base.protocol import SensorProtocol
 from kpi.domain.util import scale_offset
 from kpi.infra.download.sensor import (
@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 
 class SensorModel(BaseModel, NoInputs):
-    sensor_type: SensorType
+    sensor_type: SensorTypeEnum
     project_level: bool
     scale: float | None
     offset: float | None
@@ -39,13 +39,13 @@ class SensorModel(BaseModel, NoInputs):
         value = dataframe_to_xarray(
             filtered,
             project_level=self.project_level,
-            device_type=DeviceType(sensor_to_device_map[self.sensor_type.value]),
+            device_type=DeviceTypeEnum(sensor_to_device_map[self.sensor_type.value]),
         )
         return scale_offset(value, scale=self.scale, offset=self.offset)
 
 
 def sensor_field(
-    sensor_type: SensorType,
+    sensor_type: SensorTypeEnum,
     project_level: bool = False,
     scale: float | None = None,
     offset: float | None = None,
@@ -101,7 +101,7 @@ class SensorSchema(SchemaAbstract[SensorProtocol]):
 
 
 class SensorMax(BaseModel, NoInputs):
-    sensor_type: SensorType
+    sensor_type: SensorTypeEnum
     project_level: bool = False
 
     def run(
@@ -119,6 +119,6 @@ class SensorMax(BaseModel, NoInputs):
         value = dataframe_to_xarray(
             filtered,
             project_level=self.project_level,
-            device_type=DeviceType(sensor_to_device_map[self.sensor_type.value]),
+            device_type=DeviceTypeEnum(sensor_to_device_map[self.sensor_type.value]),
         )
         return value

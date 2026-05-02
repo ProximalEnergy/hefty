@@ -2,101 +2,101 @@
 
 from typing import Any
 
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 
 TEST_PARAMS: dict[str, dict[str, Any]] = {
     "sensor_type_unique_per_device": {
         "sensor_type_ids": [
-            SensorType.BESS_STRING_DISCHARGE_ENERGY_TOTAL,
-            SensorType.BESS_STRING_CHARGE_ENERGY_TOTAL,
+            SensorTypeEnum.BESS_STRING_DISCHARGE_ENERGY_TOTAL,
+            SensorTypeEnum.BESS_STRING_CHARGE_ENERGY_TOTAL,
         ],
     },
     "parent_device_type_allowlist": {
         "child_parent_type_rules": {
             # ===== PV =====
-            DeviceType.DC_FIELD: [DeviceType.PV_DC_COMBINER],
-            DeviceType.PV_DC_COMBINER: [
-                DeviceType.PV_INVERTER_MODULE,
-                DeviceType.PV_INVERTER,
+            DeviceTypeEnum.DC_FIELD: [DeviceTypeEnum.PV_DC_COMBINER],
+            DeviceTypeEnum.PV_DC_COMBINER: [
+                DeviceTypeEnum.PV_INVERTER_MODULE,
+                DeviceTypeEnum.PV_INVERTER,
             ],
-            DeviceType.PV_INVERTER_MODULE: [DeviceType.PV_INVERTER],
-            DeviceType.PV_INVERTER: [DeviceType.PV_MVT],
-            DeviceType.PV_MVT: [DeviceType.PV_BLOCK],
-            DeviceType.TRACKER_ROW: [DeviceType.TRACKER_ZONE],
-            DeviceType.TRACKER_ZONE: [DeviceType.PV_BLOCK],
-            DeviceType.MET_STATION: [DeviceType.PV_BLOCK],
-            DeviceType.PV_BLOCK: [
+            DeviceTypeEnum.PV_INVERTER_MODULE: [DeviceTypeEnum.PV_INVERTER],
+            DeviceTypeEnum.PV_INVERTER: [DeviceTypeEnum.PV_MVT],
+            DeviceTypeEnum.PV_MVT: [DeviceTypeEnum.PV_BLOCK],
+            DeviceTypeEnum.TRACKER_ROW: [DeviceTypeEnum.TRACKER_ZONE],
+            DeviceTypeEnum.TRACKER_ZONE: [DeviceTypeEnum.PV_BLOCK],
+            DeviceTypeEnum.MET_STATION: [DeviceTypeEnum.PV_BLOCK],
+            DeviceTypeEnum.PV_BLOCK: [
                 # If there is MV/HV equipment, Blocks will map to Feeders
-                DeviceType.PV_FEEDER,
+                DeviceTypeEnum.PV_FEEDER,
                 # No Feeders: Blocks map to MV Collector Circuits
-                DeviceType.PV_MV_COLLECTOR_CIRCUIT,
+                DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT,
                 # If there is not MV/HV equipment, Blocks will map to the PPC
-                DeviceType.PPC,
+                DeviceTypeEnum.PPC,
             ],
-            DeviceType.PV_FEEDER: [
+            DeviceTypeEnum.PV_FEEDER: [
                 # If there are MV Collector Circuits, Feeders will map to Circuits
-                DeviceType.PV_MV_COLLECTOR_CIRCUIT,
+                DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT,
                 # If there are not MV Collector Circuits, Feeders will map to the PPC
-                DeviceType.PPC,
+                DeviceTypeEnum.PPC,
             ],
-            DeviceType.PV_MV_COLLECTOR_CIRCUIT: [
+            DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT: [
                 # If there are MV Collector Circuit Meters, Circuits will map to Meters
-                DeviceType.PV_MV_COLLECTOR_CIRCUIT_METER,
+                DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER,
                 # No MV Collector Circuit Meters: Circuits map to PPC
-                DeviceType.PPC,
+                DeviceTypeEnum.PPC,
             ],
-            DeviceType.PV_MV_COLLECTOR_CIRCUIT_METER: [DeviceType.PPC],
+            DeviceTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER: [DeviceTypeEnum.PPC],
             # ===== BESS =====
-            DeviceType.BESS_CELL: [DeviceType.BESS_MODULE],
-            DeviceType.BESS_MODULE: [DeviceType.BESS_STRING],
-            DeviceType.BESS_STRING: [DeviceType.BESS_ENCLOSURE],
-            DeviceType.BESS_ENCLOSURE: [
+            DeviceTypeEnum.BESS_CELL: [DeviceTypeEnum.BESS_MODULE],
+            DeviceTypeEnum.BESS_MODULE: [DeviceTypeEnum.BESS_STRING],
+            DeviceTypeEnum.BESS_STRING: [DeviceTypeEnum.BESS_ENCLOSURE],
+            DeviceTypeEnum.BESS_ENCLOSURE: [
                 # If there are Banks, Enclosures will map to Banks
-                DeviceType.BESS_BANK,
+                DeviceTypeEnum.BESS_BANK,
                 # If there are not Banks, Enclosures will map to PCS Module Groups
-                DeviceType.BESS_PCS_MODULE_GROUP,
+                DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
                 # If there are not PCS Module Groups, Enclosures will map to PCS Modules
-                DeviceType.BESS_PCS_MODULE,
+                DeviceTypeEnum.BESS_PCS_MODULE,
                 # If there are not PCS Modules, Enclosures will map to PCSs
-                DeviceType.BESS_PCS,
+                DeviceTypeEnum.BESS_PCS,
             ],
-            DeviceType.BESS_BANK: [
+            DeviceTypeEnum.BESS_BANK: [
                 # If there are PCS Module Groups, Banks will map to Module Groups
-                DeviceType.BESS_PCS_MODULE_GROUP,
+                DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
                 # If there are not Module Groups, Banks will map to PCS Modules
-                DeviceType.BESS_PCS_MODULE,
+                DeviceTypeEnum.BESS_PCS_MODULE,
             ],
-            DeviceType.BESS_PCS_MODULE: [
+            DeviceTypeEnum.BESS_PCS_MODULE: [
                 # If there are PCS Module Groups, PCS Modules will map to Module Groups
-                DeviceType.BESS_PCS_MODULE_GROUP,
+                DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
                 # No PCS Module Groups: PCS Modules map to BESS DC Skid
-                DeviceType.BESS_DC_SKID,
+                DeviceTypeEnum.BESS_DC_SKID,
             ],
-            DeviceType.BESS_PCS_MODULE_GROUP: [DeviceType.BESS_DC_SKID],
-            DeviceType.BESS_DC_SKID: [DeviceType.BESS_PCS],
-            DeviceType.BESS_PCS: [DeviceType.BESS_MVT],
-            DeviceType.BESS_MVT: [DeviceType.BESS_BLOCK],
-            DeviceType.BESS_BLOCK: [
+            DeviceTypeEnum.BESS_PCS_MODULE_GROUP: [DeviceTypeEnum.BESS_DC_SKID],
+            DeviceTypeEnum.BESS_DC_SKID: [DeviceTypeEnum.BESS_PCS],
+            DeviceTypeEnum.BESS_PCS: [DeviceTypeEnum.BESS_MVT],
+            DeviceTypeEnum.BESS_MVT: [DeviceTypeEnum.BESS_BLOCK],
+            DeviceTypeEnum.BESS_BLOCK: [
                 # If there is MV/HV equipment, Blocks will map to Feeders
-                DeviceType.BESS_FEEDER,
+                DeviceTypeEnum.BESS_FEEDER,
                 # No Feeders: Blocks map to MV Collector Circuits
-                DeviceType.BESS_MV_COLLECTOR_CIRCUIT,
+                DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT,
                 # If there is not MV/HV equipment, Blocks will map to the PPC
-                DeviceType.PPC,
+                DeviceTypeEnum.PPC,
             ],
-            DeviceType.BESS_FEEDER: [DeviceType.BESS_MV_COLLECTOR_CIRCUIT],
-            DeviceType.BESS_MV_COLLECTOR_CIRCUIT: [
-                DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER
+            DeviceTypeEnum.BESS_FEEDER: [DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT],
+            DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT: [
+                DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER
             ],
-            DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER: [DeviceType.PPC],
+            DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER: [DeviceTypeEnum.PPC],
             # ===== SYSTEM =====
-            DeviceType.PPC: [DeviceType.METER],
-            DeviceType.METER: [DeviceType.PROJECT],
+            DeviceTypeEnum.PPC: [DeviceTypeEnum.METER],
+            DeviceTypeEnum.METER: [DeviceTypeEnum.PROJECT],
         },
     },
     "required_device_models": {
         "device_type_ids": [
-            DeviceType.PV_INVERTER,
+            DeviceTypeEnum.PV_INVERTER,
         ],
     },
 }

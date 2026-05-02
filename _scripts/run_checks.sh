@@ -1337,8 +1337,8 @@ fi
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
     add_check "Global: Semgrep" "mise run root:semgrep"
     add_check "Global: ast-grep" "mise run root:ast_grep"
-    add_check "Global: Ruff Linting" "mise run root:ruff"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
+    add_check "Global: Ruff Linting" "mise run root:ruff"
 fi
 
 if [ "${RUN_WEB}" = "true" ]; then

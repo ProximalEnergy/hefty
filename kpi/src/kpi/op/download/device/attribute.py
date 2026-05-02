@@ -1,6 +1,6 @@
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import DeviceProtocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 
 class DeviceAttributeModel(BaseModel, NoInputs):
-    device_type: DeviceType
+    device_type: DeviceTypeEnum
     source_field_name: str
     scale: float | None
     offset: float | None
@@ -34,7 +34,7 @@ class DeviceAttributeModel(BaseModel, NoInputs):
 
 
 def device_attribute_field(
-    device_type: DeviceType,
+    device_type: DeviceTypeEnum,
     source_field_name: str,
     scale: float | None = None,
     offset: float | None = None,

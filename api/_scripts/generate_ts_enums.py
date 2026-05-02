@@ -63,14 +63,22 @@ def ts_literal(value: Any) -> str:
     return str(value)
 
 
+def typescript_enum_constant_name(*, enum_cls: type[Enum]) -> str:
+    """Return the generated TypeScript constant name for a Python enum."""
+    name = enum_cls.__name__
+    if name.endswith("Enum"):
+        return name
+    return f"{name}Enum"
+
+
 def enum_to_ts_constant(enum_cls: type[Enum]) -> str:
     """Handle enum to ts constant.
 
     Args:
         enum_cls: Enum class to convert.
     """
-    name = enum_cls.__name__
-    lines: list[str] = [f"export const {name}Enum = {{"]
+    name = typescript_enum_constant_name(enum_cls=enum_cls)
+    lines: list[str] = [f"export const {name} = {{"]
     for m in enum_members_in_order(enum_cls):
         lines.append(f"  {m.name}: {ts_literal(m.value)},")
     lines.append("} as const;")

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from core.dependencies import get_project_name_short
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from issues.config.issue_detectors import (
     IssueDetectorConfig,
     get_default_issue_detector_config,
@@ -169,20 +169,20 @@ def _build_met_station_non_communicating_detector(
         config=met_config,
     )
     met_sensor_type_ids = tuple(
-        SensorType.extract_values(
+        SensorTypeEnum.extract_values(
             enum_list=[
-                SensorType.MET_STATION_POA,
-                SensorType.MET_STATION_POA_TILT,
-                SensorType.MET_STATION_GHI,
-                SensorType.MET_STATION_AMBIENT_TEMPERATURE,
-                SensorType.MET_STATION_WIND_SPEED,
-                SensorType.MET_STATION_RELATIVE_HUMIDITY,
-                SensorType.MET_STATION_BOM_TEMPERATURE,
+                SensorTypeEnum.MET_STATION_POA,
+                SensorTypeEnum.MET_STATION_POA_TILT,
+                SensorTypeEnum.MET_STATION_GHI,
+                SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE,
+                SensorTypeEnum.MET_STATION_WIND_SPEED,
+                SensorTypeEnum.MET_STATION_RELATIVE_HUMIDITY,
+                SensorTypeEnum.MET_STATION_BOM_TEMPERATURE,
             ]
         )
     )
     requirements = DetectorDataRequirements(
-        device_type_ids=(DeviceType.MET_STATION.value,),
+        device_type_ids=(DeviceTypeEnum.MET_STATION.value,),
         sensor_type_ids=met_sensor_type_ids,
         telemetry_window_minutes=met_config.evaluation_window_minutes,
         expected_interval_minutes_default=met_config.expected_interval_minutes_default,

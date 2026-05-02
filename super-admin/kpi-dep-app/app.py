@@ -12,7 +12,7 @@ import streamlit as st
 from botocore.exceptions import BotoCoreError, ClientError
 from core.crud import operational as op_crud
 from core.database import with_db
-from core.enumerations import KPIType, ProjectType
+from core.enumerations import KPITypeEnum, ProjectTypeEnum
 from dotenv import load_dotenv
 from kpi.op.plan import MultiFieldPlan, PipelinePlan, get_plan
 from kpi.registry.download.api import DownloadSensor
@@ -293,7 +293,7 @@ def get_sensor_type_ids_for_kpis(*, kpi_type_ids: list[int]) -> list[int]:
     if not kpi_type_ids:
         return []
     pipeline = BasePipeline()
-    plan = get_plan(pipeline, outputs=[KPIType(idx).name for idx in kpi_type_ids])
+    plan = get_plan(pipeline, outputs=[KPITypeEnum(idx).name for idx in kpi_type_ids])
 
     download_plan = plan.steps.get("download")
     if not isinstance(download_plan, PipelinePlan):
@@ -548,9 +548,9 @@ def compute_special_preset(
     """Return project names and KPI ID strings for special presets."""
     name = name.strip()
     project_type_map = {
-        "[PV]": ProjectType.PV.value,
-        "[BESS]": ProjectType.BESS.value,
-        "[PVS]": ProjectType.PVS.value,
+        "[PV]": ProjectTypeEnum.PV.value,
+        "[BESS]": ProjectTypeEnum.BESS.value,
+        "[PVS]": ProjectTypeEnum.PVS.value,
     }
     if name not in project_type_map:
         return [], []
@@ -558,9 +558,9 @@ def compute_special_preset(
     project_type_id = project_type_map[name]
     if name == "[PVS]":
         kpi_project_type_ids = {
-            ProjectType.PV.value,
-            ProjectType.BESS.value,
-            ProjectType.PVS.value,
+            ProjectTypeEnum.PV.value,
+            ProjectTypeEnum.BESS.value,
+            ProjectTypeEnum.PVS.value,
         }
     else:
         kpi_project_type_ids = {project_type_id}

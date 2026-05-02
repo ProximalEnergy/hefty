@@ -2,7 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import {
   DeviceTypeEnum,
   ProjectTypeEnum,
-  UserTypeEnumEnum,
+  UserTypeEnum,
 } from '@/api/enumerations'
 import { useGetUserSelf } from '@/api/v1/admin/users'
 import type { DeviceType as DeviceTypeData } from '@/api/v1/operational/device_types'
@@ -301,8 +301,7 @@ export function NavbarNested({
       return []
     }
     const usedDeviceTypeIds = project.data.spec?.used_device_type_ids
-    const isSuperadmin =
-      userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
     return generatePerformanceLinks(
       projectId,
       usedDeviceTypeIds,
@@ -327,7 +326,7 @@ export function NavbarNested({
       : false
 
   const userIsSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
 
   // Remove unnecessary links based on project characteristics
   const removePVLinks = project.data?.project_type_id === ProjectTypeEnum.BESS

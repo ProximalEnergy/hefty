@@ -1,5 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import { UserTypeEnumEnum } from '@/api/enumerations'
+import { UserTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -38,8 +38,7 @@ const SystemPerformance = () => {
   const [showGridHzV, setShowGridHzV] = useState(false)
   const project = useSelectProject(projectId!)
   const userType = useGetUserType({})
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const { activeTab, setTab } = useEquipmentAnalysisTab({
     isSuperadmin,
     realtimeForStandardUsers: false,

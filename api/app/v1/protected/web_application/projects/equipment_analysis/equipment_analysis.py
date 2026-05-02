@@ -6,7 +6,7 @@ import polars as pl
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.events import get_project_events
 from core.db_query import OutputType
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
@@ -208,7 +208,7 @@ async def get_heatmap(
 
     if tags_df.is_empty():
         fallback_query = core.crud.project.tags.get_project_tags_v2(
-            sensor_type_ids=[SensorType.PV_INVERTER_MODULE_AC_POWER],
+            sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER],
             deep=False,
         )
         tags_df = await fallback_query.get_async(
@@ -389,7 +389,7 @@ async def get_sunburst_data(
     project_device = [
         device["device_id"]
         for device in devices
-        if device["device_type_id"] == DeviceType.PROJECT
+        if device["device_type_id"] == DeviceTypeEnum.PROJECT
     ][0]
 
     if mode == "events":

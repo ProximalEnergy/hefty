@@ -7,19 +7,19 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.query_metadata_cache import get_project_tags_cached
 from core.enumerations import (
     AggregationMethod,
-    DeviceType,
-    SensorType,
+    DeviceTypeEnum,
+    SensorTypeEnum,
     TimeInterval,
     TimeOffset,
 )
 from p02_simulation.p3_epoai.s05_soiling import ModelSoiling
 from sqlalchemy.orm import Session
 
-SOILING_SENSOR_TYPE_IDS = SensorType.extract_values(
+SOILING_SENSOR_TYPE_IDS = SensorTypeEnum.extract_values(
     enum_list=[
-        SensorType.MET_STATION_POA,
-        SensorType.MET_STATION_GHI,
-        SensorType.MET_STATION_SOIL_PERCENT,
+        SensorTypeEnum.MET_STATION_POA,
+        SensorTypeEnum.MET_STATION_GHI,
+        SensorTypeEnum.MET_STATION_SOIL_PERCENT,
     ]
 )
 
@@ -73,7 +73,7 @@ async def get_met_soiling(
 
     tags = await get_project_tags_cached(
         project_name_short=project_name_short,
-        device_type_ids=[DeviceType.MET_STATION],
+        device_type_ids=[DeviceTypeEnum.MET_STATION],
         sensor_type_ids=SOILING_SENSOR_TYPE_IDS,
         deep=True,
     )

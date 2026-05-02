@@ -1,6 +1,6 @@
 import pandas as pd
 from core.db_query import OutputType
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from sqlalchemy.orm import Session
 
 import core
@@ -21,7 +21,7 @@ async def add_devices_circuits(
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     blocks = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_BLOCK],
+        device_type_ids=[DeviceTypeEnum.PV_BLOCK],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     blocks = blocks[["device_id", "parent_device_id"]].rename(
         columns={

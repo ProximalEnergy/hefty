@@ -3,7 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 from core.db_query import OutputType
-from core.enumerations import ReportType
+from core.enumerations import ReportTypeEnum
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -65,7 +65,7 @@ async def get_project_reports_instances(
         report_instances = [
             ri
             for ri in report_instances
-            if ri.report_type_id != ReportType.EEC_BESS_MONTHLY_REPORT
+            if ri.report_type_id != ReportTypeEnum.EEC_BESS_MONTHLY_REPORT
         ]
 
     return report_instances

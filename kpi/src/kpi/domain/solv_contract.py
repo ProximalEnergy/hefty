@@ -1,5 +1,5 @@
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.domain.util import date_local
 
@@ -59,7 +59,7 @@ def solv_lost_period(
     # Scale unit power so the sum matches project meter power.
     revised_unit_kw = (
         unit_ac_power
-        / unit_ac_power.sum(dim=DeviceType.PV_INVERTER.name.lower())
+        / unit_ac_power.sum(dim=DeviceTypeEnum.PV_INVERTER.name.lower())
         * power
     )
     # Contract also uses current vs setpoint for clipping; setpoint was unavailable.
@@ -68,7 +68,7 @@ def solv_lost_period(
         unit_is_clipping_5m, unit_ac_capacity, unit_dc_capacity
     )
     project_average_of_all_units_ac_or_dc_capacity_kw_5m = (
-        unit_ac_or_dc_capacity_kw_5m.mean(dim=DeviceType.PV_INVERTER.name.lower())
+        unit_ac_or_dc_capacity_kw_5m.mean(dim=DeviceTypeEnum.PV_INVERTER.name.lower())
     )
     normalized_unit_kw = (
         revised_unit_kw
@@ -76,10 +76,10 @@ def solv_lost_period(
         / unit_ac_or_dc_capacity_kw_5m
     )
     norm_p80 = normalized_unit_kw.quantile(
-        dim=DeviceType.PV_INVERTER.name.lower(), q=0.8
+        dim=DeviceTypeEnum.PV_INVERTER.name.lower(), q=0.8
     ).drop("quantile")
     average_unit_nv = normalized_unit_kw.where(normalized_unit_kw > norm_p80).mean(
-        dim=DeviceType.PV_INVERTER.name.lower()
+        dim=DeviceTypeEnum.PV_INVERTER.name.lower()
     )
     unit_power_lost_when_offline_kw_5m = (
         average_unit_nv
@@ -121,7 +121,7 @@ def solv_lost_period(
 
     # Step 3: For Facility Offline
 
-    facility_is_offline = unit_is_offline.all(dim=DeviceType.PV_INVERTER.name.lower())
+    facility_is_offline = unit_is_offline.all(dim=DeviceTypeEnum.PV_INVERTER.name.lower())
 
     ## Expected energy model language in the contract is specific; we lack the
     # month-of-year initial model and use our internal expected energy instead.
@@ -144,7 +144,7 @@ def solv_lost_period(
     )
 
     project_energy_lost_kwh_5m = unit_energy_lost_kwh_5m.sum(
-        dim=DeviceType.PV_INVERTER.name.lower()
+        dim=DeviceTypeEnum.PV_INVERTER.name.lower()
     )
 
     # at the facility level

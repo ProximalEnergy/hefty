@@ -17,13 +17,13 @@ from sqlalchemy import func, select
 
 from core import models
 from core.db_query import DbQuery
-from core.enumerations import KPIType
+from core.enumerations import KPITypeEnum
 
 
 def get_project_kpi_data_agg_freq(
     *,
     project_id: UUID,
-    kpi_type_id: KPIType,
+    kpi_type_id: KPITypeEnum,
     start: datetime.date | None = None,
     end: datetime.date | None = None,
     frequency: Literal["month", "year"] | None = None,
@@ -122,7 +122,7 @@ def get_project_kpi_data_agg_freq(
 def get_project_kpi_data_agg(
     *,
     project_id: UUID,
-    kpi_type_id: KPIType,
+    kpi_type_id: KPITypeEnum,
     start: datetime.date | None = None,
     end: datetime.date | None = None,
     aggregation_method: Literal["sum", "avg"],

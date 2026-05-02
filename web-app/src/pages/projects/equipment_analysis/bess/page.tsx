@@ -3,7 +3,7 @@ import {
   DeviceTypeEnum,
   ProjectTypeEnum,
   SensorTypeEnum,
-  UserTypeEnumEnum,
+  UserTypeEnum,
 } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisBESS } from '@/api/v1/protected/web-application/projects/equipment-analysis/bess'
@@ -33,8 +33,7 @@ const EquipmentAnalysisBESSPage = () => {
 
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
 
   const project = useSelectProject(projectId!)
   const { activeTab, setTab } = useEquipmentAnalysisTab({ isSuperadmin })

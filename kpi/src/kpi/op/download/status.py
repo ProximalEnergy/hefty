@@ -1,5 +1,5 @@
 import xarray as xr
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from kpi.infra.download.sensor import get_existing_columns_df
 from kpi.infra.download.status import download_status_df, get_tag_df
 from kpi.infra.pandas_to_xarray import pandas_device_time_series_to_xarray
@@ -13,8 +13,8 @@ from pydantic import BaseModel
 
 
 class StatusModel(BaseModel, NoInputs):
-    sensor_type: SensorType
-    device_type: DeviceType
+    sensor_type: SensorTypeEnum
+    device_type: DeviceTypeEnum
     failure_modes: list[int]
 
 

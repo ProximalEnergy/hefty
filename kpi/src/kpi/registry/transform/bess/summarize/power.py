@@ -3,7 +3,7 @@ power-based computations including C-rates and hours charging/discharging.
 """
 
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.bess import is_charging, is_discharging, is_idling
@@ -130,7 +130,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=c_rate,
-            device_type=DeviceType.BESS_PCS,
+            device_type=DeviceTypeEnum.BESS_PCS,
             date_local_5m=date_local_5m,
         )
 
@@ -157,7 +157,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=-c_rate.where(is_charging(c_rate)),
-            device_type=DeviceType.BESS_PCS,
+            device_type=DeviceTypeEnum.BESS_PCS,
             date_local_5m=date_local_5m,
         )
 
@@ -186,7 +186,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=c_rate.where(is_discharging(c_rate)),
-            device_type=DeviceType.BESS_PCS,
+            device_type=DeviceTypeEnum.BESS_PCS,
             date_local_5m=date_local_5m,
         )
 
@@ -211,7 +211,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     def project_pcs_hours_charging_d(
         hours: xr.DataArray,
     ) -> xr.DataArray:
-        return hours.mean(dim=coord(DeviceType.BESS_PCS))
+        return hours.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_HOURS_DISCHARGING (82)
     @method_calc(
@@ -234,7 +234,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     def project_pcs_hours_discharging_d(
         hours: xr.DataArray,
     ) -> xr.DataArray:
-        return hours.mean(dim=coord(DeviceType.BESS_PCS))
+        return hours.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_HOURS_IDLING (85)
     @method_calc(
@@ -257,7 +257,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     def project_pcs_hours_idling_d(
         hours: xr.DataArray,
     ) -> xr.DataArray:
-        return hours.mean(dim=coord(DeviceType.BESS_PCS))
+        return hours.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_AVG_REAL_AC_POWER_WHILE_CHARGING (89)
     @method_calc(
@@ -288,7 +288,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=power.where(is_charging(power / energy_capacity)),
-            device_type=DeviceType.BESS_PCS,
+            device_type=DeviceTypeEnum.BESS_PCS,
             date_local_5m=date_local_5m,
         )
 
@@ -321,7 +321,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=power.where(is_discharging(power / energy_capacity)),
-            device_type=DeviceType.BESS_PCS,
+            device_type=DeviceTypeEnum.BESS_PCS,
             date_local_5m=date_local_5m,
         )
 
@@ -350,7 +350,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=c_rate,
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -377,7 +377,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=-c_rate.where(is_charging(c_rate)),
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )
 
@@ -406,6 +406,6 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=c_rate.where(is_discharging(c_rate)),
-            device_type=DeviceType.BESS_STRING,
+            device_type=DeviceTypeEnum.BESS_STRING,
             date_local_5m=date_local_5m,
         )

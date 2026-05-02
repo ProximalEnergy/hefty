@@ -645,7 +645,7 @@ export const TimeOffsetEnum = {
   TWENTY_FOUR_HOURS: "24hour",
 } as const;
 
-export const UserTypeEnumEnum = {
+export const UserTypeEnum = {
   SUPERADMIN: 1,
   ADMIN: 2,
   USER: 3,

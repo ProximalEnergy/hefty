@@ -154,7 +154,7 @@ async def check_calendar_notifications(
                     exceptions_map[exc.calendar_item_id].add(exc.exception_date)
 
             calendar_notification_type_id = (
-                enumerations.NotificationType.CALENDAR_REMINDER.value
+                enumerations.NotificationTypeEnum.CALENDAR_REMINDER.value
             )
 
             # Ensure current time is UTC-aware
@@ -189,7 +189,7 @@ async def check_calendar_notifications(
 
     # Ensure notification states exist for all created notifications
     await ensure_notification_states_exist(
-        notification_types=(enumerations.NotificationType.CALENDAR_REMINDER,),
+        notification_types=(enumerations.NotificationTypeEnum.CALENDAR_REMINDER,),
     )
 
     # Ensure the async engine is disposed
@@ -366,7 +366,7 @@ async def _process_calendar_item(
                 db=db,
                 notification_id=notification.notification_id,
                 user_id=user_id,
-                channel=enumerations.NotificationChannel.IN_APP,
+                channel=enumerations.NotificationChannelEnum.IN_APP,
             )
             summary["in_app_notifications"] += 1
         except Exception as e:

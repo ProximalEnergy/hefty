@@ -44,14 +44,14 @@ notification_severity_enum = Enum(
 )
 
 notification_channel_enum = Enum(
-    enumerations.NotificationChannel,
+    enumerations.NotificationChannelEnum,
     name="notification_channel",
     schema="admin",
     metadata=Base.metadata,
 )
 
 notification_state_enum = Enum(
-    enumerations.NotificationState,
+    enumerations.NotificationStateEnum,
     name="notification_state",
     schema="admin",
     metadata=Base.metadata,
@@ -369,10 +369,10 @@ class NotificationState(Base):
     user_id: Mapped[str] = mapped_column(
         sa.ForeignKey("admin.users.user_id"),
     )
-    channel: Mapped[enumerations.NotificationChannel] = mapped_column(
+    channel: Mapped[enumerations.NotificationChannelEnum] = mapped_column(
         notification_channel_enum
     )
-    state: Mapped[enumerations.NotificationState] = mapped_column(
+    state: Mapped[enumerations.NotificationStateEnum] = mapped_column(
         notification_state_enum
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -1082,7 +1082,7 @@ class Project(Base):
 
     project_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     project_id_int: Mapped[int] = mapped_column(sa.SmallInteger, unique=True)
-    project_type_id: Mapped[enumerations.ProjectType] = mapped_column(
+    project_type_id: Mapped[enumerations.ProjectTypeEnum] = mapped_column(
         sa.ForeignKey("operational.project_types.project_type_id"),
     )
     project_status_type_id: Mapped[enumerations.ProjectStatusType] = mapped_column(
@@ -1420,7 +1420,7 @@ class ProjectDataLastUpdated(Base):
 class ProjectType(Base):
     __tablename__ = "project_types"
 
-    project_type_id: Mapped[enumerations.ProjectType] = mapped_column(
+    project_type_id: Mapped[enumerations.ProjectTypeEnum] = mapped_column(
         sa.SmallInteger,
         primary_key=True,
         autoincrement=False,
@@ -2040,8 +2040,8 @@ class EventMessageReaction(Base):
         sa.ForeignKey("project.event_messages.event_message_id", ondelete="CASCADE")
     )
     user_id: Mapped[str] = mapped_column(sa.ForeignKey("admin.users.user_id"))
-    reaction_type: Mapped[enumerations.ReactionType] = mapped_column(
-        Enum(enumerations.ReactionType)
+    reaction_type: Mapped[enumerations.ReactionTypeEnum] = mapped_column(
+        Enum(enumerations.ReactionTypeEnum, name="reactiontype")
     )
     created_at: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
 

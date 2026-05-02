@@ -3,7 +3,7 @@ from uuid import UUID
 
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
 from kpi.base.util import coord
 from kpi.infra.download.devices import download_device_df
@@ -14,19 +14,19 @@ from pydantic import validate_call
 from core import models
 
 device_types = [
-    DeviceType.PROJECT,
-    DeviceType.PV_BLOCK,
-    DeviceType.PV_DC_COMBINER,
-    DeviceType.PV_INVERTER,
-    DeviceType.MET_STATION,
-    DeviceType.TRACKER_ROW,
-    DeviceType.PV_INVERTER_MODULE,
-    DeviceType.BESS_MV_COLLECTOR_CIRCUIT_METER,
-    DeviceType.BESS_PCS,
-    DeviceType.BESS_PCS_MODULE,
-    DeviceType.BESS_PCS_MODULE_GROUP,
-    DeviceType.BESS_BANK,
-    DeviceType.BESS_STRING,
+    DeviceTypeEnum.PROJECT,
+    DeviceTypeEnum.PV_BLOCK,
+    DeviceTypeEnum.PV_DC_COMBINER,
+    DeviceTypeEnum.PV_INVERTER,
+    DeviceTypeEnum.MET_STATION,
+    DeviceTypeEnum.TRACKER_ROW,
+    DeviceTypeEnum.PV_INVERTER_MODULE,
+    DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER,
+    DeviceTypeEnum.BESS_PCS,
+    DeviceTypeEnum.BESS_PCS_MODULE,
+    DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
+    DeviceTypeEnum.BESS_BANK,
+    DeviceTypeEnum.BESS_STRING,
 ]
 
 

@@ -6,7 +6,7 @@ from app import dependencies, logger
 from app.utils import get_include_in_schema
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import SensorType
+from core.enumerations import SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -59,7 +59,7 @@ async def validate_combiner_data(
 
         # Get combiner current tags
         tags = await core.crud.project.tags.get_project_tags_v2(
-            sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
+            sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
             device_ids=combiner_device_ids,
         ).get_async(
             schema=project.name_short,

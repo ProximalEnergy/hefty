@@ -3,7 +3,7 @@ import {
   DeviceTypeEnum,
   KPITypeEnum,
   ProjectTypeEnum,
-  UserTypeEnumEnum,
+  UserTypeEnum,
 } from '@/api/enumerations'
 import { useGetDeviceModels } from '@/api/v1/operational/device_models'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
@@ -195,11 +195,10 @@ const PCSEquipmentAnalysis = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
   const colorScheme = useComputedColorScheme()
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const isAdmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.ADMIN ||
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    userType.data?.user_type_id === UserTypeEnum.ADMIN ||
+    userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const [sliderValue, setSliderValue] = useState(0)
   const [initialSliderValueSet, setInitialSliderValueSet] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)

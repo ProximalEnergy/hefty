@@ -2,7 +2,7 @@
 
 import unittest
 
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 
 from inspectui.core.capacity_check import check_capacity_requirements
 from inspectui.core.models import DeviceInfo
@@ -16,7 +16,7 @@ class TestCapacityCheck(unittest.TestCase):
         devices = [
             DeviceInfo(
                 device_id=1,
-                device_type_id=DeviceType.PV_INVERTER.value,
+                device_type_id=DeviceTypeEnum.PV_INVERTER.value,
                 name_short="inv-1",  # noqa: hardcoded-name-short
                 name_long=None,
                 parent_device_id=None,
@@ -25,7 +25,7 @@ class TestCapacityCheck(unittest.TestCase):
             ),
             DeviceInfo(
                 device_id=2,
-                device_type_id=DeviceType.BESS_STRING.value,
+                device_type_id=DeviceTypeEnum.BESS_STRING.value,
                 name_short="string-1",  # noqa: hardcoded-name-short
                 name_long=None,
                 parent_device_id=None,
@@ -41,21 +41,21 @@ class TestCapacityCheck(unittest.TestCase):
             for row in rows
         }
 
-        inverter_ac = by_key[(DeviceType.PV_INVERTER, "capacity_ac")]
+        inverter_ac = by_key[(DeviceTypeEnum.PV_INVERTER, "capacity_ac")]
         self.assertFalse(inverter_ac.passed)
         self.assertEqual(inverter_ac.missing_devices[0].device_id, 1)
 
-        bess_string_dc = by_key[(DeviceType.BESS_STRING, "capacity_dc")]
+        bess_string_dc = by_key[(DeviceTypeEnum.BESS_STRING, "capacity_dc")]
         self.assertTrue(bess_string_dc.passed)
 
         bess_string_energy = by_key[
-            (DeviceType.BESS_STRING, "capacity_energy_dc")
+            (DeviceTypeEnum.BESS_STRING, "capacity_energy_dc")
         ]
         self.assertFalse(bess_string_energy.passed)
         self.assertEqual(bess_string_energy.missing_devices[0].device_id, 2)
 
-        self.assertNotIn((DeviceType.BESS_STRING, "capacity_ac"), by_key)
-        self.assertNotIn((DeviceType.METER, "capacity_dc"), by_key)
+        self.assertNotIn((DeviceTypeEnum.BESS_STRING, "capacity_ac"), by_key)
+        self.assertNotIn((DeviceTypeEnum.METER, "capacity_dc"), by_key)
 
 
 if __name__ == "__main__":

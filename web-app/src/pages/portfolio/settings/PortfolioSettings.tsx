@@ -1,5 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, UserTypeEnum } from '@/api/enumerations'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -26,7 +26,7 @@ const PortfolioSettingsPage = () => {
 
   const userType = useGetUserType({})
   const isUserSuperadmin =
-    userType?.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    userType?.data?.user_type_id === UserTypeEnum.SUPERADMIN
 
   const allowedTabs = isUserSuperadmin
     ? ['PV Inverters', 'PV Rackings', 'PV Modules', 'System']

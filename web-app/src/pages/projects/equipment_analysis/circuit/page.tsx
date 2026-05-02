@@ -1,5 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, UserTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -16,8 +16,7 @@ const CircuitPage = () => {
 
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
-  const isSuperadmin =
-    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const isSuperadmin = userType.data?.user_type_id === UserTypeEnum.SUPERADMIN
   const { activeTab, setTab } = useEquipmentAnalysisTab({ isSuperadmin })
   const project = useSelectProject(projectId!)
 

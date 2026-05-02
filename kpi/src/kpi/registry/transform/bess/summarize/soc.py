@@ -4,7 +4,7 @@ SOC balance score, Depth of Discharge, and Cycle Count.
 """
 
 import xarray as xr
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.bess import cycle_count, soc_balance_score
@@ -93,8 +93,8 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         min_data_coverage = 0.5
-        var_5m = soc.var(dim=coord(DeviceType.BESS_STRING))
-        data_coverage = soc.notnull().mean(dim=coord(DeviceType.BESS_STRING))
+        var_5m = soc.var(dim=coord(DeviceTypeEnum.BESS_STRING))
+        data_coverage = soc.notnull().mean(dim=coord(DeviceTypeEnum.BESS_STRING))
         var_5m = var_5m.where(data_coverage >= min_data_coverage)
         return var_5m.groupby(date_local(date_local_5m)).mean()
 
@@ -131,7 +131,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         min_data_coverage = 0.5
-        device_grouper = string_to_pcs.rename(coord(DeviceType.BESS_PCS))
+        device_grouper = string_to_pcs.rename(coord(DeviceTypeEnum.BESS_PCS))
         var_5m = soc.groupby(device_grouper).var()
         data_coverage = soc.notnull().groupby(device_grouper).mean()
         var_5m = var_5m.where(data_coverage >= min_data_coverage)
@@ -146,7 +146,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
     def project_avg_pcs_string_soc_variance_d(
         pcs_string_soc_var: xr.DataArray,
     ) -> xr.DataArray:
-        return pcs_string_soc_var.mean(dim=coord(DeviceType.BESS_PCS))
+        return pcs_string_soc_var.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_STRING_SOC_BALANCE_SCORE (121)
     pcs_string_soc_balance_score_d = unary_field(
@@ -183,7 +183,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
-            value=soc, device_type=DeviceType.BESS_BANK, date_local_5m=date_local_5m
+            value=soc, device_type=DeviceTypeEnum.BESS_BANK, date_local_5m=date_local_5m
         )
 
     # BESS_BANK_RESTING_SOC_PERCENT (29)
@@ -206,7 +206,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
-            value=soc, device_type=DeviceType.BESS_BANK, date_local_5m=date_local_5m
+            value=soc, device_type=DeviceTypeEnum.BESS_BANK, date_local_5m=date_local_5m
         )
 
     # BESS_BANK_DEPTH_OF_DISCHARGE (26)
@@ -243,7 +243,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
     def project_avg_bank_cycle_count_d(
         cycle_count: xr.DataArray,
     ):
-        return cycle_count.mean(dim=coord(DeviceType.BESS_BANK))
+        return cycle_count.mean(dim=coord(DeviceTypeEnum.BESS_BANK))
 
     # =======================================================
     # Block level
@@ -266,7 +266,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
     def project_avg_block_cycle_count_d(
         cycle_count: xr.DataArray,
     ):
-        return cycle_count.mean(dim=coord(DeviceType.BESS_BLOCK))
+        return cycle_count.mean(dim=coord(DeviceTypeEnum.BESS_BLOCK))
 
     # BESS_BLOCK_RESTING_SOC_PERCENT (12)
     @method_calc(
@@ -288,7 +288,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
-            value=soc, device_type=DeviceType.BESS_BLOCK, date_local_5m=date_local_5m
+            value=soc, device_type=DeviceTypeEnum.BESS_BLOCK, date_local_5m=date_local_5m
         )
 
     # BESS_BLOCK_AVERAGE_SOC_PERCENT (15)
@@ -311,7 +311,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
-            value=soc, device_type=DeviceType.BESS_BLOCK, date_local_5m=date_local_5m
+            value=soc, device_type=DeviceTypeEnum.BESS_BLOCK, date_local_5m=date_local_5m
         )
 
     # =======================================================
@@ -338,7 +338,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
-            value=soc, device_type=DeviceType.BESS_STRING, date_local_5m=date_local_5m
+            value=soc, device_type=DeviceTypeEnum.BESS_STRING, date_local_5m=date_local_5m
         )
 
     # BESS_STRING_RESTING_SOC_PERCENT (30)
@@ -361,7 +361,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         return daily_mean_across_devices(
-            value=soc, device_type=DeviceType.BESS_STRING, date_local_5m=date_local_5m
+            value=soc, device_type=DeviceTypeEnum.BESS_STRING, date_local_5m=date_local_5m
         )
 
     # BESS_STRING_DEPTH_OF_DISCHARGE (27)
@@ -398,4 +398,4 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
     def project_avg_string_cycle_count_d(
         cycle_count: xr.DataArray,
     ):
-        return cycle_count.mean(dim=coord(DeviceType.BESS_STRING))
+        return cycle_count.mean(dim=coord(DeviceTypeEnum.BESS_STRING))

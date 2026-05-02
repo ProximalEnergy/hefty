@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 
 import pandas as pd
 from core.db_query import OutputType
-from core.enumerations import SensorType
+from core.enumerations import SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsorted
 from pydantic import BaseModel
@@ -94,7 +94,7 @@ async def get_status_time_series_python(
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
     device_type_ids: list[int] | None = Query(None),
-    sensor_types: list[SensorType] | None = None,
+    sensor_types: list[SensorTypeEnum] | None = None,
 ):
     """todo
 
@@ -115,7 +115,7 @@ async def get_status_time_series_python(
         "instead.",
     )
     if sensor_types is not None:
-        sensor_type_ids = SensorType.extract_values(enum_list=sensor_types)
+        sensor_type_ids = SensorTypeEnum.extract_values(enum_list=sensor_types)
     else:
         sensor_type_ids = None
     data = await core.domain.statuses.statuses.get_status_time_series_failure_mode_ids(

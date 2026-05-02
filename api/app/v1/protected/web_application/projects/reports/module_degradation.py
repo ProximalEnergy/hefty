@@ -4,7 +4,7 @@ from typing import Annotated
 import pandas as pd
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import SensorType
+from core.enumerations import SensorTypeEnum
 from fastapi import Depends
 from pvlib import location
 from sqlalchemy.orm import Session
@@ -56,7 +56,7 @@ async def get_degradation_poa(
 
     project_schema = utils.get_project_schema(project_db=project_db)
     tags_df = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.MET_STATION_POA],
+        sensor_type_ids=[SensorTypeEnum.MET_STATION_POA],
         deep=True,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 

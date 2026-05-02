@@ -189,7 +189,7 @@ class ProjectStatusType(BaseDatabaseEnum[int], IntEnum):
     ARCHIVED = 3
 
 
-class ProjectType(BaseDatabaseEnum[int], IntEnum):
+class ProjectTypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("operational.project_types")  # type: ignore[misc]
     _db_id_column = nonmember("project_type_id")  # type: ignore[misc]
     _db_name_column = nonmember("name_short")  # type: ignore[misc]
@@ -271,7 +271,7 @@ class UserTypeEnum(BaseDatabaseEnum[int], IntEnum):
     USER = 3
 
 
-class DeviceType(BaseDatabaseEnum[int], IntEnum):
+class DeviceTypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("operational.device_types")  # type: ignore[misc]
     _db_id_column = nonmember("device_type_id")  # type: ignore[misc]
     _db_name_column = nonmember("name_short")  # type: ignore[misc]
@@ -310,7 +310,7 @@ class DeviceType(BaseDatabaseEnum[int], IntEnum):
     BESS_DC_SKID = 36
 
 
-class SensorType(BaseDatabaseEnum[int], IntEnum):
+class SensorTypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("operational.sensor_types")  # type: ignore[misc]
     _db_id_column = nonmember("sensor_type_id")  # type: ignore[misc]
     _db_name_column = nonmember("name_short")  # type: ignore[misc]
@@ -536,7 +536,7 @@ class SensorType(BaseDatabaseEnum[int], IntEnum):
     TRACKER_ZONE_WIND_SPEED = 220
 
 
-class KPIType(BaseDatabaseEnum[int], IntEnum):
+class KPITypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("operational.kpi_types")  # type: ignore[misc]
     _db_id_column = nonmember("kpi_type_id")  # type: ignore[misc]
     _db_name_column = nonmember("name_short")  # type: ignore[misc]
@@ -666,7 +666,7 @@ class KPIType(BaseDatabaseEnum[int], IntEnum):
     BESS_PROJECT_NER_AVAILABILITY = 125
 
 
-class EventLossType(BaseDatabaseEnum[int], IntEnum):
+class EventLossTypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember(  # type: ignore[misc]
         "operational.event_loss_types"
     )
@@ -678,7 +678,7 @@ class EventLossType(BaseDatabaseEnum[int], IntEnum):
     PROXIMAL_PV_DC_CAPACITY = 3
 
 
-class ReportType(BaseDatabaseEnum[int], IntEnum):
+class ReportTypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("operational.report_types")  # type: ignore[misc]
     _db_id_column = nonmember("report_type_id")  # type: ignore[misc]
     _db_name_column = nonmember("name_short")  # type: ignore[misc]
@@ -774,7 +774,7 @@ class PVBudgetedSoilingMode(StrEnum):
     PER_TIMESTAMP = "per_timestamp"
 
 
-class ReactionType(StrEnum):
+class ReactionTypeEnum(StrEnum):
     THUMBS_UP = "thumbs_up"
     THUMBS_DOWN = "thumbs_down"
     FIRE = "fire"
@@ -802,7 +802,7 @@ class NotificationSeverity(StrEnum):
     CRITICAL = "critical"
 
 
-class NotificationType(BaseDatabaseEnum[int], IntEnum):
+class NotificationTypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("admin.notification_types")  # type: ignore[misc]
     _db_id_column = nonmember("notification_type_id")  # type: ignore[misc]
     _db_name_column = nonmember("name_short")  # type: ignore[misc]
@@ -818,12 +818,12 @@ class NotificationType(BaseDatabaseEnum[int], IntEnum):
     PROJECT_CAPACITY_REDUCTION = 9
 
 
-class NotificationChannel(StrEnum):
+class NotificationChannelEnum(StrEnum):
     EMAIL = "email"
     IN_APP = "in_app"
 
 
-class NotificationState(StrEnum):
+class NotificationStateEnum(StrEnum):
     UNREAD = "unread"
     READ = "read"
     DELETED = "deleted"
@@ -866,7 +866,7 @@ class OutputType(StrEnum):
     SQLALCHEMY = "sqlalchemy"
 
 
-class PGDataType(IntEnum):
+class PGDataTypeEnum(IntEnum):
     UNKNOWN = 0
     INTEGER = 1
     BIGINT = 2

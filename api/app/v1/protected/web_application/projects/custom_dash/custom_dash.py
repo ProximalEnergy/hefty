@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType, ProjectType, SensorType
+from core.enumerations import DeviceTypeEnum, ProjectTypeEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsorted
 from pydantic import BaseModel
@@ -228,11 +228,11 @@ async def get_gauge(
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     match measured_variable:
         case "meter_actual_power":
-            if project.project_type_id == ProjectType.PV:
-                measured_sensor_type_id = SensorType.METER_ACTIVE_POWER
+            if project.project_type_id == ProjectTypeEnum.PV:
+                measured_sensor_type_id = SensorTypeEnum.METER_ACTIVE_POWER
             else:
                 measured_sensor_type_id = (
-                    SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+                    SensorTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
                 )
             tags_query = core.crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[measured_sensor_type_id],
@@ -260,7 +260,7 @@ async def get_gauge(
             metrics_priority_order = [12, 11, 6, 5]
             project_schema = utils.get_project_schema(project_db=project_db)
             device_df = await core.crud.project.devices.get_project_devices(
-                device_type_ids=[DeviceType.PROJECT],
+                device_type_ids=[DeviceTypeEnum.PROJECT],
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
             data_expected = await (
                 core.crud.project.data_expected.get_project_data_expected(
@@ -589,7 +589,10 @@ async def get_line(
                 pass
 
         # Special handling for this sensor type
-        if sensor_type_id == SensorType.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER:
+        if (
+            sensor_type_id
+            == SensorTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+        ):
             temp_df *= -1
 
         # Get maximum and minimum for this trace (index i)

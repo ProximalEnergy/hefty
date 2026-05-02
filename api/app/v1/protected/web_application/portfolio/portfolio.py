@@ -14,7 +14,7 @@ from core.crud.operational.calendar import (
 )
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType, postprocess_pandas_df
-from core.enumerations import KPIType, ProjectType, SensorType
+from core.enumerations import KPITypeEnum, ProjectTypeEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -484,11 +484,12 @@ async def get_portfolio_home_short_term(
             if power_columns and expected_columns:
                 time_zone: str = projects_df.loc[project_id, "time_zone"]  # type: ignore
                 project_type_id = projects_df.loc[project_id, "project_type_id"]  # type: ignore
-                if project_type_id == ProjectType.PVS:  # PV + Storage
+                if project_type_id == ProjectTypeEnum.PVS:  # PV + Storage
                     circuit_power_columns = [
                         c
                         for c in df_project.columns
-                        if c[1] == SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER  # noqa: E501
+                        if c[1]
+                        == SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER  # noqa: E501
                     ]  # pv_mv_circuit_meter_active_power
                     meter_total = (
                         df_project.loc[
@@ -560,10 +561,10 @@ async def get_portfolio_home_long_term(
 
     # KPI type IDs for long-term data
     kpi_type_ids = [
-        KPIType.BESS_STRING_CYCLE_COUNT,
-        KPIType.BESS_STRING_SOH,
-        KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY,
-        KPIType.PROJECT_ENERGY_PRODUCTION,
+        KPITypeEnum.BESS_STRING_CYCLE_COUNT,
+        KPITypeEnum.BESS_STRING_SOH,
+        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     ]
 
     # end equal to current date in UTC
@@ -639,13 +640,14 @@ async def get_portfolio_home_long_term(
             )
             state_of_health = df_pivot[54].tolist() if 54 in df_pivot.columns else None
             pcs_mechanical_availability = (
-                df_pivot[int(KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY)].tolist()
-                if int(KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY) in df_pivot.columns
+                df_pivot[int(KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY)].tolist()
+                if int(KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY)
+                in df_pivot.columns
                 else None
             )
             energy_production = (
-                df_pivot[int(KPIType.PROJECT_ENERGY_PRODUCTION)].tolist()
-                if int(KPIType.PROJECT_ENERGY_PRODUCTION) in df_pivot.columns
+                df_pivot[int(KPITypeEnum.PROJECT_ENERGY_PRODUCTION)].tolist()
+                if int(KPITypeEnum.PROJECT_ENERGY_PRODUCTION) in df_pivot.columns
                 else None
             )
 

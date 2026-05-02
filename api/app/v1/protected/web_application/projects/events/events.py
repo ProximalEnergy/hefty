@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 import core.models as models
 import pandas as pd
 from core.db_query import OutputType
-from core.enumerations import DeviceType
+from core.enumerations import DeviceTypeEnum
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -177,10 +177,10 @@ async def get_meta_analysis(
     df["capacity_ac"] = df["device_id"].map(capacity_ac_map)
     df["capacity_dc"] = df["device_id"].map(capacity_dc_map)
     df["device_type_id"] = df["device_id"].map(dtype_map)
-    canonical_project_type = int(DeviceType.METER)
-    project_type_aliases = [DeviceType.PROJECT, DeviceType.METER]
+    canonical_project_type = int(DeviceTypeEnum.METER)
+    project_type_aliases = [DeviceTypeEnum.PROJECT, DeviceTypeEnum.METER]
     df["device_type_bucket_id"] = df["device_type_id"].replace(
-        {DeviceType.PROJECT: DeviceType.METER}
+        {DeviceTypeEnum.PROJECT: DeviceTypeEnum.METER}
     )
 
     project_cap = project.capacity_ac * 1000
@@ -216,7 +216,7 @@ async def get_meta_analysis(
     # Device list for those types
     devs = devices.reset_index()
     devs["device_type_bucket_id"] = devs["device_type_id"].replace(
-        {DeviceType.PROJECT: DeviceType.METER}
+        {DeviceTypeEnum.PROJECT: DeviceTypeEnum.METER}
     )
     devs = devs.loc[
         lambda d: d["device_type_bucket_id"].isin(types_present),
@@ -289,7 +289,9 @@ async def get_meta_analysis(
     mtbf = df.groupby("device_id", as_index=False).agg(MTBF=("time_diff", "mean"))
     mtbf["MTBF_hours"] = mtbf["MTBF"].dt.total_seconds() / 3600
     mtbf["device_type_id"] = (
-        mtbf["device_id"].map(dtype_map).replace({DeviceType.PROJECT: DeviceType.METER})
+        mtbf["device_id"]
+        .map(dtype_map)
+        .replace({DeviceTypeEnum.PROJECT: DeviceTypeEnum.METER})
     )
     mtbf_by_type = mtbf.groupby("device_type_id", as_index=False)["MTBF_hours"].mean()
 
@@ -304,7 +306,9 @@ async def get_meta_analysis(
         MTTR_hours=("repair_time", "mean")
     )
     mttr["device_type_id"] = (
-        mttr["device_id"].map(dtype_map).replace({DeviceType.PROJECT: DeviceType.METER})
+        mttr["device_id"]
+        .map(dtype_map)
+        .replace({DeviceTypeEnum.PROJECT: DeviceTypeEnum.METER})
     )
     mttr_by_type = mttr.groupby("device_type_id", as_index=False)["MTTR_hours"].mean()
 

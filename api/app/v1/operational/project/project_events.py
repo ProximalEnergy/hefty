@@ -22,7 +22,12 @@ from core.crud.project.event_losses import get_event_losses
 from core.crud.project.events import get_windowed_events
 from core.crud.project.tags import get_project_tags_v2
 from core.db_query import OutputType
-from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
+from core.enumerations import (
+    DeviceTypeEnum,
+    EventLossTypeEnum,
+    ProjectTypeEnum,
+    SensorTypeEnum,
+)
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -801,10 +806,10 @@ async def get_uptime(
     if events.empty:
         return []
 
-    if project.project_type_id != ProjectType.BESS:
+    if project.project_type_id != ProjectTypeEnum.BESS:
         # Get POA data efficiently for daylight hours calculation
         tags_df = await get_project_tags_v2(
-            sensor_type_ids=[SensorType.MET_STATION_POA],
+            sensor_type_ids=[SensorTypeEnum.MET_STATION_POA],
         ).get_async(
             schema=project.name_short,
             output_type=OutputType.POLARS,
@@ -1027,101 +1032,101 @@ async def get_event_trace_tags(
     device_ids.extend(child_devices_df["device_id"].astype(int).tolist())
     device_ids.extend(ancestor_devices_df["device_id"].astype(int).tolist())
     match int(device["device_type_id"]):
-        case DeviceType.PV_INVERTER:
+        case DeviceTypeEnum.PV_INVERTER:
             sensor_type_ids = [
-                SensorType.PV_INVERTER_AC_POWER,
-                SensorType.PV_INVERTER_AC_POWER_SETPOINT,
-                SensorType.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
-                SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
-                SensorType.PV_INVERTER_STATUS,
-                SensorType.PV_INVERTER_MODULE_STATUS,
+                SensorTypeEnum.PV_INVERTER_AC_POWER,
+                SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT,
+                SensorTypeEnum.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
+                SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE,
+                SensorTypeEnum.PV_INVERTER_STATUS,
+                SensorTypeEnum.PV_INVERTER_MODULE_STATUS,
             ]
-        case DeviceType.PV_INVERTER_MODULE:
+        case DeviceTypeEnum.PV_INVERTER_MODULE:
             sensor_type_ids = [
-                SensorType.PV_INVERTER_AC_POWER,
-                SensorType.PV_INVERTER_MODULE_AC_POWER,
-                SensorType.PV_INVERTER_AC_POWER_SETPOINT,
-                SensorType.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
-                SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
-                SensorType.PV_INVERTER_STATUS,
-                SensorType.PV_INVERTER_MODULE_STATUS,
+                SensorTypeEnum.PV_INVERTER_AC_POWER,
+                SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER,
+                SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT,
+                SensorTypeEnum.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
+                SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE,
+                SensorTypeEnum.PV_INVERTER_STATUS,
+                SensorTypeEnum.PV_INVERTER_MODULE_STATUS,
             ]
-        case DeviceType.METER:
+        case DeviceTypeEnum.METER:
             sensor_type_ids = [
-                SensorType.METER_ACTIVE_POWER,
+                SensorTypeEnum.METER_ACTIVE_POWER,
             ]
-        case DeviceType.PV_DC_COMBINER:
+        case DeviceTypeEnum.PV_DC_COMBINER:
             sensor_type_ids = [
-                SensorType.PV_INVERTER_AC_POWER,
-                SensorType.PV_INVERTER_MODULE_AC_POWER,
-                SensorType.PV_DC_COMBINER_CURRENT,
-                SensorType.PV_INVERTER_STATUS,
-                SensorType.PV_INVERTER_MODULE_STATUS,
+                SensorTypeEnum.PV_INVERTER_AC_POWER,
+                SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER,
+                SensorTypeEnum.PV_DC_COMBINER_CURRENT,
+                SensorTypeEnum.PV_INVERTER_STATUS,
+                SensorTypeEnum.PV_INVERTER_MODULE_STATUS,
             ]
-        case DeviceType.BESS_PCS:
+        case DeviceTypeEnum.BESS_PCS:
             sensor_type_ids = [
-                SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER,
-                SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
-                SensorType.BESS_PCS_MODULE_STATUS,
-                SensorType.BESS_PCS_MODULE_ALARM,
-                SensorType.BESS_PCS_STATUS,
-                SensorType.BESS_BANK_STATUS,
+                SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_MODULE_STATUS,
+                SensorTypeEnum.BESS_PCS_MODULE_ALARM,
+                SensorTypeEnum.BESS_PCS_STATUS,
+                SensorTypeEnum.BESS_BANK_STATUS,
             ]
-        case DeviceType.BESS_BANK:
+        case DeviceTypeEnum.BESS_BANK:
             sensor_type_ids = [
-                SensorType.BESS_BANK_SOC_PERCENT,
-                SensorType.BESS_BANK_CURRENT,
-                SensorType.BESS_BANK_VOLTAGE,
-                SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER,
-                SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
-                SensorType.BESS_PCS_MODULE_STATUS,
-                SensorType.BESS_PCS_MODULE_ALARM,
-                SensorType.BESS_PCS_STATUS,
-                SensorType.BESS_BANK_STATUS,
+                SensorTypeEnum.BESS_BANK_SOC_PERCENT,
+                SensorTypeEnum.BESS_BANK_CURRENT,
+                SensorTypeEnum.BESS_BANK_VOLTAGE,
+                SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_MODULE_STATUS,
+                SensorTypeEnum.BESS_PCS_MODULE_ALARM,
+                SensorTypeEnum.BESS_PCS_STATUS,
+                SensorTypeEnum.BESS_BANK_STATUS,
             ]
-        case DeviceType.BESS_STRING:
+        case DeviceTypeEnum.BESS_STRING:
             sensor_type_ids = [
-                SensorType.BESS_STRING_SOC_PERCENT,
-                SensorType.BESS_STRING_CURRENT,
-                SensorType.BESS_STRING_VOLTAGE,
-                SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER,
-                SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
-                SensorType.BESS_PCS_MODULE_STATUS,
-                SensorType.BESS_PCS_MODULE_ALARM,
-                SensorType.BESS_PCS_STATUS,
-                SensorType.BESS_BANK_STATUS,
+                SensorTypeEnum.BESS_STRING_SOC_PERCENT,
+                SensorTypeEnum.BESS_STRING_CURRENT,
+                SensorTypeEnum.BESS_STRING_VOLTAGE,
+                SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_MODULE_STATUS,
+                SensorTypeEnum.BESS_PCS_MODULE_ALARM,
+                SensorTypeEnum.BESS_PCS_STATUS,
+                SensorTypeEnum.BESS_BANK_STATUS,
             ]
-        case DeviceType.TRACKER_ZONE:
+        case DeviceTypeEnum.TRACKER_ZONE:
             sensor_type_ids = [
-                SensorType.TRACKER_ROW_POSITION,
-                SensorType.TRACKER_ROW_SETPOINT,
-                SensorType.TRACKER_ZONE_STATUS,
-                SensorType.TRACKER_ROW_STATUS,
+                SensorTypeEnum.TRACKER_ROW_POSITION,
+                SensorTypeEnum.TRACKER_ROW_SETPOINT,
+                SensorTypeEnum.TRACKER_ZONE_STATUS,
+                SensorTypeEnum.TRACKER_ROW_STATUS,
             ]
-        case DeviceType.TRACKER_ROW:
+        case DeviceTypeEnum.TRACKER_ROW:
             sensor_type_ids = [
-                SensorType.TRACKER_ROW_POSITION,
-                SensorType.TRACKER_ROW_SETPOINT,
-                SensorType.TRACKER_ZONE_STATUS,
-                SensorType.TRACKER_ROW_STATUS,
+                SensorTypeEnum.TRACKER_ROW_POSITION,
+                SensorTypeEnum.TRACKER_ROW_SETPOINT,
+                SensorTypeEnum.TRACKER_ZONE_STATUS,
+                SensorTypeEnum.TRACKER_ROW_STATUS,
             ]
-        case DeviceType.BESS_PCS_MODULE:
+        case DeviceTypeEnum.BESS_PCS_MODULE:
             sensor_type_ids = [
-                SensorType.BESS_PCS_MODULE_AVAILABLE_CHARGE_POWER,
-                SensorType.BESS_PCS_MODULE_AVAILABLE_DISCHARGE_POWER,
-                SensorType.BESS_PCS_MODULE_AC_POWER,
-                SensorType.BESS_PCS_MODULE_CABINET_TEMPERATURE,
-                SensorType.BESS_PCS_MODULE_DC_VOLTAGE,
-                SensorType.BESS_PCS_MODULE_STATUS,
-                SensorType.BESS_PCS_MODULE_ALARM,
+                SensorTypeEnum.BESS_PCS_MODULE_AVAILABLE_CHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_MODULE_AVAILABLE_DISCHARGE_POWER,
+                SensorTypeEnum.BESS_PCS_MODULE_AC_POWER,
+                SensorTypeEnum.BESS_PCS_MODULE_CABINET_TEMPERATURE,
+                SensorTypeEnum.BESS_PCS_MODULE_DC_VOLTAGE,
+                SensorTypeEnum.BESS_PCS_MODULE_STATUS,
+                SensorTypeEnum.BESS_PCS_MODULE_ALARM,
             ]
-        case DeviceType.PROJECT:
+        case DeviceTypeEnum.PROJECT:
             sensor_type_ids = [
-                SensorType.METER_ACTIVE_POWER,
+                SensorTypeEnum.METER_ACTIVE_POWER,
             ]
-        case DeviceType.PV_FEEDER:
+        case DeviceTypeEnum.PV_FEEDER:
             sensor_type_ids = [
-                SensorType.PV_INVERTER_AC_POWER,
+                SensorTypeEnum.PV_INVERTER_AC_POWER,
             ]
         case _:
             sentry_sdk.capture_exception(
@@ -1244,7 +1249,7 @@ async def bulk_create_events(
         payload: Bulk event creation request containing items and metadata.
     """
     # Ensure event_loss_type id exists (id 3 requested by frontend)
-    loss_type_id = EventLossType.PROXIMAL_PV_DC_CAPACITY
+    loss_type_id = EventLossTypeEnum.PROXIMAL_PV_DC_CAPACITY
     try:
         exists_query = select(models.EventLossType).where(
             models.EventLossType.event_loss_type_id == loss_type_id
@@ -1302,7 +1307,7 @@ async def bulk_create_events(
         # Get DC Field devices that are direct children of our combiners
         project_schema = await utils.get_project_schema_async(project_db=project_db)
         dc_field_children_df = await crud_get_project_devices(
-            device_type_ids=[DeviceType.DC_FIELD],
+            device_type_ids=[DeviceTypeEnum.DC_FIELD],
             parent_device_ids=[device_id for device_id in combiner_device_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
