@@ -239,6 +239,11 @@ description = "Check that workspace uv.lock matches pyproject.toml"
 dir = "."
 run = "uv lock --check"
 
+[tasks."root:lint_config_changes"]
+description = "Check protected lint configs have not changed vs dev"
+dir = "."
+run = "bash _scripts/check_lint_config_changes.sh"
+
 [tasks."root:codegen"]
 description = "Automatically generate interfaces"
 dir = "."

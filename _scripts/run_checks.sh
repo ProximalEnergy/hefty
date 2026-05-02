@@ -1298,6 +1298,8 @@ if [ "${RUN_PVEEM}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
+    add_check "Root: Protected Lint Config Changes" \
+        "mise run root:lint_config_changes"
     add_check "Root: No package.json" "mise run root:no_package_json"
     add_check "Root: Static Type ID Check" \
         "mise run root:static_type_id"

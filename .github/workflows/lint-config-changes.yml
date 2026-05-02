@@ -1,0 +1,39 @@
+name: Lint Config Change Check
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - "pyproject.toml"
+      - "web-app/knip.json"
+      - "web-app/.oxlintrc.json"
+      - "web-app/tsconfig.json"
+      - "web-app/tsconfig.node.json"
+      - "web-app/package.json"
+      - "_scripts/check_lint_config_changes.py"
+      - "_scripts/check_lint_config_changes.sh"
+      - ".github/workflows/lint-config-changes.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  protected-lint-config:
+    name: Protected Lint Config Changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Check protected lint config changes
+        run: bash _scripts/check_lint_config_changes.sh

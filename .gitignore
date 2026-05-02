@@ -3,6 +3,7 @@
 api/openapi.json
 .env_backup
 .env.*
+tsdb.md
 sandbox/*
 .jj/
 .zed/*
