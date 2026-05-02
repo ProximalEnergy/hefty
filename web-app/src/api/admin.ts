@@ -11,13 +11,13 @@ import axios from 'axios'
 
 import { baseURL } from '../urlConfig'
 
-type Permission = types.components['schemas']['Permission']
+type Permission = types.components['schemas']['PermissionInterface']
 type UserWithPermissions = types.components['schemas']['UserWithPermissions']
 type UserCreate = types.components['schemas']['UserCreate']
-type Company = types.components['schemas']['Company']
-type Team = types.components['schemas']['Team']
+type Company = types.components['schemas']['CompanyInterface']
+type Team = types.components['schemas']['TeamInterface']
 type TeamWithMembers = types.components['schemas']['TeamWithMembers']
-type UserType = types.components['schemas']['UserType'] & {
+type UserType = types.components['schemas']['UserTypeInterface'] & {
   // noqa: hardcoded-name-short
   name_short: 'admin' | 'superadmin' | 'user'
 }

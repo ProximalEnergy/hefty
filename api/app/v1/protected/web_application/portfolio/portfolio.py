@@ -30,7 +30,7 @@ from app._crud.operational.portfolio_bess_power_availability import (
 from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
-from app.interfaces import CalendarItem, UserAuthed
+from app.interfaces import CalendarItemInterface, UserAuthed
 
 logger = logging.getLogger(__name__)
 
@@ -1005,7 +1005,7 @@ async def get_home(
 
 @router.get(
     "/calendar",
-    response_model=list[CalendarItem],
+    response_model=list[CalendarItemInterface],
 )
 async def get_portfolio_calendar_events(
     project_ids: Annotated[list[UUID] | None, Query()] = None,
@@ -1094,7 +1094,7 @@ async def get_portfolio_calendar_events(
 
 @router.get(
     "/calendar-categories",
-    response_model=list[interfaces.CalendarItemCategory],
+    response_model=list[interfaces.CalendarItemCategoryInterface],
 )
 async def get_portfolio_calendar_categories(
     db: AsyncSession = Depends(dependencies.get_async_db),

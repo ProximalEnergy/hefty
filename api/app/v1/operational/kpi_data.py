@@ -34,7 +34,7 @@ router = APIRouter(prefix="/kpi-data", tags=["kpi_data"])
 @router.get(
     "",
     operation_id="get_kpi_data",
-    response_model=list[interfaces.OperationalKPIData],
+    response_model=list[interfaces.OperationalKPIDataInterface],
 )
 def get_kpi_data_route(
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],

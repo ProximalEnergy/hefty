@@ -29,7 +29,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[interfaces.ReportInstance])
+@router.get("", response_model=list[interfaces.ReportInstanceInterface])
 async def get_project_reports_instances(
     project_id: uuid.UUID,
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
@@ -73,7 +73,7 @@ async def get_project_reports_instances(
 
 @router.put(
     "",
-    response_model=list[interfaces.ReportInstance],
+    response_model=list[interfaces.ReportInstanceInterface],
     dependencies=[Depends(requires_superadmin_async)],
 )
 async def bulk_update_project_report_instances(

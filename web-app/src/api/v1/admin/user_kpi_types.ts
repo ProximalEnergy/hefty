@@ -10,7 +10,7 @@ import {
 import axios from 'axios'
 
 const URL = '/v1/admin/user-kpi-types/favorite'
-const _COMPONENT_NAME = 'UserKPITypes'
+const _COMPONENT_NAME = 'UserKPITypesInterface'
 
 type UserKPIType = types.components['schemas'][typeof _COMPONENT_NAME]
 

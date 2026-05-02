@@ -274,7 +274,9 @@ async def assign_sensor_type_to_pattern(
 )
 async def put_unique_tag_patterns(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[app.interfaces.Project, Depends(dependencies.get_project_api)],
+    project: Annotated[
+        app.interfaces.ProjectInterface, Depends(dependencies.get_project_api)
+    ],
 ):
     """todo
 

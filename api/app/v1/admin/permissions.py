@@ -33,7 +33,7 @@ router = APIRouter(prefix="/permissions", tags=["permissions"])
 
 @router.get(
     "",
-    response_model=list[interfaces.Permission],
+    response_model=list[interfaces.PermissionInterface],
     dependencies=[Depends(dependencies.requires_admin_async)],
     summary="Get all permissions",
 )
@@ -51,7 +51,7 @@ async def get_all_permissions():
 
 @router.get(
     "/projects/{project_id}/user",
-    response_model=list[interfaces.Permission],
+    response_model=list[interfaces.PermissionInterface],
     dependencies=[Depends(dependencies.check_project_access_async)],
     summary="Get user permissions by project",
 )
@@ -94,7 +94,7 @@ class UserPermissionRequest(BaseModel):
 
 @router.post(
     "/projects/{project_id}/users/{user_id}",
-    response_model=interfaces.UserPermission,
+    response_model=interfaces.UserPermissionInterface,
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
 async def add_user_permission(
@@ -131,7 +131,7 @@ async def add_user_permission(
 
 @router.delete(
     "/projects/{project_id}/users/{user_id}",
-    response_model=interfaces.UserPermission,
+    response_model=interfaces.UserPermissionInterface,
     operation_id="delete_user_permission",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
@@ -166,7 +166,7 @@ async def delete_user_permission_route(
 
 @router.get(
     "/projects/{project_id}/company",
-    response_model=list[interfaces.Permission],
+    response_model=list[interfaces.PermissionInterface],
     dependencies=[Depends(dependencies.check_project_access_async)],
     summary="Get company permissions by project",
 )

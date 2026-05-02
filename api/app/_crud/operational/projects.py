@@ -22,7 +22,7 @@ from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_project_creation_notification,
 )
-from app.interfaces import Project, ProjectCreate
+from app.interfaces import ProjectCreate, ProjectInterface
 from app.logger import logger
 
 
@@ -226,7 +226,7 @@ async def create_project(
     project_in: ProjectCreate,
     user_id: str,
     company_id: uuid.UUID,
-) -> Project:
+) -> ProjectInterface:
     """
     Creates a new project record in the database from the input data.
     Default values are set by the sqlalchemy model.
@@ -365,4 +365,4 @@ async def create_project(
         logger.error(f"Failed to send project creation notification: {e}")
 
     # Convert the database object to the response format using from_attributes
-    return Project.model_validate(db_project)
+    return ProjectInterface.model_validate(db_project)

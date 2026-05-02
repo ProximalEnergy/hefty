@@ -32,7 +32,7 @@ router = APIRouter(prefix="/pv-inverters", tags=["pv_inverters"])
 
 @router.get(
     "",
-    response_model=list[interfaces.Inverter],
+    response_model=list[interfaces.InverterInterface],
     operation_id="get_inverters",
 )
 async def get_inverters_route(
@@ -174,14 +174,14 @@ async def get_inverter_ids_by_manufacturer_and_model(
 
 @router.post(
     "",
-    response_model=interfaces.Inverter,
+    response_model=interfaces.InverterInterface,
     summary="Create or update a PV inverter",
     operation_id="create_inverter",
 )
 async def create_inverter_route(
     *,
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
-    inverter: interfaces.Inverter,
+    inverter: interfaces.InverterInterface,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Create a new PV inverter or update an existing one.
@@ -261,7 +261,7 @@ async def parse_ond_file(
 
 @router.put(
     "/calculate-sandia",
-    response_model=interfaces.Inverter,
+    response_model=interfaces.InverterInterface,
     summary="Calculate and update Sandia parameters for an inverter",
     dependencies=[Depends(require_user_company)],
 )
@@ -306,7 +306,7 @@ async def calculate_and_update_sandia_parameters(
         updated_inverter_dict = calc_fit_sandia(inverter=inverter_dict)
 
         # Create interfaces.Inverter object with updated parameters
-        updated_inverter = interfaces.Inverter(
+        updated_inverter = interfaces.InverterInterface(
             inverter_id=db_inverter.inverter_id,
             manufacturer=db_inverter.manufacturer,
             model=db_inverter.model,

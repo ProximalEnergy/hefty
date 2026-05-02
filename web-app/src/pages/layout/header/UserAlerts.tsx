@@ -48,7 +48,7 @@ const UserAlerts = () => {
             },
           )
           const notificationList =
-            response.data as types.components['schemas']['Notification'][]
+            response.data as types.components['schemas']['NotificationInterface'][]
 
           if (notificationList.length > 0) {
             const latestNotification = notificationList[0]

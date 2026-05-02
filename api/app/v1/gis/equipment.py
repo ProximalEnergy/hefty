@@ -644,7 +644,7 @@ async def get_devices_in_viewport(
     response_data = []
     for device in devices:
         # Use Pydantic model for serialization using modern methods
-        device_schema = interfaces.Device.model_validate(device)
+        device_schema = interfaces.DeviceInterface.model_validate(device)
         device_dict = device_schema.model_dump()
 
         # Get the specific extra data for this device, if any

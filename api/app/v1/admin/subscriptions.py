@@ -54,7 +54,7 @@ async def get_email_from_clerk(*, user_id: str, api_prod: bool):
 
 @router.get(
     "",
-    response_model=list[interfaces.UserSubscription],
+    response_model=list[interfaces.UserSubscriptionInterface],
     description="Get all subscriptions for requesting user.",
 )
 async def get_requesting_user_subscriptions(
@@ -130,7 +130,7 @@ async def get_report_emails(
 
 @router.put(
     "/reports/{project_id}",
-    response_model=interfaces.UserSubscription,
+    response_model=interfaces.UserSubscriptionInterface,
     dependencies=[Depends(dependencies.check_project_access_async)],
 )
 async def update_report_subscription(

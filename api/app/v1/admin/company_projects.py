@@ -16,12 +16,12 @@ router = APIRouter(prefix="/company-projects", tags=["company-projects"])
 @router.get(
     "/projects/{project_id}",
     dependencies=[Depends(dependencies.check_project_access_async)],
-    response_model=list[interfaces.CompanyProject],
+    response_model=list[interfaces.CompanyProjectInterface],
 )
 async def get_company_projects_route(
     project_id: UUID,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
-) -> list[interfaces.CompanyProject]:
+) -> list[interfaces.CompanyProjectInterface]:
     """Get company-project records for the requesting user's company.
 
     Args:
@@ -32,17 +32,20 @@ async def get_company_projects_route(
         company_ids=[user_data.company_id],
         project_ids=[project_id],
     ).get_async(output_type=OutputType.POLARS)
-    return [interfaces.CompanyProject.model_validate(item) for item in df.to_dicts()]
+    return [
+        interfaces.CompanyProjectInterface.model_validate(item)
+        for item in df.to_dicts()
+    ]
 
 
 @router.get(
     "/projects/{project_id}/all-companies",
     dependencies=[Depends(dependencies.check_project_access_async)],
-    response_model=list[interfaces.CompanyProject],
+    response_model=list[interfaces.CompanyProjectInterface],
 )
 async def get_all_company_projects_for_project(
     project_id: UUID,
-) -> list[interfaces.CompanyProject]:
+) -> list[interfaces.CompanyProjectInterface]:
     """Get all companies with access to a project.
 
         This endpoint is used by the event chat visibility dropdown to show
@@ -56,4 +59,7 @@ async def get_all_company_projects_for_project(
         company_ids=None,
         project_ids=[project_id],
     ).get_async(output_type=OutputType.POLARS)
-    return [interfaces.CompanyProject.model_validate(item) for item in df.to_dicts()]
+    return [
+        interfaces.CompanyProjectInterface.model_validate(item)
+        for item in df.to_dicts()
+    ]

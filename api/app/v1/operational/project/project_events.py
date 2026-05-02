@@ -72,7 +72,7 @@ def _dtype_name_long(*, v: Any) -> str | None:
     return v.get("name_long") if isinstance(v, dict) else getattr(v, "name_long", None)
 
 
-@router.get("", response_model=list[interfaces.Event])
+@router.get("", response_model=list[interfaces.EventInterface])
 async def get_events(
     project_id: uuid.UUID,
     device_ids: Annotated[list[int] | None, Query()] = None,
@@ -81,7 +81,7 @@ async def get_events(
     open: bool = True,
     event_ids: Annotated[list[int] | None, Query()] = None,
     open_at: datetime.datetime | None = None,
-) -> list[interfaces.Event] | None:
+) -> list[interfaces.EventInterface] | None:
     """Retrieve a list of events for a project with optional filters.
 
     Args:
@@ -140,7 +140,7 @@ async def get_events(
         failure_modes_task, root_causes_task
     )
 
-    device_map: dict[int, interfaces.Device] = {}
+    device_map: dict[int, interfaces.DeviceInterface] = {}
     device_ids = [
         int(device_id)
         for device_id in events_df["device_id"].unique().to_list()
@@ -157,21 +157,23 @@ async def get_events(
         )
         if devices_df is not None and not devices_df.is_empty():
             device_map = {
-                int(device["device_id"]): interfaces.Device.model_validate(device)
+                int(device["device_id"]): interfaces.DeviceInterface.model_validate(
+                    device
+                )
                 for device in devices_df.to_dicts()
             }
 
     # Create mappings from DataFrames
-    def _fm_row_to_model(*, row: pd.Series) -> interfaces.FailureMode:
-        return interfaces.FailureMode(
+    def _fm_row_to_model(*, row: pd.Series) -> interfaces.FailureModeInterface:
+        return interfaces.FailureModeInterface(
             failure_mode_id=int(row["failure_mode_id"]),
             device_type_id=int(row["device_type_id"]),
             name_short=str(row["name_short"]) if pd.notna(row["name_short"]) else "",
             name_long=str(row["name_long"]) if pd.notna(row["name_long"]) else "",
         )
 
-    def _rc_row_to_model(*, row: pd.Series) -> interfaces.RootCause:
-        return interfaces.RootCause(
+    def _rc_row_to_model(*, row: pd.Series) -> interfaces.RootCauseInterface:
+        return interfaces.RootCauseInterface(
             root_cause_id=int(row["root_cause_id"]),
             device_type_id=int(row["device_type_id"]),
             name_short=str(row["name_short"]) if pd.notna(row["name_short"]) else "",
@@ -196,7 +198,7 @@ async def get_events(
     )
 
     # Process the results using a more efficient approach
-    result: list[interfaces.Event] = []
+    result: list[interfaces.EventInterface] = []
     for event in events:
         device_type_name = event.get("device_type_name_long") or "Unknown"
         device_name = event.get("device_name_long") or ""
@@ -217,7 +219,7 @@ async def get_events(
         if event_dict.get("device_id") in device_map:
             event_dict["device"] = device_map[event_dict["device_id"]]
 
-        result.append(interfaces.Event(**event_dict))
+        result.append(interfaces.EventInterface(**event_dict))
 
     return result
 
@@ -999,7 +1001,7 @@ async def get_uptime(
     return out.to_dict(orient="records")
 
 
-@router.get("/event-trace-tags", response_model=list[interfaces.Tag])
+@router.get("/event-trace-tags", response_model=list[interfaces.TagInterface])
 async def get_event_trace_tags(
     project_db: Annotated[Session, Depends(get_project_db)],
     device_id: int,

@@ -38,7 +38,7 @@ export const useGetReportInstances = ({
   })
 }
 
-const _COMPONENT_NAME_REPORT_INSTANCE = 'ReportInstance'
+const _COMPONENT_NAME_REPORT_INSTANCE = 'ReportInstanceInterface'
 const _COMPONENT_NAME_REPORT_INSTANCES_BULK_UPDATE = 'ReportInstancesBulkUpdate'
 
 export type ReportInstance =

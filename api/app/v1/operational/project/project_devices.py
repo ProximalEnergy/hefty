@@ -57,7 +57,7 @@ class DeviceSerialNumberUpdate(BaseModel):
 
 @router.get(
     "/{device_id}",
-    response_model=interfaces.Device,
+    response_model=interfaces.DeviceInterface,
     operation_id="get_project_device_by_id",
     responses={404: {"description": DESCRIPTION_404}},
 )
@@ -88,7 +88,7 @@ async def get_project_device_route(
 
 @router.patch(
     "/{device_id}",
-    response_model=interfaces.Device,
+    response_model=interfaces.DeviceInterface,
     operation_id="patch_project_device",
     responses={404: {"description": DESCRIPTION_404}},
 )
@@ -111,7 +111,7 @@ async def patch_project_device_route(
     device.serial_number = serial_number or None
     await project_db.commit()
     await project_db.refresh(device)
-    return interfaces.Device(
+    return interfaces.DeviceInterface(
         device_id=device.device_id,
         device_id_path=device.device_id_path,
         device_type_id=device.device_type_id,

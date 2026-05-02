@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'DeviceModel'
+const _COMPONENT_NAME = 'DeviceModelInterface'
 const URL = '/v1/operational/device-models'
 
 type DeviceModel = types.components['schemas'][typeof _COMPONENT_NAME]

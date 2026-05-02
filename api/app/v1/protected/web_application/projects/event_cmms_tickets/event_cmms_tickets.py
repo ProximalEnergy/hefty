@@ -32,15 +32,15 @@ class _EventIdsLookupBody(BaseModel):
     event_ids: list[int]
 
 
-class _EventWithScore(interfaces.Event):
+class _EventWithScore(interfaces.EventInterface):
     score: int
 
 
-class _TicketWithScore(interfaces.CMMSTicket):
+class _TicketWithScore(interfaces.CMMSTicketInterface):
     score: int
 
 
-@router.get("", response_model=list[interfaces.EventCMMSTicket])
+@router.get("", response_model=list[interfaces.EventCMMSTicketInterface])
 async def get_event_cmms_tickets_route(
     *,
     project: models.Project = Depends(get_project_api),
@@ -78,7 +78,7 @@ async def get_event_cmms_tickets_route(
     return event_cmms_tickets_models
 
 
-@router.post("/by-event-ids", response_model=list[interfaces.EventCMMSTicket])
+@router.post("/by-event-ids", response_model=list[interfaces.EventCMMSTicketInterface])
 async def lookup_event_cmms_tickets_by_event_ids(
     *,
     project: models.Project = Depends(get_project_api),
@@ -98,7 +98,7 @@ async def lookup_event_cmms_tickets_by_event_ids(
     return [models.EventCMMSTicket(**record) for record in records]
 
 
-@router.post("", response_model=interfaces.EventCMMSTicket)
+@router.post("", response_model=interfaces.EventCMMSTicketInterface)
 async def create_event_cmms_ticket(
     *,
     project_db: AsyncSession = Depends(get_project_db_async),
@@ -122,7 +122,7 @@ async def create_event_cmms_ticket(
 
 
 @router.delete(
-    "/{event_cmms_ticket_id}", response_model=interfaces.EventCMMSTicket | None
+    "/{event_cmms_ticket_id}", response_model=interfaces.EventCMMSTicketInterface | None
 )
 async def delete_event_cmms_ticket_route(
     *,
@@ -166,7 +166,7 @@ async def get_suggested_events_from_ticket(
 
     return [
         _EventWithScore(
-            **interfaces.Event.model_validate(ev.__dict__).__dict__,
+            **interfaces.EventInterface.model_validate(ev.__dict__).__dict__,
             score=score,
         )
         for (ev, score) in rows
@@ -203,7 +203,7 @@ async def get_suggested_tickets_from_event(
 
     return [
         _TicketWithScore(
-            **interfaces.CMMSTicket.model_validate(ticket.__dict__).__dict__,
+            **interfaces.CMMSTicketInterface.model_validate(ticket.__dict__).__dict__,
             score=score,
         )
         for (ticket, score) in rows

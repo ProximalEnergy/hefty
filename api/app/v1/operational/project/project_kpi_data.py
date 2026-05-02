@@ -509,7 +509,7 @@ def get_project_contract_kpis_route(
 @router.get("/llm-kpis")
 def get_llm_kpis(
     project_id: uuid.UUID,
-    project: Annotated[interfaces.Project, Depends(get_project_api)],
+    project: Annotated[interfaces.ProjectInterface, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     kpi_type_id: int | None = None,

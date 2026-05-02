@@ -2,7 +2,7 @@ import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'UserSubscription'
+const _COMPONENT_NAME = 'UserSubscriptionInterface'
 const URL = '/v1/admin/subscriptions'
 
 type UserSubscription = types.components['schemas'][typeof _COMPONENT_NAME]

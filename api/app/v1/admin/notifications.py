@@ -33,7 +33,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 @router.get(
     "",
-    response_model=list[interfaces.Notification],
+    response_model=list[interfaces.NotificationInterface],
     description="Get all IN_APP notifications for the requesting user.",
 )
 async def get_user_notifications(
@@ -61,10 +61,10 @@ async def get_user_notifications(
         offset=offset,
     )
     # Convert tuples to Notification objects with state
-    notifications: list[interfaces.Notification] = []
+    notifications: list[interfaces.NotificationInterface] = []
     for notification, notification_state in notification_tuples:
         notifications.append(
-            interfaces.Notification(
+            interfaces.NotificationInterface(
                 notification_id=notification.notification_id,
                 project_id=notification.project_id,
                 notification_type_id=notification.notification_type_id,
@@ -120,7 +120,7 @@ async def delete_all_notifications_route(
 
 @router.put(
     "/{notification_id}/read",
-    response_model=interfaces.Notification,
+    response_model=interfaces.NotificationInterface,
     description="Mark a notification as read for the requesting user.",
 )
 async def mark_notification_read(
@@ -160,7 +160,7 @@ async def mark_notification_read(
     )
     for notification, ns in notification_tuples:
         if notification.notification_id == notification_id:
-            return interfaces.Notification(
+            return interfaces.NotificationInterface(
                 notification_id=notification.notification_id,
                 project_id=notification.project_id,
                 notification_type_id=notification.notification_type_id,
@@ -179,7 +179,7 @@ async def mark_notification_read(
 
 @router.put(
     "/{notification_id}/unread",
-    response_model=interfaces.Notification,
+    response_model=interfaces.NotificationInterface,
     description="Mark a notification as unread for the requesting user.",
 )
 async def mark_notification_unread(
@@ -219,7 +219,7 @@ async def mark_notification_unread(
     )
     for notification, ns in notification_tuples:
         if notification.notification_id == notification_id:
-            return interfaces.Notification(
+            return interfaces.NotificationInterface(
                 notification_id=notification.notification_id,
                 project_id=notification.project_id,
                 notification_type_id=notification.notification_type_id,

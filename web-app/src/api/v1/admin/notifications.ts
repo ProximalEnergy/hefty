@@ -14,7 +14,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-const _COMPONENT_NAME = 'Notification'
+const _COMPONENT_NAME = 'NotificationInterface'
 
 type Notification = types.components['schemas'][typeof _COMPONENT_NAME]
 export type NotificationPage = {

@@ -5,7 +5,8 @@ import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import { UseQueryOptions, useMutation } from '@tanstack/react-query'
 
-export type PVBudgetedSeries = types.components['schemas']['PVBudgetedSeries']
+export type PVBudgetedSeries =
+  types.components['schemas']['PVBudgetedSeriesInterface']
 
 export const useGetProjectPVBudgetedSeries = ({
   pathParams,

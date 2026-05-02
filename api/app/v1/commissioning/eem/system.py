@@ -24,7 +24,9 @@ def build_project_system_file_key(*, project_name_short: str) -> str:
 async def put_project_system_import(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    project: Annotated[interfaces.Project, Depends(dependencies.get_project_api)],
+    project: Annotated[
+        interfaces.ProjectInterface, Depends(dependencies.get_project_api)
+    ],
 ):
     """
     Import system data from Google Sheets into S3.
@@ -43,7 +45,9 @@ async def put_project_system_import(
 
 @router.get("/file-status")
 def get_project_system_file_status(
-    project: Annotated[interfaces.Project, Depends(dependencies.get_project_api)],
+    project: Annotated[
+        interfaces.ProjectInterface, Depends(dependencies.get_project_api)
+    ],
 ):
     """Return existence status for the system import output file in S3."""
     bucket_name = settings.AWS_S3_BUCKET_NAME

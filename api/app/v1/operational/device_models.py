@@ -13,7 +13,7 @@ router = APIRouter(prefix="/device-models", tags=["device_models"])
 
 @router.get(
     "",
-    response_model=list[interfaces.DeviceModel],
+    response_model=list[interfaces.DeviceModelInterface],
     operation_id="get_device_models",
 )
 async def get_device_models_route(

@@ -34,7 +34,10 @@ const DataStatus = ({
     }
 
     const validTimes = Object.entries(data).filter(
-      ([key, value]) => key !== 'project_id' && value !== null,
+      (entry): entry is [string, string] => {
+        const [key, value] = entry
+        return key !== 'project_id' && typeof value === 'string'
+      },
     )
 
     if (validTimes.length === 0) {
@@ -44,10 +47,9 @@ const DataStatus = ({
       }
     }
 
-    const dateTimes = validTimes.map(([key, value]) => [key, dayjs(value)]) as [
-      string,
-      dayjs.Dayjs,
-    ][]
+    const dateTimes = validTimes.map(
+      ([key, value]) => [key, dayjs(value)] as [string, dayjs.Dayjs],
+    )
     dateTimes.sort((a, b) => b[1].diff(a[1]))
 
     const [recentKey, recentTime] = dateTimes[0]

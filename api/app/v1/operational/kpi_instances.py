@@ -16,7 +16,7 @@ router = APIRouter(prefix="/kpi-instances", tags=["kpi_instances"])
 
 @router.get(
     "",
-    response_model=list[interfaces.KPIInstance],
+    response_model=list[interfaces.KPIInstanceInterface],
     operation_id="get_kpi_instances",
 )
 def get_kpi_instances_route(

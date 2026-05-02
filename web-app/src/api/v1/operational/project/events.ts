@@ -38,10 +38,10 @@ export interface EventLosses5MinGroup {
 export type EventLosses5Min = EventLosses5MinGroup | EventLosses5MinSeries
 
 type BulkCreateEventsPayload = components['schemas']['BulkCreateEventsRequest']
-export type DroneAnomaly = components['schemas']['DroneAnomaly']
+export type DroneAnomaly = components['schemas']['DroneAnomalyInterface']
 
 type EventSummary = components['schemas']['EventSummary']
-type ProjectEvent = components['schemas']['Event']
+type ProjectEvent = components['schemas']['EventInterface']
 
 export const useGetEventsForDevice = ({
   pathParams,

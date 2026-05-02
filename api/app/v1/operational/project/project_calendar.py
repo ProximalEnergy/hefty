@@ -21,9 +21,9 @@ from app._crud.operational.calendar import (
 )
 from app._dependencies.authentication import get_user
 from app.interfaces import (
-    CalendarItem,
-    CalendarItemCategory,
+    CalendarItemCategoryInterface,
     CalendarItemCreate,
+    CalendarItemInterface,
 )
 from core import models
 
@@ -32,7 +32,7 @@ router = APIRouter()
 
 @router.get(
     "/calendar-item-categories",
-    response_model=list[CalendarItemCategory],
+    response_model=list[CalendarItemCategoryInterface],
 )
 async def read_calendar_item_categories(
     project_id: uuid.UUID,
@@ -54,7 +54,7 @@ async def read_calendar_item_categories(
     return categories
 
 
-@router.post("/calendar-events", response_model=CalendarItem)
+@router.post("/calendar-events", response_model=CalendarItemInterface)
 async def create_calendar_item_endpoint(
     project_id: uuid.UUID,
     item: CalendarItemCreate,
@@ -72,10 +72,10 @@ async def create_calendar_item_endpoint(
     db_item = await create_calendar_item(
         db=db, item=item, project_id=project_id, company_id=user_data.company_id
     )
-    return CalendarItem.from_orm(db_item)
+    return CalendarItemInterface.model_validate(db_item)
 
 
-@router.get("/calendar-events", response_model=list[CalendarItem])
+@router.get("/calendar-events", response_model=list[CalendarItemInterface])
 async def get_calendar_items_route(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
@@ -106,7 +106,7 @@ async def get_calendar_items_route(
     # Manually construct Pydantic models, adding the color and exdates
     result_items = []
     for item in db_items:
-        item_data = CalendarItem.model_validate(
+        item_data = CalendarItemInterface.model_validate(
             item
         ).model_dump()  # Use model_validate for Pydantic v2
         item_data["color"] = item.category.color_code if item.category else None
@@ -155,14 +155,14 @@ async def get_calendar_items_route(
                 r["team_id"] for r in rows if r.get("team_id") is not None
             ]
 
-        result_items.append(CalendarItem(**item_data))
+        result_items.append(CalendarItemInterface(**item_data))
 
     return result_items
 
 
 @router.put(
     "/calendar-events/{calendar_item_id}",
-    response_model=CalendarItem,
+    response_model=CalendarItemInterface,
 )
 async def update_calendar_item_endpoint(
     project_id: uuid.UUID,
@@ -237,7 +237,7 @@ async def delete_calendar_item_endpoint(
 
 @router.post(
     "/calendar-events/{calendar_item_id}/exceptions/{exception_date_str}",
-    response_model=interfaces.CalendarItemException,
+    response_model=interfaces.CalendarItemExceptionInterface,
     status_code=status.HTTP_200_OK,
 )
 async def post_calendar_item_exception(

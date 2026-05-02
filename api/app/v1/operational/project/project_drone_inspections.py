@@ -27,10 +27,10 @@ from app.dependencies import (
 )
 from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
-    DroneAnomaly,
     DroneAnomalyCreate,
-    DroneInspection,
+    DroneAnomalyInterface,
     DroneInspectionCreate,
+    DroneInspectionInterface,
     ZeitviewInspection,
 )
 from app.logger import logger
@@ -44,7 +44,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[DroneInspection])
+@router.get("", response_model=list[DroneInspectionInterface])
 async def get_db_inspections(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_project_db_async)],
@@ -146,7 +146,7 @@ async def get_zeitview_inspections(
 
 @router.get(
     "/{inspection_uuid}/anomalies",
-    response_model=list[DroneAnomaly],
+    response_model=list[DroneAnomalyInterface],
 )
 async def get_db_anomalies(
     inspection_uuid: uuid.UUID,

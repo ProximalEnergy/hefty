@@ -2,7 +2,8 @@ import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export type NotificationType = types.components['schemas']['NotificationType']
+export type NotificationType =
+  types.components['schemas']['NotificationTypeInterface']
 
 export const useGetNotificationTypes = ({
   queryOptions = {},

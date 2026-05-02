@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=interfaces.ProjectDataLastUpdated)
+@router.get("", response_model=interfaces.ProjectDataLastUpdatedInterface)
 async def get_project_data_last_updated_endpoint(
     project_id: UUID,
     _auth: None = Depends(check_project_access_from_query_async),

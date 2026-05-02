@@ -25,7 +25,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=list[interfaces.NotificationPreference],
+    response_model=list[interfaces.NotificationPreferenceInterface],
     description="Get notification preferences for the requesting user.",
 )
 async def get_user_notification_preferences_route(
@@ -56,7 +56,7 @@ async def get_user_notification_preferences_route(
 
 @router.put(
     "/bulk",
-    response_model=list[interfaces.NotificationPreference],
+    response_model=list[interfaces.NotificationPreferenceInterface],
     description="Update multiple notification preferences.",
 )
 async def bulk_update_notification_preferences_route(
@@ -124,7 +124,7 @@ async def bulk_update_notification_preferences_route(
 
 @router.put(
     "",
-    response_model=interfaces.NotificationPreference,
+    response_model=interfaces.NotificationPreferenceInterface,
     description="Update a notification preference.",
     operation_id="update_notification_preference",
 )

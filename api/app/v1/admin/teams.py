@@ -21,8 +21,8 @@ from app._crud.admin.teams import remove_team_member as crud_remove_team_member
 from app._crud.admin.teams import rename_team as crud_rename_team
 from app._dependencies.authentication import get_user
 from app.interfaces import (
-    Team,
     TeamCreate,
+    TeamInterface,
     TeamMemberAdd,
     TeamUpdate,
     TeamWithMembers,
@@ -34,7 +34,7 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 
 @router.get(
     "",
-    response_model=list[Team],
+    response_model=list[TeamInterface],
     operation_id="get_teams",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
@@ -53,7 +53,7 @@ async def get_teams_route(
 
 @router.get(
     "/company",
-    response_model=list[Team],
+    response_model=list[TeamInterface],
 )
 async def get_company_teams(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -87,7 +87,7 @@ async def get_company_teams_with_members(
 
 @router.post(
     "",
-    response_model=Team,
+    response_model=TeamInterface,
     status_code=201,
     operation_id="create_team",
     dependencies=[Depends(dependencies.requires_admin_async)],
@@ -193,7 +193,7 @@ async def delete_team_route(
 
 @router.patch(
     "/{team_id}",
-    response_model=Team,
+    response_model=TeamInterface,
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
 async def update_team(

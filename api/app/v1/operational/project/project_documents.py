@@ -64,12 +64,12 @@ def generate_presigned_url(*, file_key: str) -> str:
     return str(presigned_url)
 
 
-@router.get("", response_model=list[interfaces.Document])
+@router.get("", response_model=list[interfaces.DocumentInterface])
 async def get_project_documents_route(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserAuthed, Depends(get_user)],
-) -> list[interfaces.Document]:
+) -> list[interfaces.DocumentInterface]:
     """todo
 
     Args:
@@ -93,7 +93,7 @@ async def get_project_documents_route(
     response_documents = []
     for d in project_documents:
         response_documents.append(
-            interfaces.Document(
+            interfaces.DocumentInterface(
                 document_id=d.document_id,
                 name=d.s3_key.split("/")[-1],
                 url=generate_presigned_url(file_key=d.s3_key),
@@ -107,13 +107,13 @@ async def get_project_documents_route(
     return response_documents
 
 
-@router.post("", response_model=interfaces.Document)
+@router.post("", response_model=interfaces.DocumentInterface)
 async def upload_project_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserAuthed, Depends(get_user)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     file: UploadFile,
-) -> interfaces.Document:
+) -> interfaces.DocumentInterface:
     # Get company from user.company_id
     """todo
 
@@ -257,7 +257,7 @@ async def upload_project_document(
     # Generate a presigned URL for the uploaded file
     presigned_url = generate_presigned_url(file_key=file_key)
 
-    response_document = interfaces.Document(
+    response_document = interfaces.DocumentInterface(
         document_id=document.document_id,
         name=processed_filename,
         url=presigned_url,

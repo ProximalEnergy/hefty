@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'ProjectType'
+const _COMPONENT_NAME = 'ProjectTypeInterface'
 const URL = '/v1/operational/project-types'
 
 export type ProjectType = types.components['schemas'][typeof _COMPONENT_NAME]

@@ -5,7 +5,7 @@ from app import interfaces
 from core import models
 
 
-def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
+def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorTypeInterface):
     """Create a sensor type record.
 
     Args:
@@ -28,7 +28,7 @@ def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
 
 
 def update_sensor_type(
-    *, db: Session, sensor_type_id: int, sensor_type: interfaces.SensorType
+    *, db: Session, sensor_type_id: int, sensor_type: interfaces.SensorTypeInterface
 ):
     """Update a sensor type record.
 

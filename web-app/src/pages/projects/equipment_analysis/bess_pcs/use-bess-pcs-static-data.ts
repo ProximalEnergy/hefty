@@ -6,7 +6,7 @@ import type { Device } from '@/hooks/types'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
-type DeviceModel = components['schemas']['DeviceModel']
+type DeviceModel = components['schemas']['DeviceModelInterface']
 
 type UseBessPcsStaticDataParams = {
   projectId?: string

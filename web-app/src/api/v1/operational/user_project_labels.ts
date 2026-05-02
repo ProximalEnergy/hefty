@@ -14,7 +14,8 @@ import axios from 'axios'
 const URL_GET_USER_PROJECT_LABELS = '/v1/operational/user-project-labels'
 type GetUserProjectLabels = Endpoint<typeof URL_GET_USER_PROJECT_LABELS, 'get'>
 
-export type UserProjectLabel = types.components['schemas']['UserProjectLabel']
+export type UserProjectLabel =
+  types.components['schemas']['UserProjectLabelInterface']
 export type UserProjectLabelCreate =
   types.components['schemas']['UserProjectLabelCreate']
 type UserProjectLabelUpdate = UserProjectLabel

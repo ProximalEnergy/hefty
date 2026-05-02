@@ -5,7 +5,7 @@ from app import interfaces
 
 def map_columns_to_proximal_format(
     *,
-    cec_pv_module: interfaces.CECPVModule,
+    cec_pv_module: interfaces.CECPVModuleInterface,
 ) -> dict[str, Any]:
     """Map CEC PV module fields to Proximal column names.
 

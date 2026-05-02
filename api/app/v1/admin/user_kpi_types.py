@@ -40,7 +40,7 @@ async def get_user_favorited_kpi_types_route(
     *,
     user: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-) -> list[interfaces.UserKPITypes]:
+) -> list[interfaces.UserKPITypesInterface]:
     """Get all favorited KPI types for the authenticated user
 
     Args:
@@ -49,7 +49,7 @@ async def get_user_favorited_kpi_types_route(
     """
     db_results = await get_user_favorited_kpi_types(db=db, user_id=user.user_id)
     return [
-        interfaces.UserKPITypes(
+        interfaces.UserKPITypesInterface(
             user_id=result.user_id,
             kpi_type_id=int(result.kpi_type_id),
             is_favorited=result.is_favorited,

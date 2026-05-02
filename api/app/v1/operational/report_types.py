@@ -12,7 +12,7 @@ router = APIRouter(prefix="/report-types", tags=["report_types"])
 
 @router.get(
     "",
-    response_model=list[interfaces.ReportType],
+    response_model=list[interfaces.ReportTypeInterface],
     operation_id="get_report_types",
 )
 async def get_report_types_route(
@@ -28,7 +28,7 @@ async def get_report_types_route(
 
 @router.get(
     "/{report_type_id}",
-    response_model=interfaces.ReportType,
+    response_model=interfaces.ReportTypeInterface,
     operation_id="get_report_type_by_id",
 )
 async def get_report_type_route(

@@ -17,7 +17,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=list[interfaces.NotificationType],
+    response_model=list[interfaces.NotificationTypeInterface],
     description="Get all notification types.",
 )
 async def get_notification_types_route(

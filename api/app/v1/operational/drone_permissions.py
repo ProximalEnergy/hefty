@@ -10,12 +10,16 @@ from app._crud.operational.drone_permissions import (
     update_drone_permission,
 )
 from app.dependencies import get_async_db, requires_superadmin_async
-from app.interfaces import DronePermission, DronePermissionCreate, DronePermissionUpdate
+from app.interfaces import (
+    DronePermissionCreate,
+    DronePermissionInterface,
+    DronePermissionUpdate,
+)
 
 router = APIRouter(prefix="/drone-permissions")
 
 
-@router.get("", response_model=list[DronePermission])
+@router.get("", response_model=list[DronePermissionInterface])
 async def get_drone_permissions_(
     db: AsyncSession = Depends(get_async_db),
 ):
@@ -29,7 +33,7 @@ async def get_drone_permissions_(
 
 @router.post(
     "",
-    response_model=DronePermission,
+    response_model=DronePermissionInterface,
     dependencies=[Depends(requires_superadmin_async)],
 )
 async def create_drone_permission_(
@@ -47,7 +51,7 @@ async def create_drone_permission_(
 
 @router.put(
     "/{drone_integration_id}/{company_id}",
-    response_model=DronePermission,
+    response_model=DronePermissionInterface,
     dependencies=[Depends(requires_superadmin_async)],
 )
 async def update_drone_permission_(

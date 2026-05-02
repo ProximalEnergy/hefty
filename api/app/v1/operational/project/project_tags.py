@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[interfaces.Tag])
+@router.get("/", response_model=list[interfaces.TagInterface])
 async def get_project_tags(
     tag_ids: Annotated[list[int], Query()] = [],
     in_tsdb: Annotated[bool | None, Query()] = None,

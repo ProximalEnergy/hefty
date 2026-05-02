@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-const _COMPONENT_NAME = 'app__interfaces__SensorType'
+const _COMPONENT_NAME = 'SensorTypeInterface'
 const URL = '/v1/operational/sensor-types'
 
 export type SensorType = types.components['schemas'][typeof _COMPONENT_NAME]

@@ -3,14 +3,14 @@ import secrets
 from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.interfaces import User
+from app.interfaces import UserInterface
 from core import models
 
 
 async def create_user(
     *,
     db: AsyncSession,
-    user: User,
+    user: UserInterface,
 ):
     """Create a user record.
 

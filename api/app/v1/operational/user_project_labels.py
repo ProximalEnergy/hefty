@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app._dependencies.authentication import get_user
 from app.dependencies import get_async_db
-from app.interfaces import UserAuthed, UserProjectLabel
+from app.interfaces import UserAuthed, UserProjectLabelInterface
 from core import models
 
 router = APIRouter(prefix="/user-project-labels", tags=["user_project_labels"])
@@ -66,7 +66,7 @@ async def _build_user_project_labels(
     *,
     user_id: str,
     labels: list[models.UserProjectLabel],
-) -> list[UserProjectLabel]:
+) -> list[UserProjectLabelInterface]:
     """Build a response payload for the given set of label models.
 
     Args:
@@ -92,7 +92,7 @@ async def _build_user_project_labels(
 
     sorted_labels = sorted(labels, key=lambda label: label.name.lower())
     return [
-        UserProjectLabel(
+        UserProjectLabelInterface(
             user_project_label_id=label.user_project_label_id,
             user_id=user_id,
             name=label.name,
@@ -103,7 +103,7 @@ async def _build_user_project_labels(
     ]
 
 
-@router.get("", response_model=list[UserProjectLabel])
+@router.get("", response_model=list[UserProjectLabelInterface])
 async def get_user_project_labels(
     user: Annotated[UserAuthed, Depends(get_user)],
 ):
@@ -121,7 +121,7 @@ async def get_user_project_labels(
     )
 
 
-@router.post("", response_model=UserProjectLabel)
+@router.post("", response_model=UserProjectLabelInterface)
 async def create_user_project_label(
     user_project_label: UserProjectLabelCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
@@ -153,7 +153,7 @@ async def create_user_project_label(
             detail="A project label with this name already exists",
         ) from err
 
-    return UserProjectLabel(
+    return UserProjectLabelInterface(
         user_project_label_id=created_label.user_project_label_id,
         user_id=user.user_id,
         name=normalized_name,
@@ -162,7 +162,7 @@ async def create_user_project_label(
     )
 
 
-@router.put("/{user_project_label_id}", response_model=UserProjectLabel)
+@router.put("/{user_project_label_id}", response_model=UserProjectLabelInterface)
 async def update_user_project_label_route(
     user_project_label_id: int,
     user_project_label: UserProjectLabelCreate,
@@ -199,7 +199,7 @@ async def update_user_project_label_route(
             detail="A project label with this name already exists",
         ) from err
 
-    return UserProjectLabel(
+    return UserProjectLabelInterface(
         user_project_label_id=user_project_label_id,
         user_id=user.user_id,
         name=normalized_name,

@@ -22,7 +22,7 @@ router = APIRouter(prefix="/plot")
 class UtilityExpectedResponse(BaseModel):
     """todo"""
 
-    parent_devices: list[interfaces.Device]
+    parent_devices: list[interfaces.DeviceInterface]
     times: list[datetime.datetime]
     actual: dict[str, list[float]]
     expected_clean: dict[str, list[float | str | datetime.datetime | None]]

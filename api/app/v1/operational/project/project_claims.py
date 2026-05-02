@@ -670,7 +670,7 @@ async def get_claim_route(
         updated_at=updated_at,
         devices=devices_resp,
         updates=updates_resp,
-        attachments=[interfaces.ClaimAttachment(**a) for a in attachments],
+        attachments=[interfaces.ClaimAttachmentInterface(**a) for a in attachments],
     )
 
 
@@ -681,7 +681,7 @@ async def get_claim_route(
 )
 async def patch_claim(
     claim_id: int,
-    payload: interfaces.ClaimUpdate,
+    payload: interfaces.ClaimUpdateInterface,
     db: Annotated[
         AsyncSession,
         Depends(dependencies.get_project_db_async),
@@ -946,7 +946,7 @@ async def add_claim_update(
 
 @router.get(
     "/{claim_id}/attachments",
-    response_model=list[interfaces.ClaimAttachment],
+    response_model=list[interfaces.ClaimAttachmentInterface],
 )
 async def get_attachments(
     claim_id: int,
@@ -965,12 +965,12 @@ async def get_attachments(
         db=db,
         claim_id=claim_id,
     )
-    return [interfaces.ClaimAttachment(**r) for r in rows]
+    return [interfaces.ClaimAttachmentInterface(**r) for r in rows]
 
 
 @router.post(
     "/{claim_id}/attachments",
-    response_model=interfaces.ClaimAttachment,
+    response_model=interfaces.ClaimAttachmentInterface,
     status_code=201,
 )
 async def upload_attachment(
@@ -1003,7 +1003,7 @@ async def upload_attachment(
         content_type=file.content_type,
         claim_update_id=claim_update_id,
     )
-    return interfaces.ClaimAttachment(**row)
+    return interfaces.ClaimAttachmentInterface(**row)
 
 
 @router.delete(

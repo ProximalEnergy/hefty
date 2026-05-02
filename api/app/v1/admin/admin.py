@@ -41,7 +41,7 @@ router.include_router(notifications.router)
 
 @router.get(
     "/user-type",
-    response_model=interfaces.UserType,
+    response_model=interfaces.UserTypeInterface,
 )
 async def get_user_type_route(
     _db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],

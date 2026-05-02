@@ -32,7 +32,9 @@ DESCRIPTION_404 = "Project not found"
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-@router.get("", response_model=list[interfaces.Project], operation_id="get_projects")
+@router.get(
+    "", response_model=list[interfaces.ProjectInterface], operation_id="get_projects"
+)
 async def get_projects_route(
     *,
     project_ids: Annotated[list[UUID] | None, Query()] = None,
@@ -172,7 +174,7 @@ async def get_projects_route(
 
 @router.get(
     "/{project_id}",
-    response_model=interfaces.Project,
+    response_model=interfaces.ProjectInterface,
     dependencies=[Depends(dependencies.check_project_access_async)],
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_project_by_id",
@@ -204,13 +206,13 @@ async def get_project_route(
         )
         anonymized = utils.anonymize_projects(projects=projects_for_anon)
         # Return the anonymized model directly
-        return cast(interfaces.Project, anonymized[0])
+        return cast(interfaces.ProjectInterface, anonymized[0])
 
     # Return the db model directly (FastAPI will serialize it)
-    return cast(interfaces.Project, project_db_model)
+    return cast(interfaces.ProjectInterface, project_db_model)
 
 
-@router.post("", response_model=interfaces.Project)
+@router.post("", response_model=interfaces.ProjectInterface)
 async def create_project_route(
     project_in: interfaces.ProjectCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
@@ -235,7 +237,7 @@ async def create_project_route(
 
 @router.put(
     "/{project_id}",
-    response_model=interfaces.Project,
+    response_model=interfaces.ProjectInterface,
     dependencies=[
         Depends(dependencies.check_project_access_async),
         Depends(dependencies.requires_admin_async),
@@ -339,7 +341,7 @@ async def update_project(
         #     f"{after_refresh_values}"
         # )
 
-        return interfaces.Project.model_validate(existing_project)
+        return interfaces.ProjectInterface.model_validate(existing_project)
 
     except Exception as e:
         # Rollback the transaction on error

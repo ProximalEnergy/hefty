@@ -8556,10 +8556,18 @@ export interface components {
             anomaly_uuids?: string[] | null;
         };
         /**
-         * CECPVModule
-         * @description Cecpvmodule model.
+         * CECPVModuleBulkCreate
+         * @description Cecpvmodulebulkcreate model.
          */
-        CECPVModule: {
+        CECPVModuleBulkCreate: {
+            /** Modules */
+            modules: components["schemas"]["CECPVModuleCreate"][];
+        };
+        /**
+         * CECPVModuleCreate
+         * @description Cecpvmodulecreate model.
+         */
+        CECPVModuleCreate: {
             /** Cec Pv Module Id */
             cec_pv_module_id: number;
             /** Manufacturer */
@@ -8638,18 +8646,10 @@ export interface components {
             last_update: string | null;
         };
         /**
-         * CECPVModuleBulkCreate
-         * @description Cecpvmodulebulkcreate model.
+         * CECPVModuleInterface
+         * @description Cecpvmodule model.
          */
-        CECPVModuleBulkCreate: {
-            /** Modules */
-            modules: components["schemas"]["CECPVModuleCreate"][];
-        };
-        /**
-         * CECPVModuleCreate
-         * @description Cecpvmodulecreate model.
-         */
-        CECPVModuleCreate: {
+        CECPVModuleInterface: {
             /** Cec Pv Module Id */
             cec_pv_module_id: number;
             /** Manufacturer */
@@ -8818,10 +8818,10 @@ export interface components {
             integration_configured: boolean;
         };
         /**
-         * CMMSPermission
+         * CMMSPermissionInterface
          * @description Cmmspermission model.
          */
-        CMMSPermission: {
+        CMMSPermissionInterface: {
             /** Cmms Integration Id */
             cmms_integration_id: number;
             /**
@@ -8894,76 +8894,10 @@ export interface components {
             data: components["schemas"]["EnrichedCMMSTicket"][];
         };
         /**
-         * CalendarItem
-         * @description Calendaritem model.
-         */
-        CalendarItem: {
-            /** Title */
-            title: string;
-            /** Description */
-            description?: string | null;
-            /**
-             * Calendar Item Category Id
-             * Format: uuid
-             */
-            calendar_item_category_id: string;
-            /**
-             * Start Time
-             * Format: date-time
-             */
-            start_time: string;
-            /**
-             * End Time
-             * Format: date-time
-             */
-            end_time: string;
-            /** All Day */
-            all_day: boolean;
-            /** Rrule */
-            rrule?: string | null;
-            /**
-             * Timezone
-             * @default UTC
-             */
-            timezone: string;
-            /** Notify Offsets */
-            notify_offsets?: string[] | null;
-            /** Notify Method */
-            notify_method?: string[] | null;
-            /**
-             * Calendar Item Id
-             * Format: uuid
-             */
-            calendar_item_id: string;
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-            /** Color */
-            color?: string | null;
-            /** Exdates */
-            exdates?: string[] | null;
-            /** Assignee User Ids */
-            assignee_user_ids?: string[] | null;
-            /** Assignee Team Ids */
-            assignee_team_ids?: string[] | null;
-        };
-        /**
-         * CalendarItemCategory
+         * CalendarItemCategoryInterface
          * @description Calendaritemcategory model.
          */
-        CalendarItemCategory: {
+        CalendarItemCategoryInterface: {
             /** Short Name */
             short_name: string;
             /** Long Name */
@@ -9029,10 +8963,10 @@ export interface components {
             assignee_team_ids?: string[] | null;
         };
         /**
-         * CalendarItemException
+         * CalendarItemExceptionInterface
          * @description Calendaritemexception model.
          */
-        CalendarItemException: {
+        CalendarItemExceptionInterface: {
             /**
              * Exception Date
              * Format: date
@@ -9081,6 +9015,72 @@ export interface components {
             override_end_time?: string | null;
         };
         /**
+         * CalendarItemInterface
+         * @description Calendaritem model.
+         */
+        CalendarItemInterface: {
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Calendar Item Category Id
+             * Format: uuid
+             */
+            calendar_item_category_id: string;
+            /**
+             * Start Time
+             * Format: date-time
+             */
+            start_time: string;
+            /**
+             * End Time
+             * Format: date-time
+             */
+            end_time: string;
+            /** All Day */
+            all_day: boolean;
+            /** Rrule */
+            rrule?: string | null;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+            /** Notify Offsets */
+            notify_offsets?: string[] | null;
+            /** Notify Method */
+            notify_method?: string[] | null;
+            /**
+             * Calendar Item Id
+             * Format: uuid
+             */
+            calendar_item_id: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Color */
+            color?: string | null;
+            /** Exdates */
+            exdates?: string[] | null;
+            /** Assignee User Ids */
+            assignee_user_ids?: string[] | null;
+            /** Assignee Team Ids */
+            assignee_team_ids?: string[] | null;
+        };
+        /**
          * CandidateEvent
          * @description An event that could be linked to a claim device row.
          */
@@ -9100,10 +9100,10 @@ export interface components {
             failure_mode?: string | null;
         };
         /**
-         * ClaimAttachment
+         * ClaimAttachmentInterface
          * @description Claim attachment metadata.
          */
-        ClaimAttachment: {
+        ClaimAttachmentInterface: {
             /** Claim Id */
             claim_id: number;
             /** S3 Key */
@@ -9306,7 +9306,7 @@ export interface components {
              * Attachments
              * @default []
              */
-            attachments: components["schemas"]["ClaimAttachment"][];
+            attachments: components["schemas"]["ClaimAttachmentInterface"][];
         };
         /**
          * ClaimDeviceCreate
@@ -9483,17 +9483,6 @@ export interface components {
             bcc_emails?: string[] | null;
         };
         /**
-         * ClaimUpdate
-         * @description Payload to update claim fields.
-         */
-        ClaimUpdate: {
-            /** Summary */
-            summary?: string | null;
-            /** External Reference */
-            external_reference?: string | null;
-            status?: components["schemas"]["ClaimStatus"] | null;
-        };
-        /**
          * ClaimUpdateCreate
          * @description Payload to add a claim update (note, status change).
          */
@@ -9505,6 +9494,17 @@ export interface components {
             message?: string | null;
             /** Created At */
             created_at?: string | null;
+        };
+        /**
+         * ClaimUpdateInterface
+         * @description Payload to update claim fields.
+         */
+        ClaimUpdateInterface: {
+            /** Summary */
+            summary?: string | null;
+            /** External Reference */
+            external_reference?: string | null;
+            status?: components["schemas"]["ClaimStatus"] | null;
         };
         /**
          * ClaimUpdateResponse
@@ -9536,10 +9536,20 @@ export interface components {
          */
         ClaimUpdateType: "status_change" | "submission" | "oem_message" | "note" | "parts" | "field_visit";
         /**
-         * Company
+         * CompanyCreate
+         * @description Companycreate model.
+         */
+        CompanyCreate: {
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+        };
+        /**
+         * CompanyInterface
          * @description Company model.
          */
-        Company: {
+        CompanyInterface: {
             /** Name Short */
             name_short: string;
             /** Name Long */
@@ -9551,20 +9561,10 @@ export interface components {
             company_id: string;
         };
         /**
-         * CompanyCreate
-         * @description Companycreate model.
-         */
-        CompanyCreate: {
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-        };
-        /**
-         * CompanyProject
+         * CompanyProjectInterface
          * @description Companyproject model.
          */
-        CompanyProject: {
+        CompanyProjectInterface: {
             /**
              * Company Id
              * Format: uuid
@@ -9596,32 +9596,10 @@ export interface components {
             project_ids: string[];
         };
         /**
-         * Contract
-         * @description Contract model.
-         */
-        Contract: {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
-            /**
-             * Document Id
-             * Format: uuid
-             */
-            document_id: string;
-            /** Company Id Provider */
-            company_id_provider?: string | null;
-            /** Company Id Counter */
-            company_id_counter?: string | null;
-            /** Execution Date */
-            execution_date?: string | null;
-        };
-        /**
-         * ContractCategory
+         * ContractCategoryInterface
          * @description Contractcategory model.
          */
-        ContractCategory: {
+        ContractCategoryInterface: {
             /** Contract Category Id */
             contract_category_id: number;
             /** Name Short */
@@ -9697,6 +9675,28 @@ export interface components {
             provider_company: string;
             /** Counter Company */
             counter_company: string;
+        };
+        /**
+         * ContractInterface
+         * @description Contract model.
+         */
+        ContractInterface: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Company Id Provider */
+            company_id_provider?: string | null;
+            /** Company Id Counter */
+            company_id_counter?: string | null;
+            /** Execution Date */
+            execution_date?: string | null;
         };
         /**
          * ContractKPIs
@@ -9832,10 +9832,10 @@ export interface components {
             components: components["schemas"]["DashboardComponent"][];
         };
         /**
-         * DME
+         * DMEInterface
          * @description Dme model.
          */
-        DME: {
+        DMEInterface: {
             /** Dme Id */
             dme_id: number;
             /** Name Short */
@@ -9970,10 +9970,10 @@ export interface components {
             tag_id: number;
         };
         /**
-         * DataType
+         * DataTypeInterface
          * @description Datatype model.
          */
-        DataType: {
+        DataTypeInterface: {
             /** Data Type Id */
             data_type_id: number;
             /** Name Short */
@@ -9998,45 +9998,6 @@ export interface components {
             demo_mode: boolean;
             /** Vite Environment */
             vite_environment: string;
-        };
-        /**
-         * Device
-         * @description Device model.
-         */
-        Device: {
-            /** Device Id */
-            device_id: number;
-            /** Device Id Path */
-            device_id_path: string | null;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Device Model Id */
-            device_model_id: number | null;
-            /** Cec Pv Inverter Id */
-            cec_pv_inverter_id: number | null;
-            /** Cec Pv Module Id */
-            cec_pv_module_id: number | null;
-            /** Pv Module Id */
-            pv_module_id: number | null;
-            /** Parent Device Id */
-            parent_device_id: number | null;
-            /** Logical */
-            logical: boolean;
-            /** Name Short */
-            name_short: string | null;
-            /** Name Long */
-            name_long: string | null;
-            /** Capacity Dc */
-            capacity_dc: number | null;
-            /** Capacity Ac */
-            capacity_ac: number | null;
-            point: components["schemas"]["Point"] | null;
-            polygon: components["schemas"]["MultiPolygon"] | null;
-            /** Serial Number */
-            serial_number?: string | null;
-            device_type?: components["schemas"]["DeviceType"] | null;
-            /** Name Full */
-            name_full?: string | null;
         };
         /**
          * DeviceAggregationObj
@@ -10099,10 +10060,49 @@ export interface components {
             pcs: components["schemas"]["DeviceDetailsHorizonalData"][];
         };
         /**
-         * DeviceModel
+         * DeviceInterface
+         * @description Device model.
+         */
+        DeviceInterface: {
+            /** Device Id */
+            device_id: number;
+            /** Device Id Path */
+            device_id_path: string | null;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Device Model Id */
+            device_model_id: number | null;
+            /** Cec Pv Inverter Id */
+            cec_pv_inverter_id: number | null;
+            /** Cec Pv Module Id */
+            cec_pv_module_id: number | null;
+            /** Pv Module Id */
+            pv_module_id: number | null;
+            /** Parent Device Id */
+            parent_device_id: number | null;
+            /** Logical */
+            logical: boolean;
+            /** Name Short */
+            name_short: string | null;
+            /** Name Long */
+            name_long: string | null;
+            /** Capacity Dc */
+            capacity_dc: number | null;
+            /** Capacity Ac */
+            capacity_ac: number | null;
+            point: components["schemas"]["Point"] | null;
+            polygon: components["schemas"]["MultiPolygon"] | null;
+            /** Serial Number */
+            serial_number?: string | null;
+            device_type?: components["schemas"]["DeviceTypeInterface"] | null;
+            /** Name Full */
+            name_full?: string | null;
+        };
+        /**
+         * DeviceModelInterface
          * @description Devicemodel model.
          */
-        DeviceModel: {
+        DeviceModelInterface: {
             /** Device Model Id */
             device_model_id: number;
             /** Device Type Id */
@@ -10152,10 +10152,10 @@ export interface components {
             total_hours: number[];
         };
         /**
-         * DeviceType
+         * DeviceTypeInterface
          * @description Devicetype model.
          */
-        DeviceType: {
+        DeviceTypeInterface: {
             /** Device Type Id */
             device_type_id: number;
             /** Name Short */
@@ -10238,10 +10238,10 @@ export interface components {
             fields: string[];
         };
         /**
-         * Document
+         * DocumentInterface
          * @description Document model.
          */
-        Document: {
+        DocumentInterface: {
             /**
              * Document Id
              * Format: uuid
@@ -10255,10 +10255,10 @@ export interface components {
             contract_name?: string | null;
         };
         /**
-         * DroneAnomaly
+         * DroneAnomalyInterface
          * @description Droneanomaly model.
          */
-        DroneAnomaly: {
+        DroneAnomalyInterface: {
             /**
              * Anomaly Uuid
              * Format: uuid
@@ -10297,10 +10297,10 @@ export interface components {
             client_status_id?: number | null;
         };
         /**
-         * DroneInspection
+         * DroneInspectionInterface
          * @description Droneinspection model.
          */
-        DroneInspection: {
+        DroneInspectionInterface: {
             /**
              * Inspection Uuid
              * Format: uuid
@@ -10343,12 +10343,10 @@ export interface components {
             timing: string;
         };
         /**
-         * DroneIntegration
-         * @description Droneintegration model.
+         * DroneIntegrationCreate
+         * @description Droneintegrationcreate model.
          */
-        DroneIntegration: {
-            /** Drone Integration Id */
-            drone_integration_id: number;
+        DroneIntegrationCreate: {
             /**
              * Project Id
              * Format: uuid
@@ -10360,10 +10358,12 @@ export interface components {
             provider_project_id: string;
         };
         /**
-         * DroneIntegrationCreate
-         * @description Droneintegrationcreate model.
+         * DroneIntegrationInterface
+         * @description Droneintegration model.
          */
-        DroneIntegrationCreate: {
+        DroneIntegrationInterface: {
+            /** Drone Integration Id */
+            drone_integration_id: number;
             /**
              * Project Id
              * Format: uuid
@@ -10390,10 +10390,10 @@ export interface components {
             provider_project_id: string;
         };
         /**
-         * DronePermission
-         * @description Dronepermission model.
+         * DronePermissionCreate
+         * @description Dronepermissioncreate model.
          */
-        DronePermission: {
+        DronePermissionCreate: {
             /** Drone Integration Id */
             drone_integration_id: number;
             /**
@@ -10405,10 +10405,10 @@ export interface components {
             can_view: boolean;
         };
         /**
-         * DronePermissionCreate
-         * @description Dronepermissioncreate model.
+         * DronePermissionInterface
+         * @description Dronepermission model.
          */
-        DronePermissionCreate: {
+        DronePermissionInterface: {
             /** Drone Integration Id */
             drone_integration_id: number;
             /**
@@ -10428,10 +10428,10 @@ export interface components {
             can_view: boolean;
         };
         /**
-         * DroneProvider
-         * @description Droneprovider model.
+         * DroneProviderCreate
+         * @description Droneprovidercreate model.
          */
-        DroneProvider: {
+        DroneProviderCreate: {
             /** Drone Provider Id */
             drone_provider_id: number;
             /** Name Short */
@@ -10440,10 +10440,10 @@ export interface components {
             name_long: string;
         };
         /**
-         * DroneProviderCreate
-         * @description Droneprovidercreate model.
+         * DroneProviderInterface
+         * @description Droneprovider model.
          */
-        DroneProviderCreate: {
+        DroneProviderInterface: {
             /** Drone Provider Id */
             drone_provider_id: number;
             /** Name Short */
@@ -10556,47 +10556,10 @@ export interface components {
             vector_store_id: string;
         };
         /**
-         * Event
-         * @description Event model.
-         */
-        Event: {
-            /** Event Id */
-            event_id: number;
-            /** Device Id */
-            device_id: number;
-            /** Failure Mode Id */
-            failure_mode_id: number;
-            /** Root Cause Id */
-            root_cause_id: number | null;
-            /**
-             * Time Start
-             * Format: date-time
-             */
-            time_start: string;
-            /** Time End */
-            time_end: string | null;
-            /**
-             * Time Detected
-             * Format: date-time
-             */
-            time_detected: string;
-            /** Time Last Analyzed */
-            time_last_analyzed: string | null;
-            /** Loss Total Financial */
-            loss_total_financial: number | null;
-            failure_mode?: components["schemas"]["FailureMode"] | null;
-            root_cause?: components["schemas"]["RootCause"] | null;
-            device?: components["schemas"]["Device"] | null;
-            /** Device Name Full */
-            device_name_full?: string | null;
-            /** Version */
-            version?: string | null;
-        };
-        /**
-         * EventCMMSTicket
+         * EventCMMSTicketInterface
          * @description Eventcmmsticket model.
          */
-        EventCMMSTicket: {
+        EventCMMSTicketInterface: {
             /** Event Cmms Ticket Id */
             event_cmms_ticket_id: number;
             /** Event Id */
@@ -10624,6 +10587,43 @@ export interface components {
             revenue_loss: number;
             /** Status */
             status: string;
+        };
+        /**
+         * EventInterface
+         * @description Event model.
+         */
+        EventInterface: {
+            /** Event Id */
+            event_id: number;
+            /** Device Id */
+            device_id: number;
+            /** Failure Mode Id */
+            failure_mode_id: number;
+            /** Root Cause Id */
+            root_cause_id: number | null;
+            /**
+             * Time Start
+             * Format: date-time
+             */
+            time_start: string;
+            /** Time End */
+            time_end: string | null;
+            /**
+             * Time Detected
+             * Format: date-time
+             */
+            time_detected: string;
+            /** Time Last Analyzed */
+            time_last_analyzed: string | null;
+            /** Loss Total Financial */
+            loss_total_financial: number | null;
+            failure_mode?: components["schemas"]["FailureModeInterface"] | null;
+            root_cause?: components["schemas"]["RootCauseInterface"] | null;
+            device?: components["schemas"]["DeviceInterface"] | null;
+            /** Device Name Full */
+            device_name_full?: string | null;
+            /** Version */
+            version?: string | null;
         };
         /**
          * EventMessage
@@ -10830,10 +10830,10 @@ export interface components {
             to_status?: string | null;
         };
         /**
-         * FailureMode
+         * FailureModeInterface
          * @description Failuremode model.
          */
-        FailureMode: {
+        FailureModeInterface: {
             /** Failure Mode Id */
             failure_mode_id: number;
             /** Device Type Id */
@@ -10921,10 +10921,10 @@ export interface components {
             };
         };
         /**
-         * Inverter
+         * InverterInterface
          * @description Inverter model.
          */
-        Inverter: {
+        InverterInterface: {
             /** Inverter Id */
             inverter_id: number | null;
             /** Manufacturer */
@@ -11012,10 +11012,10 @@ export interface components {
             kpi_type_ids?: number[] | null;
         };
         /**
-         * KPIInstance
+         * KPIInstanceInterface
          * @description Kpiinstance model.
          */
-        KPIInstance: {
+        KPIInstanceInterface: {
             /**
              * Project Id
              * Format: uuid
@@ -11025,7 +11025,7 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type?: components["schemas"]["KPIType-Output"] | null;
+            kpi_type?: components["schemas"]["KPITypeInterface"] | null;
         };
         /**
          * KPISummary
@@ -11139,12 +11139,12 @@ export interface components {
          * KPIType
          * @enum {integer}
          */
-        "KPIType-Input": 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125;
+        KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125;
         /**
-         * KPIType
+         * KPITypeInterface
          * @description Kpitype model.
          */
-        "KPIType-Output": {
+        KPITypeInterface: {
             /** Kpi Type Id */
             kpi_type_id: number;
             /** Device Type Id */
@@ -11161,7 +11161,7 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type?: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceTypeInterface"] | null;
             /** Doc Url */
             doc_url?: string | null;
         };
@@ -11186,7 +11186,7 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type?: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceTypeInterface"] | null;
             /** Doc Url */
             doc_url?: string | null;
             /**
@@ -11228,7 +11228,7 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type?: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceTypeInterface"] | null;
             /** Doc Url */
             doc_url?: string | null;
             /**
@@ -11275,10 +11275,10 @@ export interface components {
             coordinates: unknown[];
         };
         /**
-         * Notification
+         * NotificationInterface
          * @description Notification model.
          */
-        Notification: {
+        NotificationInterface: {
             /** Notification Id */
             notification_id: number;
             /**
@@ -11305,10 +11305,26 @@ export interface components {
             state?: string | null;
         };
         /**
-         * NotificationPreference
+         * NotificationPreferenceBulkUpdate
+         * @description Notification preference bulk update model.
+         */
+        NotificationPreferenceBulkUpdate: {
+            /** Project Ids */
+            project_ids: string[];
+            /** Notification Type Ids */
+            notification_type_ids: number[];
+            /** In App Enabled */
+            in_app_enabled?: boolean | null;
+            /** Email Enabled */
+            email_enabled?: boolean | null;
+            in_app_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+            email_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+        };
+        /**
+         * NotificationPreferenceInterface
          * @description Notification preference model.
          */
-        NotificationPreference: {
+        NotificationPreferenceInterface: {
             /** Notification Preference Id */
             notification_preference_id: number;
             /** User Id */
@@ -11326,22 +11342,6 @@ export interface components {
             email_enabled: boolean;
             in_app_min_severity: components["schemas"]["NotificationSeverity"];
             email_min_severity: components["schemas"]["NotificationSeverity"];
-        };
-        /**
-         * NotificationPreferenceBulkUpdate
-         * @description Notification preference bulk update model.
-         */
-        NotificationPreferenceBulkUpdate: {
-            /** Project Ids */
-            project_ids: string[];
-            /** Notification Type Ids */
-            notification_type_ids: number[];
-            /** In App Enabled */
-            in_app_enabled?: boolean | null;
-            /** Email Enabled */
-            email_enabled?: boolean | null;
-            in_app_min_severity?: components["schemas"]["NotificationSeverity"] | null;
-            email_min_severity?: components["schemas"]["NotificationSeverity"] | null;
         };
         /**
          * NotificationPreferenceUpdate
@@ -11368,10 +11368,10 @@ export interface components {
          */
         NotificationSeverity: "info" | "warning" | "critical";
         /**
-         * NotificationType
+         * NotificationTypeInterface
          * @description Notification type model.
          */
-        NotificationType: {
+        NotificationTypeInterface: {
             /** Notification Type Id */
             notification_type_id: number;
             /** Name Long */
@@ -11384,10 +11384,10 @@ export interface components {
             email_severity_default?: components["schemas"]["NotificationSeverity"] | null;
         };
         /**
-         * OperationalKPIData
+         * OperationalKPIDataInterface
          * @description Operationalkpidata model.
          */
-        OperationalKPIData: {
+        OperationalKPIDataInterface: {
             /**
              * Project Id
              * Format: uuid
@@ -11444,28 +11444,6 @@ export interface components {
             soiling_percentage?: number | null;
         };
         /**
-         * PVBudgetedSeries
-         * @description Pvbudgetedseries model.
-         */
-        PVBudgetedSeries: {
-            /** P Value */
-            p_value: string;
-            /** Frequency */
-            frequency: string;
-            /** Soiling Mode */
-            soiling_mode?: string | null;
-            /** Soiling Fixed Percentage */
-            soiling_fixed_percentage?: number | null;
-            /** Tmy Source */
-            tmy_source?: string | null;
-            /** Model Version */
-            model_version?: string | null;
-            /** Filename */
-            filename?: string | null;
-            /** Pv Budgeted Series Id */
-            pv_budgeted_series_id: number;
-        };
-        /**
          * PVBudgetedSeriesIn
          * @description Pvbudgetedseriesin model.
          */
@@ -11486,10 +11464,32 @@ export interface components {
             filename?: string | null;
         };
         /**
-         * PVModule
+         * PVBudgetedSeriesInterface
+         * @description Pvbudgetedseries model.
+         */
+        PVBudgetedSeriesInterface: {
+            /** P Value */
+            p_value: string;
+            /** Frequency */
+            frequency: string;
+            /** Soiling Mode */
+            soiling_mode?: string | null;
+            /** Soiling Fixed Percentage */
+            soiling_fixed_percentage?: number | null;
+            /** Tmy Source */
+            tmy_source?: string | null;
+            /** Model Version */
+            model_version?: string | null;
+            /** Filename */
+            filename?: string | null;
+            /** Pv Budgeted Series Id */
+            pv_budgeted_series_id: number;
+        };
+        /**
+         * PVModuleInterface
          * @description Pvmodule model.
          */
-        PVModule: {
+        PVModuleInterface: {
             /**
              * Pv Module Id
              * @description Unique identifier for the PV module
@@ -11803,10 +11803,10 @@ export interface components {
             font_size: number;
         };
         /**
-         * Permission
+         * PermissionInterface
          * @description Permission model.
          */
-        Permission: {
+        PermissionInterface: {
             /** Permission Id */
             permission_id: number;
             /** Name Short */
@@ -11949,12 +11949,92 @@ export interface components {
             has_access: boolean;
         };
         /**
-         * Project
+         * ProjectBessWaterfallResponse
+         * @description BESS energy waterfall from charge at POI to discharge at POI.
+         */
+        ProjectBessWaterfallResponse: {
+            /** Charge At Poi */
+            charge_at_poi: number;
+            gen_tie_gsu_step_down: components["schemas"]["EnergyLoss"];
+            /** Charge At Mv Circuits */
+            charge_at_mv_circuits: number;
+            aux_energy: components["schemas"]["EnergyLoss"];
+            /** Charge At Feeder */
+            charge_at_feeder: number;
+            mvt_step_down_pcs: components["schemas"]["EnergyLoss"];
+            /** Charge At String */
+            charge_at_string: number;
+            rte: components["schemas"]["EnergyLoss"];
+            /** Discharge At String */
+            discharge_at_string: number;
+            pcs_pvt_step_up: components["schemas"]["EnergyLoss"];
+            /** Discharge At Feeder */
+            discharge_at_feeder: number;
+            gen_tie_gsu_step_up: components["schemas"]["EnergyLoss"];
+            /** Discharge At Poi */
+            discharge_at_poi: number;
+        };
+        /**
+         * ProjectCreate
+         * @description Inherits from ProjectShared.
+         *     Represents the user inputs to create a new project
+         */
+        ProjectCreate: {
+            /** Project Type Id */
+            project_type_id: number;
+            /** Name Long */
+            name_long: string;
+            /** Address */
+            address?: string | null;
+            /** Elevation */
+            elevation: number;
+            /** Time Zone */
+            time_zone: string;
+            /** Poi */
+            poi: number;
+            /** Capacity Dc */
+            capacity_dc?: number | null;
+            /** Capacity Ac */
+            capacity_ac?: number | null;
+            /** Capacity Bess Power Ac */
+            capacity_bess_power_ac?: number | null;
+            /** Capacity Bess Energy Bol Dc */
+            capacity_bess_energy_bol_dc?: number | null;
+            /** Ppa */
+            ppa?: {
+                [key: string]: unknown;
+            } | null;
+            /** Cod */
+            cod?: string | null;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+        };
+        /**
+         * ProjectDataLastUpdatedInterface
+         * @description Projectdatalastupdated model.
+         */
+        ProjectDataLastUpdatedInterface: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Time Error */
+            time_error: string | null;
+            /** Time Empty */
+            time_empty: string | null;
+            /** Time Last */
+            time_last: string | null;
+        };
+        /**
+         * ProjectInterface
          * @description Inherits from ProjectCreate.
          *
          *     The full project details, basically the entire row from the database.
          */
-        Project: {
+        ProjectInterface: {
             /** Project Type Id */
             project_type_id: number;
             /** Name Long */
@@ -12138,86 +12218,6 @@ export interface components {
             has_real_time_data: boolean;
         };
         /**
-         * ProjectBessWaterfallResponse
-         * @description BESS energy waterfall from charge at POI to discharge at POI.
-         */
-        ProjectBessWaterfallResponse: {
-            /** Charge At Poi */
-            charge_at_poi: number;
-            gen_tie_gsu_step_down: components["schemas"]["EnergyLoss"];
-            /** Charge At Mv Circuits */
-            charge_at_mv_circuits: number;
-            aux_energy: components["schemas"]["EnergyLoss"];
-            /** Charge At Feeder */
-            charge_at_feeder: number;
-            mvt_step_down_pcs: components["schemas"]["EnergyLoss"];
-            /** Charge At String */
-            charge_at_string: number;
-            rte: components["schemas"]["EnergyLoss"];
-            /** Discharge At String */
-            discharge_at_string: number;
-            pcs_pvt_step_up: components["schemas"]["EnergyLoss"];
-            /** Discharge At Feeder */
-            discharge_at_feeder: number;
-            gen_tie_gsu_step_up: components["schemas"]["EnergyLoss"];
-            /** Discharge At Poi */
-            discharge_at_poi: number;
-        };
-        /**
-         * ProjectCreate
-         * @description Inherits from ProjectShared.
-         *     Represents the user inputs to create a new project
-         */
-        ProjectCreate: {
-            /** Project Type Id */
-            project_type_id: number;
-            /** Name Long */
-            name_long: string;
-            /** Address */
-            address?: string | null;
-            /** Elevation */
-            elevation: number;
-            /** Time Zone */
-            time_zone: string;
-            /** Poi */
-            poi: number;
-            /** Capacity Dc */
-            capacity_dc?: number | null;
-            /** Capacity Ac */
-            capacity_ac?: number | null;
-            /** Capacity Bess Power Ac */
-            capacity_bess_power_ac?: number | null;
-            /** Capacity Bess Energy Bol Dc */
-            capacity_bess_energy_bol_dc?: number | null;
-            /** Ppa */
-            ppa?: {
-                [key: string]: unknown;
-            } | null;
-            /** Cod */
-            cod?: string | null;
-            /** Latitude */
-            latitude: number;
-            /** Longitude */
-            longitude: number;
-        };
-        /**
-         * ProjectDataLastUpdated
-         * @description Projectdatalastupdated model.
-         */
-        ProjectDataLastUpdated: {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
-            /** Time Error */
-            time_error: string | null;
-            /** Time Empty */
-            time_empty: string | null;
-            /** Time Last */
-            time_last: string | null;
-        };
-        /**
          * ProjectKPIData
          * @description Response model for project KPI data with dates and values.
          */
@@ -12247,10 +12247,10 @@ export interface components {
          */
         ProjectStatusType: 1 | 2 | 3;
         /**
-         * ProjectType
+         * ProjectTypeInterface
          * @description Projecttype model.
          */
-        ProjectType: {
+        ProjectTypeInterface: {
             /** Project Type Id */
             project_type_id: number;
             /** Name Short */
@@ -12331,10 +12331,10 @@ export interface components {
             name: string;
         };
         /**
-         * QSE
+         * QSEInterface
          * @description Qse model.
          */
-        QSE: {
+        QSEInterface: {
             /** Qse Id */
             qse_id: number;
             /** Name Short */
@@ -12361,10 +12361,10 @@ export interface components {
             rte: number | null;
         };
         /**
-         * ReportInstance
+         * ReportInstanceInterface
          * @description Reportinstance model.
          */
-        ReportInstance: {
+        ReportInstanceInterface: {
             /**
              * Project Id
              * Format: uuid
@@ -12374,7 +12374,7 @@ export interface components {
             report_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            report_type?: components["schemas"]["ReportType"] | null;
+            report_type?: components["schemas"]["ReportTypeInterface"] | null;
         };
         /**
          * ReportInstanceUpdate
@@ -12397,10 +12397,10 @@ export interface components {
             report_type_ids_to_delete?: number[] | null;
         };
         /**
-         * ReportType
+         * ReportTypeInterface
          * @description Reporttype model.
          */
-        ReportType: {
+        ReportTypeInterface: {
             /** Report Type Id */
             report_type_id: number;
             /** Name Short */
@@ -12413,10 +12413,10 @@ export interface components {
             description?: string | null;
         };
         /**
-         * Resource
+         * ResourceInterface
          * @description Resource model.
          */
-        Resource: {
+        ResourceInterface: {
             /** Resource Id */
             resource_id: number;
             /** Name Gen */
@@ -12437,23 +12437,9 @@ export interface components {
             dme_id: number;
             /** Settlement Point Id */
             settlement_point_id: number;
-            qse?: components["schemas"]["QSE"] | null;
-            dme?: components["schemas"]["DME"] | null;
-            settlement_point?: components["schemas"]["SettlementPoint"] | null;
-        };
-        /**
-         * RootCause
-         * @description Rootcause model.
-         */
-        RootCause: {
-            /** Root Cause Id */
-            root_cause_id: number;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
+            qse?: components["schemas"]["QSEInterface"] | null;
+            dme?: components["schemas"]["DMEInterface"] | null;
+            settlement_point?: components["schemas"]["SettlementPointInterface"] | null;
         };
         /**
          * RootCauseCandidate
@@ -12468,6 +12454,20 @@ export interface components {
             name_long?: string | null;
             /** Device Type Id */
             device_type_id: number;
+        };
+        /**
+         * RootCauseInterface
+         * @description Rootcause model.
+         */
+        RootCauseInterface: {
+            /** Root Cause Id */
+            root_cause_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
         };
         /**
          * RootCauseUpdate
@@ -12530,9 +12530,14 @@ export interface components {
         };
         /**
          * SensorType
+         * @enum {integer}
+         */
+        SensorType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125 | 126 | 127 | 128 | 129 | 130 | 131 | 132 | 133 | 134 | 135 | 136 | 137 | 138 | 139 | 140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 | 151 | 152 | 153 | 154 | 155 | 156 | 157 | 158 | 159 | 160 | 161 | 162 | 163 | 164 | 165 | 166 | 167 | 168 | 169 | 170 | 171 | 172 | 173 | 174 | 175 | 176 | 177 | 178 | 179 | 180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 188 | 189 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 | 198 | 199 | 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 209 | 210 | 211 | 212 | 213 | 214 | 215 | 216 | 217 | 218 | 219 | 220;
+        /**
+         * SensorTypeInterface
          * @description Sensortype model.
          */
-        "SensorType-Output": {
+        SensorTypeInterface: {
             /** Sensor Type Id */
             sensor_type_id: number;
             /** Device Type Id */
@@ -12547,25 +12552,6 @@ export interface components {
             unit: string | null;
             /** Description */
             description: string | null;
-        };
-        /**
-         * SettlementPoint
-         * @description Settlementpoint model.
-         */
-        SettlementPoint: {
-            /** Settlement Point Id */
-            settlement_point_id: number;
-            /** Name */
-            name: string;
-            /** Settlement Point Type Id */
-            settlement_point_type_id: number;
-            /** Load Zone Id */
-            load_zone_id: number | null;
-            /** Trading Hub Id */
-            trading_hub_id: number | null;
-            settlement_point_type?: components["schemas"]["SettlementPointType"] | null;
-            load_zone?: components["schemas"]["SettlementPointCore"] | null;
-            trading_hub?: components["schemas"]["SettlementPointCore"] | null;
         };
         /**
          * SettlementPointCore
@@ -12584,10 +12570,29 @@ export interface components {
             trading_hub_id: number | null;
         };
         /**
-         * SettlementPointType
+         * SettlementPointInterface
+         * @description Settlementpoint model.
+         */
+        SettlementPointInterface: {
+            /** Settlement Point Id */
+            settlement_point_id: number;
+            /** Name */
+            name: string;
+            /** Settlement Point Type Id */
+            settlement_point_type_id: number;
+            /** Load Zone Id */
+            load_zone_id: number | null;
+            /** Trading Hub Id */
+            trading_hub_id: number | null;
+            settlement_point_type?: components["schemas"]["SettlementPointTypeInterface"] | null;
+            load_zone?: components["schemas"]["SettlementPointCore"] | null;
+            trading_hub?: components["schemas"]["SettlementPointCore"] | null;
+        };
+        /**
+         * SettlementPointTypeInterface
          * @description Settlementpointtype model.
          */
-        SettlementPointType: {
+        SettlementPointTypeInterface: {
             /** Settlement Point Type Id */
             settlement_point_type_id: number;
             /** Name Short */
@@ -12716,11 +12721,11 @@ export interface components {
             rationale?: string | null;
         };
         /**
-         * Tag
+         * TagInterface
          * @description Flat Tag model returned by v2 endpoint.
          *     Includes flattened fields from joined tables when deep=True.
          */
-        Tag: {
+        TagInterface: {
             /** Tag Id */
             tag_id: number;
             /** In Tsdb */
@@ -12839,17 +12844,25 @@ export interface components {
             unit_scale: number | null;
             point: components["schemas"]["Point"] | null;
             polygon: components["schemas"]["Polygon"] | null;
-            device?: components["schemas"]["Device"] | null;
-            sensor_type?: components["schemas"]["SensorType-Output"] | null;
-            data_type?: components["schemas"]["DataType"] | null;
+            device?: components["schemas"]["DeviceInterface"] | null;
+            sensor_type?: components["schemas"]["SensorTypeInterface"] | null;
+            data_type?: components["schemas"]["DataTypeInterface"] | null;
             /** Status Lookup Id */
             status_lookup_id?: number | null;
         };
         /**
-         * Team
+         * TeamCreate
+         * @description Teamcreate model.
+         */
+        TeamCreate: {
+            /** Name Long */
+            name_long: string;
+        };
+        /**
+         * TeamInterface
          * @description Team model.
          */
-        Team: {
+        TeamInterface: {
             /** Name Long */
             name_long: string;
             /**
@@ -12872,14 +12885,6 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
-        };
-        /**
-         * TeamCreate
-         * @description Teamcreate model.
-         */
-        TeamCreate: {
-            /** Name Long */
-            name_long: string;
         };
         /**
          * TeamMemberAdd
@@ -13067,10 +13072,10 @@ export interface components {
             is_favorited: boolean;
         };
         /**
-         * UserKPITypes
+         * UserKPITypesInterface
          * @description Userkpitypes model.
          */
-        UserKPITypes: {
+        UserKPITypesInterface: {
             /** User Id */
             user_id: string;
             /** Kpi Type Id */
@@ -13079,10 +13084,10 @@ export interface components {
             is_favorited: boolean;
         };
         /**
-         * UserPermission
+         * UserPermissionInterface
          * @description Userpermission model.
          */
-        UserPermission: {
+        UserPermissionInterface: {
             /** User Id */
             user_id: string;
             /**
@@ -13110,22 +13115,6 @@ export interface components {
             is_favorited: boolean;
         };
         /**
-         * UserProjectLabel
-         * @description Userprojectlabel model.
-         */
-        UserProjectLabel: {
-            /** User Project Label Id */
-            user_project_label_id: number;
-            /** User Id */
-            user_id: string;
-            /** Name */
-            name: string;
-            /** Color */
-            color: string;
-            /** Project Ids */
-            project_ids: string[];
-        };
-        /**
          * UserProjectLabelCreate
          * @description Payload for creating a user project label.
          */
@@ -13138,10 +13127,26 @@ export interface components {
             project_ids: string[];
         };
         /**
-         * UserSubscription
+         * UserProjectLabelInterface
+         * @description Userprojectlabel model.
+         */
+        UserProjectLabelInterface: {
+            /** User Project Label Id */
+            user_project_label_id: number;
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string;
+            /** Color */
+            color: string;
+            /** Project Ids */
+            project_ids: string[];
+        };
+        /**
+         * UserSubscriptionInterface
          * @description Usersubscription model.
          */
-        UserSubscription: {
+        UserSubscriptionInterface: {
             /** User Id */
             user_id: string;
             /**
@@ -13163,19 +13168,19 @@ export interface components {
             subscribe: boolean;
         };
         /**
-         * UserType
-         * @description Usertype model.
-         */
-        UserType: {
-            user_type_id: components["schemas"]["UserTypeEnum"];
-            /** Name Short */
-            name_short: string;
-        };
-        /**
          * UserTypeEnum
          * @enum {integer}
          */
         UserTypeEnum: 1 | 2 | 3;
+        /**
+         * UserTypeInterface
+         * @description Usertype model.
+         */
+        UserTypeInterface: {
+            user_type_id: components["schemas"]["UserTypeEnum"];
+            /** Name Short */
+            name_short: string;
+        };
         /**
          * UserWithPermissions
          * @description Userwithpermissions model.
@@ -13214,7 +13219,7 @@ export interface components {
          */
         UtilityExpectedResponse: {
             /** Parent Devices */
-            parent_devices: components["schemas"]["Device"][];
+            parent_devices: components["schemas"]["DeviceInterface"][];
             /** Times */
             times: string[];
             /** Actual */
@@ -13396,9 +13401,9 @@ export interface components {
             time_last_analyzed: string | null;
             /** Loss Total Financial */
             loss_total_financial: number | null;
-            failure_mode?: components["schemas"]["FailureMode"] | null;
-            root_cause?: components["schemas"]["RootCause"] | null;
-            device?: components["schemas"]["Device"] | null;
+            failure_mode?: components["schemas"]["FailureModeInterface"] | null;
+            root_cause?: components["schemas"]["RootCauseInterface"] | null;
+            device?: components["schemas"]["DeviceInterface"] | null;
             /** Device Name Full */
             device_name_full?: string | null;
             /** Version */
@@ -13459,31 +13464,6 @@ export interface components {
             /** Score */
             score: number;
         };
-        /**
-         * SensorType
-         * @description Sensortype model.
-         */
-        app__interfaces__SensorType: {
-            /** Sensor Type Id */
-            sensor_type_id: number;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-            /** Name Metric */
-            name_metric: string;
-            /** Unit */
-            unit: string | null;
-            /** Description */
-            description: string | null;
-        };
-        /**
-         * SensorType
-         * @enum {integer}
-         */
-        core__enumerations__SensorType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125 | 126 | 127 | 128 | 129 | 130 | 131 | 132 | 133 | 134 | 135 | 136 | 137 | 138 | 139 | 140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 | 151 | 152 | 153 | 154 | 155 | 156 | 157 | 158 | 159 | 160 | 161 | 162 | 163 | 164 | 165 | 166 | 167 | 168 | 169 | 170 | 171 | 172 | 173 | 174 | 175 | 176 | 177 | 178 | 179 | 180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 188 | 189 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 | 198 | 199 | 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 209 | 210 | 211 | 212 | 213 | 214 | 215 | 216 | 217 | 218 | 219 | 220;
     };
     responses: never;
     parameters: never;
@@ -13605,7 +13585,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Permission"][];
+                    "application/json": components["schemas"]["PermissionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -13639,7 +13619,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Permission"][];
+                    "application/json": components["schemas"]["PermissionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -13678,7 +13658,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserPermission"];
+                    "application/json": components["schemas"]["UserPermissionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -13717,7 +13697,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserPermission"];
+                    "application/json": components["schemas"]["UserPermissionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -13751,7 +13731,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Permission"][];
+                    "application/json": components["schemas"]["PermissionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -13816,7 +13796,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserSubscription"][];
+                    "application/json": components["schemas"]["UserSubscriptionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -13888,7 +13868,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserSubscription"];
+                    "application/json": components["schemas"]["UserSubscriptionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -13922,7 +13902,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotificationPreference"][];
+                    "application/json": components["schemas"]["NotificationPreferenceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -13957,7 +13937,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotificationPreference"];
+                    "application/json": components["schemas"]["NotificationPreferenceInterface"];
                 };
             };
             /** @description Validation Error */
@@ -13992,7 +13972,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotificationPreference"][];
+                    "application/json": components["schemas"]["NotificationPreferenceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14023,7 +14003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotificationType"][];
+                    "application/json": components["schemas"]["NotificationTypeInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14057,7 +14037,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CompanyProject"][];
+                    "application/json": components["schemas"]["CompanyProjectInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14091,7 +14071,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CompanyProject"][];
+                    "application/json": components["schemas"]["CompanyProjectInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14160,7 +14140,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Company"];
+                    "application/json": components["schemas"]["CompanyInterface"];
                 };
             };
             /** @description Validation Error */
@@ -14225,7 +14205,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Team"][];
+                    "application/json": components["schemas"]["TeamInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14261,7 +14241,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Team"];
+                    "application/json": components["schemas"]["TeamInterface"];
                 };
             };
             /** @description Validation Error */
@@ -14292,7 +14272,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Team"][];
+                    "application/json": components["schemas"]["TeamInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14496,7 +14476,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Team"];
+                    "application/json": components["schemas"]["TeamInterface"];
                 };
             };
             /** @description Validation Error */
@@ -14871,7 +14851,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserKPITypes"][];
+                    "application/json": components["schemas"]["UserKPITypesInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -14940,7 +14920,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Notification"][];
+                    "application/json": components["schemas"]["NotificationInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -15035,7 +15015,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Notification"];
+                    "application/json": components["schemas"]["NotificationInterface"];
                 };
             };
             /** @description Validation Error */
@@ -15068,7 +15048,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Notification"];
+                    "application/json": components["schemas"]["NotificationInterface"];
                 };
             };
             /** @description Validation Error */
@@ -15163,7 +15143,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserType"];
+                    "application/json": components["schemas"]["UserTypeInterface"];
                 };
             };
             /** @description Validation Error */
@@ -15579,7 +15559,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SettlementPoint"][];
+                    "application/json": components["schemas"]["SettlementPointInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -15613,7 +15593,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"][];
+                    "application/json": components["schemas"]["ResourceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -15649,7 +15629,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["ResourceInterface"];
                 };
             };
             /** @description Validation Error */
@@ -16310,7 +16290,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CECPVModule"][];
+                    "application/json": components["schemas"]["CECPVModuleInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -16474,7 +16454,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ContractCategory"][];
+                    "application/json": components["schemas"]["ContractCategoryInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -16508,7 +16488,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeviceModel"][];
+                    "application/json": components["schemas"]["DeviceModelInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -16543,7 +16523,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeviceType"][];
+                    "application/json": components["schemas"]["DeviceTypeInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -16576,7 +16556,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeviceType"];
+                    "application/json": components["schemas"]["DeviceTypeInterface"];
                 };
             };
             /** @description Device type not found */
@@ -16614,7 +16594,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneIntegration"][];
+                    "application/json": components["schemas"]["DroneIntegrationInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -16650,7 +16630,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneIntegration"];
+                    "application/json": components["schemas"]["DroneIntegrationInterface"];
                 };
             };
             /** @description Validation Error */
@@ -16688,7 +16668,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneIntegration"];
+                    "application/json": components["schemas"]["DroneIntegrationInterface"];
                 };
             };
             /** @description Validation Error */
@@ -16824,7 +16804,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DronePermission"][];
+                    "application/json": components["schemas"]["DronePermissionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -16860,7 +16840,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DronePermission"];
+                    "application/json": components["schemas"]["DronePermissionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -16899,7 +16879,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DronePermission"];
+                    "application/json": components["schemas"]["DronePermissionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -16965,7 +16945,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneProvider"][];
+                    "application/json": components["schemas"]["DroneProviderInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -17001,7 +16981,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneProvider"];
+                    "application/json": components["schemas"]["DroneProviderInterface"];
                 };
             };
             /** @description Validation Error */
@@ -17039,7 +17019,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneProvider"];
+                    "application/json": components["schemas"]["DroneProviderInterface"];
                 };
             };
             /** @description Validation Error */
@@ -17145,7 +17125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OperationalKPIData"][];
+                    "application/json": components["schemas"]["OperationalKPIDataInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -17260,7 +17240,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIInstance"][];
+                    "application/json": components["schemas"]["KPIInstanceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -17327,7 +17307,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType-Output"][];
+                    "application/json": components["schemas"]["KPITypeInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -17362,7 +17342,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType-Output"];
+                    "application/json": components["schemas"]["KPITypeInterface"];
                 };
             };
             /** @description Validation Error */
@@ -17434,7 +17414,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItemCategory"][];
+                    "application/json": components["schemas"]["CalendarItemCategoryInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -17468,7 +17448,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItem"][];
+                    "application/json": components["schemas"]["CalendarItemInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -17506,7 +17486,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItem"];
+                    "application/json": components["schemas"]["CalendarItemInterface"];
                 };
             };
             /** @description Validation Error */
@@ -17545,7 +17525,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItem"];
+                    "application/json": components["schemas"]["CalendarItemInterface"];
                 };
             };
             /** @description Validation Error */
@@ -17618,7 +17598,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItemException"];
+                    "application/json": components["schemas"]["CalendarItemExceptionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -17965,7 +17945,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ClaimUpdate"];
+                "application/json": components["schemas"]["ClaimUpdateInterface"];
             };
         };
         responses: {
@@ -18162,7 +18142,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ClaimAttachment"][];
+                    "application/json": components["schemas"]["ClaimAttachmentInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -18201,7 +18181,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ClaimAttachment"];
+                    "application/json": components["schemas"]["ClaimAttachmentInterface"];
                 };
             };
             /** @description Validation Error */
@@ -18308,7 +18288,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CMMSPermission"][];
+                    "application/json": components["schemas"]["CMMSPermissionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -18461,7 +18441,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Contract"];
+                    "application/json": components["schemas"]["ContractInterface"];
                 };
             };
             /** @description Validation Error */
@@ -18726,7 +18706,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectDataLastUpdated"];
+                    "application/json": components["schemas"]["ProjectDataLastUpdatedInterface"];
                 };
             };
             /** @description Validation Error */
@@ -18804,7 +18784,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Device"];
+                    "application/json": components["schemas"]["DeviceInterface"];
                 };
             };
             /** @description Device not found */
@@ -18850,7 +18830,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Device"];
+                    "application/json": components["schemas"]["DeviceInterface"];
                 };
             };
             /** @description Device not found */
@@ -18929,7 +18909,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Document"][];
+                    "application/json": components["schemas"]["DocumentInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -18967,7 +18947,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Document"];
+                    "application/json": components["schemas"]["DocumentInterface"];
                 };
             };
             /** @description Validation Error */
@@ -19074,7 +19054,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneInspection"][];
+                    "application/json": components["schemas"]["DroneInspectionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -19143,7 +19123,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneAnomaly"][];
+                    "application/json": components["schemas"]["DroneAnomalyInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -19636,7 +19616,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Event"][];
+                    "application/json": components["schemas"]["EventInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -19866,7 +19846,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"][];
+                    "application/json": components["schemas"]["TagInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -20111,7 +20091,7 @@ export interface operations {
     get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
         parameters: {
             query: {
-                kpi_type_id: components["schemas"]["KPIType-Input"];
+                kpi_type_id: components["schemas"]["KPIType"];
                 start?: string | null;
                 end?: string | null;
                 frequency?: ("month" | "year") | null;
@@ -20151,7 +20131,7 @@ export interface operations {
     get_project_aggregated_kpi_data_v1_operational_projects__project_id__kpi_data_agg_get: {
         parameters: {
             query: {
-                kpi_type_id: components["schemas"]["KPIType-Input"];
+                kpi_type_id: components["schemas"]["KPIType"];
                 start?: string | null;
                 end?: string | null;
                 aggregation?: ("avg" | "sum") | null;
@@ -20549,7 +20529,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PVBudgetedSeries"][];
+                    "application/json": components["schemas"]["PVBudgetedSeriesInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -20587,7 +20567,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PVBudgetedSeries"];
+                    "application/json": components["schemas"]["PVBudgetedSeriesInterface"];
                 };
             };
             /** @description Validation Error */
@@ -20818,7 +20798,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportInstance"][];
+                    "application/json": components["schemas"]["ReportInstanceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -20856,7 +20836,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportInstance"][];
+                    "application/json": components["schemas"]["ReportInstanceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21044,7 +21024,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["core__enumerations__SensorType"][] | null;
+                "application/json": components["schemas"]["SensorType"][] | null;
             };
         };
         responses: {
@@ -21181,7 +21161,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"][];
+                    "application/json": components["schemas"]["TagInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21254,7 +21234,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserProjectLabel"][];
+                    "application/json": components["schemas"]["UserProjectLabelInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21325,7 +21305,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectDataLastUpdated"][];
+                    "application/json": components["schemas"]["ProjectDataLastUpdatedInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21361,7 +21341,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectType"][];
+                    "application/json": components["schemas"]["ProjectTypeInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21404,7 +21384,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Project"][];
+                    "application/json": components["schemas"]["ProjectInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21439,7 +21419,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Project"];
+                    "application/json": components["schemas"]["ProjectInterface"];
                 };
             };
             /** @description Validation Error */
@@ -21473,7 +21453,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Project"];
+                    "application/json": components["schemas"]["ProjectInterface"];
                 };
             };
             /** @description Project not found */
@@ -21518,7 +21498,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Project"];
+                    "application/json": components["schemas"]["ProjectInterface"];
                 };
             };
             /** @description Project not found */
@@ -21706,7 +21686,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inverter"][];
+                    "application/json": components["schemas"]["InverterInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -21733,7 +21713,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Inverter"];
+                "application/json": components["schemas"]["InverterInterface"];
             };
         };
         responses: {
@@ -21743,7 +21723,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inverter"];
+                    "application/json": components["schemas"]["InverterInterface"];
                 };
             };
             /** @description Validation Error */
@@ -21951,7 +21931,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inverter"];
+                    "application/json": components["schemas"]["InverterInterface"];
                 };
             };
             /** @description Validation Error */
@@ -21985,7 +21965,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PVModule"][];
+                    "application/json": components["schemas"]["PVModuleInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -22012,7 +21992,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PVModule"];
+                "application/json": components["schemas"]["PVModuleInterface"];
             };
         };
         responses: {
@@ -22022,7 +22002,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PVModule"];
+                    "application/json": components["schemas"]["PVModuleInterface"];
                 };
             };
             /** @description Validation Error */
@@ -22404,7 +22384,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportInstance"][];
+                    "application/json": components["schemas"]["ReportInstanceInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -22435,7 +22415,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportType"][];
+                    "application/json": components["schemas"]["ReportTypeInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -22468,7 +22448,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportType"];
+                    "application/json": components["schemas"]["ReportTypeInterface"];
                 };
             };
             /** @description Validation Error */
@@ -22539,7 +22519,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"][];
+                    "application/json": components["schemas"]["SensorTypeInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -22566,7 +22546,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__interfaces__SensorType"];
+                "application/json": components["schemas"]["SensorTypeInterface"];
             };
         };
         responses: {
@@ -22576,7 +22556,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"];
+                    "application/json": components["schemas"]["SensorTypeInterface"];
                 };
             };
             /** @description Validation Error */
@@ -22609,7 +22589,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"];
+                    "application/json": components["schemas"]["SensorTypeInterface"];
                 };
             };
             /** @description Sensor type not found */
@@ -22645,7 +22625,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__interfaces__SensorType"];
+                "application/json": components["schemas"]["SensorTypeInterface"];
             };
         };
         responses: {
@@ -22655,7 +22635,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"];
+                    "application/json": components["schemas"]["SensorTypeInterface"];
                 };
             };
             /** @description Sensor type not found */
@@ -22693,7 +22673,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserProjectLabel"][];
+                    "application/json": components["schemas"]["UserProjectLabelInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -22728,7 +22708,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserProjectLabel"];
+                    "application/json": components["schemas"]["UserProjectLabelInterface"];
                 };
             };
             /** @description Validation Error */
@@ -22765,7 +22745,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserProjectLabel"];
+                    "application/json": components["schemas"]["UserProjectLabelInterface"];
                 };
             };
             /** @description Validation Error */
@@ -22966,7 +22946,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItem"][];
+                    "application/json": components["schemas"]["CalendarItemInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -22997,7 +22977,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarItemCategory"][];
+                    "application/json": components["schemas"]["CalendarItemCategoryInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -24275,7 +24255,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventCMMSTicket"][];
+                    "application/json": components["schemas"]["EventCMMSTicketInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -24313,7 +24293,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventCMMSTicket"];
+                    "application/json": components["schemas"]["EventCMMSTicketInterface"];
                 };
             };
             /** @description Validation Error */
@@ -24351,7 +24331,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventCMMSTicket"][];
+                    "application/json": components["schemas"]["EventCMMSTicketInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -24386,7 +24366,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventCMMSTicket"] | null;
+                    "application/json": components["schemas"]["EventCMMSTicketInterface"] | null;
                 };
             };
             /** @description Validation Error */

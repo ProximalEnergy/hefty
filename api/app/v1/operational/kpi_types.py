@@ -87,7 +87,9 @@ async def get_kpi_type_by_name(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("", response_model=list[interfaces.KPIType], operation_id="get_kpi_types")
+@router.get(
+    "", response_model=list[interfaces.KPITypeInterface], operation_id="get_kpi_types"
+)
 def get_kpi_types_route(
     db: Annotated[Session, Depends(get_db)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
@@ -103,7 +105,7 @@ def get_kpi_types_route(
 
 @router.get(
     "/{kpi_type_id}",
-    response_model=interfaces.KPIType,
+    response_model=interfaces.KPITypeInterface,
     operation_id="get_kpi_type_by_id",
 )
 def get_kpi_type(

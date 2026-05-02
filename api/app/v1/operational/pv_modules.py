@@ -31,7 +31,7 @@ router = APIRouter(prefix="/pv-modules", tags=["pv_modules"])
 
 @router.get(
     "",
-    response_model=list[interfaces.PVModule],
+    response_model=list[interfaces.PVModuleInterface],
     operation_id="get_pv_modules",
     dependencies=[Depends(require_user_company)],
 )
@@ -165,14 +165,14 @@ async def get_pv_module_ids_by_manufacturer_and_model(
 
 @router.post(
     "",
-    response_model=interfaces.PVModule,
+    response_model=interfaces.PVModuleInterface,
     summary="Create or update a PV module",
     operation_id="create_pv_module",
 )
 async def create_pv_module_route(
     *,
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
-    pv_module: interfaces.PVModule,
+    pv_module: interfaces.PVModuleInterface,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Create a new PV module or update an existing one.

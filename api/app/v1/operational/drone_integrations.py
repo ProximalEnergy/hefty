@@ -25,8 +25,8 @@ from app.dependencies import (
 )
 from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
-    DroneIntegration,
     DroneIntegrationCreate,
+    DroneIntegrationInterface,
     DroneIntegrationUpdate,
     UserAuthed,
 )
@@ -61,7 +61,7 @@ class ProviderSite(BaseModel):
     name: str
 
 
-@router.get("", response_model=list[DroneIntegration])
+@router.get("", response_model=list[DroneIntegrationInterface])
 async def get_drone_integrations_(
     db: AsyncSession = Depends(get_async_db),
 ):
@@ -75,7 +75,7 @@ async def get_drone_integrations_(
 
 @router.post(
     "",
-    response_model=DroneIntegration,
+    response_model=DroneIntegrationInterface,
     dependencies=[Depends(requires_superadmin_async)],
 )
 async def create_drone_integration_(
@@ -93,7 +93,7 @@ async def create_drone_integration_(
 
 @router.put(
     "/{drone_integration_id}",
-    response_model=DroneIntegration,
+    response_model=DroneIntegrationInterface,
     dependencies=[Depends(requires_superadmin_async)],
 )
 async def update_drone_integration_(

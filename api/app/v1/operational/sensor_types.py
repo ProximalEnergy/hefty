@@ -30,7 +30,9 @@ router = APIRouter(prefix="/sensor-types", tags=["sensor_types"])
 
 
 @router.get(
-    "", response_model=list[interfaces.SensorType], operation_id="get_sensor_types"
+    "",
+    response_model=list[interfaces.SensorTypeInterface],
+    operation_id="get_sensor_types",
 )
 async def get_sensor_types_route(
     sensor_type_ids: Annotated[list[int], Query()] = [],
@@ -61,7 +63,7 @@ async def get_sensor_types_route(
 
 @router.get(
     "/{sensor_type_id}",
-    response_model=interfaces.SensorType,
+    response_model=interfaces.SensorTypeInterface,
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_sensor_type",
 )
@@ -80,11 +82,11 @@ async def get_sensor_type_route(sensor_type_id: int):
 
 @router.post(
     "",
-    response_model=interfaces.SensorType,
+    response_model=interfaces.SensorTypeInterface,
     operation_id="create_sensor_type",
 )
 def create_sensor_type_route(
-    sensor_type: interfaces.SensorType,
+    sensor_type: interfaces.SensorTypeInterface,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
@@ -114,13 +116,13 @@ def create_sensor_type_route(
 
 @router.put(
     "/{sensor_type_id}",
-    response_model=interfaces.SensorType,
+    response_model=interfaces.SensorTypeInterface,
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="update_sensor_type",
 )
 def update_sensor_type_route(
     sensor_type_id: int,
-    sensor_type: interfaces.SensorType,
+    sensor_type: interfaces.SensorTypeInterface,
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
 ):

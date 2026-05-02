@@ -24,7 +24,7 @@ router = APIRouter(prefix="/ercot", tags=["ercot"])
 
 @router.get(
     "/settlement-points",
-    response_model=list[interfaces.SettlementPoint],
+    response_model=list[interfaces.SettlementPointInterface],
 )
 async def get_settlement_points(
     deep: custom_types.AnnotatedDeep = False,
@@ -41,7 +41,7 @@ async def get_settlement_points(
 
 @router.get(
     "/resources",
-    response_model=list[interfaces.Resource],
+    response_model=list[interfaces.ResourceInterface],
 )
 async def get_resources(
     deep: custom_types.AnnotatedDeep = False,
@@ -63,7 +63,7 @@ async def get_resources(
 
 @router.get(
     "/resources/{resource_id}",
-    response_model=interfaces.Resource,
+    response_model=interfaces.ResourceInterface,
 )
 async def get_resource(
     resource_id: int,

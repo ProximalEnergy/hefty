@@ -59,7 +59,7 @@ async def get_project_api(*, project_id: UUID):
     )
     if not project_model:
         raise HTTPException(status_code=404, detail="Project not found")
-    return interfaces.Project.model_validate(project_model)
+    return interfaces.ProjectInterface.model_validate(project_model)
 
 
 async def get_ercot_db_async() -> AsyncGenerator[AsyncSession, None]:

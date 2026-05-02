@@ -10,21 +10,25 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export type DroneIntegration = types.components['schemas']['DroneIntegration']
+export type DroneIntegration =
+  types.components['schemas']['DroneIntegrationInterface']
 type DroneIntegrationCreate =
   types.components['schemas']['DroneIntegrationCreate']
 type DroneIntegrationUpdate =
   types.components['schemas']['DroneIntegrationUpdate']
-export type DroneProvider = types.components['schemas']['DroneProvider']
+export type DroneProvider =
+  types.components['schemas']['DroneProviderInterface']
 type DroneProviderCreate = types.components['schemas']['DroneProviderCreate']
 type DroneProviderUpdate = types.components['schemas']['DroneProviderUpdate']
-export type DronePermission = types.components['schemas']['DronePermission']
+export type DronePermission =
+  types.components['schemas']['DronePermissionInterface']
 type DronePermissionCreate =
   types.components['schemas']['DronePermissionCreate']
 type DronePermissionUpdate =
   types.components['schemas']['DronePermissionUpdate']
-export type DroneInspection = types.components['schemas']['DroneInspection']
-export type DroneAnomaly = types.components['schemas']['DroneAnomaly']
+export type DroneInspection =
+  types.components['schemas']['DroneInspectionInterface']
+export type DroneAnomaly = types.components['schemas']['DroneAnomalyInterface']
 export type ProviderSite = types.components['schemas']['ProviderSite']
 type QueryProviderSitesRequest =
   types.components['schemas']['QueryProviderSitesRequest']

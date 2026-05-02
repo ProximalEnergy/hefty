@@ -243,7 +243,7 @@ async def get_inverter_ids_by_manufacturer_model(
 async def create_inverter(
     *,
     db: AsyncSession,
-    inverter: interfaces.Inverter,
+    inverter: interfaces.InverterInterface,
 ):
     """
     Creates a new inverter in the database if it doesn't exist,

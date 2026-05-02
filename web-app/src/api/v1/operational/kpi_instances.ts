@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'KPIInstance'
+const _COMPONENT_NAME = 'KPIInstanceInterface'
 const URL = '/v1/operational/kpi-instances'
 
 export type KPIInstance = types.components['schemas'][typeof _COMPONENT_NAME]

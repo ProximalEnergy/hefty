@@ -13,7 +13,9 @@ router = APIRouter(prefix="/device-types", tags=["device_types"])
 
 
 @router.get(
-    "", response_model=list[interfaces.DeviceType], operation_id="get_device_types"
+    "",
+    response_model=list[interfaces.DeviceTypeInterface],
+    operation_id="get_device_types",
 )
 async def get_device_types_route(
     device_type_ids: Annotated[list[int], Query()] = [],
@@ -35,12 +37,12 @@ async def get_device_types_route(
     ).get_async(output_type=OutputType.POLARS)
     if df.is_empty():
         return []
-    return [interfaces.DeviceType.model_validate(d) for d in df.to_dicts()]
+    return [interfaces.DeviceTypeInterface.model_validate(d) for d in df.to_dicts()]
 
 
 @router.get(
     "/{device_type_id}",
-    response_model=interfaces.DeviceType,
+    response_model=interfaces.DeviceTypeInterface,
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_device_type_by_id",
 )

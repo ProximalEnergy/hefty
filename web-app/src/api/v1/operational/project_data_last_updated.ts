@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'ProjectDataLastUpdated'
+const _COMPONENT_NAME = 'ProjectDataLastUpdatedInterface'
 const URL = '/v1/operational/project-data-last-updated'
 
 export type ProjectDataLastUpdated =

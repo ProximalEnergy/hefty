@@ -208,7 +208,7 @@ async def get_cmms_tickets(
     )
 
 
-class EnrichedCMMSTicket(interfaces.CMMSTicket):
+class EnrichedCMMSTicket(interfaces.CMMSTicketInterface):
     """An enriched CMMS ticket with provider metadata."""
 
     cmms_provider_name_long: str

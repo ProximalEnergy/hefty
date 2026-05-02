@@ -14,7 +14,7 @@ import axios from 'axios'
 import type { NotificationType } from './notification_types'
 
 export type NotificationPreference =
-  types.components['schemas']['NotificationPreference']
+  types.components['schemas']['NotificationPreferenceInterface']
 type NotificationPreferenceUpdate =
   types.components['schemas']['NotificationPreferenceUpdate'] & {
     project_id: string

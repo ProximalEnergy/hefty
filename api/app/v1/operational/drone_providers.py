@@ -8,12 +8,16 @@ from app._crud.operational.drone_providers import (
     update_drone_provider,
 )
 from app.dependencies import get_async_db, requires_superadmin_async
-from app.interfaces import DroneProvider, DroneProviderCreate, DroneProviderUpdate
+from app.interfaces import (
+    DroneProviderCreate,
+    DroneProviderInterface,
+    DroneProviderUpdate,
+)
 
 router = APIRouter(prefix="/drone-providers")
 
 
-@router.get("", response_model=list[DroneProvider])
+@router.get("", response_model=list[DroneProviderInterface])
 async def get_drone_providers_(
     db: AsyncSession = Depends(get_async_db),
 ):
@@ -26,7 +30,9 @@ async def get_drone_providers_(
 
 
 @router.post(
-    "", response_model=DroneProvider, dependencies=[Depends(requires_superadmin_async)]
+    "",
+    response_model=DroneProviderInterface,
+    dependencies=[Depends(requires_superadmin_async)],
 )
 async def create_drone_provider_(
     drone_provider: DroneProviderCreate,
@@ -43,7 +49,7 @@ async def create_drone_provider_(
 
 @router.put(
     "/{drone_provider_id}",
-    response_model=DroneProvider,
+    response_model=DroneProviderInterface,
     dependencies=[Depends(requires_superadmin_async)],
 )
 async def update_drone_provider_(

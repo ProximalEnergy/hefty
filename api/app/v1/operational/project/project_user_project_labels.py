@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 
 from app._dependencies.authentication import get_user
 from app.dependencies import get_project_api
-from app.interfaces import Project, UserAuthed, UserProjectLabel
+from app.interfaces import ProjectInterface, UserAuthed, UserProjectLabelInterface
 from app.v1.operational.user_project_labels import (
     _build_user_project_labels,
     _validate_project_access,
@@ -17,9 +17,9 @@ from app.v1.operational.user_project_labels import (
 router = APIRouter(prefix="/user-project-labels", tags=["user_project_labels"])
 
 
-@router.get("", response_model=list[UserProjectLabel])
+@router.get("", response_model=list[UserProjectLabelInterface])
 async def get_user_project_labels_by_project_id(
-    project: Annotated[Project, Depends(get_project_api)],
+    project: Annotated[ProjectInterface, Depends(get_project_api)],
     user: Annotated[UserAuthed, Depends(get_user)],
 ):
     """Get all labels for a specific project (for the requesting user).

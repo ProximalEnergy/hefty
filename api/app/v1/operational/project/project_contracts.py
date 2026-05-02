@@ -64,7 +64,7 @@ router = APIRouter(
 
 @router.post(
     "",
-    response_model=interfaces.Contract,
+    response_model=interfaces.ContractInterface,
     operation_id="create_contract",
 )
 async def create_contract_route(

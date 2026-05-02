@@ -56,7 +56,9 @@ async def get_cec_pv_modules_in_proximal_format(
     if not cec_pv_modules:
         raise HTTPException(status_code=404, detail=DESCRIPTION_404)
     cec_pv_module = cec_pv_modules[0]
-    cec_pv_module_validated = interfaces.CECPVModule.model_validate(cec_pv_module)
+    cec_pv_module_validated = interfaces.CECPVModuleInterface.model_validate(
+        cec_pv_module
+    )
     cec_pv_module_adapted = adapt_cec_pv_module_to_proximal(
         cec_pv_module=cec_pv_module_validated,
     )
@@ -140,7 +142,7 @@ async def get_proximal_cec_pv_module_models(
     return models
 
 
-@router.post("", response_model=list[interfaces.CECPVModule])
+@router.post("", response_model=list[interfaces.CECPVModuleInterface])
 async def upsert_cec_pv_modules_bulk_route(
     modules: interfaces.CECPVModuleBulkCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],

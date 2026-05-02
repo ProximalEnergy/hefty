@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-const _COMPONENT_NAME = 'PVModule'
+const _COMPONENT_NAME = 'PVModuleInterface'
 const URL = '/v1/operational/pv-modules'
 
 export type PVModule = types.components['schemas'][typeof _COMPONENT_NAME]

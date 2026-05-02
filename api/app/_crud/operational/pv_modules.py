@@ -227,7 +227,7 @@ async def get_pv_module_ids_by_manufacturer_model(
 async def create_pv_module(
     *,
     db: AsyncSession,
-    pv_module: interfaces.PVModule,
+    pv_module: interfaces.PVModuleInterface,
 ):
     """
     Creates a new PV module in the database if it doesn't exist,

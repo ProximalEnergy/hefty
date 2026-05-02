@@ -19,7 +19,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=list[interfaces.ProjectDataLastUpdated],
+    response_model=list[interfaces.ProjectDataLastUpdatedInterface],
     dependencies=[Depends(require_user_projects)],
 )
 async def get_project_data_last_updated_endpoint_route(

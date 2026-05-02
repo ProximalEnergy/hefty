@@ -2,7 +2,7 @@ import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'RootCause'
+const _COMPONENT_NAME = 'RootCauseInterface'
 const URL = '/v1/operational/root-causes'
 
 type RootCause = types.components['schemas'][typeof _COMPONENT_NAME]

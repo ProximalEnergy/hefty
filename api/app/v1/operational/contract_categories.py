@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[interfaces.ContractCategory])
+@router.get("", response_model=list[interfaces.ContractCategoryInterface])
 async def list_contract_categories(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
@@ -32,7 +32,7 @@ async def list_contract_categories(
     result = await db.execute(query)
     rows = result.mappings().all()
     return [
-        interfaces.ContractCategory(
+        interfaces.ContractCategoryInterface(
             contract_category_id=row["contract_category_id"],
             name_short=row["name_short"],
             name_long=row["name_long"],

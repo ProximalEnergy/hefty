@@ -16,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.get("/series", response_model=list[interfaces.PVBudgetedSeries])
+@router.get("/series", response_model=list[interfaces.PVBudgetedSeriesInterface])
 def list_pv_budgeted_series(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project_id: uuid.UUID,
@@ -30,7 +30,7 @@ def list_pv_budgeted_series(
     series = crud.list_series(project_db=project_db, project_id=project_id)
 
     result = [
-        interfaces.PVBudgetedSeries(
+        interfaces.PVBudgetedSeriesInterface(
             pv_budgeted_series_id=s.pv_budgeted_series_id,
             p_value=s.p_value,
             frequency=s.frequency,
@@ -45,7 +45,7 @@ def list_pv_budgeted_series(
     return result
 
 
-@router.post("/series", response_model=interfaces.PVBudgetedSeries)
+@router.post("/series", response_model=interfaces.PVBudgetedSeriesInterface)
 def create_pv_budgeted_series(
     payload: interfaces.PVBudgetedSeriesIn,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
@@ -66,7 +66,7 @@ def create_pv_budgeted_series(
         company_id=user_data.company_id,
         project_id=project_id,
     )
-    return interfaces.PVBudgetedSeries(
+    return interfaces.PVBudgetedSeriesInterface(
         pv_budgeted_series_id=series.pv_budgeted_series_id,
         p_value=series.p_value,
         frequency=series.frequency,

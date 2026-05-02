@@ -17,7 +17,7 @@ router = APIRouter(prefix="/companies", tags=["companies"])
 
 @router.post(
     "",
-    response_model=interfaces.Company,
+    response_model=interfaces.CompanyInterface,
     operation_id="create_company",
 )
 async def create_company_route(

@@ -15,11 +15,11 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[interfaces.CMMSPermission])
+@router.get("", response_model=list[interfaces.CMMSPermissionInterface])
 async def get_cmms_permissions(
     project_id: UUID,
     user: Annotated[UserAuthed, Depends(get_user)],
-) -> list[interfaces.CMMSPermission]:
+) -> list[interfaces.CMMSPermissionInterface]:
     """Get CMMS permissions for the project for the current user's company.
 
     Args:
@@ -33,6 +33,6 @@ async def get_cmms_permissions(
     ).get_async(output_type=OutputType.SQLALCHEMY)
 
     return [
-        interfaces.CMMSPermission.model_validate(cmms_permission)
+        interfaces.CMMSPermissionInterface.model_validate(cmms_permission)
         for cmms_permission, _ in cmms_permissions
     ]

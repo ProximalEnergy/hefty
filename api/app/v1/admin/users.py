@@ -22,7 +22,7 @@ from app._utils.user_management import (
     update_clerk_user_demo_mode,
     update_clerk_user_theme,
 )
-from app.interfaces import User, UserAuthed, UserCreate
+from app.interfaces import UserAuthed, UserCreate, UserInterface
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -136,7 +136,7 @@ async def create_user_route(
     # Create user in database
     await create_user_crud(
         db=db,
-        user=User(
+        user=UserInterface(
             user_id=new_user_data["user_id"],
             user_type_id=UserTypeEnum.USER,
             company_id=user.company_id,

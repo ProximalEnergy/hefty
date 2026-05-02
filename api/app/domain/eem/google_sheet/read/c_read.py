@@ -38,7 +38,7 @@ async def import_google_sheet(
     *,
     db: AsyncSession,
     project_db: Session,
-    project: interfaces.Project,
+    project: interfaces.ProjectInterface,
 ):
     # --- Read data ---
     """todo

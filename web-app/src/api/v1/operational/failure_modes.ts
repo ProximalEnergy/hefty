@@ -2,7 +2,7 @@ import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'FailureMode'
+const _COMPONENT_NAME = 'FailureModeInterface'
 const URL = '/v1/operational/failure-modes'
 
 type FailureMode = types.components['schemas'][typeof _COMPONENT_NAME]

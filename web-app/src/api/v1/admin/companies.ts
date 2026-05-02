@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-const _COMPONENT_NAME = 'Company'
+const _COMPONENT_NAME = 'CompanyInterface'
 const URL = '/v1/admin/companies'
 
 type Company = types.components['schemas'][typeof _COMPONENT_NAME]

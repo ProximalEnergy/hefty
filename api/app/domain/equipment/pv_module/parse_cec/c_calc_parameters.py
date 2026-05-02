@@ -17,8 +17,8 @@ from app.domain.equipment.pv_module.parse_cec.s02_absolute_temp_coefficients imp
 
 def adapt_cec_pv_module_to_proximal(
     *,
-    cec_pv_module: interfaces.CECPVModule,
-) -> interfaces.PVModule | dict:
+    cec_pv_module: interfaces.CECPVModuleInterface,
+) -> interfaces.PVModuleInterface | dict:
     """todo
 
     Args:
@@ -35,5 +35,5 @@ def adapt_cec_pv_module_to_proximal(
         pv_module=adapted_cec_pv_module,
     )
     # Type assertion to satisfy mypy
-    result: interfaces.PVModule | dict[Any, Any] = adapted_cec_pv_module
+    result: interfaces.PVModuleInterface | dict[Any, Any] = adapted_cec_pv_module
     return result
