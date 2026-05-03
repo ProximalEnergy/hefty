@@ -2,16 +2,15 @@
 power-based computations including C-rates and hours charging/discharging.
 """
 
-import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import CalcProtocol
-from kpi.base.util import coord
-from kpi.domain.bess import is_charging, is_discharging, is_idling
-from kpi.domain.util import daily_mean_across_devices, date_local
+from kpi.domain.agg.across_devices import mean_across_devices
+from kpi.domain.agg.other import daily_mean_across_devices
+from kpi.domain.agg.resample import resample_mean
+from kpi.domain.general import count_daily_hours_from_5m
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.input import Required
-from kpi.op.transform.method import method_calc
-from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
+from kpi.op.transform.arg import Constant, Required
+from kpi.op.transform.method import calc_field
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
@@ -21,391 +20,168 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # C_RATE (51)
-    @method_calc(
-        c_rate=Required(Eval.project_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_c_rate_d = calc_field(resample_mean)(
+        x=Required(Eval.project_c_rate_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def project_avg_c_rate_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return c_rate.groupby(date_local(date_local_5m)).mean()
 
     # BESS_PROJECT_AVERAGE_C_RATE_WHILE_CHARGING (75)
-    @method_calc(
-        c_rate=Required(Eval.project_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_c_rate_while_charging_d = calc_field(resample_mean)(
+        x=Required(Eval.project_c_rate_while_charging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def project_avg_c_rate_while_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            -c_rate.where(is_charging(c_rate)).groupby(date_local(date_local_5m)).mean()
-        )
 
     # BESS_PROJECT_AVERAGE_C_RATE_WHILE_DISCHARGING (76)
-    @method_calc(
-        c_rate=Required(Eval.project_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_c_rate_while_discharging_d = calc_field(resample_mean)(
+        x=Required(Eval.project_c_rate_while_discharging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def project_avg_c_rate_while_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            c_rate.where(is_discharging(c_rate))
-            .groupby(date_local(date_local_5m))
-            .mean()
-        )
 
     # BESS_PROJECT_HOURS_CHARGING (83)
-    @method_calc(
-        c_rate=Required(Eval.project_c_rate_5m),
+    project_hours_charging_d = calc_field(count_daily_hours_from_5m)(
+        bool_array_5m=Required(Eval.project_is_charging_5m),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def project_hours_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            xr.where(is_charging(c_rate), 5 / 60, 0)
-            .groupby(date_local(date_local_5m))
-            .sum()
-        )
 
     # BESS_PROJECT_HOURS_DISCHARGING (84)
-    @method_calc(
-        c_rate=Required(Eval.project_c_rate_5m),
+    project_hours_discharging_d = calc_field(count_daily_hours_from_5m)(
+        bool_array_5m=Required(Eval.project_is_discharging_5m),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def project_hours_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            xr.where(is_discharging(c_rate), 5 / 60, 0)
-            .groupby(date_local(date_local_5m))
-            .sum()
-        )
 
     # BESS_PROJECT_HOURS_IDLING (86)
-    @method_calc(
-        c_rate=Required(Eval.project_c_rate_5m),
+    project_hours_idling_d = calc_field(count_daily_hours_from_5m)(
+        bool_array_5m=Required(Eval.project_is_idling_5m),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def project_hours_idling_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            xr.where(is_idling(c_rate), 5 / 60, 0)
-            .groupby(date_local(date_local_5m))
-            .sum()
-        )
 
     # =======================================================
     # BESS PCS
     # =======================================================
 
     # BESS_PCS_AVERAGE_C_RATE (77)
+    pcs_avg_c_rate_d = calc_field(resample_mean)(
+        x=Required(Eval.pcs_c_rate_5m),
+        grouper=Required(Eval.date_local_5m),
+    )
 
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
+    project_avg_pcs_c_rate_d = calc_field(daily_mean_across_devices)(
+        value=Required(Eval.pcs_c_rate_5m),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def pcs_avg_c_rate_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return c_rate.groupby(date_local(date_local_5m)).mean()
-
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
-    )
-    def project_avg_pcs_c_rate_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=c_rate,
-            device_type=DeviceTypeEnum.BESS_PCS,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_PCS_AVERAGE_C_RATE_WHILE_CHARGING (78)
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    pcs_avg_c_rate_while_charging_d = calc_field(resample_mean)(
+        x=Required(Eval.pcs_c_rate_while_charging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def pcs_avg_c_rate_while_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            -c_rate.where(is_charging(c_rate)).groupby(date_local(date_local_5m)).mean()
-        )
 
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_pcs_c_rate_while_charging_d = calc_field(mean_across_devices)(
+        x=Required(pcs_avg_c_rate_while_charging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_avg_pcs_c_rate_while_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=-c_rate.where(is_charging(c_rate)),
-            device_type=DeviceTypeEnum.BESS_PCS,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_PCS_AVERAGE_C_RATE_WHILE_DISCHARGING (79)
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    pcs_avg_c_rate_while_discharging_d = calc_field(resample_mean)(
+        x=Required(Eval.pcs_c_rate_while_discharging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def pcs_avg_c_rate_while_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            c_rate.where(is_discharging(c_rate))
-            .groupby(date_local(date_local_5m))
-            .mean()
-        )
 
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_pcs_c_rate_while_discharging_d = calc_field(mean_across_devices)(
+        x=Required(pcs_avg_c_rate_while_discharging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_avg_pcs_c_rate_while_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=c_rate.where(is_discharging(c_rate)),
-            device_type=DeviceTypeEnum.BESS_PCS,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_PCS_HOURS_CHARGING (81)
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
+    pcs_hours_charging_d = calc_field(count_daily_hours_from_5m)(
+        bool_array_5m=Required(Eval.pcs_is_charging_5m),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def pcs_hours_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            xr.where(is_charging(c_rate), 5 / 60, 0)
-            .groupby(date_local(date_local_5m))
-            .sum()
-        )
 
-    @method_calc(
-        hours=Required(pcs_hours_charging_d),
+    project_pcs_hours_charging_d = calc_field(mean_across_devices)(
+        x=Required(pcs_hours_charging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_pcs_hours_charging_d(
-        hours: xr.DataArray,
-    ) -> xr.DataArray:
-        return hours.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_HOURS_DISCHARGING (82)
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
+    pcs_hours_discharging_d = calc_field(count_daily_hours_from_5m)(
+        bool_array_5m=Required(Eval.pcs_is_discharging_5m),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def pcs_hours_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            xr.where(is_discharging(c_rate), 5 / 60, 0)
-            .groupby(date_local(date_local_5m))
-            .sum()
-        )
 
-    @method_calc(
-        hours=Required(pcs_hours_discharging_d),
+    project_pcs_hours_discharging_d = calc_field(mean_across_devices)(
+        Required(pcs_hours_discharging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_pcs_hours_discharging_d(
-        hours: xr.DataArray,
-    ) -> xr.DataArray:
-        return hours.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_HOURS_IDLING (85)
-    @method_calc(
-        c_rate=Required(Eval.pcs_c_rate_5m),
+    pcs_hours_idling_d = calc_field(count_daily_hours_from_5m)(
+        bool_array_5m=Required(Eval.pcs_is_idling_5m),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def pcs_hours_idling_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            xr.where(is_idling(c_rate), 5 / 60, 0)
-            .groupby(date_local(date_local_5m))
-            .sum()
-        )
 
-    @method_calc(
-        hours=Required(pcs_hours_idling_d),
+    project_pcs_hours_idling_d = calc_field(mean_across_devices)(
+        x=Required(pcs_hours_idling_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_pcs_hours_idling_d(
-        hours: xr.DataArray,
-    ) -> xr.DataArray:
-        return hours.mean(dim=coord(DeviceTypeEnum.BESS_PCS))
 
     # BESS_PCS_AVG_REAL_AC_POWER_WHILE_CHARGING (89)
-    @method_calc(
-        power=Required(Clean.pcs_power_kw_5m),
-        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+    pcs_avg_real_ac_power_while_charging_d = calc_field(resample_mean)(
+        x=Required(Eval.pcs_power_while_charging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def pcs_avg_real_ac_power_while_charging_d(
-        power: xr.DataArray,
-        energy_capacity: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            power.where(is_charging(power / energy_capacity))
-            .groupby(date_local(date_local_5m))
-            .mean()
-        )
 
-    @method_calc(
-        power=Required(Clean.pcs_power_kw_5m),
-        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_pcs_real_ac_power_while_charging_d = calc_field(mean_across_devices)(
+        x=Required(pcs_avg_real_ac_power_while_charging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_avg_pcs_real_ac_power_while_charging_d(
-        power: xr.DataArray,
-        energy_capacity: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=power.where(is_charging(power / energy_capacity)),
-            device_type=DeviceTypeEnum.BESS_PCS,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_PCS_AVG_REAL_AC_POWER_WHILE_DISCHARGING (90)
-    @method_calc(
-        power=Required(Clean.pcs_power_kw_5m),
-        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+    pcs_avg_real_ac_power_while_discharging_d = calc_field(resample_mean)(
+        x=Required(Eval.pcs_power_while_discharging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def pcs_avg_real_ac_power_while_discharging_d(
-        power: xr.DataArray,
-        energy_capacity: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            power.where(is_discharging(power / energy_capacity))
-            .groupby(date_local(date_local_5m))
-            .mean()
-        )
 
-    @method_calc(
-        power=Required(Clean.pcs_power_kw_5m),
-        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_pcs_real_ac_power_while_discharging_d = calc_field(mean_across_devices)(
+        x=Required(pcs_avg_real_ac_power_while_discharging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
-    def project_avg_pcs_real_ac_power_while_discharging_d(
-        power: xr.DataArray,
-        energy_capacity: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=power.where(is_discharging(power / energy_capacity)),
-            device_type=DeviceTypeEnum.BESS_PCS,
-            date_local_5m=date_local_5m,
-        )
 
     # =======================================================
     # BESS String
     # =======================================================
 
     # BESS_STRING_AVERAGE_C_RATE (56)
-    @method_calc(
-        c_rate=Required(Eval.string_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    string_avg_c_rate_d = calc_field(resample_mean)(
+        x=Required(Eval.string_c_rate_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def string_avg_c_rate_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return c_rate.groupby(date_local(date_local_5m)).mean()
 
-    @method_calc(
-        c_rate=Required(Eval.string_c_rate_5m),
+    project_avg_string_c_rate_d = calc_field(daily_mean_across_devices)(
+        value=Required(Eval.string_c_rate_5m),
+        device_type=Constant(DeviceTypeEnum.BESS_STRING),
         date_local_5m=Required(Eval.date_local_5m),
     )
-    def project_avg_string_c_rate_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=c_rate,
-            device_type=DeviceTypeEnum.BESS_STRING,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_STRING_AVG_C_RATE_WHILE_CHARGING (62)
-    @method_calc(
-        c_rate=Required(Eval.string_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    string_avg_c_rate_while_charging_d = calc_field(resample_mean)(
+        x=Required(Eval.string_c_rate_while_charging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def string_avg_c_rate_while_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            -c_rate.where(is_charging(c_rate)).groupby(date_local(date_local_5m)).mean()
-        )
 
-    @method_calc(
-        c_rate=Required(Eval.string_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_string_c_rate_while_charging_d = calc_field(mean_across_devices)(
+        x=Required(string_avg_c_rate_while_charging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_STRING),
     )
-    def project_avg_string_c_rate_while_charging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=-c_rate.where(is_charging(c_rate)),
-            device_type=DeviceTypeEnum.BESS_STRING,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_STRING_AVG_C_RATE_WHILE_DISCHARGING (63)
-    @method_calc(
-        c_rate=Required(Eval.string_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    string_avg_c_rate_while_discharging_d = calc_field(resample_mean)(
+        x=Required(Eval.string_c_rate_while_discharging_5m),
+        grouper=Required(Eval.date_local_5m),
     )
-    def string_avg_c_rate_while_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return (
-            c_rate.where(is_discharging(c_rate))
-            .groupby(date_local(date_local_5m))
-            .mean()
-        )
 
-    @method_calc(
-        c_rate=Required(Eval.string_c_rate_5m),
-        date_local_5m=Required(Eval.date_local_5m),
+    project_avg_string_c_rate_while_discharging_d = calc_field(mean_across_devices)(
+        x=Required(string_avg_c_rate_while_discharging_d),
+        device_type=Constant(DeviceTypeEnum.BESS_STRING),
     )
-    def project_avg_string_c_rate_while_discharging_d(
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=c_rate.where(is_discharging(c_rate)),
-            device_type=DeviceTypeEnum.BESS_STRING,
-            date_local_5m=date_local_5m,
-        )

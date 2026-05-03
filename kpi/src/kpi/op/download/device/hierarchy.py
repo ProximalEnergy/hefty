@@ -1,7 +1,9 @@
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+from kpi.base.enumeration import NEW_NAME
 from kpi.base.exception import KpiError
+from kpi.base.protocol import device_protocol
 from kpi.base.util import coord
 from kpi.op.field import NoInputs
 from pydantic import BaseModel
@@ -9,6 +11,7 @@ from pydantic import BaseModel
 from core import models
 
 
+@device_protocol
 class DeviceHierarchyModel(BaseModel, NoInputs):
     child_device_type: DeviceTypeEnum
     parent_device_type: DeviceTypeEnum
@@ -42,5 +45,8 @@ class DeviceHierarchyModel(BaseModel, NoInputs):
             dims=[coord(self.child_device_type)],
             coords={
                 coord(self.child_device_type): result.index.values,
+            },
+            attrs={
+                NEW_NAME: coord(self.parent_device_type),
             },
         )

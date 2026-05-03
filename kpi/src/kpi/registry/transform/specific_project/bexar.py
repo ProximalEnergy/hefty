@@ -2,12 +2,11 @@ from typing import override
 
 import xarray as xr
 from kpi.base.enumeration import TimeCoords
-from kpi.base.protocol import CalcProtocol
-from kpi.domain.util import date_local, diff, filter_mask
-from kpi.op.field import Field
-from kpi.op.transform.class_calc import DailyEnergy
-from kpi.op.transform.input import Required
-from kpi.op.transform.method import method_calc
+from kpi.domain.agg.resample import resample_sum
+from kpi.domain.bess import daily_energy
+from kpi.domain.util import diff, filter_mask, rename
+from kpi.op.transform.arg import Constant, Required
+from kpi.op.transform.method import calc_field, method_calc
 from kpi.registry.transform.bess.api import TransformBess
 from kpi.registry.transform.pv.api import Transform
 
@@ -65,37 +64,15 @@ class BexarTransform(Transform):
         )
         return clean_diff
 
-    @method_calc(
-        energy=Required(project_energy_discharged_kwh_5m),
-        date_local_5m=Required(TransformBess.date_local_5m),
+    project_energy_discharged_kwh_d = calc_field(resample_sum)(
+        Required(project_energy_discharged_kwh_5m),
+        grouper=Required(TransformBess.date_local_5m),
     )
-    @override
-    def project_energy_discharged_kwh_d(
-        energy: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Use the sum of the 5-minute energy because the bexar meter accumulator rolls
-        over several times in a single 24 hour period, making the last minus
-        first approach unreliable.
-        """
-        return energy.groupby(date_local(date_local_5m)).sum()
 
-    @method_calc(
-        energy=Required(project_energy_charged_kwh_5m),
-        date_local_5m=Required(TransformBess.date_local_5m),
+    project_energy_charged_kwh_d = calc_field(resample_sum)(
+        Required(project_energy_charged_kwh_5m),
+        grouper=Required(TransformBess.date_local_5m),
     )
-    @override
-    def project_energy_charged_kwh_d(
-        energy: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Use the sum of the 5-minute energy because the bexar meter accumulator rolls
-        over several times in a single 24 hour period, making the last minus
-        first approach unreliable.
-        """
-        return energy.groupby(date_local(date_local_5m)).sum()
 
     @method_calc(
         total_energy_5m=Required(TransformBess.project_total_aux_energy_filled_kwh_5m),
@@ -115,7 +92,7 @@ class BexarTransform(Transform):
         than the equivalent of 24 hours of 10% of the project's power capacity.
         Include 16-bit integer overflow handling.
         """
-        total_energy_d = total_energy_5m.groupby(date_local(date_local_5m)).first()
+        total_energy_d = total_energy_5m.groupby(rename(date_local_5m)).first()
         difference = diff(total_energy_d, time_dim=TimeCoords.DATE_LOCAL)
         epsilon = 1e-6
         difference = ((difference + epsilon) % 65_536) - epsilon
@@ -128,46 +105,38 @@ class BexarTransform(Transform):
         )
         return difference
 
-    circuit_energy_charged_kwh_d = Field[CalcProtocol](
-        DailyEnergy(
-            total_energy_5m=Required(
-                TransformBess.circuit_total_energy_charged_filled_kwh_5m
-            ),
-            energy_capacity=Required(TransformBess.circuit_energy_capacity_kwh),
-            date_local_5m=Required(TransformBess.date_local_5m),
-            modulus=65_536,
-        )
+    circuit_energy_charged_kwh_d = calc_field(daily_energy)(
+        total_energy_5m=Required(
+            TransformBess.circuit_total_energy_charged_filled_kwh_5m
+        ),
+        energy_capacity=Required(TransformBess.circuit_energy_capacity_kwh),
+        date_local_5m=Required(TransformBess.date_local_5m),
+        modulus=Constant(65_536),
     )
 
-    circuit_energy_discharged_kwh_d = Field[CalcProtocol](
-        DailyEnergy(
-            total_energy_5m=Required(
-                TransformBess.circuit_total_energy_discharged_filled_kwh_5m
-            ),
-            energy_capacity=Required(TransformBess.circuit_energy_capacity_kwh),
-            date_local_5m=Required(TransformBess.date_local_5m),
-            modulus=65_536,
-        )
+    circuit_energy_discharged_kwh_d = calc_field(daily_energy)(
+        total_energy_5m=Required(
+            TransformBess.circuit_total_energy_discharged_filled_kwh_5m
+        ),
+        energy_capacity=Required(TransformBess.circuit_energy_capacity_kwh),
+        date_local_5m=Required(TransformBess.date_local_5m),
+        modulus=Constant(65_536),
     )
 
-    string_energy_charged_kwh_d = Field[CalcProtocol](
-        DailyEnergy(
-            total_energy_5m=Required(
-                TransformBess.string_total_energy_charged_filled_kwh_5m
-            ),
-            energy_capacity=Required(TransformBess.string_energy_capacity_kwh),
-            date_local_5m=Required(TransformBess.date_local_5m),
-            modulus=6_553.6,
-        )
+    string_energy_charged_kwh_d = calc_field(daily_energy)(
+        total_energy_5m=Required(
+            TransformBess.string_total_energy_charged_filled_kwh_5m
+        ),
+        energy_capacity=Required(TransformBess.string_energy_capacity_kwh),
+        date_local_5m=Required(TransformBess.date_local_5m),
+        modulus=Constant(6_553.6),
     )
 
-    string_energy_discharged_kwh_d = Field[CalcProtocol](
-        DailyEnergy(
-            total_energy_5m=Required(
-                TransformBess.string_total_energy_discharged_filled_kwh_5m
-            ),
-            energy_capacity=Required(TransformBess.string_energy_capacity_kwh),
-            date_local_5m=Required(TransformBess.date_local_5m),
-            modulus=6_553.6,
-        )
+    string_energy_discharged_kwh_d = calc_field(daily_energy)(
+        total_energy_5m=Required(
+            TransformBess.string_total_energy_discharged_filled_kwh_5m
+        ),
+        energy_capacity=Required(TransformBess.string_energy_capacity_kwh),
+        date_local_5m=Required(TransformBess.date_local_5m),
+        modulus=Constant(6_553.6),
     )

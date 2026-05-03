@@ -16,18 +16,34 @@ class NodeProtocol(Protocol):
     def inputs(self) -> set[str]: ...
 
 
+def node_protocol[P: NodeProtocol](cls: type[P]) -> type[P]:
+    return cls
+
+
 class CalcProtocol(NodeProtocol, Protocol):
     def run(self, dataset: xr.Dataset) -> xr.DataArray: ...
+
+
+def calc_protocol[P: CalcProtocol](cls: type[P]) -> type[P]:
+    return cls
 
 
 class ProjectAttributeProtocol(NodeProtocol, Protocol):
     def run(self, project: models.Project) -> xr.DataArray: ...
 
 
+def project_attribute_protocol[P: ProjectAttributeProtocol](cls: type[P]) -> type[P]:
+    return cls
+
+
 class DeviceProtocol(NodeProtocol, Protocol):
     def device_type_ids(self) -> set[int]: ...
 
     def run(self, device_df: pd.DataFrame) -> xr.DataArray: ...
+
+
+def device_protocol[P: DeviceProtocol](cls: type[P]) -> type[P]:
+    return cls
 
 
 class SensorProtocol(NodeProtocol, Protocol):
@@ -43,9 +59,28 @@ class SensorProtocol(NodeProtocol, Protocol):
         pass
 
 
+def sensor_protocol[P: SensorProtocol](cls: type[P]) -> type[P]:
+    return cls
+
+
 # ================================
 # Other Protocols
 # ================================
+
+
+class ArgProtocol[T](Protocol):
+    @property
+    def input_name(self) -> str | None: ...
+
+    def extract(self, dataset: xr.Dataset) -> T: ...
+
+
+def arg_protocol[P: ArgProtocol](cls: type[P]) -> type[P]:
+    return cls
+
+
+class CalcFactoryProtocol(Protocol):
+    def __call__(self, *args: ArgProtocol, **kwargs: ArgProtocol) -> CalcProtocol: ...
 
 
 class PlanProtocol(Protocol):
@@ -54,10 +89,18 @@ class PlanProtocol(Protocol):
     def outputs(self) -> list[str]: ...
 
 
+def plan_protocol[P: PlanProtocol](cls: type[P]) -> type[P]:
+    return cls
+
+
 class SchemaProtocol[P: PlanProtocol](Protocol):
     def run(self, dataset: xr.Dataset, plan: P) -> xr.Dataset: ...
 
     def full_plan(self) -> P: ...
+
+
+def schema_protocol[P: SchemaProtocol](cls: type[P]) -> type[P]:
+    return cls
 
 
 class ObserverProtocol(Protocol):
@@ -71,3 +114,7 @@ class ObserverProtocol(Protocol):
         *,
         field_name: str | None = None,
     ) -> None: ...
+
+
+def observer_protocol[P: ObserverProtocol](cls: type[P]) -> type[P]:
+    return cls

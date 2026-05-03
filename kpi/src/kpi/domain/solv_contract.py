@@ -1,7 +1,7 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoords
-from kpi.domain.util import date_local
+from kpi.domain.util import rename
 
 
 def solv_is_sunny(
@@ -22,7 +22,7 @@ def solv_period_produced(
     project_meter_energy_mwh = power / 12
     return (
         project_meter_energy_mwh.where(is_sunny)
-        .groupby(date_local(date_local_5m))
+        .groupby(rename(date_local_5m))
         .sum(min_count=1)
     )
 
@@ -161,7 +161,7 @@ def solv_lost_period(
 
     # The sum result
 
-    period_kwh_lost = project_energy_lost_kwh_5m.groupby(date_local(date_local_5m)).sum(
+    period_kwh_lost = project_energy_lost_kwh_5m.groupby(rename(date_local_5m)).sum(
         min_count=1
     )
 

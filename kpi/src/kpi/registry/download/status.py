@@ -5,7 +5,7 @@ from kpi.op.field_registry import FieldRegistry
 
 
 class DownloadStatus(FieldRegistry[StatusModel]):
-    bank_status_5m = Field(
+    bank_available_5m = Field(
         StatusModel(
             sensor_type=SensorTypeEnum.BESS_BANK_STATUS,
             device_type=DeviceTypeEnum.BESS_BANK,

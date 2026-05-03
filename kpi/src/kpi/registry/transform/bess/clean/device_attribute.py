@@ -1,7 +1,8 @@
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import verify_positive
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.unary import unary_field
+from kpi.op.transform.arg import Required
+from kpi.op.transform.method import calc_field
 from kpi.registry.download.device.bess.attribute import (
     DownloadDeviceBessAttribute as Download,
 )
@@ -10,38 +11,32 @@ from kpi.registry.download.device.bess.attribute import (
 class TransformBessCleanDeviceAttribute(FieldRegistry[CalcProtocol]):
     # mv circuit
 
-    circuit_energy_capacity_kwh = unary_field(
-        verify_positive,
-        field=Download.circuit_energy_capacity_raw_kwh,
+    circuit_energy_capacity_kwh = calc_field(verify_positive)(
+        Required(Download.circuit_energy_capacity_raw_kwh),
     )
 
     # pcs
 
-    pcs_energy_capacity_kwh = unary_field(
-        verify_positive,
-        field=Download.pcs_energy_capacity_raw_kwh,
+    pcs_energy_capacity_kwh = calc_field(verify_positive)(
+        Required(Download.pcs_energy_capacity_raw_kwh),
     )
 
-    pcs_power_capacity_kw = unary_field(
-        verify_positive,
-        field=Download.pcs_power_capacity_raw_kw,
+    pcs_power_capacity_kw = calc_field(verify_positive)(
+        Required(Download.pcs_power_capacity_raw_kw),
     )
 
     # pcs module
 
-    pcs_module_energy_capacity_kwh = unary_field(
-        verify_positive,
-        field=Download.pcs_module_energy_capacity_raw_kwh,
+    pcs_module_energy_capacity_kwh = calc_field(verify_positive)(
+        Required(Download.pcs_module_energy_capacity_raw_kwh),
     )
 
     # string
 
-    string_power_capacity_kw = unary_field(
-        verify_positive,
-        field=Download.string_power_capacity_raw_kw,
+    string_power_capacity_kw = calc_field(verify_positive)(
+        Required(Download.string_power_capacity_raw_kw),
     )
 
-    string_energy_capacity_kwh = unary_field(
-        verify_positive,
-        field=Download.string_energy_capacity_raw_kwh,
+    string_energy_capacity_kwh = calc_field(verify_positive)(
+        Required(Download.string_energy_capacity_raw_kwh),
     )

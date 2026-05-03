@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 
 import xarray as xr
-from kpi.base.protocol import NodeProtocol
+from kpi.base.protocol import NodeProtocol, schema_protocol
 from kpi.op.plan import MultiFieldPlan, SingleFieldPlan
 
 
+@schema_protocol
 class SchemaAbstract[T: NodeProtocol](ABC):
     def __init__(self, map: dict[str, T]) -> None:
         self.map = map

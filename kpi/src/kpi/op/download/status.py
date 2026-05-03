@@ -1,9 +1,10 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
+from kpi.base.context import get_context
+from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.infra.download.sensor import get_existing_columns_df
 from kpi.infra.download.status import download_status_df, get_tag_df
 from kpi.infra.pandas_to_xarray import pandas_device_time_series_to_xarray
-from kpi.op.context import get_context
 from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -12,12 +13,14 @@ from kpi.op.util import assign_var
 from pydantic import BaseModel
 
 
+@node_protocol
 class StatusModel(BaseModel, NoInputs):
     sensor_type: SensorTypeEnum
     device_type: DeviceTypeEnum
     failure_modes: list[int]
 
 
+@schema_protocol
 class StatusSchema(SchemaAbstract[StatusModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
@@ -44,7 +47,7 @@ class StatusSchema(SchemaAbstract[StatusModel]):
 
                 failure_df = filtered_df.isin(model.failure_modes).astype(bool)
 
-                filtered = (
+                filtered = ~(
                     failure_df.T.groupby(tag_df.device_id.to_dict()).any().T
                 ).astype(bool)
                 value = pandas_device_time_series_to_xarray(

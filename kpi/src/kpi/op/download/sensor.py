@@ -1,7 +1,8 @@
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
-from kpi.base.protocol import SensorProtocol
+from kpi.base.context import get_context
+from kpi.base.protocol import SensorProtocol, schema_protocol, sensor_protocol
 from kpi.domain.util import scale_offset
 from kpi.infra.download.sensor import (
     get_existing_columns_df,
@@ -11,7 +12,6 @@ from kpi.infra.download.sensor import (
     tag_df_from_tags_polars,
 )
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.context import get_context
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -20,6 +20,7 @@ from kpi.op.util import assign_var
 from pydantic import BaseModel
 
 
+@sensor_protocol
 class SensorModel(BaseModel, NoInputs):
     sensor_type: SensorTypeEnum
     project_level: bool
@@ -60,6 +61,7 @@ def sensor_field(
     )
 
 
+@schema_protocol
 class SensorSchema(SchemaAbstract[SensorProtocol]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
@@ -100,6 +102,7 @@ class SensorSchema(SchemaAbstract[SensorProtocol]):
         return dataset
 
 
+@sensor_protocol
 class SensorMax(BaseModel, NoInputs):
     sensor_type: SensorTypeEnum
     project_level: bool = False

@@ -1,13 +1,16 @@
 import xarray as xr
 from kpi.base.protocol import CalcProtocol
-from kpi.domain.bess import clean_cell_voltage, clean_soc, clean_soh, clean_temperature
+from kpi.domain.bess import (
+    clean_cell_voltage,
+    clean_power,
+    clean_soc,
+    clean_soh,
+    clean_temperature,
+)
 from kpi.domain.util import filter_mask
-from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.class_calc import BessCleanPower
-from kpi.op.transform.input import Required
-from kpi.op.transform.method import method_calc
-from kpi.op.transform.unary import unary_field
+from kpi.op.transform.arg import Required
+from kpi.op.transform.method import calc_field, method_calc
 from kpi.registry.download.sensor.bess import DownloadSensorBess as Sensor
 from kpi.registry.transform.bess.clean.device_attribute import (
     TransformBessCleanDeviceAttribute as Device,
@@ -24,66 +27,54 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
 
     # project level
 
-    project_power_kw_5m = Field[CalcProtocol](
-        BessCleanPower(
-            power=Required(Sensor.project_power_raw_kw_5m),
-            capacity=Required(Project.project_power_capacity_kw),
-        )
+    project_power_kw_5m = calc_field(clean_power)(
+        power=Required(Sensor.project_power_raw_kw_5m),
+        capacity=Required(Project.project_power_capacity_kw),
     )
 
     # pcs level
 
-    pcs_power_kw_5m = Field[CalcProtocol](
-        BessCleanPower(
-            power=Required(Sensor.pcs_power_raw_kw_5m),
-            capacity=Required(Device.pcs_power_capacity_kw),
-        )
+    pcs_power_kw_5m = calc_field(clean_power)(
+        power=Required(Sensor.pcs_power_raw_kw_5m),
+        capacity=Required(Device.pcs_power_capacity_kw),
     )
 
     # string
-    string_power_kw_5m = Field[CalcProtocol](
-        BessCleanPower(
-            power=Required(Sensor.string_power_raw_kw_5m),
-            capacity=Required(Device.string_power_capacity_kw),
-        )
+    string_power_kw_5m = calc_field(clean_power)(
+        power=Required(Sensor.string_power_raw_kw_5m),
+        capacity=Required(Device.string_power_capacity_kw),
     )
 
     # =======================================================
     # SOC
     # =======================================================
 
-    project_soc_5m = unary_field(
-        clean_soc,
-        field=Sensor.project_soc_raw_5m,
+    project_soc_5m = calc_field(clean_soc)(
+        Required(Sensor.project_soc_raw_5m),
     )
 
-    bank_soc_5m = unary_field(
-        clean_soc,
-        field=Sensor.bank_soc_raw_5m,
+    bank_soc_5m = calc_field(clean_soc)(
+        Required(Sensor.bank_soc_raw_5m),
     )
 
-    block_soc_5m = unary_field(
-        clean_soc,
-        field=Sensor.block_soc_raw_5m,
+    block_soc_5m = calc_field(clean_soc)(
+        Required(Sensor.block_soc_raw_5m),
     )
 
-    string_soc_5m = unary_field(
-        clean_soc,
-        field=Sensor.string_soc_raw_5m,
+    string_soc_5m = calc_field(clean_soc)(
+        Required(Sensor.string_soc_raw_5m),
     )
 
     # =======================================================
     # SOH
     # =======================================================
 
-    bank_soh_5m = unary_field(
-        clean_soh,
-        field=Sensor.bank_soh_raw_5m,
+    bank_soh_5m = calc_field(clean_soh)(
+        Required(Sensor.bank_soh_raw_5m),
     )
 
-    string_soh_5m = unary_field(
-        clean_soh,
-        field=Sensor.string_soh_raw_5m,
+    string_soh_5m = calc_field(clean_soh)(
+        Required(Sensor.string_soh_raw_5m),
     )
 
     # =======================================================
@@ -104,51 +95,42 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
     # Temperature
     # =======================================================
 
-    string_avg_cell_temp_c_5m = unary_field(
-        clean_temperature,
-        field=Sensor.string_avg_cell_temp_raw_c_5m,
+    string_avg_cell_temp_c_5m = calc_field(clean_temperature)(
+        Required(Sensor.string_avg_cell_temp_raw_c_5m),
     )
 
-    string_min_cell_temp_c_5m = unary_field(
-        clean_temperature,
-        field=Sensor.string_min_cell_temp_raw_c_5m,
+    string_min_cell_temp_c_5m = calc_field(clean_temperature)(
+        Required(Sensor.string_min_cell_temp_raw_c_5m),
     )
 
-    string_max_cell_temp_c_5m = unary_field(
-        clean_temperature,
-        field=Sensor.string_max_cell_temp_raw_c_5m,
+    string_max_cell_temp_c_5m = calc_field(clean_temperature)(
+        Required(Sensor.string_max_cell_temp_raw_c_5m),
     )
 
-    string_min_module_temp_c_5m = unary_field(
-        clean_temperature,
-        field=Sensor.string_min_module_temp_raw_c_5m,
+    string_min_module_temp_c_5m = calc_field(clean_temperature)(
+        Required(Sensor.string_min_module_temp_raw_c_5m),
     )
 
-    string_max_module_temp_c_5m = unary_field(
-        clean_temperature,
-        field=Sensor.string_max_module_temp_raw_c_5m,
+    string_max_module_temp_c_5m = calc_field(clean_temperature)(
+        Required(Sensor.string_max_module_temp_raw_c_5m),
     )
 
-    string_avg_module_temp_c_5m = unary_field(
-        clean_temperature,
-        field=Sensor.string_avg_module_temp_raw_c_5m,
+    string_avg_module_temp_c_5m = calc_field(clean_temperature)(
+        Required(Sensor.string_avg_module_temp_raw_c_5m),
     )
 
     # =======================================================
     # Voltage
     # =======================================================
 
-    string_avg_cell_voltage_v_5m = unary_field(
-        clean_cell_voltage,
-        field=Sensor.string_avg_cell_voltage_raw_v_5m,
+    string_avg_cell_voltage_v_5m = calc_field(clean_cell_voltage)(
+        Required(Sensor.string_avg_cell_voltage_raw_v_5m),
     )
 
-    string_min_cell_voltage_v_5m = unary_field(
-        clean_cell_voltage,
-        field=Sensor.string_min_cell_voltage_raw_v_5m,
+    string_min_cell_voltage_v_5m = calc_field(clean_cell_voltage)(
+        Required(Sensor.string_min_cell_voltage_raw_v_5m),
     )
 
-    string_max_cell_voltage_v_5m = unary_field(
-        clean_cell_voltage,
-        field=Sensor.string_max_cell_voltage_raw_v_5m,
+    string_max_cell_voltage_v_5m = calc_field(clean_cell_voltage)(
+        Required(Sensor.string_max_cell_voltage_raw_v_5m),
     )

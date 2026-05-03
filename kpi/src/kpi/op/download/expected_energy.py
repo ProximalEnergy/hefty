@@ -2,10 +2,11 @@ import xarray as xr
 from core.crud.project.data_expected import get_project_data_expected
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum
+from kpi.base.context import get_context
+from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.context import get_context
 from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -16,6 +17,7 @@ from pydantic import BaseModel
 from core import models
 
 
+@node_protocol
 class ExpectedEnergyModel(BaseModel, NoInputs):
     expected_metric_id: int
     device_type: DeviceTypeEnum
@@ -24,6 +26,7 @@ class ExpectedEnergyModel(BaseModel, NoInputs):
     offset: float | None = None
 
 
+@schema_protocol
 class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)

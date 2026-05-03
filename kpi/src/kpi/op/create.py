@@ -4,12 +4,12 @@ from uuid import UUID
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+from kpi.base.context import ContextModel
 from kpi.base.enumeration import TimeCoords
 from kpi.base.util import coord
 from kpi.infra.download.devices import download_device_df
 from kpi.infra.util import get_project_by_id
-from kpi.op.context import ContextModel
-from pydantic import validate_call
+from pydantic import BaseModel, validate_call
 
 from core import models
 
@@ -30,6 +30,19 @@ device_types = [
 ]
 
 
+class TimeDescriptor(BaseModel):
+    pandas_freq: str
+    utc: bool = True
+
+
+time_descriptor = {
+    TimeCoords.TIME_5MIN_UTC: TimeDescriptor(pandas_freq="5min"),
+    TimeCoords.TIME_15MIN_UTC: TimeDescriptor(pandas_freq="15min"),
+    TimeCoords.HOUR_UTC: TimeDescriptor(pandas_freq="h"),
+    TimeCoords.DATE_LOCAL: TimeDescriptor(pandas_freq="D", utc=False),
+}
+
+
 @validate_call
 def create_dataset(
     project_id: UUID,
@@ -39,27 +52,22 @@ def create_dataset(
     # Time coordinates
     project = get_project_by_id(project_id=project_id)
 
-    time_5min_local = pd.date_range(
-        start=start_date,
-        end=end_date,
-        freq="5min",
-        inclusive="both",
-        tz=project.time_zone,
-    )
+    time_coords = {}
 
-    time_5min_utc = time_5min_local.tz_convert("UTC").tz_localize(None)
+    for time_coord in TimeCoords:
+        desc = time_descriptor[time_coord]
+        date_range = pd.date_range(
+            start=start_date,
+            end=end_date,
+            freq=desc.pandas_freq,
+            inclusive="both",
+            tz=project.time_zone,
+        )
+        if desc.utc:
+            date_range = date_range.tz_convert("UTC")
+        date_range = date_range.tz_localize(None)
 
-    date_local = pd.date_range(
-        start=start_date,
-        end=end_date,
-        freq="D",
-        inclusive="both",
-    )
-
-    time_coords = {
-        TimeCoords.TIME_5MIN_UTC: time_5min_utc.values,
-        TimeCoords.DATE_LOCAL: date_local.values,
-    }
+        time_coords[time_coord.value] = date_range.values
 
     # Device coordinates
     devices_df = download_device_df(

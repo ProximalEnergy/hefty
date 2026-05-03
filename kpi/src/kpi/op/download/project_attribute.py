@@ -1,10 +1,14 @@
 import numpy as np
 import xarray as xr
+from kpi.base.context import get_context
 from kpi.base.exception import MissingStaticDataError
-from kpi.base.protocol import ProjectAttributeProtocol
+from kpi.base.protocol import (
+    ProjectAttributeProtocol,
+    project_attribute_protocol,
+    schema_protocol,
+)
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
-from kpi.op.context import get_context
 from kpi.op.field import Field, NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -16,6 +20,7 @@ from shapely import wkb  # type: ignore
 from core import models
 
 
+@project_attribute_protocol
 class ProjectAttributeModel(BaseModel, NoInputs):
     source_field_name: str
     scale: float | None
@@ -43,6 +48,7 @@ def project_attribute_field(
     )
 
 
+@schema_protocol
 class ProjectAttributeSchema(SchemaAbstract[ProjectAttributeProtocol]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
@@ -59,6 +65,7 @@ class ProjectAttributeSchema(SchemaAbstract[ProjectAttributeProtocol]):
         return dataset
 
 
+@project_attribute_protocol
 class Latitude(NoInputs):
     def run(self, project: models.Project) -> xr.DataArray:
         geometry = wkb.loads(project.point.desc)  # type: ignore
@@ -66,6 +73,7 @@ class Latitude(NoInputs):
         return xr.DataArray(data=latitude)
 
 
+@project_attribute_protocol
 class Longitude(NoInputs):
     def run(self, project: models.Project) -> xr.DataArray:
         geometry = wkb.loads(project.point.desc)  # type: ignore

@@ -1,7 +1,7 @@
 from typing import Self, overload
 
 import xarray as xr
-from kpi.base.protocol import SchemaProtocol
+from kpi.base.protocol import SchemaProtocol, schema_protocol
 from kpi.op.observer import observe
 from kpi.op.plan import PipelinePlan
 
@@ -35,6 +35,7 @@ class Schema:
         return self.value
 
 
+@schema_protocol
 class PipelineSchema:
     map: dict[str, SchemaProtocol]
 

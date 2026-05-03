@@ -1,8 +1,9 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+from kpi.base.context import get_context
+from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.context import get_context
 from kpi.op.field import NoInputs
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -10,11 +11,13 @@ from kpi.op.schema import SchemaAbstract
 from pydantic import BaseModel
 
 
+@node_protocol
 class EventsModel(BaseModel, NoInputs):
     device_type: DeviceTypeEnum
     project_level: bool = False
 
 
+@schema_protocol
 class EventSchema(SchemaAbstract[EventsModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)

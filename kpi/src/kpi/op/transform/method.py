@@ -1,68 +1,74 @@
 import inspect
 from collections.abc import Callable
+from typing import Protocol
 
 import xarray as xr
-from kpi.base.protocol import CalcProtocol
+from kpi.base.protocol import (
+    ArgProtocol,
+    CalcFactoryProtocol,
+    CalcProtocol,
+    calc_protocol,
+)
 from kpi.op.field import Field
-from kpi.op.transform.input import InputType
 
 MethodFn = Callable[..., xr.DataArray]
 
 
-def validate_input_mapping(
-    fn: MethodFn,
-    *,
-    inputs_map: dict[str, InputType],
-) -> None:
+def make_method_calc(fn: MethodFn) -> CalcFactoryProtocol:
     signature = inspect.signature(fn)
-    params = signature.parameters
 
-    for name, input_type in inputs_map.items():
-        if name not in params:
-            msg = f"{fn.__name__}: input {name!r} is not a parameter"
-            raise TypeError(msg)
-        if not isinstance(input_type, InputType):
-            msg = f"{fn.__name__}: input {name!r} default must be InputType"  # type: ignore
-            raise TypeError(msg)
+    @calc_protocol
+    class _MethodCalc:
+        def __init__(self, *args: ArgProtocol, **kwargs: ArgProtocol) -> None:
+            self.args = args
+            self.kwargs = kwargs
 
-    for name, param in params.items():
-        if param.default is not inspect.Parameter.empty:
-            msg = f"{fn.__name__}: parameter {name!r} must not have a default"
-            raise TypeError(msg)
-        if name not in inputs_map:
-            msg = f"{fn.__name__}: parameter {name!r} must have an input"
-            raise TypeError(msg)
+            try:
+                signature.bind(*args, **kwargs)
+            except TypeError as e:
+                raise TypeError(
+                    f"Failed to bind arguments to function {fn.__name__}: {e}"
+                ) from e
 
+        def inputs(self) -> set[str]:
+            arg_inputs = {
+                arg.input_name for arg in self.args if arg.input_name is not None
+            }
+            kwarg_inputs = {
+                kwarg.input_name
+                for kwarg in self.kwargs.values()
+                if kwarg.input_name is not None
+            }
+            return arg_inputs | kwarg_inputs
 
-class MethodCalc:
-    def __init__(
-        self,
-        *,
-        fn: MethodFn,
-        inputs_map: dict[str, InputType],
-    ) -> None:
-        self._fn = fn
-        self._inputs_map = inputs_map
+        def run(self, dataset: xr.Dataset) -> xr.DataArray:
+            return fn(
+                *[arg.extract(dataset) for arg in self.args],
+                **{name: value.extract(dataset) for name, value in self.kwargs.items()},
+            )
 
-    def inputs(self) -> set[str]:
-        return set[str](input_type.name for input_type in self._inputs_map.values())
-
-    def run(self, dataset: xr.Dataset) -> xr.DataArray:
-        inputs = {}
-        for name, input_type in self._inputs_map.items():
-            value = input_type.extract(dataset)
-            inputs[name] = value
-        return self._fn(**inputs)
+    return _MethodCalc
 
 
-def method_calc(**inputs_map: InputType) -> Callable[[MethodFn], Field[CalcProtocol]]:
-    def wrap(fn: MethodFn) -> Field[CalcProtocol]:
-        validate_input_mapping(fn, inputs_map=inputs_map)
+class CalcFieldFactoryProtocol(Protocol):
+    def __call__(
+        self, *args: ArgProtocol, **kwargs: ArgProtocol
+    ) -> Field[CalcProtocol]: ...
+
+
+def calc_field(fn: MethodFn) -> CalcFieldFactoryProtocol:
+    def _calc_field(*args: ArgProtocol, **kwargs: ArgProtocol) -> Field[CalcProtocol]:
         return Field[CalcProtocol](
-            MethodCalc(
-                fn=fn,
-                inputs_map=inputs_map,
-            ),
+            make_method_calc(fn)(*args, **kwargs),
         )
+
+    return _calc_field
+
+
+def method_calc(
+    *args: ArgProtocol, **kwargs: ArgProtocol
+) -> Callable[[MethodFn], Field[CalcProtocol]]:
+    def wrap(fn: MethodFn) -> Field[CalcProtocol]:
+        return calc_field(fn)(*args, **kwargs)
 
     return wrap

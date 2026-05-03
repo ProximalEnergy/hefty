@@ -1,11 +1,12 @@
 import xarray as xr
-from kpi.base.protocol import CalcProtocol
+from kpi.base.protocol import CalcProtocol, schema_protocol
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
 
 
+@schema_protocol
 class CalcSchema(SchemaAbstract[CalcProtocol]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         for field_plan in plan.fields:

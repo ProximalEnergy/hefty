@@ -2,15 +2,18 @@ import warnings
 
 import xarray as xr
 from core.enumerations import KPITypeEnum
+from kpi.base.context import get_context
+from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
     arrays_to_rows,
     get_application_name,
-    kpi_get_kpi_instances as get_kpi_instances,
     insert_device_kpi_data_bulk,
 )
-from kpi.op.context import get_context
+from kpi.infra.write_kpi import (
+    kpi_get_kpi_instances as get_kpi_instances,
+)
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
@@ -18,6 +21,7 @@ from kpi.op.util import select_optional, select_var
 from pydantic import BaseModel
 
 
+@node_protocol
 class UploadModel(BaseModel):
     kpi_type: KPITypeEnum
     version: str
@@ -47,6 +51,7 @@ def merge_upload_maps_strict(
     return merged
 
 
+@schema_protocol
 class UploadSchema(SchemaAbstract[UploadModel]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)

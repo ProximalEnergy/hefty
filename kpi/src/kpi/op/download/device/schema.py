@@ -1,14 +1,15 @@
 import xarray as xr
 from kpi.base.exception import MissingStaticDataError, NoDownloadedDataError
-from kpi.base.protocol import DeviceProtocol
+from kpi.base.protocol import DeviceProtocol, schema_protocol
 from kpi.infra.download.devices import download_device_df
-from kpi.op.context import get_context
+from kpi.base.context import get_context
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
 
 
+@schema_protocol
 class DeviceSchema(SchemaAbstract[DeviceProtocol]):
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         field_names = plan.outputs()

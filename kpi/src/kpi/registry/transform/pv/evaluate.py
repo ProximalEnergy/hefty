@@ -1,15 +1,27 @@
 import numpy as np
+import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+from kpi.base.enumeration import TimeCoords
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
-from kpi.domain.util import date_local, diff, filter_mask
-from kpi.op.field import Field
+from kpi.domain.agg.across_devices import mean_across_devices
+from kpi.domain.agg.resample import resample_sum
+from kpi.domain.util import (
+    diff,
+    fill_na_with_arrays,
+    filter_mask,
+)
+from kpi.infra.pvlib_integration import theoretical_poa_irradiance
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.time import TimeLocal
-from kpi.op.transform.class_calc import TheoreticalPoaIrradiance
-from kpi.op.transform.input import Optional, Required
-from kpi.op.transform.method import method_calc
+from kpi.op.transform.arg import (
+    Constant,
+    Optional,
+    Required,
+    Time5MinUtc,
+    TimeZone,
+)
+from kpi.op.transform.method import calc_field, method_calc
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.expected_energy import DownloadExpectedEnergy as Expected
 from kpi.registry.download.sensor.pv import DownloadSensorPv
@@ -18,7 +30,22 @@ from kpi.registry.transform.pv.clean import TransformPvClean as Clean
 
 
 class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
-    time_local_5m = Field[CalcProtocol](TimeLocal())
+    @method_calc(
+        time_5m_utc=Time5MinUtc(),
+        time_zone=TimeZone(),
+    )
+    def time_local_5m(
+        time_5m_utc: pd.DatetimeIndex,
+        time_zone: str,
+    ) -> xr.DataArray:
+        local_time = (
+            time_5m_utc.tz_localize("UTC").tz_convert(time_zone).tz_localize(None)
+        )
+        return xr.DataArray(
+            local_time.values,
+            dims=[TimeCoords.TIME_5MIN_UTC.value],
+            coords={TimeCoords.TIME_5MIN_UTC.value: time_5m_utc},
+        )
 
     @method_calc(
         total=Required(Clean.project_total_delivered_energy_filled_kwh_5m),
@@ -33,51 +60,24 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
             filter_mask(filter_by=energy / power_capacity, min_value=0, max_value=1)
         )
 
-    @method_calc(
-        first=Optional(Expected.project_expected_power_degraded_soiled_kw_5m),
-        second=Optional(Expected.project_expected_power_degraded_kw_5m),
-        third=Optional(Expected.project_expected_power_soiled_kw_5m),
-        fourth=Optional(Expected.project_expected_power_kw_5m),
+    project_expected_energy_best_kwh_5m = calc_field(fill_na_with_arrays)(
+        Optional(Expected.project_expected_energy_degraded_soiled_kwh_5m),
+        Optional(Expected.project_expected_energy_degraded_kwh_5m),
+        Optional(Expected.project_expected_energy_soiled_kwh_5m),
+        Optional(Expected.project_expected_energy_kwh_5m),
     )
-    def project_expected_energy_best_kw_5m(
-        first: xr.DataArray | None,
-        second: xr.DataArray | None,
-        third: xr.DataArray | None,
-        fourth: xr.DataArray | None,
-    ) -> xr.DataArray:
-        x = xr.DataArray(np.nan)
-        for y in [first, second, third, fourth]:
-            if y is not None:
-                x, y = xr.align(x, y, join="outer")
-                x = x.fillna(y)
-        return x / 12  # because there are 12 5 minute intervals in an hour
 
-    @method_calc(
-        first=Optional(Expected.combiner_expected_power_degraded_soiled_kw_5m),
-        second=Optional(Expected.combiner_expected_power_degraded_kw_5m),
-        third=Optional(Expected.combiner_expected_power_soiled_kw_5m),
-        fourth=Optional(Expected.combiner_expected_power_kw_5m),
+    combiner_expected_energy_best_kwh_5m = calc_field(fill_na_with_arrays)(
+        Optional(Expected.combiner_expected_energy_degraded_soiled_kwh_5m),
+        Optional(Expected.combiner_expected_energy_degraded_kwh_5m),
+        Optional(Expected.combiner_expected_energy_soiled_kwh_5m),
+        Optional(Expected.combiner_expected_energy_kwh_5m),
     )
-    def combiner_expected_energy_best_kwh_5m(
-        first: xr.DataArray | None,
-        second: xr.DataArray | None,
-        third: xr.DataArray | None,
-        fourth: xr.DataArray | None,
-    ) -> xr.DataArray:
-        x = xr.DataArray(np.nan)
-        for y in [first, second, third, fourth]:
-            if y is not None:
-                x, y = xr.align(x, y, join="outer")
-                x = x.fillna(y)
-        return x / 12  # because there are 12 5 minute intervals in an hour
 
-    @method_calc(
-        irradiance=Required(Clean.met_poa_irradiance_w_m2_5m),
+    project_poa_irradiance_w_m2_5m = calc_field(mean_across_devices)(
+        Required(Clean.met_poa_irradiance_w_m2_5m),
+        device_type=Constant(DeviceTypeEnum.MET_STATION),
     )
-    def project_poa_irradiance_w_m2_5m(
-        irradiance: xr.DataArray,
-    ) -> xr.DataArray:
-        return irradiance.mean(dim=coord(DeviceTypeEnum.MET_STATION))
 
     @method_calc(
         irradiance=Required(project_poa_irradiance_w_m2_5m),
@@ -87,7 +87,7 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
         irradiance: xr.DataArray,
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
-        return irradiance.groupby(date_local(date_local_5m)).sum() / 12
+        return resample_sum(irradiance, grouper=date_local_5m) / 12
 
     @method_calc(
         power=Required(Clean.inverter_ac_power_kw_5m),
@@ -159,10 +159,28 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
             xr.where(difference > threshold_deg, 0.0, np.nan),
         )
 
-    project_theoretical_poa_irradiance_w_m2_5m = Field[CalcProtocol](
-        TheoreticalPoaIrradiance(
-            project_latitude_deg=Required(Clean.project_latitude_deg),
-            project_longitude_deg=Required(Clean.project_longitude_deg),
-            project_elevation_m=Optional(Clean.project_elevation_m),
-        )
+    project_theoretical_poa_irradiance_w_m2_5m = calc_field(theoretical_poa_irradiance)(
+        time_utc=Time5MinUtc(),
+        latitude=Required(Clean.project_latitude_deg),
+        longitude=Required(Clean.project_longitude_deg),
+        altitude_m=Optional(Clean.project_elevation_m),
+        time_zone=TimeZone(),
     )
+
+    @method_calc(
+        position=Required(Clean.tracker_row_position_deg_5m),
+        setpoint=Required(Clean.tracker_row_setpoint_deg_5m),
+    )
+    def tracker_row_deviation_from_setpoint_deg_5m(
+        position: xr.DataArray,
+        setpoint: xr.DataArray,
+    ) -> xr.DataArray:
+        return abs(position - setpoint)
+
+    @method_calc(
+        setpoint=Required(Clean.tracker_row_setpoint_deg_5m),
+    )
+    def tracker_row_setpoint_deviation_from_median_deg_5m(
+        setpoint: xr.DataArray,
+    ) -> xr.DataArray:
+        return abs(setpoint - setpoint.median(dim=coord(DeviceTypeEnum.TRACKER_ROW)))

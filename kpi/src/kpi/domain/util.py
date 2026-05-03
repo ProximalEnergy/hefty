@@ -1,8 +1,9 @@
 import warnings
+from typing import SupportsFloat
 
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import NEW_NAME, TimeCoords
 from kpi.base.exception import ValidationError
 from kpi.base.util import coord
 from kpi.base.warning import ValidationWarning
@@ -83,6 +84,14 @@ def filter_mask(
     return mask
 
 
+def apply_filter(
+    x: xr.DataArray,
+    min_value: float | None = None,
+    max_value: float | None = None,
+) -> xr.DataArray:
+    return x.where(filter_mask(filter_by=x, min_value=min_value, max_value=max_value))
+
+
 def filter_verify(
     *,
     filter_by: xr.DataArray,
@@ -112,9 +121,7 @@ def filter_tracker(
     min_angle: float = -90,
     max_angle: float = 90,
 ) -> xr.DataArray:
-    return degree.where(
-        filter_mask(filter_by=degree, min_value=min_angle, max_value=max_angle)
-    )
+    return apply_filter(degree, min_value=min_angle, max_value=max_angle)
 
 
 def filter_capacity(
@@ -132,47 +139,6 @@ def filter_capacity(
             max_value=max_capacity_factor + epsilon,
         )
     )
-
-
-def daily_mean_across_devices(
-    *,
-    value: xr.DataArray,
-    device_type: DeviceTypeEnum,
-    date_local_5m: xr.DataArray,
-) -> xr.DataArray:
-    is_valid_sum = (
-        value.notnull()
-        .sum(dim=coord(device_type))
-        .groupby(date_local(date_local_5m))
-        .sum()
-    )
-    value_sum = (
-        value.sum(dim=coord(device_type)).groupby(date_local(date_local_5m)).sum()
-    )
-    return value_sum / is_valid_sum.where(is_valid_sum > 0)
-
-
-def daily_mean_across_grouped_devices(
-    *,
-    value: xr.DataArray,
-    device_mapping: xr.DataArray,
-    device_type: DeviceTypeEnum,
-    date_local_5m: xr.DataArray,
-) -> xr.DataArray:
-    is_valid_sum = (
-        value.notnull()
-        .groupby(device_mapping.rename(coord(device_type)))
-        .sum()
-        .groupby(date_local(date_local_5m))
-        .sum()
-    )
-    value_sum = (
-        value.groupby(device_mapping.rename(coord(device_type)))
-        .sum()
-        .groupby(date_local(date_local_5m))
-        .sum()
-    )
-    return value_sum / is_valid_sum.where(is_valid_sum > 0)
 
 
 def scale_offset(
@@ -196,10 +162,10 @@ def fill_accumulator(
     )
 
 
-def date_local(
-    date_local_5m: xr.DataArray,
-) -> xr.DataArray:
-    return date_local_5m.rename(TimeCoords.DATE_LOCAL.value)
+def rename(
+    x: xr.DataArray,
+):
+    return x.rename(x.attrs[NEW_NAME])
 
 
 def fill_missing_zero(
@@ -209,3 +175,76 @@ def fill_missing_zero(
     Fill missing values with 0.
     """
     return x.fillna(0)
+
+
+def fill_na_with_arrays(*args: xr.DataArray | None) -> xr.DataArray:
+    x = xr.DataArray()
+    for arg in args:
+        if arg is not None:
+            x, arg = xr.align(x, arg, join="outer")
+            x = x.fillna(arg)
+    return x
+
+
+def sum_arrays(*args: xr.DataArray) -> xr.DataArray:
+    concat = xr.concat(args, dim="temp")
+    return concat.sum(dim="temp", min_count=1)
+
+
+def infer_device_dim(x: xr.DataArray) -> str:
+    device_coords = {coord(device_type) for device_type in DeviceTypeEnum}
+    device_dims = [
+        dim for dim in x.dims if isinstance(dim, str) and dim in device_coords
+    ]
+    if len(device_dims) > 1:
+        raise ValueError(f"Multiple device dimensions found: {device_dims}")
+    if len(device_dims) == 0:
+        raise ValueError("No device dimension found")
+    return device_dims[0]
+
+
+def infer_time_dim(x: xr.DataArray) -> str:
+    time_coords = {time_coord.value for time_coord in TimeCoords}
+    time_dims = [dim for dim in x.dims if isinstance(dim, str) and dim in time_coords]
+    if len(time_dims) > 1:
+        raise ValueError(f"Multiple time dimensions found: {time_dims}")
+    if len(time_dims) == 0:
+        raise ValueError("No time dimension found")
+    return time_dims[0]
+
+
+def is_empty(x: xr.DataArray) -> bool:
+    return (x.size == 0) or bool(x.isnull().all().item())
+
+
+def get_single_float_value(x: xr.DataArray | SupportsFloat) -> float:
+    if isinstance(x, xr.DataArray):
+        return float(x.item())
+    return float(x)
+
+
+def available_from_event(
+    event_change: xr.DataArray,
+) -> xr.DataArray:
+    """
+    Calculates whether the 5-minute interval is available from event step changes.
+    The `event_change` parameter is the number of events that began
+    minus the number of events that ended in the 5-minute interval.
+    It's assumed that every event has a start and end within the entire
+    period. Events that began before the start date should have been counted
+    as starting on the first time step, and events that finished after
+    the end date should have been counted as ending on the last time step.
+    This calculation does a forward cumulative sum to effectively determine
+    the number of events that are active for each point in time.
+    Intervals where the cumulative sum is greater than 0 are in an event and
+    result in False, and intervals where the cumulative sum is 0 are not in an event
+    and result in True.
+    """
+    return event_change.cumsum(dim=TimeCoords.TIME_5MIN_UTC.value) <= 0
+
+
+def where(
+    x: xr.DataArray,
+    condition: xr.DataArray,
+) -> xr.DataArray:
+    return x.where(condition)

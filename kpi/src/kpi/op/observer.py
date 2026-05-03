@@ -12,7 +12,7 @@ from kpi.base.exception import (
     MissingDataError,
     NoDownloadedDataError,
 )
-from kpi.base.protocol import ObserverProtocol
+from kpi.base.protocol import ObserverProtocol, observer_protocol
 from kpi.base.warning import KpiWarning
 
 
@@ -20,6 +20,7 @@ def _prefix(field: str | None) -> str:
     return f"Field: {field}\n" if field else ""
 
 
+@observer_protocol
 class NoOpObserver:
     """Observer that does standard python behavior."""
 
@@ -38,6 +39,7 @@ class NoOpObserver:
             warnings.showwarning(msg.message, msg.category, msg.filename, msg.lineno)
 
 
+@observer_protocol
 class LocalObserver:
     """Meant to skip errors and filter warnings to the console."""
 
@@ -81,6 +83,7 @@ class LocalObserver:
         return
 
 
+@observer_protocol
 class SentryObserver:
     """Works with sentry to capture unexpected errors and filtered warnings."""
 

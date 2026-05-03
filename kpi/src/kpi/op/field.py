@@ -1,4 +1,4 @@
-from kpi.base.protocol import NodeProtocol
+from kpi.base.protocol import NodeProtocol, node_protocol
 
 
 class Field[F: NodeProtocol]:
@@ -20,6 +20,7 @@ class Field[F: NodeProtocol]:
         return self._name
 
 
+@node_protocol
 class NoInputs:
     def inputs(self) -> set[str]:
         return set[str]()

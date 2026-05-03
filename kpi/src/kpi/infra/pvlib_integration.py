@@ -1,7 +1,8 @@
-from typing import Any
+from typing import SupportsFloat
 
 import pandas as pd
 import xarray as xr
+from kpi.domain.util import get_single_float_value
 from kpi.infra.pandas_to_xarray import (
     pandas_time_series_to_xarray,
 )
@@ -91,16 +92,17 @@ def get_poa_irradiance(
 
 def theoretical_poa_irradiance(
     time_utc: pd.DatetimeIndex,
-    latitude: float,
-    longitude: float,
-    elevation: Any,
+    latitude: xr.DataArray | SupportsFloat,
+    longitude: xr.DataArray | SupportsFloat,
     time_zone: str,
+    altitude_m: xr.DataArray | None | SupportsFloat = 0,
 ) -> xr.DataArray:
-    altitude_m = (
-        float(elevation.item())
-        if isinstance(elevation, xr.DataArray)
-        else (0.0 if elevation is None else float(elevation))
-    )
+    latitude = get_single_float_value(latitude)
+    longitude = get_single_float_value(longitude)
+    if altitude_m is None:
+        altitude_m = 0.0
+    else:
+        altitude_m = get_single_float_value(altitude_m)
     site_location = location.Location(
         latitude=latitude,
         longitude=longitude,

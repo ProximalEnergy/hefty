@@ -1,6 +1,6 @@
 from typing import Self
 
-from kpi.base.protocol import PlanProtocol, SchemaProtocol
+from kpi.base.protocol import PlanProtocol, SchemaProtocol, plan_protocol
 from pydantic import BaseModel, model_validator
 
 
@@ -27,6 +27,7 @@ class SingleFieldPlan(BaseModel):
         return {input for input in self.inputs.keys() if self.inputs[input]}
 
 
+@plan_protocol
 class MultiFieldPlan(BaseModel):
     fields: list[SingleFieldPlan]
 
@@ -52,6 +53,7 @@ class MultiFieldPlan(BaseModel):
         return [field.field_name for field in self.fields]
 
 
+@plan_protocol
 class PipelinePlan(BaseModel):
     steps: dict[str, Self | MultiFieldPlan]
 
