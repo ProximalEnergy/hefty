@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.agg.across_devices import mean_across_devices
@@ -18,7 +18,7 @@ from kpi.op.transform.arg import (
     Constant,
     Optional,
     Required,
-    Time5MinUtc,
+    TimeCoordArg,
     TimeZone,
 )
 from kpi.op.transform.method import calc_field, method_calc
@@ -31,7 +31,7 @@ from kpi.registry.transform.pv.clean import TransformPvClean as Clean
 
 class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
     @method_calc(
-        time_5m_utc=Time5MinUtc(),
+        time_5m_utc=TimeCoordArg(TimeCoord.TIME_5MIN_UTC),
         time_zone=TimeZone(),
     )
     def time_local_5m(
@@ -43,8 +43,8 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
         )
         return xr.DataArray(
             local_time.values,
-            dims=[TimeCoords.TIME_5MIN_UTC.value],
-            coords={TimeCoords.TIME_5MIN_UTC.value: time_5m_utc},
+            dims=[TimeCoord.TIME_5MIN_UTC.value],
+            coords={TimeCoord.TIME_5MIN_UTC.value: time_5m_utc},
         )
 
     @method_calc(
@@ -160,7 +160,7 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
         )
 
     project_theoretical_poa_irradiance_w_m2_5m = calc_field(theoretical_poa_irradiance)(
-        time_utc=Time5MinUtc(),
+        time_utc=TimeCoordArg(TimeCoord.TIME_5MIN_UTC),
         latitude=Required(Clean.project_latitude_deg),
         longitude=Required(Clean.project_longitude_deg),
         altitude_m=Optional(Clean.project_elevation_m),

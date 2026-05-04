@@ -4,7 +4,7 @@ from typing import Any
 import pandas as pd
 import xarray as xr
 from kpi.base.context import get_context
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TIME_DESCRIPTOR, TimeCoord
 from kpi.base.exception import DatasetAccessError
 from kpi.base.protocol import arg_protocol
 from kpi.op.field import Field
@@ -52,19 +52,17 @@ class TimeZone(ArgType):
 
 
 @arg_protocol
-class Time5MinUtc(ArgType):
+class TimeCoordArg(ArgType):
     input_name = None
 
-    def extract(self, dataset: xr.Dataset) -> pd.DatetimeIndex:
-        return pd.DatetimeIndex(dataset.coords[TimeCoords.TIME_5MIN_UTC.value].values)
-
-
-@arg_protocol
-class Time15MinUtc(ArgType):
-    input_name = None
+    def __init__(self, time_coord: TimeCoord) -> None:
+        self.time_coord = time_coord
 
     def extract(self, dataset: xr.Dataset) -> pd.DatetimeIndex:
-        return pd.DatetimeIndex(dataset.coords[TimeCoords.TIME_15MIN_UTC.value].values)
+        tz = "UTC"
+        if not TIME_DESCRIPTOR[self.time_coord].utc:
+            tz = get_context(dataset).time_zone
+        return pd.DatetimeIndex(dataset.coords[self.time_coord.value].values, tz=tz)
 
 
 @arg_protocol

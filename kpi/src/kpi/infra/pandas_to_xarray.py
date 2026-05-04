@@ -3,16 +3,16 @@ import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from core.utils.pandas_datetime import index_to_numpy_ns
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.util import coord
 
 
 def pandas_time_series_to_xarray(series: pd.Series) -> xr.DataArray:
     return xr.DataArray(
         data=series.to_numpy(),
-        dims=[TimeCoords.TIME_5MIN_UTC.value],
+        dims=[TimeCoord.TIME_5MIN_UTC.value],
         coords={
-            TimeCoords.TIME_5MIN_UTC.value: index_to_numpy_ns(index=series.index),
+            TimeCoord.TIME_5MIN_UTC.value: index_to_numpy_ns(index=series.index),
         },
     )
 
@@ -28,9 +28,9 @@ def pandas_project_df_to_xarray(df: pd.DataFrame) -> xr.DataArray:
         array = df.iloc[:, 0].to_numpy()
     return xr.DataArray(
         data=array,
-        dims=[TimeCoords.TIME_5MIN_UTC.value],
+        dims=[TimeCoord.TIME_5MIN_UTC.value],
         coords={
-            TimeCoords.TIME_5MIN_UTC.value: index_to_numpy_ns(index=df.index),
+            TimeCoord.TIME_5MIN_UTC.value: index_to_numpy_ns(index=df.index),
         },
     )
 
@@ -40,9 +40,9 @@ def pandas_device_time_series_to_xarray(
 ) -> xr.DataArray:
     return xr.DataArray(
         data=dataframe.to_numpy(),
-        dims=[TimeCoords.TIME_5MIN_UTC.value, coord(device_type)],
+        dims=[TimeCoord.TIME_5MIN_UTC.value, coord(device_type)],
         coords={
-            TimeCoords.TIME_5MIN_UTC.value: index_to_numpy_ns(index=dataframe.index),
+            TimeCoord.TIME_5MIN_UTC.value: index_to_numpy_ns(index=dataframe.index),
             coord(device_type): index_to_numpy_ns(index=dataframe.columns),
         },
     )

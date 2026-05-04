@@ -1,16 +1,16 @@
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 
 
-def get_time_dimension(x: xr.DataArray) -> TimeCoords:
-    time_dims = [str(dim) for dim in x.dims if dim in TimeCoords]
+def get_time_dimension(x: xr.DataArray) -> TimeCoord:
+    time_dims = [str(dim) for dim in x.dims if dim in TimeCoord]
     if len(time_dims) > 1:
         raise ValueError(f"Multiple time dimensions found: {time_dims}")
     if len(time_dims) == 0:
         raise ValueError("No time dimension found")
-    return TimeCoords(time_dims[0])
+    return TimeCoord(time_dims[0])
 
 
 def get_device_dimension(x: xr.DataArray) -> DeviceTypeEnum:

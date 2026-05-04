@@ -1,5 +1,5 @@
 import xarray as xr
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.exception import ValidationError
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import (
@@ -105,10 +105,10 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
         window_size = 6  # flat lining for 30 minutes
         epsilon = 1e-6
 
-        diffs = abs(diff(x, time_dim=TimeCoords.TIME_5MIN_UTC))
+        diffs = abs(diff(x, time_dim=TimeCoord.TIME_5MIN_UTC))
 
         flat_mask = (
-            diffs.rolling({TimeCoords.TIME_5MIN_UTC.value: window_size - 1}).max()
+            diffs.rolling({TimeCoord.TIME_5MIN_UTC.value: window_size - 1}).max()
             < epsilon
         )
 

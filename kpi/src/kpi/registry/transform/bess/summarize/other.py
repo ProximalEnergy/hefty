@@ -4,7 +4,7 @@ SoH, Temperature, voltage, and other miscellaneous kpis.
 
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import (
     max_across_devices,
@@ -61,12 +61,12 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     # BESS_STRING_DEGRADATION (80)
     string_degradation_d = calc_field(diff)(
         Required(string_soh_d),
-        time_dim=Constant(TimeCoords.DATE_LOCAL),
+        time_dim=Constant(TimeCoord.DATE_LOCAL),
     )
 
     project_string_degradation_d = calc_field(diff)(
         Required(project_string_soh_d),
-        time_dim=Constant(TimeCoords.DATE_LOCAL),
+        time_dim=Constant(TimeCoord.DATE_LOCAL),
     )
 
     # =======================================================

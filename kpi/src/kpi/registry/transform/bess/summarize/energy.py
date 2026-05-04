@@ -4,7 +4,7 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import sum_across_devices
 from kpi.domain.bess import (
@@ -190,7 +190,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         than the equivalent of 24 hours of 10% of the project's power capacity.
         """
         total_energy_d = total_energy_5m.groupby(rename(date_local_5m)).first()
-        difference = diff(total_energy_d, time_dim=TimeCoords.DATE_LOCAL)
+        difference = diff(total_energy_d, time_dim=TimeCoord.DATE_LOCAL)
         epsilon = 1e-6
         difference = difference.where(
             filter_mask(

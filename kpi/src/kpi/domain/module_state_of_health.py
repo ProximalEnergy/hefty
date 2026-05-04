@@ -1,6 +1,6 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.util import coord
 from kpi.domain.util import diff, rename
 
@@ -63,8 +63,8 @@ def pv_dc_combiner_module_excess_degradation(
         mean_score = trkr_scores.mean(dim=DeviceTypeEnum.MET_STATION.name.lower())
         good_trackers = trkr_scores >= (mean_score * 0.9)
         return met_station_poa.where(
-            good_trackers.sel({TimeCoords.DATE_LOCAL.value: date_local_5m}).drop_vars(
-                TimeCoords.DATE_LOCAL.value
+            good_trackers.sel({TimeCoord.DATE_LOCAL.value: date_local_5m}).drop_vars(
+                TimeCoord.DATE_LOCAL.value
             )
         )
 
@@ -83,12 +83,12 @@ def pv_dc_combiner_module_excess_degradation(
 
         # Calculate 1d change (absolute difference between consecutive time steps)
         diff_forward = abs(
-            diff(met_station_clean_poa_5m, time_dim=TimeCoords.TIME_5MIN_UTC)
+            diff(met_station_clean_poa_5m, time_dim=TimeCoord.TIME_5MIN_UTC)
         )
         # Backward diff: shift forward by 1 and subtract
         diff_backward = abs(
             met_station_clean_poa_5m
-            - met_station_clean_poa_5m.shift({TimeCoords.TIME_5MIN_UTC.value: 1})
+            - met_station_clean_poa_5m.shift({TimeCoord.TIME_5MIN_UTC.value: 1})
         )
         met_station_poa_1d = diff_forward + diff_backward
 
@@ -104,7 +104,7 @@ def pv_dc_combiner_module_excess_degradation(
         )
         std_rolling_15_minute_average = (
             project_std_across_devices.rolling(
-                {TimeCoords.TIME_5MIN_UTC.value: 3}, center=True
+                {TimeCoord.TIME_5MIN_UTC.value: 3}, center=True
             ).mean()  # rolling 15 minute average
         )
 
@@ -112,12 +112,12 @@ def pv_dc_combiner_module_excess_degradation(
 
         # Calculate change in std from time step to time step
         std_diff_forward = abs(
-            diff(std_rolling_15_minute_average, time_dim=TimeCoords.TIME_5MIN_UTC)
+            diff(std_rolling_15_minute_average, time_dim=TimeCoord.TIME_5MIN_UTC)
         )
         # Backward diff: shift forward by 1 and subtract
         std_diff_backward = abs(
             std_rolling_15_minute_average
-            - std_rolling_15_minute_average.shift({TimeCoords.TIME_5MIN_UTC.value: 1})
+            - std_rolling_15_minute_average.shift({TimeCoord.TIME_5MIN_UTC.value: 1})
         )
         std_1d = std_diff_forward + std_diff_backward
 
@@ -238,8 +238,8 @@ def pv_dc_combiner_module_excess_degradation(
         combiner_good_indices_5m = (
             (
                 combiner_good_indices_all_d.sel(
-                    {TimeCoords.DATE_LOCAL.value: date_local_5m}
-                ).drop_vars(TimeCoords.DATE_LOCAL.value)
+                    {TimeCoord.DATE_LOCAL.value: date_local_5m}
+                ).drop_vars(TimeCoord.DATE_LOCAL.value)
             )
             & project_good_poa_indices_5m
             & project_good_meter_indices_5m

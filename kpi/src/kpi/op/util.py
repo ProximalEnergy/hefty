@@ -3,7 +3,7 @@ from typing import Any
 import pandas as pd
 import xarray as xr
 from kpi.base.context import get_context
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.exception import DatasetAccessError, MissingDataError
 from kpi.domain.util import is_empty
 
@@ -58,11 +58,11 @@ def exclusive_end_date(dataset: xr.Dataset) -> xr.Dataset:
 
     out = dataset
 
-    for time_coord in TimeCoords:
+    for time_coord in TimeCoord:
         if time_coord.value not in out.dims:
             continue
 
-        if time_coord == TimeCoords.DATE_LOCAL:
+        if time_coord == TimeCoord.DATE_LOCAL:
             start_d = pd.Timestamp(start_a.date())
             end_d = pd.Timestamp(end_a.date())
             last_inclusive = end_d - pd.Timedelta(days=1)

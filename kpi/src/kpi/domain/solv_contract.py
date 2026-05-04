@@ -1,6 +1,6 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.domain.util import rename
 
 
@@ -106,22 +106,24 @@ def solv_lost_period(
         DERATED_THRESHOLD * average_unit_nv
     )
     previous_hour_meets_threshold = meets_derated_threshold.rolling(
-        {TimeCoords.TIME_5MIN_UTC.value: WINDOW_SIZE_FOR_DERATED_THRESHOLD}
+        {TimeCoord.TIME_5MIN_UTC.value: WINDOW_SIZE_FOR_DERATED_THRESHOLD}
     ).min()
     unit_is_derated_5m = (
         previous_hour_meets_threshold.rolling(
-            {TimeCoords.TIME_5MIN_UTC.value: WINDOW_SIZE_FOR_DERATED_THRESHOLD}
+            {TimeCoord.TIME_5MIN_UTC.value: WINDOW_SIZE_FOR_DERATED_THRESHOLD}
         )
         .max()
         .shift(
-            {TimeCoords.TIME_5MIN_UTC.value: -(WINDOW_SIZE_FOR_DERATED_THRESHOLD - 1)}
+            {TimeCoord.TIME_5MIN_UTC.value: -(WINDOW_SIZE_FOR_DERATED_THRESHOLD - 1)}
         )
     )
     unit_is_derated_5m = unit_is_derated_5m.astype(bool)
 
     # Step 3: For Facility Offline
 
-    facility_is_offline = unit_is_offline.all(dim=DeviceTypeEnum.PV_INVERTER.name.lower())
+    facility_is_offline = unit_is_offline.all(
+        dim=DeviceTypeEnum.PV_INVERTER.name.lower()
+    )
 
     ## Expected energy model language in the contract is specific; we lack the
     # month-of-year initial model and use our internal expected energy instead.

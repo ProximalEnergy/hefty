@@ -12,7 +12,7 @@ import psycopg2
 import xarray as xr
 from core.database import with_db
 from core.enumerations import KPITypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.infra.xarray_to_pandas import (
     xarray_device_time_series_to_pandas,
     xarray_time_series_to_pandas,
@@ -184,7 +184,7 @@ def arrays_to_rows(
 ) -> list[KPIDataRow]:
     data_rows = []
     project_xarray = project_data
-    if TimeCoords.DATE_LOCAL.value not in project_xarray.dims:
+    if TimeCoord.DATE_LOCAL.value not in project_xarray.dims:
         raise ValueError(
             "Time.DATE_LOCAL dimension not present in xr.DataArray "
             f"{project_xarray.name}"
@@ -197,7 +197,7 @@ def arrays_to_rows(
 
     if device_data is not None:
         devices_xarray = device_data
-        if TimeCoords.DATE_LOCAL.value not in devices_xarray.dims:
+        if TimeCoord.DATE_LOCAL.value not in devices_xarray.dims:
             raise ValueError(
                 "Time.DATE_LOCAL dimension not present in xr.DataArray "
                 f"{devices_xarray.name}"

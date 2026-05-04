@@ -5,11 +5,11 @@ import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from kpi.base.context import ContextModel
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TIME_DESCRIPTOR, TimeCoord
 from kpi.base.util import coord
 from kpi.infra.download.devices import download_device_df
 from kpi.infra.util import get_project_by_id
-from pydantic import BaseModel, validate_call
+from pydantic import validate_call
 
 from core import models
 
@@ -30,19 +30,6 @@ device_types = [
 ]
 
 
-class TimeDescriptor(BaseModel):
-    pandas_freq: str
-    utc: bool = True
-
-
-time_descriptor = {
-    TimeCoords.TIME_5MIN_UTC: TimeDescriptor(pandas_freq="5min"),
-    TimeCoords.TIME_15MIN_UTC: TimeDescriptor(pandas_freq="15min"),
-    TimeCoords.HOUR_UTC: TimeDescriptor(pandas_freq="h"),
-    TimeCoords.DATE_LOCAL: TimeDescriptor(pandas_freq="D", utc=False),
-}
-
-
 @validate_call
 def create_dataset(
     project_id: UUID,
@@ -54,8 +41,8 @@ def create_dataset(
 
     time_coords = {}
 
-    for time_coord in TimeCoords:
-        desc = time_descriptor[time_coord]
+    for time_coord in TimeCoord:
+        desc = TIME_DESCRIPTOR[time_coord]
         date_range = pd.date_range(
             start=start_date,
             end=end_date,

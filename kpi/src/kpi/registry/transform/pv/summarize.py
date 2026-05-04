@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.agg.across_devices import mean_across_devices, sum_across_devices
@@ -43,7 +43,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         energy_total_d = energy_total.groupby(rename(date_local_5m)).first()
-        return diff(energy_total_d, time_dim=TimeCoords.DATE_LOCAL)
+        return diff(energy_total_d, time_dim=TimeCoord.DATE_LOCAL)
 
     # SMA_INVERTER_AVAILABILITY_UPTIME_PROJECT (23) deprecated
 
@@ -176,7 +176,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         energy_total_d = energy.groupby(rename(date_local_5m)).first()
-        return diff(energy_total_d, time_dim=TimeCoords.DATE_LOCAL)
+        return diff(energy_total_d, time_dim=TimeCoord.DATE_LOCAL)
 
     project_pcs_energy_production_kwh_d = calc_field(sum_across_devices)(
         Required(inverter_energy_production_kwh_d),
@@ -329,7 +329,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         time_local_5m: xr.DataArray,
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
-        time_dim = TimeCoords.TIME_5MIN_UTC.value
+        time_dim = TimeCoord.TIME_5MIN_UTC.value
         current_ffill_1hr = combiner_current.ffill(dim=time_dim, limit=12)
         pandas_time = pd.to_datetime(time_local_5m.values)
         is_solar_noon = ((pandas_time.hour == 11) & (pandas_time.minute >= 30)) | (

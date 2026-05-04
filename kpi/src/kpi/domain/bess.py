@@ -1,5 +1,5 @@
 import xarray as xr
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.domain.agg.resample import resample_first, resample_sum
 from kpi.domain.util import cumsum, diff, filter_mask, rename
 
@@ -104,7 +104,7 @@ def maximum_continuous_discharged_energy(
 
     # determine a baseline total from the most recent charging event
     total_discharged_since_last_charging = discharge_total_while_charging.ffill(
-        dim=TimeCoords.TIME_5MIN_UTC.value
+        dim=TimeCoord.TIME_5MIN_UTC.value
     )
 
     result = discharge_total - total_discharged_since_last_charging
@@ -144,7 +144,7 @@ def daily_energy(
     at the high end of the accumulator's range and reset during the middle of the day.
     """
     total_energy_d = resample_first(total_energy_5m, grouper=date_local_5m)
-    difference = diff(total_energy_d, time_dim=TimeCoords.DATE_LOCAL)
+    difference = diff(total_energy_d, time_dim=TimeCoord.DATE_LOCAL)
     epsilon = 1e-6
     if modulus is not None:
         difference = ((difference + epsilon) % modulus) - epsilon

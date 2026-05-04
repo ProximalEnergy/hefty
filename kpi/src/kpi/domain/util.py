@@ -1,9 +1,10 @@
 import warnings
 from typing import SupportsFloat
 
+import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import NEW_NAME, TimeCoords
+from kpi.base.enumeration import NEW_NAME, TIME_DESCRIPTOR, TimeCoord
 from kpi.base.exception import ValidationError
 from kpi.base.util import coord
 from kpi.base.warning import ValidationWarning
@@ -25,7 +26,7 @@ def verify_positive(x: xr.DataArray) -> xr.DataArray:
 
 def diff(
     x: xr.DataArray,
-    time_dim: TimeCoords = TimeCoords.TIME_5MIN_UTC,
+    time_dim: TimeCoord = TimeCoord.TIME_5MIN_UTC,
 ) -> xr.DataArray:
     """
     Like ``.diff`` but keeps the same length: change is attributed to the prior
@@ -40,7 +41,7 @@ def diff(
 
 def cumsum(
     x: xr.DataArray,
-    time_dim: TimeCoords = TimeCoords.TIME_5MIN_UTC,
+    time_dim: TimeCoord = TimeCoord.TIME_5MIN_UTC,
     skipna: bool = True,
 ) -> xr.DataArray:
     """
@@ -157,8 +158,8 @@ def scale_offset(
 def fill_accumulator(
     value: xr.DataArray,
 ) -> xr.DataArray:
-    return value.ffill(dim=TimeCoords.TIME_5MIN_UTC.value).bfill(
-        dim=TimeCoords.TIME_5MIN_UTC.value
+    return value.ffill(dim=TimeCoord.TIME_5MIN_UTC.value).bfill(
+        dim=TimeCoord.TIME_5MIN_UTC.value
     )
 
 
@@ -186,8 +187,8 @@ def fill_na_with_arrays(*args: xr.DataArray | None) -> xr.DataArray:
     return x
 
 
-def sum_arrays(*args: xr.DataArray) -> xr.DataArray:
-    concat = xr.concat(args, dim="temp")
+def sum_arrays(*args: xr.DataArray | None) -> xr.DataArray:
+    concat = xr.concat([arg for arg in args if arg is not None], dim="temp")
     return concat.sum(dim="temp", min_count=1)
 
 
@@ -204,7 +205,7 @@ def infer_device_dim(x: xr.DataArray) -> str:
 
 
 def infer_time_dim(x: xr.DataArray) -> str:
-    time_coords = {time_coord.value for time_coord in TimeCoords}
+    time_coords = {time_coord.value for time_coord in TimeCoord}
     time_dims = [dim for dim in x.dims if isinstance(dim, str) and dim in time_coords]
     if len(time_dims) > 1:
         raise ValueError(f"Multiple time dimensions found: {time_dims}")
@@ -240,7 +241,7 @@ def available_from_event(
     result in False, and intervals where the cumulative sum is 0 are not in an event
     and result in True.
     """
-    return event_change.cumsum(dim=TimeCoords.TIME_5MIN_UTC.value) <= 0
+    return event_change.cumsum(dim=TimeCoord.TIME_5MIN_UTC.value) <= 0
 
 
 def where(
@@ -248,3 +249,34 @@ def where(
     condition: xr.DataArray,
 ) -> xr.DataArray:
     return x.where(condition)
+
+
+def time_grouper(
+    from_time: pd.DatetimeIndex,
+    from_time_coord: TimeCoord,
+    to_time_coord: TimeCoord,
+    time_zone: str | None = None,
+) -> xr.DataArray:
+    to_time_descriptor = TIME_DESCRIPTOR[to_time_coord]
+
+    if to_time_descriptor.utc:
+        new_time = from_time.tz_convert("UTC")
+    else:
+        if time_zone is None:
+            raise ValueError(
+                "Time zone is required when converting to a non-UTC time coordinate"
+            )
+        new_time = from_time.tz_convert(time_zone)
+
+    grouped_time = (
+        new_time.tz_localize(None).floor(to_time_descriptor.pandas_freq).to_numpy()
+    )
+
+    return xr.DataArray(
+        grouped_time,
+        dims=[from_time_coord.value],
+        coords={from_time_coord.value: from_time.tz_localize(None).values},
+        attrs={
+            NEW_NAME: to_time_coord.value,
+        },
+    )

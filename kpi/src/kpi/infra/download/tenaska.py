@@ -13,7 +13,7 @@ from core.crud.operational.qse_integrations import (
 from core.enumerations import OutputType, ProjectID
 from core.utils.pandas_datetime import index_to_numpy_ns
 from dotenv import load_dotenv
-from kpi.base.enumeration import TimeCoords
+from kpi.base.enumeration import TimeCoord
 from kpi.base.exception import MissingDataError
 from numpy.typing import NDArray
 
@@ -105,8 +105,8 @@ def data_array_from_elements(
         if column_name in data_points:
             value = xr.DataArray(
                 np.array(data_points[column_name], dtype="float64"),
-                dims=[TimeCoords.TIME_15MIN_UTC.value],
-                coords={TimeCoords.TIME_15MIN_UTC.value: time},
+                dims=[TimeCoord.TIME_15MIN_UTC.value],
+                coords={TimeCoord.TIME_15MIN_UTC.value: time},
             )
             data_arrays.append(value)
     if len(data_arrays) == 0:
