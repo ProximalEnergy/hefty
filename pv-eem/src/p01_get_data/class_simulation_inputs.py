@@ -7,11 +7,11 @@ from p01_get_data.s00_get_simulation_config import SimulationConfig
 from p01_get_data.source_proximal.c01_get_proximal_data import (
     from_proximal_db,
 )
-from p01_get_data.source_proximal.s03_get_project import Project
+from p01_get_data.source_proximal.s03_get_project import PvEemProject
 from p01_get_data.source_proximal.s04_get_system_data import System
-from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
+from p01_get_data.source_proximal.s09_get_inverter_data import PvEemInverter
 from p01_get_data.source_proximal.s09_get_module_data import Module
-from p01_get_data.source_proximal.s09_get_racking_data import Racking
+from p01_get_data.source_proximal.s09_get_racking_data import PvEemRacking
 
 # from _utils import export_class_to_dill, import_class_from_dill
 
@@ -28,15 +28,15 @@ class SimulationInputs:
     """
 
     version: str
-    project: Project
+    project: PvEemProject
     indeces: Indeces
     quality_assurance: QualityAssurance
     met_data: MetDataObserved
     simulation_config: SimulationConfig
     system: System
     modules: Module
-    rackings: Racking
-    inverters: Inverter
+    rackings: PvEemRacking
+    inverters: PvEemInverter
     axis_azimuth: float
     engine: sqlalchemy.engine.Engine
     SIMULATION_TEMPORAL_MODE: SimulationTemporalMode

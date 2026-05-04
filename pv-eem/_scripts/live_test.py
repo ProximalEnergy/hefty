@@ -20,7 +20,7 @@ if str(SRC_ROOT) not in sys.path:
 from main import get_expected_energy
 from p00_parse_input.simulation_temporal_mode import SimulationTemporalMode
 from p01_get_data.source_proximal.s02_get_database_engine import get_db_engine
-from p01_get_data.source_proximal.s03_get_project import Project
+from p01_get_data.source_proximal.s03_get_project import PvEemProject
 from p01_get_data.source_proximal.s04_get_met_data import get_met_data
 
 PROJECT_NAME_SHORT = "sun_pond"
@@ -44,8 +44,8 @@ def _get_database_url() -> str:
     return database_url
 
 
-async def _get_project() -> Project:
-    return await Project.create(
+async def _get_project() -> PvEemProject:
+    return await PvEemProject.create(
         project_name_short=PROJECT_NAME_SHORT,
     )
 
@@ -55,7 +55,7 @@ async def _get_live_met_data_row_count(
     database_url: str,
 ) -> int:
     engine = get_db_engine(database_url=database_url)
-    project = await Project.create(
+    project = await PvEemProject.create(
         project_name_short=PROJECT_NAME_SHORT,
     )
     met_data = await get_met_data(

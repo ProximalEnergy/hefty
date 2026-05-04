@@ -8839,49 +8839,7 @@ export interface components {
         CMMSResponse: {
             metadata: components["schemas"]["CMMSMetadata"];
             /** Data */
-            data: components["schemas"]["CMMSTicket"][];
-        };
-        /**
-         * CMMSTicket
-         * @description A CMMS ticket with provider metadata and scheduling details.
-         */
-        CMMSTicket: {
-            /** Cmms Ticket Id */
-            cmms_ticket_id: number;
-            /** Cmms Provider */
-            cmms_provider: string;
-            /** Id */
-            id: number;
-            /** Key */
-            key: string;
-            /** Cmms Integration Id */
-            cmms_integration_id: number;
-            /** Created At */
-            created_at?: string | null;
-            /** Due Date */
-            due_date?: string | null;
-            /** Summary */
-            summary?: string | null;
-            /** Summary Long */
-            summary_long?: string | null;
-            /** Status */
-            status?: string | null;
-            /** Status Change At */
-            status_change_at?: string | null;
-            /** Priority */
-            priority?: string | null;
-            /** Reporter */
-            reporter?: string | null;
-            /** Assigned To */
-            assigned_to?: string | null;
-            /** Location */
-            location?: string | null;
-            /** Cmms Device Id */
-            cmms_device_id?: string | null;
-            /** Cmms Device Name */
-            cmms_device_name?: string | null;
-            /** Link */
-            link?: string | null;
+            data: components["schemas"]["LegacyCMMSTicketResponseItem"][];
         };
         /**
          * CMMSTicketV2
@@ -10626,10 +10584,27 @@ export interface components {
             version?: string | null;
         };
         /**
-         * EventMessage
+         * EventMessageCreate
          * @description todo
          */
-        EventMessage: {
+        EventMessageCreate: {
+            /** Event Id */
+            event_id: number;
+            /** Body */
+            body: string;
+            /** Parent Message Id */
+            parent_message_id?: number | null;
+            /**
+             * Private
+             * @default false
+             */
+            private: boolean;
+        };
+        /**
+         * EventMessageInterface
+         * @description todo
+         */
+        EventMessageInterface: {
             /** Event Message Id */
             event_message_id: number;
             /** Event Id */
@@ -10660,27 +10635,20 @@ export interface components {
             private: boolean;
         };
         /**
-         * EventMessageCreate
+         * EventMessageReactionCreate
          * @description todo
          */
-        EventMessageCreate: {
-            /** Event Id */
-            event_id: number;
-            /** Body */
-            body: string;
-            /** Parent Message Id */
-            parent_message_id?: number | null;
-            /**
-             * Private
-             * @default false
-             */
-            private: boolean;
+        EventMessageReactionCreate: {
+            /** Event Message Id */
+            event_message_id: number;
+            /** Reaction Type */
+            reaction_type: string;
         };
         /**
-         * EventMessageReaction
+         * EventMessageReactionInterface
          * @description todo
          */
-        EventMessageReaction: {
+        EventMessageReactionInterface: {
             /** Reaction Id */
             reaction_id: number;
             /** Event Message Id */
@@ -10694,16 +10662,6 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-        };
-        /**
-         * EventMessageReactionCreate
-         * @description todo
-         */
-        EventMessageReactionCreate: {
-            /** Event Message Id */
-            event_message_id: number;
-            /** Reaction Type */
-            reaction_type: string;
         };
         /**
          * EventMessageUpdate
@@ -11241,6 +11199,48 @@ export interface components {
              * @default []
              */
             contract_kpis: components["schemas"]["ContractKPIs"][];
+        };
+        /**
+         * LegacyCMMSTicketResponseItem
+         * @description A CMMS ticket with provider metadata and scheduling details.
+         */
+        LegacyCMMSTicketResponseItem: {
+            /** Cmms Ticket Id */
+            cmms_ticket_id: number;
+            /** Cmms Provider */
+            cmms_provider: string;
+            /** Id */
+            id: number;
+            /** Key */
+            key: string;
+            /** Cmms Integration Id */
+            cmms_integration_id: number;
+            /** Created At */
+            created_at?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Summary Long */
+            summary_long?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Status Change At */
+            status_change_at?: string | null;
+            /** Priority */
+            priority?: string | null;
+            /** Reporter */
+            reporter?: string | null;
+            /** Assigned To */
+            assigned_to?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Cmms Device Id */
+            cmms_device_id?: string | null;
+            /** Cmms Device Name */
+            cmms_device_name?: string | null;
+            /** Link */
+            link?: string | null;
         };
         /**
          * Message
@@ -19197,7 +19197,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessageReaction"][];
+                    "application/json": components["schemas"]["EventMessageReactionInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -19235,7 +19235,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessageReaction"];
+                    "application/json": components["schemas"]["EventMessageReactionInterface"];
                 };
             };
             /** @description Validation Error */
@@ -19271,7 +19271,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessage"][];
+                    "application/json": components["schemas"]["EventMessageInterface"][];
                 };
             };
             /** @description Validation Error */
@@ -19309,7 +19309,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessage"];
+                    "application/json": components["schemas"]["EventMessageInterface"];
                 };
             };
             /** @description Validation Error */
@@ -19348,7 +19348,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessage"];
+                    "application/json": components["schemas"]["EventMessageInterface"];
                 };
             };
             /** @description Validation Error */
@@ -19383,7 +19383,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessage"];
+                    "application/json": components["schemas"]["EventMessageInterface"];
                 };
             };
             /** @description Validation Error */

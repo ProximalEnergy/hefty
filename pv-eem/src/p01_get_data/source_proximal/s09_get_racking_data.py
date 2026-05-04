@@ -9,8 +9,8 @@ from sqlalchemy import bindparam, text
 
 
 @dataclass(slots=True)
-class Racking:
-    """Racking."""
+class PvEemRacking:
+    """PvEemRacking."""
 
     racking_equipment_id: RackingEquipmentSeries
     racking_type_id: RackingEquipmentSeries
@@ -27,7 +27,7 @@ class Racking:
         cls,
         *,
         unique_racking_ids: pd.Series,
-    ) -> "Racking":
+    ) -> "PvEemRacking":
         """Get all of the relevant tracker data from the tracker table
         Args:
             * unique_tracker_ids:  polars dataframe column filtered for
@@ -90,3 +90,6 @@ class Racking:
                 rackings_pd.loc[:, "rear_mismatch_factor"]
             ),
         )
+
+
+Racking = PvEemRacking

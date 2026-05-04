@@ -69,7 +69,7 @@ def sensor_data_df(
             )
     data_raw = pd.concat(
         [
-            chunk.df.to_pandas().set_index(models.DataTimeseries.time.name)
+            chunk.df.to_pandas().set_index(models.ProjectDataTimeseries.time.name)
             for chunk in data_timeseries_chunks
         ],
         axis=1,

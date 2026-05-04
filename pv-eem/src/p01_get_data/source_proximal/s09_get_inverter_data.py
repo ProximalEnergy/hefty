@@ -9,9 +9,9 @@ from sqlalchemy import bindparam, text
 
 
 @dataclass(slots=True)
-class Inverter:
+class PvEemInverter:
     # General inverter parameters
-    """Inverter."""
+    """PvEemInverter."""
 
     pcs_equipment_id: InverterEquipmentSeries
     manufacturer: InverterEquipmentSeries
@@ -51,7 +51,7 @@ class Inverter:
         cls,
         *,
         unique_inverter_ids: pd.Series,
-    ) -> "Inverter":
+    ) -> "PvEemInverter":
         """Get all of the relevant tracker data from the tracker table
         Args:
             * unique_inverter_ids:  polars dataframe column filtered for
@@ -160,3 +160,6 @@ class Inverter:
             c3=InverterEquipmentSeries(inverters_pd.loc[:, "c3"]),
             night_tare=InverterEquipmentSeries(inverters_pd.loc[:, "night_tare"]),
         )
+
+
+Inverter = PvEemInverter

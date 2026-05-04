@@ -28,7 +28,7 @@ router = APIRouter(
 )
 
 
-class CMMSTicket(BaseModel):
+class LegacyCMMSTicketResponseItem(BaseModel):
     """A CMMS ticket with provider metadata and scheduling details."""
 
     cmms_ticket_id: int  # internal ticket_id from Proximal's DB.
@@ -61,7 +61,7 @@ class CMMSResponse(BaseModel):
     """Response wrapper containing integration state and ticket results."""
 
     metadata: CMMSMetadata
-    data: list[CMMSTicket]
+    data: list[LegacyCMMSTicketResponseItem]
 
 
 @router.get("", response_model=CMMSResponse, deprecated=True)
@@ -170,7 +170,7 @@ async def get_cmms_tickets(
     queried_tickets = result.all()
 
     tickets = [
-        CMMSTicket(
+        LegacyCMMSTicketResponseItem(
             cmms_ticket_id=ticket[0].cmms_ticket_id,
             cmms_provider=ticket[1],
             cmms_integration_id=ticket[0].cmms_integration_id,

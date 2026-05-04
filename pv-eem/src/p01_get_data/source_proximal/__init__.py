@@ -3,7 +3,7 @@ from p01_get_data.source_proximal.s01_qc_times import qc_times as qc_times
 from p01_get_data.source_proximal.s02_get_database_engine import (
     get_db_engine as get_db_engine,
 )
-from p01_get_data.source_proximal.s03_get_project import Project as Project
+from p01_get_data.source_proximal.s03_get_project import PvEemProject as PvEemProject
 from p01_get_data.source_proximal.s04_get_met_data import get_met_data as get_met_data
 from p01_get_data.source_proximal.s04_get_met_soiling import (
     get_met_soiling as get_met_soiling,
@@ -24,13 +24,13 @@ from p01_get_data.source_proximal.s08_qc_combined_data import (
     qc_combined_data as qc_combined_data,
 )
 from p01_get_data.source_proximal.s09_get_inverter_data import (
-    Inverter as Inverter,
+    PvEemInverter as PvEemInverter,
 )
 from p01_get_data.source_proximal.s09_get_module_data import (
     Module as Module,
 )
 from p01_get_data.source_proximal.s09_get_racking_data import (
-    Racking as Racking,
+    PvEemRacking as PvEemRacking,
 )
 from p01_get_data.source_proximal.s10_calc_axis_azimuth import (
     calc_axis_azimuth as calc_axis_azimuth,

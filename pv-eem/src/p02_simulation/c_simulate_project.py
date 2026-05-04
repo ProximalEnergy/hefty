@@ -4,11 +4,11 @@ from collections.abc import Generator
 from interfaces import Indeces, QualityAssurance
 from p01_get_data.class_simulation_inputs import MetDataObserved, SimulationInputs
 from p01_get_data.s00_get_simulation_config import SimulationConfig
-from p01_get_data.source_proximal.s03_get_project import Project
+from p01_get_data.source_proximal.s03_get_project import PvEemProject
 from p01_get_data.source_proximal.s04_get_system_data import System
-from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
+from p01_get_data.source_proximal.s09_get_inverter_data import PvEemInverter
 from p01_get_data.source_proximal.s09_get_module_data import Module
-from p01_get_data.source_proximal.s09_get_racking_data import Racking
+from p01_get_data.source_proximal.s09_get_racking_data import PvEemRacking
 from p02_simulation.p0_meteorological.c_meteorological import MetDataComputed
 from p02_simulation.p1_rotations.c_rotation_angles import RotationAngles
 from p02_simulation.p2_poai.c_poai import PlaneOfArrayIrradiance
@@ -36,15 +36,15 @@ def simulate_project(
     ALBEDO = 0.2  # ratio
 
     # --- Break Apart Inputs ---
-    project: Project = inputs.project
+    project: PvEemProject = inputs.project
     simulation_config: SimulationConfig = inputs.simulation_config
     indeces: Indeces = inputs.indeces
     quality_assurance: QualityAssurance = inputs.quality_assurance
     met_data_observed: MetDataObserved = inputs.met_data
     system: System = inputs.system
     modules: Module = inputs.modules
-    rackings: Racking = inputs.rackings
-    inverters: Inverter = inputs.inverters
+    rackings: PvEemRacking = inputs.rackings
+    inverters: PvEemInverter = inputs.inverters
 
     version: str = inputs.version
     AXIS_AZIMUTH: float = inputs.axis_azimuth

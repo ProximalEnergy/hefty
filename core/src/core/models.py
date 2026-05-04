@@ -492,7 +492,7 @@ class SharedPages(Base):
     __table_args__ = {"schema": "admin"}
 
 
-class NotificationSeverity(Base):
+class NotificationSeverityLookup(Base):
     __tablename__ = "notification_severities"
 
     notification_severity_id: Mapped[int] = mapped_column(
@@ -514,7 +514,7 @@ class NotificationChannel(Base):
     __table_args__ = {"schema": "admin"}
 
 
-class NotificationStateEnum(Base):
+class NotificationStateLookup(Base):
     __tablename__ = "notification_state_enums"
 
     notification_state_enum_id: Mapped[int] = mapped_column(
@@ -1738,7 +1738,7 @@ class DataExpected(Base):
     # NOTE: Timescale Hypertable is created in the alembic migration
 
 
-class DataTimeseries(Base):
+class ProjectDataTimeseries(Base):
     __tablename__ = "data_timeseries"
 
     # NOTE: SQLAlchemy requires at least one primary key for each table.

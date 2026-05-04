@@ -22,9 +22,9 @@ from p00_parse_input.simulation_temporal_mode import SimulationTemporalMode
 from p01_get_data._utils.validation import save_validation_met_data
 from p01_get_data.s00_get_simulation_config import SimulationConfig
 from p01_get_data.source_proximal import (
-    Inverter,
-    Project,
-    Racking,
+    PvEemInverter,
+    PvEemProject,
+    PvEemRacking,
     System,
     calc_axis_azimuth,
     combine_met_and_soiling_data,
@@ -39,7 +39,6 @@ from p01_get_data.source_proximal import (
     qc_times,
 )
 from p01_get_data.source_proximal.s09_get_module_data import Module
-from p01_get_data.source_proximal.s09_get_racking_data import Racking
 
 
 # --- Function ---
@@ -74,7 +73,7 @@ async def from_proximal_db(
     engine = get_db_engine(database_url=database_url)
 
     # --- Project Data ---
-    project: Project = await Project.create(
+    project: PvEemProject = await PvEemProject.create(
         project_name_short=project_name_short,
     )
 
@@ -187,12 +186,12 @@ async def from_proximal_db(
         unique_module_ids = system.module_equipment_id.drop_duplicates()
 
         racking_task = tg.create_task(
-            Racking.get_racking_data(
+            PvEemRacking.get_racking_data(
                 unique_racking_ids=unique_racking_ids,
             )
         )
         inverters_task = tg.create_task(
-            Inverter.get_inverter_data(
+            PvEemInverter.get_inverter_data(
                 unique_inverter_ids=unique_pcs_ids,
             )
         )

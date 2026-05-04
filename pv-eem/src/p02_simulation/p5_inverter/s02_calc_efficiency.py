@@ -3,7 +3,7 @@ from enum import StrEnum
 
 import pvlib
 from interfaces import Indeces, InverterTimeSeries
-from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
+from p01_get_data.source_proximal.s09_get_inverter_data import PvEemInverter
 from p02_simulation._utils.data_combiner import MergeHow, merge_by_dimension
 from p02_simulation.p5_inverter.s01_combine_iv_curves import InverterInputTerminal
 
@@ -30,7 +30,7 @@ class InverterPowerAfterEfficiency:
         model: ModelInverterEfficiency,
         indeces: Indeces,
         iv_inverters: InverterInputTerminal,
-        inverters: Inverter,
+        inverters: PvEemInverter,
     ):
         """Calculate inverter efficiency given:
         - inverter parameters

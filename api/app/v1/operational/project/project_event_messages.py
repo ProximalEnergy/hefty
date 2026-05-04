@@ -144,7 +144,7 @@ class EventMessageCreate(BaseModel):
     private: bool = False
 
 
-class EventMessage(BaseModel):
+class EventMessageInterface(BaseModel):
     """todo"""
 
     event_message_id: int
@@ -160,7 +160,7 @@ class EventMessage(BaseModel):
     private: bool = False
 
 
-class EventMessageImage(BaseModel):
+class EventMessageImageInterface(BaseModel):
     """todo"""
 
     event_message_image_id: UUID
@@ -173,7 +173,7 @@ class EventMessageImage(BaseModel):
     created_at: datetime.datetime
 
 
-class EventChatMute(BaseModel):
+class EventChatMuteInterface(BaseModel):
     """todo"""
 
     event_id: int
@@ -182,7 +182,7 @@ class EventChatMute(BaseModel):
 
 
 # --- Helper Functions ---
-def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessage:
+def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessageInterface:
     """Convert database model to Pydantic schema.
 
     Args:
@@ -193,7 +193,7 @@ def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessage:
     if model.images:
         image_s3_keys = ",".join([img.s3_key for img in model.images])
 
-    return EventMessage(
+    return EventMessageInterface(
         event_message_id=model.event_message_id,
         event_id=model.event_id,
         user_id=model.user_id,
@@ -744,7 +744,7 @@ async def get_event_messages_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: Annotated[int, Query(...)],
-) -> list[EventMessage]:
+) -> list[EventMessageInterface]:
     """Get all non-deleted messages for a specific event.
 
         Query Parameters:
@@ -773,7 +773,7 @@ async def create_event_message_route(
     message: EventMessageCreate,
     background_tasks: BackgroundTasks,
     user_data: Annotated[UserAuthed, Depends(get_user)],
-) -> EventMessage:
+) -> EventMessageInterface:
     """Create a new event message.
 
         - Extracts @mentions from the message body
@@ -876,7 +876,7 @@ async def update_event_message_route(
     event_message_id: int,
     message: EventMessageUpdate,
     user_data: Annotated[UserAuthed, Depends(get_user)],
-) -> EventMessage:
+) -> EventMessageInterface:
     """Update an existing event message.
 
         Validates:
@@ -1000,7 +1000,7 @@ async def delete_event_message_route(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
     user_data: Annotated[UserAuthed, Depends(get_user)],
-) -> EventMessage:
+) -> EventMessageInterface:
     """Delete an existing event message (soft delete).
 
         Validates:

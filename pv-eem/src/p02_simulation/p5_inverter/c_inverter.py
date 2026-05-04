@@ -6,7 +6,7 @@ from interfaces import (
     InverterTimeSeries,
 )
 from p01_get_data.s00_get_simulation_config import SimulationConfig
-from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
+from p01_get_data.source_proximal.s09_get_inverter_data import PvEemInverter
 from p02_simulation.p4_dc_iv.c_dc_iv import PowerAtCombiner
 from p02_simulation.p5_inverter.s00_dc_wiring_to_inverter import InverterDCWires
 from p02_simulation.p5_inverter.s01_combine_iv_curves import InverterInputTerminal
@@ -32,7 +32,7 @@ class InverterPower:
         simulation_config: SimulationConfig,
         indeces: Indeces,
         power_at_combiner: PowerAtCombiner,
-        inverters: Inverter,
+        inverters: PvEemInverter,
         inverter_device_ids: InverterDeviceSeries,
         inverter_equipment_ids: InverterDeviceSeries,
     ):

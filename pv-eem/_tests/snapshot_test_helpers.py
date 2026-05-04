@@ -27,7 +27,7 @@ from interfaces import (
 from p00_parse_input.simulation_temporal_mode import SimulationTemporalMode
 from p01_get_data.class_simulation_inputs import SimulationInputs
 from p01_get_data.s00_get_simulation_config import SimulationConfig
-from p01_get_data.source_proximal.s03_get_project import Project
+from p01_get_data.source_proximal.s03_get_project import PvEemProject
 from p01_get_data.source_proximal.s04_get_system_data import System
 from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
 from p01_get_data.source_proximal.s09_get_module_data import Module
@@ -450,7 +450,7 @@ def read_snapshot_inputs(
     snapshot_metadata = _read_snapshot_metadata(snapshot_name=snapshot_name)
 
     project_data = snapshot_metadata["project"]
-    project = object.__new__(Project)
+    project = object.__new__(PvEemProject)
     project.name_short = project_data["name_short"]
     project.name_long = project_data["name_long"]
     project.data_table = project_data["data_table"]

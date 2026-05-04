@@ -6,8 +6,8 @@ from sqlalchemy import bindparam, text
 
 
 @dataclass(init=False, slots=True)
-class Project:
-    """Project."""
+class PvEemProject:
+    """PvEemProject."""
 
     name_short: str
     name_long: str
@@ -24,7 +24,7 @@ class Project:
         cls,
         *,
         project_name_short: str,
-    ) -> "Project":
+    ) -> "PvEemProject":
         """Load project metadata and build a project instance.
 
         Args:

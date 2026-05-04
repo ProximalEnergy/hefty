@@ -1,5 +1,5 @@
 from interfaces import Indeces, TransformerDeviceSeries, TransformerTimeSeries
-from p01_get_data.source_proximal.s09_get_inverter_data import Inverter
+from p01_get_data.source_proximal.s09_get_inverter_data import PvEemInverter
 from p02_simulation.p5_inverter.c_inverter import InverterPower
 from p02_simulation.p6_transformer.s00_ac_wiring_to_transformer import (
     TransformerWiring,
@@ -26,7 +26,7 @@ class TransformerPower:
         *,
         indeces: Indeces,
         power_at_inverter: InverterPower,
-        inverters: Inverter,
+        inverters: PvEemInverter,
         transformer_device_ids: TransformerDeviceSeries,
         transformer_equipment_ids: TransformerDeviceSeries,
     ):

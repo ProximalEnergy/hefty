@@ -32,7 +32,7 @@ class EventMessageReactionCreate(BaseModel):
     reaction_type: str  # 'thumbs_up', 'eyes', 'question_mark', etc.
 
 
-class EventMessageReaction(BaseModel):
+class EventMessageReactionInterface(BaseModel):
     """todo"""
 
     reaction_id: int
@@ -72,7 +72,7 @@ async def get_event_message_reactions_route(
     ],
     event_message_id: int | None = Query(default=None),
     event_id: int | None = Query(default=None),
-) -> list[EventMessageReaction]:
+) -> list[EventMessageReactionInterface]:
     """Get all reactions for a specific event message or all reactions for an event.
 
         Path Parameters:
@@ -111,7 +111,7 @@ async def get_event_message_reactions_route(
         )
 
     return [
-        EventMessageReaction(
+        EventMessageReactionInterface(
             reaction_id=r.reaction_id,
             event_message_id=r.event_message_id,
             user_id=r.user_id,
@@ -129,7 +129,7 @@ async def toggle_event_message_reaction(
     project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     reaction: EventMessageReactionCreate,
     user_data: Annotated[UserAuthed, Depends(get_user)],
-) -> EventMessageReaction:
+) -> EventMessageReactionInterface:
     """Toggle a reaction on a message (add if not exists, remove if exists).
 
     Request Body:
@@ -184,7 +184,7 @@ async def toggle_event_message_reaction(
         )
         await project_db.commit()
         # Return the deleted reaction info
-        return EventMessageReaction(
+        return EventMessageReactionInterface(
             reaction_id=existing.reaction_id,
             event_message_id=existing.event_message_id,
             user_id=existing.user_id,
@@ -210,7 +210,7 @@ async def toggle_event_message_reaction(
 
         await project_db.commit()
 
-        return EventMessageReaction(
+        return EventMessageReactionInterface(
             reaction_id=reaction_id,
             event_message_id=event_message_id,
             user_id=user_id,
