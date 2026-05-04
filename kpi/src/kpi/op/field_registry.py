@@ -21,6 +21,7 @@ class FieldRegistryMetaclass(type):
         This method is called before __new__.
         It must return a dictionary-like object that will store the class attributes.
         """
+        del metacls, bases, kwds
         return SetFieldNameDict()
 
 

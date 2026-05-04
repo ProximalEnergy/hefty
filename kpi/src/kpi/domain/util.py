@@ -3,10 +3,8 @@ from typing import SupportsFloat
 
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import NEW_NAME, TIME_DESCRIPTOR, TimeCoord
 from kpi.base.exception import ValidationError
-from kpi.base.util import coord
 from kpi.base.warning import ValidationWarning
 
 
@@ -190,28 +188,6 @@ def fill_na_with_arrays(*args: xr.DataArray | None) -> xr.DataArray:
 def sum_arrays(*args: xr.DataArray | None) -> xr.DataArray:
     concat = xr.concat([arg for arg in args if arg is not None], dim="temp")
     return concat.sum(dim="temp", min_count=1)
-
-
-def infer_device_dim(x: xr.DataArray) -> str:
-    device_coords = {coord(device_type) for device_type in DeviceTypeEnum}
-    device_dims = [
-        dim for dim in x.dims if isinstance(dim, str) and dim in device_coords
-    ]
-    if len(device_dims) > 1:
-        raise ValueError(f"Multiple device dimensions found: {device_dims}")
-    if len(device_dims) == 0:
-        raise ValueError("No device dimension found")
-    return device_dims[0]
-
-
-def infer_time_dim(x: xr.DataArray) -> str:
-    time_coords = {time_coord.value for time_coord in TimeCoord}
-    time_dims = [dim for dim in x.dims if isinstance(dim, str) and dim in time_coords]
-    if len(time_dims) > 1:
-        raise ValueError(f"Multiple time dimensions found: {time_dims}")
-    if len(time_dims) == 0:
-        raise ValueError("No time dimension found")
-    return time_dims[0]
 
 
 def is_empty(x: xr.DataArray) -> bool:

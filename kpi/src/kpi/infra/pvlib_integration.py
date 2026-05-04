@@ -11,9 +11,6 @@ from pvlib import (  # type: ignore
     location,
     tracking,
 )
-from shapely import wkb  # type: ignore
-
-from core import models
 
 
 def get_solar_position(
@@ -47,22 +44,6 @@ def get_tracker_angles(
     tracking_df["surface_azimuth"] = tracking_df["surface_azimuth"].fillna(0)
 
     return tracking_df
-
-
-def get_location(project: models.Project) -> location.Location:
-    """Extract location from project's WKBElement point geometry."""
-    # Extract lat/long from WKBElement point
-    geometry = wkb.loads(project.point.desc)  # type: ignore
-    latitude = geometry.y
-    longitude = geometry.x
-
-    return location.Location(
-        name=project.name_long,
-        latitude=latitude,
-        longitude=longitude,
-        altitude=project.elevation or 0.0,
-        tz=project.time_zone,
-    )
 
 
 def get_clear_sky(

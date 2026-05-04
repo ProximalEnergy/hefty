@@ -700,6 +700,11 @@ uv run --project "${ROOT_DIR}/kpi" --directory "${ROOT_DIR}/kpi" --dev -- \
   pytest tests
 """
 
+[tasks."kpi:deptry"]
+description = "Run deptry for KPI"
+dir = "kpi"
+run = "uv run deptry ."
+
 [tasks."api:check"]
 description = "Run all quality checks for api"
 dir = "api"

@@ -61,19 +61,6 @@ class KPIDataRow(BaseModel):
     }
 
 
-def validate_kpi_device_data_json(device_data_json: dict) -> dict:
-    """
-    Validate and transform the KPI device data JSON into a DeviceDataObj model.
-
-    Args:
-        device_data_json (dict): The device data in JSON format to be validated.
-
-    Returns:
-        dict: A dictionary representation of the validated DeviceDataObj model.
-    """
-    return DeviceDataJson.model_validate(device_data_json).model_dump()
-
-
 write_to_db = True
 
 

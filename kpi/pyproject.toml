@@ -5,11 +5,14 @@ description = "Add your description here"
 authors = [{ name = "David Kyle", email = "dkpollster@gmail.com" }]
 requires-python = ">=3.12.8, <3.13"
 dependencies = [
+    "asyncpg~=0.30",
     "bottleneck~=1.6",
     "core",
     "flox~=0.10",
     "greenlet~=3.3",
+    "numpy~=2.4",
     "pandas~=3.0",
+    "polars~=1.39",
     "psycopg2-binary~=2.9",
     "pvlib~=0.13",
     "pyarrow~=23.0",
@@ -18,6 +21,7 @@ dependencies = [
     "requests>=2.33.1,<3",
     "sentry-sdk~=2.0",
     "shapely~=2.0",
+    "sqlalchemy~=2.0.41",
     "xarray~=2026.2",
 ]
 
@@ -30,6 +34,7 @@ packages = ["src/kpi"]
 
 [dependency-groups]
 dev = [
+    "deptry~=0.25",
     "h5netcdf~=1.8.0",
     "ipykernel~=7.2.0",
     "jupyter~=1.1.0",
@@ -40,10 +45,10 @@ dev = [
     "notebook~=7.5.0",
     "pandas-stubs~=3.0",
     "plotly~=6.6.0",
-    "poethepoet~=0.43.0",
     "pytest~=9.0",
     "types-psycopg2==2.9.21.20260223",
     "types-requests>=2.33.0.20260408",
+    "vulture>=2.16,<3",
 ]
 
 [[tool.uv.index]]
@@ -54,42 +59,6 @@ explicit = true
 [tool.uv.sources]
 core = { path = "../core", editable = true }
 
-
-# --- POE TASKS ---
-# Shell typoe tasks
-
-[tool.poe.tasks]
-# Release
-freeze = "uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes --quiet"
-_add = "git add ."
-_commit = "git commit -m 'Release'"
-_push = "git push"
-_tag = { "shell" = """
-    VERSION=$(python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['version'])")
-    git tag "v$VERSION"
-    git push origin "v$VERSION"
-    """ }
-
-[tool.poe.tasks.uv]
-cmd = "./_scripts/uv_wrapper.sh"
-executor = { type = "simple" }
-
-[tool.poe.tasks.release]
-sequence = ["freeze", "bump", "_add", "_commit", "_push", "_tag"]
-
-[[tool.poe.tasks.release.args]]
-name = "level"
-help = "version level to bump (patch, minor, major)"
-positional = true
-
-[tool.poe.tasks.bump]
-shell = "uv version --bump ${level:-patch}"
-help = "Bump version level (patch, minor, major)"
-
-[[tool.poe.tasks.bump.args]]
-name = "level"
-help = "version level to bump (patch, minor, major)"
-positional = true
 
 # =============================================================================
 # MYPY CONFIGURATION
@@ -117,3 +86,7 @@ extraPaths = ["../core/src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.deptry]
+known_first_party = ["kpi"]
+per_rule_ignores = { DEP002 = ["bottleneck", "flox", "greenlet", "pyarrow"] }

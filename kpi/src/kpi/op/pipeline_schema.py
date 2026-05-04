@@ -14,6 +14,7 @@ class Schema:
         self._name: str | None = None
 
     def __set_name__(self, owner: type, name: str) -> None:
+        del owner
         self._name = name
 
     @property
@@ -29,6 +30,7 @@ class Schema:
     def __get__(self, instance: object, owner: type) -> SchemaProtocol: ...
 
     def __get__(self, instance: object | None, owner: type) -> SchemaProtocol | Self:
+        del owner
         if instance is None:
             return self
 

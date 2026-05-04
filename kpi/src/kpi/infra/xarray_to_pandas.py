@@ -29,16 +29,6 @@ def xarray_device_time_series_to_pandas(x: xr.DataArray) -> pd.DataFrame:
     return x.transpose(time_dim.value, device_dim.name.lower()).to_pandas()  # type: ignore
 
 
-def xarray_device_attributes_to_pandas(x: xr.DataArray) -> pd.Series:
-    if len(x.dims) > 1:
-        raise ValueError(
-            f"Too many dimensions for device attributes: {x.dims} in "
-            f"xr.DataArray {x.name}"
-        )
-    device_dim = get_device_dimension(x)
-    return x.transpose(device_dim.name.lower()).to_pandas()  # type: ignore
-
-
 def xarray_time_series_to_pandas(x: xr.DataArray) -> pd.Series:
     if len(x.dims) > 1:
         raise ValueError(

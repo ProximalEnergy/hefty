@@ -159,6 +159,7 @@ class use_observer[T: ObserverProtocol]:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        del exc_type, exc_val, exc_tb
         _current_observer.reset(self.token)
 
 

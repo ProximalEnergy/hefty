@@ -1279,6 +1279,7 @@ fi
 
 if [ "${RUN_KPI}" = "true" ]; then
     add_check "KPI: Mypy" "mise run kpi:mypy"
+    add_check "KPI: Unused Import Check" "mise run kpi:deptry"
     add_check "KPI: Pytest" "mise run kpi:pytest"
 fi
 

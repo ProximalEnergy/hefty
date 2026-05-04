@@ -45,5 +45,3 @@ class DownloadTenaskaGenerator(FieldRegistry[TenaskaModel]):
     real_time_ercot_contingency_reserve_imbalance_raw_usd_15m = tenaska_field(
         "RTECRIMBAMT", scale=-1
     )
-
-    time_weighted_telemetered_generation_raw_mwh_15m = tenaska_field("TWTG")
