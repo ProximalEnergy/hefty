@@ -6,9 +6,8 @@ import sqlalchemy
 from p01_get_data.s00_get_simulation_config import SimulationConfig
 from p02_simulation.p3_epoai.s05_soiling import ModelSoiling
 from p02_simulation.p4_dc_iv.s04_iv_2_warranted_degradation import ModelDegradation
-from p03_export._utils import generate_random_string
 from p03_export.s00_simulation_level import SimulationLevel
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 
 
@@ -146,16 +145,19 @@ def upload_to_proximal_db(
 
         # --- SQL ---
         with engine.connect() as conn:
-            # Create temp table in the public schema
-            random_string = generate_random_string()
-            temp_table = f"temp_data_expected_{project_name_short}_{random_string}"
-            temp_table = temp_table.lower()  # Force lower for PostgreSQL
+            # Create a session-scoped TEMP TABLE (auto-drops on connection close)
+            temp_table = "temp_data_expected"
+            conn.execute(
+                text(
+                    f"CREATE TEMP TABLE {temp_table} "
+                    f"(LIKE {project_name_short}.data_expected INCLUDING DEFAULTS)"
+                )
+            )
 
             df.to_sql(
                 temp_table,
                 con=conn,
-                schema="public",
-                if_exists="replace",
+                if_exists="append",
                 index=False,
             )
 
@@ -169,7 +171,6 @@ def upload_to_proximal_db(
             temp_table_ref = sqlalchemy.Table(
                 temp_table,
                 metadata,
-                schema="public",
                 autoload_with=conn,
             )
             insert_columns = [
@@ -203,12 +204,8 @@ def upload_to_proximal_db(
                 },
             )
 
-            # Perform insert using the temp table
+            # Perform insert using the temp table (temp table auto-drops on close)
             conn.execute(upsert_stmt)
-            conn.commit()
-
-            # Clean up temp table
-            temp_table_ref.drop(bind=conn, checkfirst=True)
             conn.commit()
 
             # --- Logging ---
