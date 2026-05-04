@@ -294,11 +294,15 @@ async def get_paginated_events_route(
         int(e["root_cause_id"]) for e in event_objs if e["root_cause_id"] is not None
     ]
 
-    root_causes = await core_get_root_causes(
-        root_cause_ids=root_cause_ids or [],
-    ).get_async(output_type=OutputType.SQLALCHEMY)
-
-    root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
+    root_cause_id_to_name = {}
+    if root_cause_ids:
+        root_causes = await core_get_root_causes(
+            root_cause_ids=root_cause_ids,
+        ).get_async(output_type=OutputType.POLARS)
+        if root_causes is not None and not root_causes.is_empty():
+            root_cause_id_to_name = dict(
+                zip(root_causes["root_cause_id"], root_causes["name_long"])
+            )
 
     # Devices and types
     project_schema = utils.get_project_schema(project_db=project_db)
