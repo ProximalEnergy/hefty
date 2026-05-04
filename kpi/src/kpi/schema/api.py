@@ -5,11 +5,11 @@ from kpi.op.transform.schema import CalcSchema
 from kpi.op.upload import UploadSchema
 from kpi.registry.transform.api import Transform, get_transform
 from kpi.registry.upload.api import UPLOAD
-from kpi.schema.download import Download
+from kpi.schema.download import DownloadSchema
 
 
 class BasePipeline(PipelineSchema):
-    download = Schema(Download())
+    download = Schema(DownloadSchema())
     transform = Schema(CalcSchema(map=Transform.map()))
     upload = Schema(UploadSchema(map=UPLOAD))
 

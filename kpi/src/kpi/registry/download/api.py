@@ -6,7 +6,7 @@ from kpi.registry.download.sensor.api import DownloadSensor
 from kpi.registry.download.status import DownloadStatus
 
 
-class Download(
+class DownloadRegistry(
     DownloadStatus,
     DownloadSensor,
     DownloadProjectAttribute,

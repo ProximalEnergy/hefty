@@ -13,7 +13,7 @@ from kpi.registry.download.sensor.api import DownloadSensor
 from kpi.registry.download.status import DownloadStatus
 
 
-class Download(PipelineSchema):
+class DownloadSchema(PipelineSchema):
     download_event = Schema(EventSchema(map=DownloadEvent.map()))
     download_expected_energy = Schema(
         ExpectedEnergySchema(map=DownloadExpectedEnergy.map())

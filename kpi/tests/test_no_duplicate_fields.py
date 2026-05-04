@@ -1,7 +1,7 @@
 """Registry guards for duplicate field and upload keys."""
 
 # ruff: noqa: I001
-from kpi.registry.download.api import Download  # pyright: ignore[reportMissingImports]
+from kpi.registry.download.api import DownloadRegistry  # pyright: ignore[reportMissingImports]
 from kpi.registry.transform.api import Transform  # pyright: ignore[reportMissingImports]
 from kpi.registry.upload.api import UPLOAD  # pyright: ignore[reportMissingImports]
 
@@ -9,7 +9,7 @@ from kpi.registry.upload.api import UPLOAD  # pyright: ignore[reportMissingImpor
 def test_no_duplicate_transform_download_fields() -> None:
     """Building Transform+Download map should not raise duplicate errors."""
 
-    class DownloadTransform(Transform, Download):
+    class DownloadTransform(Transform, DownloadRegistry):
         pass
 
     mapping = DownloadTransform.map()
