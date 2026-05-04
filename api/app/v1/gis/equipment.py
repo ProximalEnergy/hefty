@@ -752,7 +752,7 @@ async def utility_expected(
         int(typing.cast(int, dev.device_id)): dev for dev in devices
     }
 
-    first_device_type_id = devices[0].device_type_id
+    first_device_type_id = typing.cast(int, devices[0].device_type_id)
     if not all(d.device_type_id == first_device_type_id for d in devices):
         raise HTTPException(
             status_code=422,
@@ -953,7 +953,7 @@ async def utility_expected(
                     status_code=422,
                     detail=(
                         f"Combiner {dev_id} has unexpected parent device type "
-                        f"{parent_device.device_type_id}."
+                        f"{typing.cast(int, parent_device.device_type_id)}."
                     ),
                 )
 

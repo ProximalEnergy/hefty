@@ -1554,7 +1554,7 @@ def section_no_events_overview(
 
 def section_generation_and_consumption_overview(
     *, doc, styles, generation_hourly, consumption_hourly
-):
+) -> list[Any]:
     """Create net energy flow overview section.
 
     Args:
@@ -1613,19 +1613,19 @@ def section_generation_and_consumption_overview(
         min_val = None
         max_val = None
 
-    def format_col(*, col_val):
+    def format_col(*, col_val: Any) -> str:
         try:
             col_int = int(col_val)
         except (TypeError, ValueError):
             return str(col_val)
         return f"{col_int:02d}:00"
 
-    def format_idx(*, idx_val):
+    def format_idx(*, idx_val: Any) -> str:
         if isinstance(idx_val, (datetime.datetime, datetime.date)):
             return pd.Timestamp(idx_val).strftime("%b %d")
         return str(idx_val)
 
-    def format_val(*, raw_val):
+    def format_val(*, raw_val: Any) -> str:
         if pd.isna(raw_val):
             return "—"
         return f"{raw_val:.2f}"
