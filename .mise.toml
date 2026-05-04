@@ -60,8 +60,7 @@ uv sync --directory kpi && \
 (
   mise run web:install || \
   mise run web:install --non-strict
-) && \
-mise run web:plotly
+)
 """
 
 [tasks.sync-deps-if-lock-changed]
@@ -608,7 +607,7 @@ import sys
 
 src = pathlib.Path(sys.argv[1]).read_text()
 dst = pathlib.Path(sys.argv[2])
-pattern = r"^plugins\\.s*=\\.s*\\.[\\.\\.sqlalchemy\\..ext\\..mypy\\..plugin\\.\\.\\.]\\.n?"
+pattern = r"^plugins\\s*=\\s*\\[.*sqlalchemy.*mypy.*plugin.*\\]\\n?"
 dst.write_text(re.sub(pattern, "", src, flags=re.MULTILINE))
 ' "${ROOT_MYPY_CONFIG}" "${mypy_config}"
   fi

@@ -18,6 +18,7 @@ concurrency:
 permissions:
   id-token: write
   contents: read
+  pull-requests: read
 
 jobs:
   pyproject-deps:
@@ -110,7 +111,31 @@ jobs:
       - name: Run ast-grep star-syntax check
         run: ./_scripts/ast_grep_check.sh microservices
 
-  mypy:
+  detect-microservice-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      calendar_notifications_lambda: ${{ steps.changes.outputs.calendar_notifications_lambda }}
+      data_connection_outage_notifications_lambda: ${{ steps.changes.outputs.data_connection_outage_notifications_lambda }}
+      kpi_pipeline_fetcher: ${{ steps.changes.outputs.kpi_pipeline_fetcher }}
+      weather_alerts_lambda: ${{ steps.changes.outputs.weather_alerts_lambda }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            calendar_notifications_lambda:
+              - 'microservices/calendar_notifications_lambda/**'
+            data_connection_outage_notifications_lambda:
+              - 'microservices/data_connection_outage_notifications_lambda/**'
+            kpi_pipeline_fetcher:
+              - 'microservices/kpi-pipeline-fetcher/**'
+            weather_alerts_lambda:
+              - 'microservices/weather_alerts_lambda/**'
+
+  mypy-calendar-notifications-lambda:
+    needs: detect-microservice-changes
+    if: needs.detect-microservice-changes.outputs.calendar_notifications_lambda == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -142,31 +167,143 @@ jobs:
       - name: install root project
         run: uv sync
 
-      - name: run mypy per microservice from root config
+      - name: run mypy for calendar_notifications_lambda
         run: |
-          set -euo pipefail
           ROOT_DIR="${PWD}"
+          SERVICE_DIR="${ROOT_DIR}/microservices/calendar_notifications_lambda"
+          uv run --project "${ROOT_DIR}" \
+            --directory "${SERVICE_DIR}" \
+            --with-editable "${SERVICE_DIR}" \
+            mypy --config-file "${ROOT_DIR}/pyproject.toml" .
 
-          for service_dir in "${ROOT_DIR}"/microservices/*; do
-            [ -d "${service_dir}" ] || continue
-            service_name="$(basename "${service_dir}")"
+  mypy-data-connection-outage-notifications-lambda:
+    needs: detect-microservice-changes
+    if: needs.detect-microservice-changes.outputs.data_connection_outage_notifications_lambda == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
 
-            case "${service_name}" in
-              _*) continue ;;
-            esac
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
+          aws-region: us-east-2
 
-            echo "Running mypy for microservice: ${service_name}"
+      - name: Authenticate with AWS CodeArtifact
+        run: |
+          AWS_CODEARTIFACT_TOKEN=$(
+            aws codeartifact get-authorization-token \
+              --domain proximal-code-artifact-domain \
+              --region us-east-2 \
+              --query authorizationToken \
+              --output text
+          )
+          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" \
+            >> $GITHUB_ENV
 
-            if [ ! -f "${service_dir}/pyproject.toml" ]; then
-              echo "Skipping ${service_name}: no pyproject.toml found"
-              continue
-            fi
+      - name: install root project
+        run: uv sync
 
-            uv run --project "${ROOT_DIR}" \
-              --directory "${service_dir}" \
-              --with-editable "${service_dir}" \
-              mypy --config-file "${ROOT_DIR}/pyproject.toml" .
-          done
+      - name: run mypy for data_connection_outage_notifications_lambda
+        run: |
+          ROOT_DIR="${PWD}"
+          SERVICE_DIR="${ROOT_DIR}/microservices/data_connection_outage_notifications_lambda"
+          uv run --project "${ROOT_DIR}" \
+            --directory "${SERVICE_DIR}" \
+            --with-editable "${SERVICE_DIR}" \
+            mypy --config-file "${ROOT_DIR}/pyproject.toml" .
+
+  mypy-kpi-pipeline-fetcher:
+    needs: detect-microservice-changes
+    if: needs.detect-microservice-changes.outputs.kpi_pipeline_fetcher == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
+          aws-region: us-east-2
+
+      - name: Authenticate with AWS CodeArtifact
+        run: |
+          AWS_CODEARTIFACT_TOKEN=$(
+            aws codeartifact get-authorization-token \
+              --domain proximal-code-artifact-domain \
+              --region us-east-2 \
+              --query authorizationToken \
+              --output text
+          )
+          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" \
+            >> $GITHUB_ENV
+
+      - name: install root project
+        run: uv sync
+
+      - name: run mypy for kpi-pipeline-fetcher
+        run: |
+          ROOT_DIR="${PWD}"
+          SERVICE_DIR="${ROOT_DIR}/microservices/kpi-pipeline-fetcher"
+          uv run --project "${ROOT_DIR}" \
+            --directory "${SERVICE_DIR}" \
+            --with-editable "${SERVICE_DIR}" \
+            mypy --config-file "${ROOT_DIR}/pyproject.toml" .
+
+  mypy-weather-alerts-lambda:
+    needs: detect-microservice-changes
+    if: needs.detect-microservice-changes.outputs.weather_alerts_lambda == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
+          aws-region: us-east-2
+
+      - name: Authenticate with AWS CodeArtifact
+        run: |
+          AWS_CODEARTIFACT_TOKEN=$(
+            aws codeartifact get-authorization-token \
+              --domain proximal-code-artifact-domain \
+              --region us-east-2 \
+              --query authorizationToken \
+              --output text
+          )
+          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" \
+            >> $GITHUB_ENV
+
+      - name: install root project
+        run: uv sync
+
+      - name: run mypy for weather_alerts_lambda
+        run: |
+          ROOT_DIR="${PWD}"
+          SERVICE_DIR="${ROOT_DIR}/microservices/weather_alerts_lambda"
+          uv run --project "${ROOT_DIR}" \
+            --directory "${SERVICE_DIR}" \
+            --with-editable "${SERVICE_DIR}" \
+            mypy --config-file "${ROOT_DIR}/pyproject.toml" .
 
   docstring-args:
     runs-on: ubuntu-latest
