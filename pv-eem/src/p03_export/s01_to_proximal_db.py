@@ -1,4 +1,6 @@
 import logging
+import random
+import string
 from enum import Enum
 
 import pandas as pd
@@ -9,6 +11,11 @@ from p02_simulation.p4_dc_iv.s04_iv_2_warranted_degradation import ModelDegradat
 from p03_export.s00_simulation_level import SimulationLevel
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
+
+
+def _generate_temp_table_name() -> str:
+    suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=16))
+    return f"temp_data_expected_{suffix}"
 
 
 class ExpectedMetricId(Enum):
@@ -145,8 +152,11 @@ def upload_to_proximal_db(
 
         # --- SQL ---
         with engine.connect() as conn:
-            # Create a session-scoped TEMP TABLE (auto-drops on connection close)
-            temp_table = "temp_data_expected"
+            # Unique name prevents collisions when parallel Lambda invocations
+            # share a session via a connection pooler (e.g. RDS Proxy).
+            # TEMP TABLE auto-drops on session close; we also drop explicitly
+            # after the upsert so the name is freed within long-lived sessions.
+            temp_table = _generate_temp_table_name()
             conn.execute(
                 text(
                     f"CREATE TEMP TABLE {temp_table} "
@@ -204,8 +214,10 @@ def upload_to_proximal_db(
                 },
             )
 
-            # Perform insert using the temp table (temp table auto-drops on close)
+            # Perform upsert then immediately drop the temp table so the
+            # unique name is freed within long-lived / pooled sessions.
             conn.execute(upsert_stmt)
+            conn.execute(text(f"DROP TABLE {temp_table}"))
             conn.commit()
 
             # --- Logging ---
