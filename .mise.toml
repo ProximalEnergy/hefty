@@ -6,6 +6,7 @@ gh = "2.91.0"
 awscli = "2.34.31"
 ripgrep = "15.1.0"
 ast-grep = "0.42.1"
+pnpm = "10.33.2"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
@@ -66,8 +67,8 @@ mise run web:plotly
 [tasks.sync-deps-if-lock-changed]
 description = "Run sync-deps when dependency manifests change"
 run = """
-LOCKFILE_PATTERN='^(uv\\.lock|core/uv\\.lock|\
-web-app/package\\.json|web-app/pnpm-lock\\.yaml)$'
+LOCKFILE_PATTERN='^(uv\\..lock|core/uv\\..lock|\
+web-app/package\\..json|web-app/pnpm-lock\\..yaml)$'
 
 BASE_REF=""
 if git show-ref --verify --quiet refs/remotes/origin/dev; then
@@ -228,6 +229,25 @@ if [ -f package.json ] || [ -f package-lock.json ] || \
 fi
 echo "No JS manifests or lockfiles found in the root directory."
 """
+[tasks."root:pnpm_version_sync"]
+description = "Check that pnpm version in .mise.toml matches packageManager in web-app/package.json"
+dir = "."
+run = """
+#!/usr/bin/env bash
+MISE_PNPM_VERSION=$(mise current pnpm)
+PKG_PNPM_VERSION=$(cat web-app/package.json | grep '"packageManager"' | grep -o 'pnpm@[0-9]*\\.[0-9]*\\.[0-9]*' | cut -d'@' -f2 || true)
+
+if [ "$MISE_PNPM_VERSION" != "$PKG_PNPM_VERSION" ]; then
+    echo "❌ pnpm version mismatch!"
+    echo ".mise.toml: $MISE_PNPM_VERSION"
+    echo "web-app/package.json: $PKG_PNPM_VERSION"
+    echo "Run 'mise run upgrade-node-pnpm' to sync them, or manually update web-app/package.json"
+    exit 1
+fi
+echo "✅ pnpm versions match ($MISE_PNPM_VERSION)"
+"""
+
+
 
 [tasks."root:pyproject_dependencies"]
 description = "Check for undeclared or mismatched dependencies in pyproject.toml"
@@ -300,11 +320,11 @@ if ! DIFF_FILES="$(./_scripts/diff_files_vs_dev.sh "${BASE_REF}")"; then
   exit 2
 fi
 
-printf '%s\n' "${DIFF_FILES}" | while IFS= read -r file; do
+printf '%s\\.' "${DIFF_FILES}" | while IFS= read -r file; do
   case "${file}" in
     *.py|*.ts|*.tsx)
       if [ -f "${file}" ]; then
-        printf '%s\n' "${file}"
+        printf '%s\\.' "${file}"
       fi
       ;;
   esac
@@ -588,7 +608,7 @@ import sys
 
 src = pathlib.Path(sys.argv[1]).read_text()
 dst = pathlib.Path(sys.argv[2])
-pattern = r"^plugins\\s*=\\s*\\[\\\"sqlalchemy\\.ext\\.mypy\\.plugin\\\"\\]\\n?"
+pattern = r"^plugins\\.s*=\\.s*\\.[\\.\\.sqlalchemy\\..ext\\..mypy\\..plugin\\.\\.\\.]\\.n?"
 dst.write_text(re.sub(pattern, "", src, flags=re.MULTILINE))
 ' "${ROOT_MYPY_CONFIG}" "${mypy_config}"
   fi
@@ -642,7 +662,7 @@ run = "uv run _scripts/check_docstring_args.py microservices"
 [tasks."api:check-core-source"]
 description = "Show the configured core source for API"
 dir = "api"
-run = "grep -A 1 '\\[tool.uv.sources\\]' pyproject.toml | grep core"
+run = "grep -A 1 '\\.[tool.uv.sources\\.]' pyproject.toml | grep core"
 
 [tasks."api:sync"]
 description = "Sync API dependencies and lockfile"

@@ -1161,6 +1161,7 @@ RUN_PVEEM=false
 RUN_ROOT=false
 CORE_CHANGED=false
 ROOT_PYPROJECT_CHANGED=false
+PACKAGE_JSON_CHANGED=false
 
 RUN_CORE_WARNINGS=false
 RUN_WEB_WARNINGS=false
@@ -1184,6 +1185,10 @@ if [ "${RUN_ALL}" = "false" ]; then
     if diff_has '^kpi/'; then
         RUN_KPI=true
     fi
+    if diff_has '^web-app/package\.json$'; then
+        PACKAGE_JSON_CHANGED=true
+    fi
+
     if diff_has '^web-app/'; then
         RUN_WEB=true
     fi
@@ -1308,6 +1313,10 @@ if [ "${RUN_ROOT}" = "true" ]; then
     add_check "Root: Pyproject Dependency Check" \
         "mise run root:pyproject_dependencies"
     add_db_check "Root: Codegen" "mise run root:codegen"
+    if [ "${RUN_ALL}" = "true" ] || [ "${ROOT_PYPROJECT_CHANGED}" = "true" ] || [ "${PACKAGE_JSON_CHANGED}" = "true" ]; then
+        add_check "Root: pnpm Version Sync" "mise run root:pnpm_version_sync"
+    fi
+
 fi
 
 # Global checks

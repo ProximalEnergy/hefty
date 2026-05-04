@@ -6,12 +6,24 @@ on:
     paths:
       - "web-app/**"
       - ".github/workflows/web-app-pr-checks.yml"
+      - ".mise.toml"
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  pnpm_version_sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+      - name: Check pnpm version sync
+        run: mise run root:pnpm_version_sync
+
   deprecation_checker:
     runs-on: ubuntu-latest
     steps:
