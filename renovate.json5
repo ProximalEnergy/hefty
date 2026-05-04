@@ -31,6 +31,10 @@
     },
     // =========== Group Upgrades by Service ============
     {
+      matchFileNames: ["pyproject.toml"],
+      groupName: "root",
+    },
+    {
       matchFileNames: ["api/**"],
       groupName: "api",
     },
