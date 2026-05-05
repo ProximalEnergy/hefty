@@ -33,7 +33,11 @@ router = APIRouter(
 
 
 def _extract_numeric_value_from_row(*, row) -> float | None:
-    """Return the first non-NULL numeric column from a DataFrame row (named tuple)."""
+    """Return the first non-NULL numeric column from a DataFrame row (named tuple).
+
+    Args:
+        row: Named tuple row from a DataFrame iteration with numeric value columns.
+    """
     # todo: unit_offset is not applied in this function however it should probably be
     # applied in the get_data_timeseries_latest_by_device_type function instead
     for attr in (

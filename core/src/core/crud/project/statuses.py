@@ -182,7 +182,11 @@ def get_status_tags(
 def get_status_name_from_tag_id(*, tag_ids: list[int]):
     """Get status name(s) for a list of tag ids.
 
-    Returns rows: (tag_id, name_long)
+    Args:
+        tag_ids: List of tag IDs to look up status names for.
+
+    Returns:
+        Rows of (tag_id, name_long).
     """
     t = models.Tag
     d = models.Device
@@ -430,6 +434,16 @@ def get_last_known_statuses_query(
     - lookup_id (coalesced from status_binary_id, status_string_id, status_boolean_id)
     - lookup_table_name (calculated from status_binary_id,
         status_string_id, status_boolean_id)
+
+    Args:
+        device_type_ids: Filter results to tags belonging to devices of
+            these device type IDs. No filter applied if None.
+        sensor_type_ids: Filter results to tags matching these sensor
+            type IDs. No filter applied if None.
+        tag_ids: Filter results to these specific tag IDs. No filter
+            applied if None.
+        device_ids: Filter results to tags belonging to these device
+            IDs. No filter applied if None.
     """
 
     dtl = models.DataTimeseriesLast
@@ -632,11 +646,16 @@ async def get_last_known_statuses(
 def _interpret_binary_statuses(
     *, binary_df: pd.DataFrame, status_binary_df: pd.DataFrame
 ) -> pd.DataFrame:
-    """
-    binary_df columns required:
-      - lookup_id  (status_binary_id)
-      - value      (int-like or string that can be int)
-    Adds/returns columns:
+    """Interpret binary status values and annotate each row with status/alert.
+
+    Args:
+        binary_df: Rows to interpret; must have ``lookup_id``
+            (status_binary_id) and ``value`` (int-like) columns.
+        status_binary_df: Lookup table with columns ``status_binary_id``,
+            ``bit_position``, ``description``, ``state_true``,
+            ``state_false``, ``nominal_state``, and ``failure_mode_id``.
+
+    Returns columns added/set on the result:
       - status (comma-separated string)
       - alert (bool)
     """
@@ -771,8 +790,13 @@ def _interpret_binary_statuses(
 def _detect_binary_alerts(
     *, binary_df: pd.DataFrame, status_binary_df: pd.DataFrame
 ) -> pd.Series:
-    """
-    Returns a boolean Series aligned to binary_df.index indicating alert=True rows.
+    """Return a boolean Series indicating which rows in binary_df are alert=True.
+
+    Args:
+        binary_df: Rows to evaluate; must have ``lookup_id`` and
+            ``value`` columns.
+        status_binary_df: Lookup table with at minimum ``status_binary_id``,
+            ``bit_position``, and ``nominal_state`` columns.
     """
 
     if binary_df.empty:
@@ -835,21 +859,12 @@ def _detect_binary_alerts(
 
 
 def _to_frontend_status_payload(*, df: pd.DataFrame) -> list[dict]:
-    """
-    Input df columns expected (at minimum):
-      - device_id
-      - time
-      - status  (list[str] per row)
-      - alert (bool per row)
+    """Convert a flat status DataFrame to the frontend payload structure.
 
-    Output:
-      [
-        {
-          "device_id": ...,
-          "statuses": [{"time": "...", "status": "..."}, ...]
-        },
-        ...
-      ]
+    Args:
+        df: DataFrame with at minimum ``device_id``, ``time``,
+            ``status`` (list[str] per row), and ``alert`` (bool)
+            columns.
     """
     if df.empty:
         return []
@@ -862,7 +877,11 @@ def _to_frontend_status_payload(*, df: pd.DataFrame) -> list[dict]:
     df2 = df[["device_id", "time", "status", "alert"]].copy()
 
     def _normalize_device_id(*, raw: Any) -> int | None:
-        """Convert device identifier to optional int for response payload."""
+        """Convert device identifier to optional int for response payload.
+
+        Args:
+            raw: Raw device identifier value (may be NaN, None, or numeric).
+        """
         if raw is None or pd.isna(raw):
             return None
         try:

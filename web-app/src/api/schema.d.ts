@@ -17363,6 +17363,7 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
+                authorization?: string;
             };
             path: {
                 project_id: string;

@@ -1,0 +1,56 @@
+id: fastapi-project-id-requires-access
+message: >-
+  Routes with {project_id} in the path must include
+  check_project_access_async in the decorator.
+severity: error
+language: Python
+rule:
+  all:
+    # Match a decorated function definition that has a FastAPI route decorator
+    # containing {project_id} in the path
+    - kind: decorated_definition
+    - has:
+        all:
+          - any:
+              # Matches both @router.get('/x/{project_id}') and
+              # @router.get('/x/{project_id}', response_model=...) because
+              # $$$ARGS with a leading comma only matches when a comma is
+              # present. Using $$$  (whole arg list) covers both forms.
+              - pattern: "@$OBJ.get($$$)"
+              - pattern: "@$OBJ.post($$$)"
+              - pattern: "@$OBJ.put($$$)"
+              - pattern: "@$OBJ.delete($$$)"
+              - pattern: "@$OBJ.patch($$$)"
+              - pattern: "@$OBJ.options($$$)"
+              - pattern: "@$OBJ.head($$$)"
+              - pattern: "@$OBJ.route($$$)"
+              - pattern: "@$OBJ.api_route($$$)"
+          - regex: "\\{project_id\\}"
+    # Not already guarded in the decorator or function signature
+    - not:
+        has:
+          regex: "check_project_access_async"
+    # Not in a file whose module-level APIRouter already applies the guard
+    # (uses regex in `follows` because pattern doesn't traverse sibling
+    # statements reliably at this level)
+    - not:
+        follows:
+          stopBy: end
+          all:
+            - regex: "APIRouter"
+            - regex: "check_project_access_async"
+---
+id: fastapi-project-id-requires-access-prefix
+message: >-
+  APIRouter instances with {project_id} in the prefix must include
+  Depends(check_project_access_async).
+severity: error
+language: Python
+rule:
+  all:
+    - pattern: "APIRouter(prefix=$PREFIX, $$$ARGS)"
+    - has:
+        regex: "\\{project_id\\}"
+    - not:
+        has:
+          regex: "check_project_access_async"

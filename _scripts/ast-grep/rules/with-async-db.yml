@@ -1,0 +1,12 @@
+id: forbidden-with-async-db-usage
+message: >-
+  _with_async_db(...) is restricted to Depends(...) within FastAPI dependency
+  injection.
+severity: error
+language: Python
+rule:
+  all:
+    - pattern: _with_async_db($$$ARGS)
+    - not:
+        inside:
+          pattern: Depends(_with_async_db($$$ARGS))

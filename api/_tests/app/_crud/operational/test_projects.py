@@ -25,13 +25,11 @@ TEST_PROJECT_ID = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
 class MockPoint:
     """todo"""
 
-    def __init__(  # nosemgrep: python-enforce-keyword-only-args
-        self, type, coordinates
-    ):
+    def __init__(self, type, coordinates):
         """todo"""
         self.type, self.coordinates = type, coordinates
 
-    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
+    def __eq__(self, other):
         """todo"""
         return (
             isinstance(other, MockPoint)
@@ -43,13 +41,11 @@ class MockPoint:
 class MockPolygon:
     """todo"""
 
-    def __init__(  # nosemgrep: python-enforce-keyword-only-args
-        self, type, coordinates
-    ):
+    def __init__(self, type, coordinates):
         """todo"""
         self.type, self.coordinates = type, coordinates
 
-    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
+    def __eq__(self, other):
         """todo"""
         return (
             isinstance(other, MockPolygon)
@@ -61,11 +57,11 @@ class MockPolygon:
 class MockProjectSpec:
     """todo"""
 
-    def __init__(self, **kwargs):  # nosemgrep: python-enforce-keyword-only-args
+    def __init__(self, **kwargs):
         """todo"""
         self.__dict__.update(kwargs)
 
-    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
+    def __eq__(self, other):
         """todo"""
         return isinstance(other, MockProjectSpec) and self.__dict__ == other.__dict__
 
@@ -73,11 +69,11 @@ class MockProjectSpec:
 class MockProjectType:
     """todo"""
 
-    def __init__(self, **kwargs):  # nosemgrep: python-enforce-keyword-only-args
+    def __init__(self, **kwargs):
         """todo"""
         self.__dict__.update(kwargs)
 
-    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
+    def __eq__(self, other):
         """todo"""
         return isinstance(other, MockProjectType) and self.__dict__ == other.__dict__
 
@@ -85,12 +81,12 @@ class MockProjectType:
 class MockProject:
     """todo"""
 
-    def __init__(self, **kwargs):  # nosemgrep: python-enforce-keyword-only-args
+    def __init__(self, **kwargs):
         """todo"""
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
+    def __eq__(self, other):
         """todo"""
         return isinstance(other, MockProject) and self.__dict__ == other.__dict__
 

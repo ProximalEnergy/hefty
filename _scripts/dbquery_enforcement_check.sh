@@ -39,6 +39,27 @@ constraints:
     regex: "^(self\\.)?[a-zA-Z0-9_]*(query|stmt)[a-zA-Z0-9_]*$"
 message: "Use DbQuery for DB CRUD operations"
 severity: warning
+---
+id: sqlalchemy-no-return-first
+language: Python
+rule:
+  pattern: return $QUERY.first()
+message: "return $QUERY.first() is banned. Use DbQuery instead."
+severity: warning
+---
+id: sqlalchemy-no-return-one-or-none
+language: Python
+rule:
+  pattern: return $QUERY.one_or_none()
+message: "return $QUERY.one_or_none() is banned. Use DbQuery instead."
+severity: warning
+---
+id: sqlalchemy-no-return-scalar-one
+language: Python
+rule:
+  pattern: return $QUERY.scalar_one()
+message: "return $QUERY.scalar_one() is banned. Use DbQuery instead."
+severity: warning
 ' \
   --json=stream \
   "${scan_targets[@]}" \
@@ -47,6 +68,7 @@ severity: warning
   --globs '!**/migrations/**' \
   --globs '!**/dbquery/**' \
   --globs '!**/*dbquery*.py' \
+  --globs '!**/*db_query*.py' \
   > "${TMP_OUTPUT}"
 
 python3 - <<'PY' "${TMP_OUTPUT}" "${BASELINE_FILE}"

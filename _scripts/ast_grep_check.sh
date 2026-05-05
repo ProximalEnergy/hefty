@@ -1,6 +1,13 @@
 #!/bin/bash
 
-# Run ast-grep star-syntax quality checks.
+# Run ast-grep quality checks.
+#
+# Usage:
+#   ./_scripts/ast_grep_check.sh [--rules RULE1,RULE2,...] [TARGET...]
+#
+# --rules  Comma-separated list of rule IDs to enable as errors.
+#          Defaults to all rules when omitted.
+# TARGET   One or more paths to scan (default: core/src api/app microservices).
 
 set -euo pipefail
 
@@ -9,6 +16,27 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 cd "${REPO_ROOT}"
 
+ALL_RULES=(
+    python-enforce-keyword-only-args
+    python-missing-args-in-docstring
+    python-disallow-sqlalchemy-query-filter
+    python-disallow-sqlalchemy-array-agg
+    fastapi-project-id-requires-access
+    fastapi-project-id-requires-access-prefix
+    forbidden-with-async-db-usage
+)
+
+# Parse --rules flag
+selected_rules=()
+if [ "${1:-}" = "--rules" ]; then
+    shift
+    IFS=',' read -ra selected_rules <<< "${1}"
+    shift
+else
+    selected_rules=("${ALL_RULES[@]}")
+fi
+
+# Remaining args are scan targets
 if [ "$#" -gt 0 ]; then
     scan_targets=("$@")
 else
@@ -19,8 +47,13 @@ else
     )
 fi
 
+error_flags=()
+for rule in "${selected_rules[@]}"; do
+    error_flags+=("--error=${rule}")
+done
+
 uvx --from ast-grep-cli ast-grep scan \
     --config "${SCRIPT_DIR}/ast-grep/sgconfig.yml" \
-    --error=python-enforce-keyword-only-args \
+    "${error_flags[@]}" \
     "${scan_targets[@]}" \
     --globs '!api/app/dependencies.py'

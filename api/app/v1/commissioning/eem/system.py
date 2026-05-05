@@ -16,7 +16,11 @@ router = APIRouter(
 
 
 def build_project_system_file_key(*, project_name_short: str) -> str:
-    """Build the S3 key used for imported system parquet files."""
+    """Build the S3 key used for imported system parquet files.
+
+    Args:
+        project_name_short: Short project name used as the filename stem.
+    """
     return f"{project_name_short}.parquet"
 
 

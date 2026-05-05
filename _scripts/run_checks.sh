@@ -1329,12 +1329,6 @@ if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
 fi
 
 if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
-    SQLALCHEMY_RETURN_CHECK_CMD="mise run root:sqlalchemy_return"
-    if [ "${ALL_WARNINGS}" = "true" ]; then
-        SQLALCHEMY_RETURN_CHECK_CMD+=" -- --all-files"
-    fi
-    add_warning_check "Global: SQLAlchemy Return Methods" \
-        "${SQLALCHEMY_RETURN_CHECK_CMD}"
     if [ "${REQUESTED_DIFF_ONLY}" = "true" ] && [ -n "${DIFF_FILES}" ]; then
         add_warning_check "Global: Duplicate Class Names" \
             "check_duplicate_classes_for_diff"
@@ -1345,7 +1339,6 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
-    add_check "Global: Semgrep" "mise run root:semgrep"
     add_check "Global: ast-grep" "mise run root:ast_grep"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
     add_check "Global: Ruff Linting" "mise run root:ruff"
@@ -1356,6 +1349,8 @@ if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Prettier Check" "mise run web:prettier"
     add_check "Web-App: Knip" "mise run web:knip"
     add_check "Web-App: Linting" "mise run web:lint"
+    add_check "Web-App: Default Query Options No Explicit Type" \
+        "mise run web:default-query-options-no-explicit-type"
 fi
 
 if [ "${RUN_WEB_WARNINGS}" = "true" ]; then

@@ -550,6 +550,17 @@ async def send_notifications_for_message(
 ) -> None:
     """Create notifications for event chat messages using the notifications framework.
 
+    Args:
+        db: Primary async database session.
+        project_db: Project-scoped async database session.
+        project_id: UUID of the project the event belongs to.
+        event_id: ID of the event whose chat triggered the message.
+        sender_user_id: User id of the message author (never notified).
+        sender_company_id: Company id of the message author.
+        message_body: Text content of the message.
+        is_first_message: True if this is the first message on the event.
+        is_private: True if the message is restricted to the sender's company.
+
     Rules:
     - First message: notify all users with project access (public) or company
       users with project access (private), filtered by notification prefs

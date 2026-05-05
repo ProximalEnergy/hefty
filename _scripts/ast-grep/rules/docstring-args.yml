@@ -1,0 +1,67 @@
+id: python-missing-args-in-docstring
+message: "Function has arguments but missing Args section in docstring"
+language: Python
+severity: error
+rule:
+  all:
+    # Match any function/async function definition
+    - kind: function_definition
+    # Must have a docstring as first statement that lacks Args:/Arguments:.
+    # Using has: kind: block + nthChild: 1 targets only the docstring node
+    # itself, preventing false negatives from Args: appearing elsewhere in
+    # the function body (e.g. in comments or string literals in the code).
+    - has:
+        kind: block
+        has:
+          all:
+            - nthChild: 1
+            - kind: expression_statement
+            - has:
+                kind: string
+            - not:
+                regex: "Args:|Arguments:"
+    # Exclude zero/single-arg forms that don't need an Args section
+    # Without return type annotation
+    - not:
+        pattern: "def $FUNC():\n    $$$BODY"
+    - not:
+        pattern: "async def $FUNC():\n    $$$BODY"
+    - not:
+        pattern: "def $FUNC(self):\n    $$$BODY"
+    - not:
+        pattern: "def $FUNC(cls):\n    $$$BODY"
+    - not:
+        pattern: "async def $FUNC(self):\n    $$$BODY"
+    - not:
+        pattern: "async def $FUNC(cls):\n    $$$BODY"
+    # With return type annotation
+    - not:
+        pattern: "def $FUNC() -> $RET:\n    $$$BODY"
+    - not:
+        pattern: "async def $FUNC() -> $RET:\n    $$$BODY"
+    - not:
+        pattern: "def $FUNC(self) -> $RET:\n    $$$BODY"
+    - not:
+        pattern: "def $FUNC(cls) -> $RET:\n    $$$BODY"
+    - not:
+        pattern: "async def $FUNC(self) -> $RET:\n    $$$BODY"
+    - not:
+        pattern: "async def $FUNC(cls) -> $RET:\n    $$$BODY"
+    # Exclude FastAPI routes and @overload stubs
+    - not:
+        follows:
+          stopBy: end
+          any:
+            - pattern: "@overload"
+            - pattern: "@$OBJ.get($$$)"
+            - pattern: "@$OBJ.post($$$)"
+            - pattern: "@$OBJ.put($$$)"
+            - pattern: "@$OBJ.delete($$$)"
+            - pattern: "@$OBJ.patch($$$)"
+            - pattern: "@$OBJ.options($$$)"
+            - pattern: "@$OBJ.head($$$)"
+            - pattern: "@$OBJ.route($$$)"
+            - pattern: "@$OBJ.api_route($$$)"
+            - pattern: "@$OBJ.websocket($$$)"
+            - pattern: "@$OBJ.websocket_route($$$)"
+            - pattern: "@router"

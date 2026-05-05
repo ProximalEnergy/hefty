@@ -37,6 +37,18 @@ def _get_sorted_horizontal_device_data(
     tag_id_to_device_name_long: dict[int, str | None],
     tag_id_to_device_id: dict[int, int],
 ):
+    """Filter columns by category and return device data sorted by name.
+
+    Args:
+        df: DataFrame whose columns are tag IDs and rows are time-series
+            values.
+        category: The category string used to filter tag IDs.
+        tag_id_to_category: Mapping from tag ID to its category label.
+        tag_id_to_device_name_long: Mapping from tag ID to the human-readable
+            device name, or None if unavailable.
+        tag_id_to_device_id: Mapping from tag ID to the corresponding device
+            ID.
+    """
     data = [
         {
             "values": df[int(c)].tolist(),
@@ -56,6 +68,16 @@ def _get_sorted_vertical_device_data(
     tag_id_to_device_name_long: dict[int, str],
     tag_id_to_device_id: dict[int, int],
 ):
+    """Return device data for all columns sorted by device name.
+
+    Args:
+        df: DataFrame whose columns are tag IDs and rows are time-series
+            values.
+        tag_id_to_device_name_long: Mapping from tag ID to the human-readable
+            device name.
+        tag_id_to_device_id: Mapping from tag ID to the corresponding device
+            ID.
+    """
     data = [
         {
             "name": tag_id_to_device_name_long[int(c)],

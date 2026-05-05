@@ -229,7 +229,15 @@ async def _fetch_ptp_query(
     params: dict[str, str | list[str]],
     logger: logging.Logger,
 ) -> dict[str, Any]:
-    """Execute a single PTP query (GET)."""
+    """Execute a single PTP query (GET).
+
+    Args:
+        client: Async HTTP client.
+        url: Request URL.
+        headers: HTTP headers to include.
+        params: Query parameters.
+        logger: Logger instance.
+    """
     request = client.build_request("GET", url, headers=headers, params=params)
     logger.debug("PTP API Request URL: %s", str(request.url)[:200])
     response = await client.send(request)

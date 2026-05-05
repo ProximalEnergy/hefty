@@ -422,7 +422,11 @@ async def get_market_performance_realtime(
 
     # Calculate derived metrics similar to battery_settlement
     def s(*, col_name: str) -> pd.Series:
-        """Safely fetch numeric series or return zero series."""
+        """Safely fetch numeric series or return zero series.
+
+        Args:
+            col_name: Column name to look up in the renamed DataFrame.
+        """
         return utils.get_numeric_series(df=df_renamed, col_name=col_name, fillna=0.0)
 
     # Calculate metrics

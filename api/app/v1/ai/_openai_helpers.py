@@ -96,7 +96,11 @@ def extract_response_tool_json(
 
 
 def _parse_tool_arguments(*, arguments: Any) -> dict[str, Any] | None:
-    """Return tool-call arguments as a dict when available."""
+    """Return tool-call arguments as a dict when available.
+
+    Args:
+        arguments: Raw tool-call arguments; may be a dict or JSON string.
+    """
     if not arguments:
         return None
     parsed = arguments if isinstance(arguments, dict) else json.loads(arguments)

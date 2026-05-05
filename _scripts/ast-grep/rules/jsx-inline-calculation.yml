@@ -1,0 +1,21 @@
+id: jsx-inline-calculation
+message: "Avoid doing arithmetic directly in JSX; precompute values first."
+language: Tsx
+severity: warning
+rule:
+  any:
+    - pattern: "<$TAG>{ $L + $R }</$TAG>"
+    - pattern: "<$TAG>{ $L - $R }</$TAG>"
+    - pattern: "<$TAG>{ $L * $R }</$TAG>"
+    - pattern: "<$TAG>{ $L / $R }</$TAG>"
+    - pattern: "<$TAG>{ $L % $R }</$TAG>"
+    - pattern: "<$TAG $$$A $ATTR={ $L + $R } />"
+    - pattern: "<$TAG $$$A $ATTR={ $L - $R } />"
+    - pattern: "<$TAG $$$A $ATTR={ $L * $R } />"
+    - pattern: "<$TAG $$$A $ATTR={ $L / $R } />"
+    - pattern: "<$TAG $$$A $ATTR={ $L % $R } />"
+    - pattern: "<$TAG $$$A $ATTR={ $L + $R }>$$$C</$TAG>"
+    - pattern: "<$TAG $$$A $ATTR={ $L - $R }>$$$C</$TAG>"
+    - pattern: "<$TAG $$$A $ATTR={ $L * $R }>$$$C</$TAG>"
+    - pattern: "<$TAG $$$A $ATTR={ $L / $R }>$$$C</$TAG>"
+    - pattern: "<$TAG $$$A $ATTR={ $L % $R }>$$$C</$TAG>"

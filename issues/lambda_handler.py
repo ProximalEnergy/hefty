@@ -93,7 +93,7 @@ _load_issues_pipeline_secrets()
 def lambda_handler(
     event: dict[str, Any] | None,
     context: Any,  # noqa: ANN401, ARG001
-) -> dict[str, Any]:  # nosemgrep: python-enforce-keyword-only-args
+) -> dict[str, Any]:
     """Run the issues pipeline from an AWS Lambda invocation.
 
     Args:

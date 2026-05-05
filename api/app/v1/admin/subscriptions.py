@@ -90,7 +90,10 @@ async def get_requesting_user_subscriptions(
 
 @router.get(
     "/reports/{project_id}",
-    dependencies=[Depends(dependencies.requires_superadmin_async)],
+    dependencies=[
+        Depends(dependencies.check_project_access_async),
+        Depends(dependencies.requires_superadmin_async),
+    ],
     response_model=list[str],
     description="Get all emails subscribed to reports for a project. ",
 )

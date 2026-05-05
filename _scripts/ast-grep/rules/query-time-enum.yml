@@ -1,0 +1,30 @@
+id: query-time-enum
+message: "Use QUERY_TIME.* for staleTime/refetchInterval values."
+language: TypeScript
+severity: warning
+rule:
+  any:
+    - all:
+        - pattern: "const defaultQueryOptions = { $$$, staleTime: $VALUE, $$$ }"
+        - not:
+            pattern: "const defaultQueryOptions = { $$$, staleTime: QUERY_TIME.$_, $$$ }"
+    - all:
+        - pattern: "const defaultQueryOptions = { $$$, refetchInterval: $VALUE, $$$ }"
+        - not:
+            pattern: "const defaultQueryOptions = { $$$, refetchInterval: QUERY_TIME.$_, $$$ }"
+    - all:
+        - pattern: "const queryOptions = { $$$, staleTime: $VALUE, $$$ }"
+        - not:
+            pattern: "const queryOptions = { $$$, staleTime: QUERY_TIME.$_, $$$ }"
+    - all:
+        - pattern: "const queryOptions = { $$$, refetchInterval: $VALUE, $$$ }"
+        - not:
+            pattern: "const queryOptions = { $$$, refetchInterval: QUERY_TIME.$_, $$$ }"
+    - all:
+        - pattern: "{ queryOptions: { $$$, staleTime: $VALUE, $$$ } }"
+        - not:
+            pattern: "{ queryOptions: { $$$, staleTime: QUERY_TIME.$_, $$$ } }"
+    - all:
+        - pattern: "{ queryOptions: { $$$, refetchInterval: $VALUE, $$$ } }"
+        - not:
+            pattern: "{ queryOptions: { $$$, refetchInterval: QUERY_TIME.$_, $$$ } }"

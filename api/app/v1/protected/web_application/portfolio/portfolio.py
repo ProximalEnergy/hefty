@@ -73,7 +73,11 @@ class PortfolioHome(PortfolioHomeShortTerm, PortfolioHomeLongTerm):
 
 
 def _calendar_value_or_none(*, value: Any) -> Any:
-    """Normalize pandas scalar nulls while preserving list-like values."""
+    """Normalize pandas scalar nulls while preserving list-like values.
+
+    Args:
+        value: Scalar or list-like value to normalize.
+    """
     if isinstance(value, list | tuple):
         return value
     try:
@@ -90,7 +94,13 @@ def _append_calendar_exception(
     calendar_item_id: Any,
     exception_date: Any,
 ) -> None:
-    """Append a cancelled exception date to the item map."""
+    """Append a cancelled exception date to the item map.
+
+    Args:
+        exdates_by_item: Mapping of calendar item id to list of exception dates.
+        calendar_item_id: Key identifying the calendar item.
+        exception_date: Date value to append; no-op if NaT/NaN.
+    """
     if pd.isna(exception_date):
         return
     exdate = (
@@ -108,7 +118,14 @@ def _append_calendar_assignment(
     user_id: Any,
     team_id: Any,
 ) -> None:
-    """Append an assignment id to the item map."""
+    """Append an assignment id to the item map.
+
+    Args:
+        assignees_by_item: Mapping of calendar item id to assignee id lists.
+        calendar_item_id: Key identifying the calendar item.
+        user_id: User assignee id to append; skipped if NaN.
+        team_id: Team assignee id to append; skipped if NaN.
+    """
     assignees = assignees_by_item.setdefault(
         calendar_item_id,
         {"assignee_user_ids": [], "assignee_team_ids": []},

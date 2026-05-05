@@ -197,6 +197,7 @@ class ProjectTypeEnum(BaseDatabaseEnum[int], IntEnum):
     PV = 1
     BESS = 2
     PVS = 3
+    SIMPLE_CYCLE_GT = 5
 
 
 class ProjectID(BaseDatabaseEnum[UUID], Enum):
@@ -246,6 +247,7 @@ class ProjectID(BaseDatabaseEnum[UUID], Enum):
     NORTH_STAR = UUID("e69ddc19-e2c6-4537-a236-93849c4bc847")
     PALACIOS = UUID("cba2690a-03cf-4878-bf0b-dd3801da6fb2")
     PALACIOS_INDIE = UUID("ea902794-4670-4a95-b2bd-cf700a6ca460")
+    POWERHOUSE_PLANT = UUID("949897b9-7709-40fb-84d9-52b24419793e")
     PROJECT_DEFAULT = UUID("e8434ff5-b6da-46fc-b057-f9f84b13b61b")
     ROSAMOND_SOUTH_1 = UUID("838e5fe1-7d20-47e2-a438-d34e8e081a19")
     SERRANO = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")

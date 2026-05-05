@@ -33,14 +33,23 @@ def _as_utc(*, dt: datetime) -> datetime:
 
 
 def _debug_instant_str(*, dt: datetime | None) -> str:
-    """Format an instant for debug lines (ISO-8601, UTC, millisecond precision)."""
+    """Format an instant for debug lines (ISO-8601, UTC, millisecond precision).
+
+    Args:
+        dt: Datetime to format, or ``None`` (returns the string ``"None"'`).
+    """
     if dt is None:
         return "None"
     return _as_utc(dt=dt).isoformat(timespec="milliseconds")
 
 
 def _debug_time_row(*, label: str, dt: datetime | None) -> str:
-    """One aligned debug line: ``label =`` padded, then the formatted instant."""
+    """One aligned debug line: ``label =`` padded, then the formatted instant.
+
+    Args:
+        label: Column label printed to the left of the ``=`` sign.
+        dt: Datetime to format via :func:`_debug_instant_str`.
+    """
     left = f"{label} ="
     return f"    {left:<22}{_debug_instant_str(dt=dt)}"
 
@@ -178,7 +187,11 @@ async def _load_projects_for_connection_outage(
     *,
     now: datetime | None = None,
 ) -> tuple[datetime, pl.DataFrame]:
-    """Load status, schedule, and ``time_last`` for every project (outer join)."""
+    """Load status, schedule, and ``time_last`` for every project (outer join).
+
+    Args:
+        now: Reference instant (UTC); defaults to real-time UTC when ``None``.
+    """
     stmt = select(
         models.Project.project_id,
         models.Project.name_short,

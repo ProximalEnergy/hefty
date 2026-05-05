@@ -236,7 +236,12 @@ def build_styles():
 # The doc argument is not used in this function, but it is required by the
 # draw_header_footer function signature.
 def draw_header_footer(c: canvas.Canvas, doc):  # noqa: ARG001 # no-star-syntax
-    """Logos flush to the top; simple footer w/ generation date & mark."""
+    """Logos flush to the top; simple footer w/ generation date & mark.
+
+    Args:
+        c: Canvas instance used for drawing header and footer elements.
+        doc: Document template; unused but required by the signature.
+    """
     width, height = A4
 
     # header logos - define the height and let the images maintain their aspect ratio
@@ -1181,7 +1186,13 @@ def build_portfolio_kpi_table_rows(
     styles,
     selected_project: str | None,
 ) -> list[list[Paragraph]]:
-    """Build table rows for portfolio KPI comparison."""
+    """Build table rows for portfolio KPI comparison.
+
+    Args:
+        df: DataFrame with projects as index and KPI columns as values.
+        styles: ReportLab stylesheet mapping.
+        selected_project: Name of the current project to highlight in bold.
+    """
 
     if df is None or df.empty:
         return []
@@ -1206,6 +1217,12 @@ def build_portfolio_kpi_table_rows(
     column_order = list(df.columns)
 
     def portfolio_project_sort_key(idx):  # no-star-syntax
+        """Return a sort key list for ordering portfolio project index labels.
+
+        Args:
+            idx: Sequence of index labels to produce sort keys for.
+        """
+
         def row_key(x: str) -> tuple[int, int, str]:  # no-star-syntax
             if x == selected_project:
                 return (0, 0, "")
@@ -1264,7 +1281,15 @@ def section_portfolio_kpi_comparison(
     radar_chart_bytes: bytes,
     radar_table_rows: list[list[Paragraph]] | None,
 ):
-    """Create the portfolio KPI comparison section."""
+    """Create the portfolio KPI comparison section.
+
+    Args:
+        doc: Document template used to determine layout dimensions.
+        styles: Mapping of style names to ReportLab paragraph styles.
+        radar_chart_bytes: PNG/SVG bytes of the rendered radar chart image.
+        radar_table_rows: Rows of Paragraph cells for the KPI table, or
+            None if no table should be rendered.
+    """
 
     title = Paragraph("<b>Portfolio KPI Comparison</b>", styles["h2_center"])
     radar_image = load_image_from_source(radar_chart_bytes)
@@ -1366,6 +1391,12 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
         )
 
         def paragraph_cell(text: str, *, align: str = "left"):
+            """Wrap text in a styled Paragraph for a table body cell.
+
+            Args:
+                text: Cell text content to display.
+                align: Horizontal alignment; one of 'left', 'center', or 'right'.
+            """
             safe_text = escape(str(text))
             style = {"left": cell_left, "center": cell_center, "right": cell_right}[
                 align
@@ -1373,6 +1404,11 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
             return Paragraph(safe_text, style)
 
         def header_cell(*, text: str):
+            """Wrap text in a styled Paragraph for a table header cell.
+
+            Args:
+                text: Header label text to display.
+            """
             return Paragraph(escape(str(text)), header_style)
 
         # --- build data ---
@@ -1384,6 +1420,11 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
                 df = df.sort_values(by=sort_cols, ascending=False)
 
             def fmt_dt(*, val):
+                """Format a datetime value as a human-readable string.
+
+                Args:
+                    val: Datetime-like value to format, or NaN/None.
+                """
                 if pd.isna(val):
                     return "—"
                 try:
@@ -1392,6 +1433,12 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
                     return str(val)
 
             def fmt_val(*, val, is_currency: bool = False):
+                """Format a numeric value as a plain or currency string.
+
+                Args:
+                    val: Numeric value to format, or NaN/None.
+                    is_currency: When True, prefix the value with a dollar sign.
+                """
                 if pd.isna(val):
                     return "—"
                 try:
@@ -1522,7 +1569,13 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
 def section_no_events_overview(
     *, doc, styles, message: str = "No Events detected this month."
 ):
-    """Render a notice when no event data is available for the reporting period."""
+    """Render a notice when no event data is available for the reporting period.
+
+    Args:
+        doc: Document template used to determine layout dimensions.
+        styles: Mapping of style names to ReportLab paragraph styles.
+        message: Notice text to display inside the highlighted box.
+    """
     title = Paragraph(
         "<para align='center'>Availability & Production-Impacting Events</para>",
         styles["h2_center"],
@@ -2301,7 +2354,13 @@ async def get_tbx(
     def _partial_cycle_sum(
         *, values: np.ndarray, count: float, select: Literal["bottom", "top"]
     ) -> float:
-        """Return the partial sum for fractional cycle counts on sorted arrays."""
+        """Return the partial sum for fractional cycle counts on sorted arrays.
+
+        Args:
+            values: Array of hourly energy values for a single day.
+            count: Number of cycles (may be fractional) to select.
+            select: Which end of the sorted array to sum ("bottom" or "top").
+        """
         if count <= 0:
             return 0.0
         sorted_values = np.sort(values)
@@ -2404,7 +2463,11 @@ def _get_qse_resource_id(
     *,
     qse_integration: models.QSEIntegration,
 ) -> str | None:
-    """Extract resource_id from QSE integration provider config."""
+    """Extract resource_id from QSE integration provider config.
+
+    Args:
+        qse_integration: QSE integration model instance.
+    """
     provider_config = qse_integration.provider_config
     if not isinstance(provider_config, dict):
         return None
@@ -2415,7 +2478,11 @@ def _get_qse_resource_id(
 
 
 def _parse_ptp_datetime(*, raw_value: Any) -> pd.Timestamp | None:
-    """Parse a PTP datetime value into a UTC timestamp."""
+    """Parse a PTP datetime value into a UTC timestamp.
+
+    Args:
+        raw_value: Raw value from the PTP API response.
+    """
     if not isinstance(raw_value, str):
         return None
     parsed = pd.to_datetime(raw_value, utc=True, errors="coerce")
@@ -2425,7 +2492,11 @@ def _parse_ptp_datetime(*, raw_value: Any) -> pd.Timestamp | None:
 
 
 def _parse_ptp_float(*, raw_value: Any) -> float | None:
-    """Parse a PTP numeric value into float."""
+    """Parse a PTP numeric value into float.
+
+    Args:
+        raw_value: Raw value from the PTP API response.
+    """
     if isinstance(raw_value, (int, float)):
         parsed = float(raw_value)
         if np.isnan(parsed):
@@ -2446,7 +2517,11 @@ def _parse_ptp_float(*, raw_value: Any) -> float | None:
 
 
 def _extract_ticket_data_points(*, entry: dict[str, Any]) -> dict[str, Any]:
-    """Extract first data value for each ticket data point key."""
+    """Extract first data value for each ticket data point key.
+
+    Args:
+        entry: Raw ticket entry dict from the PTP API response.
+    """
     ticket_data_points: dict[str, Any] = {}
     for data_point in entry.get("dataPoints", []):
         if not isinstance(data_point, dict):
@@ -2479,7 +2554,11 @@ def _ticket_interval(
     *,
     ticket_data_points: dict[str, Any],
 ) -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
-    """Return outage interval start and end for a ticket."""
+    """Return outage interval start and end for a ticket.
+
+    Args:
+        ticket_data_points: Flat key→value map from `_extract_ticket_data_points`.
+    """
     start = _parse_ptp_datetime(raw_value=ticket_data_points.get("ActualStartTime"))
     if start is None:
         start = _parse_ptp_datetime(
@@ -2497,7 +2576,11 @@ def _ticket_available_capacity_mw(
     *,
     ticket_data_points: dict[str, Any],
 ) -> float | None:
-    """Return ticket available MW as abs(LSL) + abs(HSL)."""
+    """Return ticket available MW as abs(LSL) + abs(HSL).
+
+    Args:
+        ticket_data_points: Flat key→value map from `_extract_ticket_data_points`.
+    """
     lsl = _parse_ptp_float(raw_value=ticket_data_points.get("LSL"))
     hsl = _parse_ptp_float(raw_value=ticket_data_points.get("HSL"))
     if lsl is None or hsl is None:
@@ -2512,7 +2595,14 @@ async def _find_outage_element_identifier(
     begin_utc: pd.Timestamp,
     end_utc: pd.Timestamp,
 ) -> str | None:
-    """Find outage endpoint element identifier by resource name."""
+    """Find outage endpoint element identifier by resource name.
+
+    Args:
+        token: PTP API authentication token.
+        resource_name: Resource name string to match against PTP entry names.
+        begin_utc: Query window start in UTC.
+        end_utc: Query window end in UTC.
+    """
     begin = begin_utc.isoformat().replace("+00:00", "Z")
     end = end_utc.isoformat().replace("+00:00", "Z")
     data = await ptp_explorer.get_endpoint_data(
@@ -2666,6 +2756,13 @@ def _capacity_weighted_availability(
 
     Uses max available capacity when there is no active ticket. For overlapping
     tickets, uses the most restrictive (minimum) available capacity.
+
+    Args:
+        tickets_df: DataFrame with `time_start`, `time_end`, and
+            `available_capacity_mw` columns.
+        period_start: Availability window start (UTC).
+        period_end: Availability window end (UTC).
+        max_capacity_mw: Nameplate capacity used as the no-outage baseline.
     """
     if period_end <= period_start or max_capacity_mw <= 0:
         return 0.0
@@ -2787,13 +2884,24 @@ async def yearly_degradation_rate_from_soh(
     min_span_days: int = 30,
     atol: float = 1e-9,
 ) -> dict:
-    """
-    Returns yearly degradation rate based on linear regression of SoH (%) vs time
-    (years). If SoH is constant (within tolerance) or regression is ill-posed,
-    returns 0%/yr.
+    """Return yearly degradation rate from linear regression of SoH vs time.
 
-    Returns dict with:
-      degradation_rate_pct_per_year, slope_pct_per_year, r2, stderr, n_points, span_days
+    If SoH is constant (within tolerance) or the regression is ill-posed,
+    returns 0 %/yr.
+
+    Args:
+        kpi_type_id: KPI type ID used to query SoH data.
+        start: Report period start date (data fetched from Jan 1 of that year).
+        end: Report period end date.
+        project: Project model instance.
+        date_col: Column name for dates in the KPI DataFrame.
+        soh_col: Column name for SoH values in the KPI DataFrame.
+        min_span_days: Minimum date span required to fit a regression.
+        atol: Absolute tolerance for detecting a constant SoH series.
+
+    Returns:
+        Dict with keys: degradation_rate_pct_per_year, slope_pct_per_year,
+        r2, stderr, n_points, span_days.
     """
     kpi_data_query = crud_get_kpi_data(
         start=start.replace(month=1, day=1),
@@ -3335,6 +3443,11 @@ async def build_event_data(
     ).drop(columns="capacity_loss_kwh")
 
     def _to_naive_timestamp(value):  # no-star-syntax
+        """Strip timezone info from a timestamp, returning a naive Timestamp.
+
+        Args:
+            value: Datetime-like value to convert to a naive Timestamp.
+        """
         ts = pd.Timestamp(value)
         if ts.tz is not None:
             return ts.tz_localize(None)
@@ -3493,7 +3606,12 @@ async def build_event_table(
     project_db: AsyncSession,
     top_ten_losses: pd.DataFrame,
 ):
-    """Build event table."""
+    """Build event table.
+
+    Args:
+        project_db: Async database session for the project database.
+        top_ten_losses: DataFrame of the top capacity-loss events to display.
+    """
     if top_ten_losses.empty:
         return pd.DataFrame(
             columns=[
@@ -3663,7 +3781,11 @@ async def generate_executive_summary(
 
 
 def compare_to_perfect_foresight(*, strategies: list[BESSMonthlyReportStrategy]):
-    """Compare the strategies to the perfect foresight strategy."""
+    """Compare the strategies to the perfect foresight strategy.
+
+    Args:
+        strategies: List of BESS monthly report strategies to evaluate.
+    """
     pf_value = None
     for strategy in strategies:
         if strategy.name == "Perfect Foresight":
@@ -4039,7 +4161,11 @@ type TimestampLike = datetime.datetime | datetime.date | pd.Timestamp
 
 
 def _ensure_utc(*, ts: pd.Timestamp) -> pd.Timestamp:
-    """Return the timestamp converted to or localized in UTC."""
+    """Return the timestamp converted to or localized in UTC.
+
+    Args:
+        ts: Timestamp to normalize.
+    """
     if ts.tz is None:
         return ts.tz_localize("UTC")
     return ts.tz_convert("UTC")
@@ -4054,12 +4180,18 @@ def covered_seconds_by_any_event(
     time_end_col: str = "time_end",
     ongoing_end: TimestampLike | None = None,
 ) -> float:
-    """
-    Returns the number of seconds in [start, end) that are covered by >=1 event.
+    """Return seconds in [start, end) covered by at least one event.
 
-    - events[time_end_col] may be null (ongoing)
-    - null end is treated as `ongoing_end` if provided, otherwise `end`
-    - intervals are treated as half-open: [event_start, event_end)
+    Null end times are treated as ``ongoing_end`` if provided, otherwise
+    ``end``. Intervals are half-open: [event_start, event_end).
+
+    Args:
+        events: DataFrame containing event intervals.
+        start: Window start (inclusive).
+        end: Window end (exclusive).
+        time_start_col: Column name for event start timestamps.
+        time_end_col: Column name for event end timestamps (may be null).
+        ongoing_end: Fallback end for null-end (ongoing) events.
     """
     start_ts = pd.Timestamp(start)
     end_ts = pd.Timestamp(end)
@@ -4154,7 +4286,16 @@ def covered_fraction_by_any_event(
     time_end_col: str = "time_end",
     ongoing_end: TimestampLike | None = None,
 ) -> float:
-    """Fraction of [start,end) covered by >=1 event."""
+    """Fraction of [start,end) covered by at least one event.
+
+    Args:
+        events: DataFrame containing event intervals.
+        start: Window start (inclusive).
+        end: Window end (exclusive).
+        time_start_col: Column name for event start timestamps.
+        time_end_col: Column name for event end timestamps (may be null).
+        ongoing_end: Fallback end for null-end (ongoing) events.
+    """
     # Convert to Timestamp, handling both date and datetime inputs
     start_ts = pd.Timestamp(start)
     end_ts = pd.Timestamp(end)

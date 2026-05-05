@@ -1,0 +1,20 @@
+id: python-disallow-sqlalchemy-query-filter
+message: >-
+  Legacy .query() and .filter() are banned. Use execute(select(...)) and
+  .where() instead. (Exempts Polars calls containing pl.col(...).)
+severity: error
+language: Python
+rule:
+  all:
+    - any:
+        - pattern: $OBJ.query($$$ARGS)
+        - pattern: $OBJ.filter($$$ARGS)
+    - not:
+        regex: "pl\\.col\\(|regex="
+---
+id: python-disallow-sqlalchemy-array-agg
+message: "sa.func.array_agg(...) is banned. Use joins instead."
+severity: error
+language: Python
+rule:
+  pattern: sa.func.array_agg($$$ARGS)

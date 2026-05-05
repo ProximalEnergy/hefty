@@ -57,6 +57,9 @@ def parse_maybe_int(val):  # no-star-syntax
       - strings like '0x8800' / '0X8800' -> int base 16
       - strings like '123' -> int base 10
       - other values -> pd.NA (or return original if you prefer)
+
+    Args:
+        val: The value to convert to an integer, if possible.
     """
     if val is None or val is pd.NA:
         return pd.NA
@@ -283,6 +286,22 @@ async def get_status_time_series_failure_mode_ids(
     device_type_ids: list[int] | None = None,
     get_all: bool = False,
 ):
+    """Fetch failure mode IDs for status tags over a time range.
+
+    Args:
+        project_db: SQLAlchemy session for the project database.
+        project: The project model instance whose schema is queried.
+        start: Start of the time range (inclusive).
+        end: End of the time range (inclusive).
+        tag_ids: Optional list of tag IDs to filter by.
+        device_ids: Optional list of device IDs to filter by.
+        sensor_type_ids: Optional list of sensor type IDs to filter by.
+        device_type_ids: Optional list of device type IDs to filter by.
+        get_all: When True, return all records regardless of other filters.
+
+    Returns:
+        A list of records as dicts containing time-series failure mode data.
+    """
     get_status_tags_query = crud_statuses.get_status_tags(
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
@@ -338,6 +357,11 @@ def df_to_reversed_binary_strings(
     right-padded with zeros to `pad_len`.
 
     Example: 66 -> '01000010000000000000000000000000' (pad_len=32)
+
+    Args:
+        df: DataFrame of integer-like values to convert.
+        pad_len: Number of bits to include (right-padded with zeros).
+        chunksize: Rows to process per chunk; ``None`` processes all at once.
 
     Notes:
       - Preserves NA as <NA> (pandas StringDtype).
@@ -403,6 +427,9 @@ def df_to_reversed_binary_strings(
 def normalize_truthy_falsy_df(*, df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert mixed dtype values into a pandas nullable boolean DataFrame.
+
+    Args:
+        df: DataFrame with mixed-dtype values to normalise.
 
     Truthy:
       True, "true", "1", 1, "yes", "y"
@@ -483,6 +510,15 @@ def interpret_boolean_sparse(
     """
     Sparse facts for boolean tags:
       emit where observed != nominal_state (and nominal_state not null).
+
+    Args:
+        boolean_df: Wide boolean observations (dtype ``boolean`` preferred),
+            indexed by time with tag IDs as columns.
+        status_tags: Tag metadata DataFrame indexed by ``tag_id``,
+            must include a ``status_boolean_id`` column.
+        boolean_table: Definition table keyed by ``status_boolean_id`` with
+            ``nominal_state``, ``state_true``, ``state_false``, ``description``,
+            and ``failure_mode_id`` columns.
     """
     if boolean_df.empty or boolean_table.empty:
         return _empty_facts_df()
@@ -581,6 +617,14 @@ def interpret_string_sparse(
     """
     Sparse facts for string tags:
       emit only when the matched mapping row has failure_mode_id not null.
+
+    Args:
+        string_df: Wide string observations (dtype ``string``), indexed by time
+            with tag IDs as columns.
+        status_tags: Tag metadata DataFrame indexed by ``tag_id``,
+            must include a ``status_string_id`` column.
+        string_table: Definition table keyed by ``status_string_id`` with
+            ``string_trigger``, ``description``, and ``failure_mode_id`` columns.
     """
     if string_df.empty or string_table.empty:
         return _empty_facts_df()
@@ -657,6 +701,17 @@ def interpret_binary_sparse_uint(
       - decode bits LSB-first (bitorder='little')
       - join definitions by (tag_id -> status_binary_id, bit_position)
       - emit where observed_bit != nominal_state (and nominal_state not null)
+
+    Args:
+        binary_str_df: Wide DataFrame of integer-like binary values, indexed by
+            time with tag IDs as columns.
+        status_tags: Tag metadata DataFrame indexed by ``tag_id``,
+            must include a ``status_binary_id`` column.
+        binary_table: Definition table keyed by ``status_binary_id`` with
+            ``bit_position``, ``nominal_state``, ``description``, and
+            ``failure_mode_id`` columns.
+        pad_len: Number of bits to decode per value (max 32).
+        chunksize: Rows to process per chunk; ``None`` processes all at once.
 
     This does NOT require you to convert ints -> reversed strings first.
     """

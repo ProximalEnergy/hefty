@@ -125,7 +125,12 @@ async def _run_data_connection_outage_notifications() -> dict:
         project_id: UUID,
         data: dict[str, Any],
     ) -> str:
-        """Resolve display name from payload or operational.projects."""
+        """Resolve display name from payload or operational.projects.
+
+        Args:
+            project_id: UUID of the project to look up.
+            data: Notification payload dict that may contain ``project_name_long``.
+        """
         raw = data.get("project_name_long")
         if isinstance(raw, str) and raw.strip():
             return raw.strip()
@@ -147,7 +152,14 @@ async def _run_data_connection_outage_notifications() -> dict:
         project_id: UUID,
         project_name_long: str,
     ) -> None:
-        """Email + in-app states using ``determine_notification_recipients``."""
+        """Email + in-app states using ``determine_notification_recipients``.
+
+        Args:
+            db: Active async database session.
+            notification_id: ID of the notification to deliver.
+            project_id: UUID of the affected project.
+            project_name_long: Human-readable project name used in email subject.
+        """
 
         def get_email_kwargs_func(
             *,
@@ -155,7 +167,13 @@ async def _run_data_connection_outage_notifications() -> dict:
             user_email: str,
             user_name: str,  # noqa: ARG001
         ) -> dict:
-            """Build email kwargs for a data connection outage notification."""
+            """Build email kwargs for a data connection outage notification.
+
+            Args:
+                user_id: Recipient user ID (unused; required by protocol).
+                user_email: Recipient email address.
+                user_name: Recipient display name (unused; required by protocol).
+            """
             subject = f"Data Connection Outage - {project_name_long}"
             return {
                 "FromEmailAddress": "alerts@proximal.energy",
@@ -206,7 +224,11 @@ async def _run_data_connection_outage_notifications() -> dict:
         *,
         db: AsyncSession,
     ) -> list[models.Notification]:
-        """Active DATA_CONNECTION_OUTAGE rows that have no notification_states."""
+        """Active DATA_CONNECTION_OUTAGE rows that have no notification_states.
+
+        Args:
+            db: Active async database session to query against.
+        """
         stmt = (
             select(models.Notification)
             .outerjoin(

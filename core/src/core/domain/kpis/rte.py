@@ -233,6 +233,11 @@ def calculate_rte(
     A simple implementation of RTE
     There is no adjustment based on SOC increase or decrease.
     Only concurrent days are used and there must be at least 3 cycles
+
+    Args:
+        daily_energy_charged_series: Daily charged energy indexed by date.
+        daily_energy_discharged_series: Daily discharged energy indexed by date.
+        energy_capacity: Nameplate energy capacity used to compute cycle thresholds.
     """
     concat_df = pd.concat(
         [daily_energy_charged_series, daily_energy_discharged_series], axis=1

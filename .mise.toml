@@ -201,16 +201,6 @@ description = "Run static name shorts check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_name_shorts_check.sh"
 
-[tasks."root:sqlalchemy_return"]
-description = "Warn on SQLAlchemy return methods in changed Python files"
-dir = "."
-run = "./_scripts/sqlalchemy_return_check.sh"
-
-[tasks."root:semgrep"]
-description = "Run all semgrep quality checks on the monorepo"
-dir = "."
-run = "./_scripts/semgrep_check.sh"
-
 [tasks."root:ast_grep"]
 description = "Run ast-grep quality checks on the monorepo"
 dir = "."
@@ -405,7 +395,7 @@ run = "./_scripts/ast_grep_check.sh core/src"
 [tasks."core:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in core"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/sqlalchemy-query-filter.yaml core/src"
+run = "./_scripts/ast_grep_check.sh core/src"
 
 [tasks."core:pytest"]
 description = "Run pytest for core"
@@ -420,7 +410,7 @@ run = "uv run _scripts/validate_enums.py"
 [tasks."core:docstring_args"]
 description = "Check docstring Args sections in core"
 dir = "."
-run = "uv run _scripts/check_docstring_args.py core"
+run = "./_scripts/ast_grep_check.sh core/src"
 
 [tasks."core:release"]
 description = "Full release workflow for core (check, freeze, bump, commit, push)"
@@ -652,12 +642,12 @@ run = "./_scripts/ast_grep_check.sh microservices"
 [tasks."micro:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in micro"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/sqlalchemy-query-filter.yaml microservices"
+run = "./_scripts/ast_grep_check.sh microservices"
 
 [tasks."micro:docstring_args"]
 description = "Check docstring Args sections in microservices"
 dir = "."
-run = "uv run _scripts/check_docstring_args.py microservices"
+run = "./_scripts/ast_grep_check.sh microservices"
 
 # =============================================================================
 # API TASKS (runs in ./api directory)
@@ -723,7 +713,6 @@ depends = [
   "api:vulture",
   "api:docstring_args",
   "api:db_query_get",
-  "api:with_async_db",
   "api:unused_routes",
 ]
 run = """
@@ -772,7 +761,7 @@ run = "./_scripts/ast_grep_check.sh api/app"
 [tasks."api:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in api"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/sqlalchemy-query-filter.yaml api/app"
+run = "./_scripts/ast_grep_check.sh api/app"
 
 [tasks."api:hurl"]
 description = "Run hurl smoke tests for api"
@@ -785,7 +774,7 @@ hurl --location --variable baseURL=http://127.0.0.1:8000 \
 [tasks."api:docstring_args"]
 description = "Check docstring Args sections in api"
 dir = "."
-run = "uv run _scripts/check_docstring_args.py api"
+run = "./_scripts/ast_grep_check.sh api/app"
 
 [tasks."api:db_query_get"]
 description = "Check for DbQuery.get usage in api"
@@ -793,11 +782,6 @@ dir = "api"
 run = """
 ../_scripts/db_query_get_check.sh
 """
-
-[tasks."api:with_async_db"]
-description = "Check for disallowed _with_async_db usage in api"
-dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/with-async-db.yaml api/app --exclude api/app/dependencies.py"
 
 [tasks."api:unused_routes"]
 description = "Check for API routes unused by the web-app (fast, OpenAPI-based)"
@@ -958,7 +942,7 @@ run = "./_scripts/web_query_time_enum_check.sh"
 [tasks."web:default-query-options-no-explicit-type"]
 description = "Check for explicit type annotation on defaultQueryOptions"
 dir = "."
-run = "uvx semgrep@1.160 --error --config _scripts/rules/default-query-options-no-explicit-type.yaml"
+run = "uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --error=default-query-options-no-explicit-type web-app/src"
 
 [tasks."web:screenshot"]
 description = "Screenshot routes inferred from git diff vs dev into _screenshot/"

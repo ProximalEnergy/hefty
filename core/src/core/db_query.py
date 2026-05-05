@@ -269,7 +269,11 @@ class DbQuery[T, S]:
         return isinstance(expr, Label) and not isinstance(expr.element, FunctionElement)
 
     def _get_connection(self, *, executor):
-        """Extract the underlying connection from a session or connection object."""
+        """Extract the underlying connection from a session or connection object.
+
+        Args:
+            executor: A SQLAlchemy session or connection object.
+        """
         return (
             executor.connection()
             if hasattr(executor, "connection") and callable(executor.connection)
@@ -277,7 +281,13 @@ class DbQuery[T, S]:
         )
 
     def _get_sync_context(self, *, schema: str | None, output_type: OutputType):
-        """Get the appropriate synchronous context manager."""
+        """Get the appropriate synchronous context manager.
+
+        Args:
+            schema: Optional database schema name to set on the connection.
+            output_type: Determines whether to return a SQLAlchemy session or
+                a raw engine connection.
+        """
         if output_type == OutputType.SQLALCHEMY:
             return with_db(schema=schema)
 
@@ -291,7 +301,13 @@ class DbQuery[T, S]:
         return engine.connect()
 
     def _get_async_context(self, *, schema: str | None, output_type: OutputType):
-        """Get the appropriate asynchronous context manager."""
+        """Get the appropriate asynchronous context manager.
+
+        Args:
+            schema: Optional database schema name to set on the connection.
+            output_type: Determines whether to return a SQLAlchemy session or
+                a raw async engine connection.
+        """
         if output_type == OutputType.SQLALCHEMY:
             return with_db_async(schema=schema)
 
@@ -305,7 +321,12 @@ class DbQuery[T, S]:
         return async_engine.connect()
 
     def _compile_query(self, *, conn) -> str | Select | TextClause:
-        """Helper to compile the query with the correct dialect and options."""
+        """Helper to compile the query with the correct dialect and options.
+
+        Args:
+            conn: Active database connection supplying the dialect and
+                execution options (e.g. schema_translate_map).
+        """
         if isinstance(self.query, TextClause):
             return self.query
 

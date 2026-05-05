@@ -68,7 +68,7 @@ jobs:
           format --check --diff
           --config pyproject.toml core
 
-  semgrep_checks:
+  star-syntax:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -76,11 +76,57 @@ jobs:
         with:
           enable-cache: true
       - name: Run ast-grep star-syntax check
-        run: ./_scripts/ast_grep_check.sh core/src
-      - name: Run Semgrep sqlalchemy query/filter check
-        run: >
-          uvx semgrep@1.160 --error --config
-          _scripts/rules/sqlalchemy-query-filter.yaml core/src
+        run: ./_scripts/ast_grep_check.sh --rules python-enforce-keyword-only-args core/src
+
+  sqlalchemy-query-filter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep sqlalchemy query filter check
+        run: ./_scripts/ast_grep_check.sh --rules python-disallow-sqlalchemy-query-filter core/src
+
+  sqlalchemy-array-agg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep sqlalchemy array_agg check
+        run: ./_scripts/ast_grep_check.sh --rules python-disallow-sqlalchemy-array-agg core/src
+
+  fastapi-project-id-access:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep fastapi project-id access check
+        run: ./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access core/src
+
+  fastapi-project-id-access-prefix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep fastapi project-id access prefix check
+        run: ./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access-prefix core/src
+
+  forbidden-with-async-db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep forbidden-with-async-db check
+        run: ./_scripts/ast_grep_check.sh --rules forbidden-with-async-db-usage core/src
 
   mypy:
     runs-on: ubuntu-latest
@@ -170,13 +216,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: set up python
-        uses: ./.github/actions/setup-uv-python-from-pyproject
+      - uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: "true"
-
+          enable-cache: true
       - name: Run docstring args check
-        run: uv run _scripts/check_docstring_args.py core
+        run: >
+          ./_scripts/ast_grep_check.sh
+          --rules python-missing-args-in-docstring
+          core/src
 
   validate-version:
     name: Validate Version Bump

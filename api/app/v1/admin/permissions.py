@@ -95,7 +95,10 @@ class UserPermissionRequest(BaseModel):
 @router.post(
     "/projects/{project_id}/users/{user_id}",
     response_model=interfaces.UserPermissionInterface,
-    dependencies=[Depends(dependencies.requires_admin_async)],
+    dependencies=[
+        Depends(dependencies.check_project_access_async),
+        Depends(dependencies.requires_admin_async),
+    ],
 )
 async def add_user_permission(
     project_id: uuid.UUID,
@@ -111,9 +114,6 @@ async def add_user_permission(
         user_permission: Permission payload.
         db: Async database session.
     """
-
-    # NOTE: We are omitting any project access checks here
-    # because that is handled whenever a user requests data for a specific project
 
     # Create a user_permission object
     user_permission_model = models.UserPermission(
@@ -133,7 +133,10 @@ async def add_user_permission(
     "/projects/{project_id}/users/{user_id}",
     response_model=interfaces.UserPermissionInterface,
     operation_id="delete_user_permission",
-    dependencies=[Depends(dependencies.requires_admin_async)],
+    dependencies=[
+        Depends(dependencies.check_project_access_async),
+        Depends(dependencies.requires_admin_async),
+    ],
 )
 async def delete_user_permission_route(
     project_id: uuid.UUID,

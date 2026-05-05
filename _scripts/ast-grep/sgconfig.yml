@@ -1,2 +1,5 @@
 ruleDirs:
   - rules
+languageGlobs:
+  TypeScript:
+    - "*.tsx"

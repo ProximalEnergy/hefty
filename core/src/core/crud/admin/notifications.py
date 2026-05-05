@@ -45,7 +45,12 @@ def _notification_severity_rank_expr(
 
 
 def _notification_type_default_severity_rank_expr(*, default_severity_col: Any) -> Any:
-    """Default threshold rank; NULL default severity means INFO (rank 1)."""
+    """Default threshold rank; NULL default severity means INFO (rank 1).
+
+    Args:
+        default_severity_col: SQLAlchemy column or expression for the
+            notification type's default severity (may be NULL).
+    """
     return case(
         (default_severity_col.is_(None), 1),
         else_=_notification_severity_rank_expr(severity_col=default_severity_col),
@@ -56,7 +61,11 @@ def _notification_severity_to_int(
     *,
     severity: enumerations.NotificationSeverity,
 ) -> int:
-    """Python-side severity rank (must match ``_notification_severity_rank_expr``)."""
+    """Python-side severity rank (must match ``_notification_severity_rank_expr``).
+
+    Args:
+        severity: Notification severity enum value to convert.
+    """
     return {
         enumerations.NotificationSeverity.INFO: 1,
         enumerations.NotificationSeverity.WARNING: 2,

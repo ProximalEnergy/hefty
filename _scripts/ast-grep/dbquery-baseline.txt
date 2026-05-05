@@ -497,7 +497,7 @@ api/app/domain/linear_integration.py:sqlalchemy-db-crud-outside-dbquery:b853e56d
 api/app/v1/admin/api_key.py:sqlalchemy-db-crud-outside-dbquery:32431bb3:router.delete("", summary="Delete API Key")
 api/app/v1/admin/notifications.py:sqlalchemy-db-crud-outside-dbquery:2d45ea30:router.delete( "/delete-all", status_code=204, description="Delete all IN_APP notifications for the
 api/app/v1/admin/notifications.py:sqlalchemy-db-crud-outside-dbquery:d05d8846:router.delete( "/{notification_id}", status_code=204, description="Delete a notification for the req
-api/app/v1/admin/permissions.py:sqlalchemy-db-crud-outside-dbquery:e18b0ca8:router.delete( "/projects/{project_id}/users/{user_id}", response_model=interfaces.UserPermissionInt
+api/app/v1/admin/permissions.py:sqlalchemy-db-crud-outside-dbquery:5a4f3bcb:router.delete( "/projects/{project_id}/users/{user_id}", response_model=interfaces.UserPermissionInt
 api/app/v1/admin/teams.py:sqlalchemy-db-crud-outside-dbquery:6f10f46f:router.delete( "/{team_id}/members/{user_id}", status_code=204, dependencies=[Depends(dependencies.r
 api/app/v1/admin/teams.py:sqlalchemy-db-crud-outside-dbquery:ad929bc2:router.delete( "/{team_id}", status_code=204, dependencies=[Depends(dependencies.requires_admin_asyn
 api/app/v1/admin/user_projects.py:sqlalchemy-db-crud-outside-dbquery:2763b732:result.scalars()

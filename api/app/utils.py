@@ -82,7 +82,11 @@ def get_include_in_schema() -> bool:
 
 
 def get_project_schema(*, project_db: Session) -> str | None:
-    """Return the project schema name from a project-scoped session."""
+    """Return the project schema name from a project-scoped session.
+
+    Args:
+        project_db: Project-scoped SQLAlchemy session.
+    """
     schema_translate_map = (
         project_db.get_bind().get_execution_options().get("schema_translate_map", {})
     )
@@ -90,7 +94,11 @@ def get_project_schema(*, project_db: Session) -> str | None:
 
 
 async def get_project_schema_async(*, project_db: AsyncSession) -> str | None:
-    """Return the project schema name from a project-scoped session (async)."""
+    """Return the project schema name from a project-scoped session (async).
+
+    Args:
+        project_db: Project-scoped async SQLAlchemy session.
+    """
     schema_translate_map = (
         project_db.get_bind().get_execution_options().get("schema_translate_map", {})
     )

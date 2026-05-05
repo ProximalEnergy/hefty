@@ -9,7 +9,7 @@ class NaNSafeJSONResponse(JSONResponse):
 
     def render(  # no-star-syntax
         self,
-        content: Any,  # nosemgrep: python-missing-args-in-docstring
+        content: Any,
     ) -> bytes:
         """Serialize content to JSON bytes with NaN/Inf coerced to null.
 

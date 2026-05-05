@@ -13,7 +13,7 @@ from app._crud.operational.contracts import (
     get_kpi_type_by_name_with_contracts as crud_get_kpi_type_by_name_with_contracts,
 )
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
-from app.dependencies import get_async_db
+from app.dependencies import check_project_access_async, get_async_db
 from app.logger import logger
 from app.v1.operational.project.project_contracts import generate_presigned_url
 
@@ -125,6 +125,7 @@ def get_kpi_type(
     "/by-project/{project_id}",
     response_model=list[interfaces.KPITypeWithContractInfo],
     operation_id="get_kpi_types_by_project",
+    dependencies=[Depends(check_project_access_async)],
 )
 def get_kpi_types_by_project(
     project_id: uuid.UUID,

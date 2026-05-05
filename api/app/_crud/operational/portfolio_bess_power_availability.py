@@ -19,7 +19,11 @@ def _numeric_from_operational_row(
     *,
     row: models.OperationalDataTimeseries,
 ) -> float:
-    """Return the first non-null numeric column as float (matches web getValue)."""
+    """Return the first non-null numeric column as float (matches web getValue).
+
+    Args:
+        row: Operational data timeseries ORM row.
+    """
     for attr in (
         "value_double",
         "value_real",

@@ -41,7 +41,11 @@ PANDAS_NULL_ENCODERS: dict[Any, Callable[[Any], Any]] = {
 
 
 def normalize_pandas_nullable(*, content: Any) -> Any:
-    """Convert pandas nullable scalars into JSON-safe Python values."""
+    """Convert pandas nullable scalars into JSON-safe Python values.
+
+    Args:
+        content: Value to encode, may contain pandas nullable types.
+    """
     return jsonable_encoder(content, custom_encoder=PANDAS_NULL_ENCODERS)
 
 

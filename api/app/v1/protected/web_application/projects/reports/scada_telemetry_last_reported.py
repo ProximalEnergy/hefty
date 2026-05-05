@@ -150,6 +150,14 @@ async def get_scada_telemetry_last_reported(
     data_pd["Last Reported"] = last_reported.dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
     def _autofit_columns(*, worksheet, dataframe):
+        """Set each column's width to fit its longest value.
+
+        Args:
+            worksheet: The xlsxwriter Worksheet object to apply column widths
+                to.
+            dataframe: The pandas DataFrame whose column data determines the
+                required widths.
+        """
         for idx, col in enumerate(dataframe.columns):
             series = dataframe[col]
             max_len = max(series.astype(str).map(len).max(), len(str(series.name))) + 2

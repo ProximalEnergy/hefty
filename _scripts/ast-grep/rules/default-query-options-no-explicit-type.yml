@@ -1,0 +1,6 @@
+id: default-query-options-no-explicit-type
+message: "defaultQueryOptions should not have an explicit type annotation; let the type be inferred."
+language: TypeScript
+severity: error
+rule:
+  pattern: "const defaultQueryOptions: $TYPE = $EXPR"

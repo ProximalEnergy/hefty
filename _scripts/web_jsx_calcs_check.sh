@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run JSX-calculation semgrep on changed files or all web-app JSX/TSX files.
+# Run JSX-calculation ast-grep check on changed files or all web-app JSX/TSX files.
 
 set -euo pipefail
 
@@ -74,6 +74,7 @@ if [ "${#targets[@]}" -eq 0 ]; then
     exit 0
 fi
 
-uvx semgrep@1.160 --error \
-    --config web-app/_scripts/jsx-calculations.yaml \
+uvx --from ast-grep-cli ast-grep scan \
+    --config "${SCRIPT_DIR}/ast-grep/sgconfig.yml" \
+    --error=jsx-inline-calculation \
     "${targets[@]}"

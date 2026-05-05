@@ -16,7 +16,15 @@ def apply_notification_preference_updates(
     in_app_min_severity: enumerations.NotificationSeverity | None = None,
     email_min_severity: enumerations.NotificationSeverity | None = None,
 ) -> None:
-    """Apply notification preference field updates in memory."""
+    """Apply notification preference field updates in memory.
+
+    Args:
+        preference: ORM preference object to mutate.
+        in_app_enabled: Override in-app enabled flag, if provided.
+        email_enabled: Override email enabled flag, if provided.
+        in_app_min_severity: Override in-app minimum severity, if provided.
+        email_min_severity: Override email minimum severity, if provided.
+    """
     if in_app_enabled is not None:
         preference.in_app_enabled = in_app_enabled
     if email_enabled is not None:
@@ -180,7 +188,18 @@ async def bulk_update_user_notification_preferences(
     in_app_min_severity: enumerations.NotificationSeverity | None = None,
     email_min_severity: enumerations.NotificationSeverity | None = None,
 ) -> list[models.NotificationPreference]:
-    """Update multiple notification preferences in one transaction."""
+    """Update multiple notification preferences in one transaction.
+
+    Args:
+        db: Async database session.
+        user_id: ID of the user whose preferences are updated.
+        project_ids: Project IDs to update preferences for.
+        notification_type_ids: Notification type IDs to update.
+        in_app_enabled: Override in-app enabled flag, if provided.
+        email_enabled: Override email enabled flag, if provided.
+        in_app_min_severity: Override in-app minimum severity, if provided.
+        email_min_severity: Override email minimum severity, if provided.
+    """
     unique_project_ids = list(dict.fromkeys(project_ids))
     unique_notification_type_ids = list(dict.fromkeys(notification_type_ids))
 

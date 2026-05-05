@@ -115,8 +115,24 @@ async def get_suggested_events_with_score_from_ticket(
     """
     Get suggested events from a ticket, with a computed score.
 
+    Args:
+        cmms_ticket_id: ID of the CMMS ticket to find event suggestions
+            for.
+        cmms_integration_id: ID of the CMMS integration the ticket
+            belongs to.
+        cmms_device_id: External device ID from the CMMS system. Used
+            to narrow candidate events by device. Optional.
+        source_created_at: Timestamp from the originating CMMS system
+            when the ticket was created. Used for time-proximity
+            scoring. Optional.
+        project: The project context used to scope the event search.
+        project_db: Async database session for the project database.
+        limit: Maximum number of suggested events to return.
+            Defaults to 10.
+
     Returns:
-        list[tuple[models.Event, int]] where each tuple is (event, score)
+        list[tuple[models.Event, int]] where each tuple is
+        (event, score).
     """
     ct = models.CMMSTicket
     cd = models.CMMSDevice

@@ -33,7 +33,12 @@ def _get_project_tag_options(*, deep: bool) -> Any:
 
 
 def _label_columns(*, model: Any, prefix: str) -> list[Any]:
-    """Helper to label all columns of a model with a prefix."""
+    """Helper to label all columns of a model with a prefix.
+
+    Args:
+        model: SQLAlchemy mapped model whose columns will be labeled.
+        prefix: String prepended to each column name (e.g. "device").
+    """
     return [
         getattr(model, column.name).label(f"{prefix}_{column.name}")
         for column in model.__table__.columns
@@ -41,7 +46,12 @@ def _label_columns(*, model: Any, prefix: str) -> list[Any]:
 
 
 def _get_project_tag_options_v2(*, deep: bool) -> list[Any]:
-    """Return labeled columns for tag queries."""
+    """Return labeled columns for tag queries.
+
+    Args:
+        deep: When True, also include labeled columns for Device,
+            DeviceType, SensorType, and DataType.
+    """
     columns = [
         getattr(models.Tag, column.name).label(column.name)
         for column in models.Tag.__table__.columns

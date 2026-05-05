@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 import time
 from datetime import UTC, datetime
-from json import JSONDecodeError
+
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.error import URLError
@@ -23,8 +23,7 @@ WEB_PORT = int(os.environ.get("WEB_SCREENSHOT_PORT", "5173"))
 WEB_HOST = os.environ.get("WEB_SCREENSHOT_HOST", "localhost")
 WEB_URL = f"http://{WEB_HOST}:{WEB_PORT}"
 ACTIVE_WEB_URL = WEB_URL
-_SEMGREP_FAILURE_WARNED = False
-_SEMGREP_DISABLED = False
+
 SCREENSHOT_PROJECT_ID = "e69ddc19-e2c6-4537-a236-93849c4bc847"
 SCREENSHOT_WAIT_TIMEOUT_MS = int(
     os.environ.get("WEB_SCREENSHOT_WAIT_TIMEOUT_MS", "15000")
@@ -287,80 +286,16 @@ def changed_files_vs_dev(*, cwd: Path = ROOT) -> list[str]:
     return [file for file in files if file]
 
 
-def semgrep_matches(*, files: list[str], rule_yaml: str) -> list[dict[str, object]]:
-    """Run semgrep with an inline config and return result objects."""
-    global _SEMGREP_DISABLED
-    if _SEMGREP_DISABLED:
-        return []
-    if not files:
-        return []
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmp:
-        tmp.write(rule_yaml)
-        tmp_path = tmp.name
-    try:
-        proc = run_semgrep_scan(files=files, tmp_path=tmp_path)
-    finally:
-        Path(tmp_path).unlink(missing_ok=True)
-    if proc.returncode not in {0, 1}:
-        _SEMGREP_DISABLED = True
-        warn_semgrep_failure(proc=proc)
-        return []
-    try:
-        data = json.loads(proc.stdout or "{}")
-    except JSONDecodeError:
-        warn_semgrep_failure(proc=proc, context="invalid JSON output")
-        return []
-    return data.get("results", [])
-
-
 def extract_routes_from_files(*, files: list[str]) -> list[str]:
-    """Extract literal routes from changed files with semgrep."""
-    rule = """
-rules:
-  - id: route-literals
-    languages: [typescript, javascript]
-    message: route
-    severity: INFO
-    patterns:
-      - pattern-either:
-          - pattern: <Route ... path="$PATH" ... />
-          - pattern: navigate("$PATH")
-          - pattern: to="$PATH"
-          - pattern: const $NAME = "$PATH"
-      - metavariable-regex:
-          metavariable: $PATH
-          regex: ^/[A-Za-z0-9_/:.-]*$
-"""
-    matches = semgrep_matches(files=files, rule_yaml=rule)
+    """Extract literal routes from changed files with regex."""
     routes = extract_routes_with_regex(files=files)
-    for match in matches:
-        metavars = match.get("extra", {}).get("metavars", {})
-        path = metavars.get("$PATH", {}).get("abstract_content")
-        if isinstance(path, str):
-            routes.add(path)
     return sorted(routes)
 
 
 def extract_app_route_map() -> dict[str, str]:
     """Map component names used in App.tsx routes to literal route paths."""
     app_file = "web-app/src/App.tsx"
-    rule = """
-rules:
-  - id: app-route-component
-    languages: [typescript]
-    message: route mapping
-    severity: INFO
-    pattern: <Route ... path="$PATH" ... element={<$COMP ... />} ... />
-"""
-    matches = semgrep_matches(files=[app_file], rule_yaml=rule)
-    route_map = extract_app_route_map_with_regex(app_file=app_file)
-    for match in matches:
-        metavars = match.get("extra", {}).get("metavars", {})
-        comp = metavars.get("$COMP", {}).get("abstract_content")
-        path = metavars.get("$PATH", {}).get("abstract_content")
-        if isinstance(comp, str) and isinstance(path, str) and path.startswith("/"):
-            route_map[comp] = path
-    return route_map
+    return extract_app_route_map_with_regex(app_file=app_file)
 
 
 def extract_routes_with_regex(*, files: list[str]) -> set[str]:
@@ -424,66 +359,6 @@ def extract_app_route_map_with_regex(*, app_file: str) -> dict[str, str]:
         if not value.rstrip().endswith("/>"):
             stack.append(full_path)
     return route_map
-
-
-def semgrep_env(*, tmp_dir: str) -> dict[str, str]:
-    """Build an environment that avoids semgrep network/setup side effects."""
-    return {
-        **os.environ,
-        "SEMGREP_SEND_METRICS": "off",
-        "SEMGREP_ENABLE_VERSION_CHECK": "0",
-        "SEMGREP_LOG_FILE": str(Path(tmp_dir) / "semgrep.log"),
-        "SEMGREP_SETTINGS_FILE": str(Path(tmp_dir) / "settings.yml"),
-        "SEMGREP_VERSION_CACHE_PATH": str(Path(tmp_dir) / "version-cache"),
-    }
-
-
-def run_semgrep_scan(*, files: list[str], tmp_path: str) -> subprocess.CompletedProcess:
-    """Run semgrep via uv to match local mise toolchain behavior."""
-    with tempfile.TemporaryDirectory(prefix="web-screenshot-semgrep-") as tmp_dir:
-        env = semgrep_env(tmp_dir=tmp_dir)
-        return subprocess.run(
-            [
-                "uvx",
-                "semgrep@1.160",
-                "scan",
-                "--config",
-                tmp_path,
-                "--json",
-                "--metrics=off",
-                *files,
-            ],
-            cwd=ROOT,
-            check=False,
-            text=True,
-            capture_output=True,
-            env=env,
-        )
-
-
-def warn_semgrep_failure(
-    *,
-    proc: subprocess.CompletedProcess,
-    context: str = "scan failed",
-) -> None:
-    """Emit semgrep failure warning once, with concrete command output."""
-    global _SEMGREP_FAILURE_WARNED
-    if _SEMGREP_FAILURE_WARNED:
-        return
-    max_line = 220
-    stderr_lines = (proc.stderr or "").strip().splitlines()
-    stdout_lines = (proc.stdout or "").strip().splitlines()
-    detail_lines = [*stderr_lines[:2], *stdout_lines[:2]]
-    detail_lines = [line[:max_line] for line in detail_lines if line]
-    if not detail_lines:
-        detail_lines = ["no stderr/stdout from semgrep"]
-    detail = " | ".join(detail_lines)
-    print(
-        "Warning: semgrep failed "
-        f"({context}; exit={proc.returncode}; detail={detail}); "
-        "using regex route fallback."
-    )
-    _SEMGREP_FAILURE_WARNED = True
 
 
 def infer_page_routes(*, changed_files: list[str]) -> list[str]:
@@ -632,7 +507,7 @@ def web_screenshot() -> None:
         print(f" - {rel}")
 
     route_preview = ", ".join(sorted(routes))
-    print(f"\nRoutes discovered via semgrep: {route_preview}")
+    print(f"\nRoutes discovered: {route_preview}")
     print(f"Output directory: {output_dir.relative_to(ROOT)}")
     print(f"Re-run command: {shlex.join(['mise', 'run', 'web:screenshot'])}")
 

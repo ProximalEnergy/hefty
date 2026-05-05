@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run query-time enum semgrep on changed files or all web-app TS files.
+# Run query-time enum ast-grep check on changed files or all web-app TS files.
 
 set -euo pipefail
 
@@ -19,7 +19,6 @@ done
 cd "${REPO_ROOT}"
 
 target_web_files=""
-declare -a baseline_args=()
 
 if [ "${RUN_ALL_FILES}" = "true" ]; then
     target_web_files=$(
@@ -48,9 +47,6 @@ else
         printf '%s\n' "${diff_files}" \
             | grep -E '^web-app/.*\.(ts|tsx)$' || true
     )
-
-    baseline_commit="$(git rev-parse "${base_ref}")"
-    baseline_args=(--baseline-commit "${baseline_commit}")
 fi
 
 if [ -z "${target_web_files}" ]; then
@@ -78,8 +74,7 @@ if [ "${#targets[@]}" -eq 0 ]; then
     exit 0
 fi
 
-uvx semgrep@1.160 --error \
-    --disable-version-check \
-    --config _scripts/rules/query-time-enum.yaml \
-    "${baseline_args[@]}" \
+uvx --from ast-grep-cli ast-grep scan \
+    --config "${SCRIPT_DIR}/ast-grep/sgconfig.yml" \
+    --error=query-time-enum \
     "${targets[@]}"

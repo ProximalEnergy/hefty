@@ -90,9 +90,7 @@ def run_migrations_online() -> None:
             schema="project_default" if table.schema == "project" else table.schema,
         )
 
-    def include_name(
-        name, type_, parent_names
-    ):  # nosemgrep: python-enforce-keyword-only-args
+    def include_name(name, type_, parent_names):
         if type_ == "schema":
             return name in (
                 "public",
@@ -104,9 +102,7 @@ def run_migrations_online() -> None:
         else:
             return True
 
-    def include_object(
-        object, name, type_, reflected, compare_to
-    ):  # nosemgrep: python-enforce-keyword-only-args
+    def include_object(object, name, type_, reflected, compare_to):
         if type_ == "table":
             return object.schema in ("admin", "operational", "project_default", "ercot")
         else:
