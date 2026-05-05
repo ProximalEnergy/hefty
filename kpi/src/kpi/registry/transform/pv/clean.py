@@ -28,8 +28,8 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
     # Project Attributes
     # =======================================================
 
-    project_total_delivered_energy_filled_kwh_5m = calc_field(fill_accumulator)(
-        Required(Sensor.project_total_delivered_energy_raw_kwh_5m),
+    project_total_energy_exported_to_grid_filled_kwh_5m = calc_field(fill_accumulator)(
+        Required(Sensor.project_total_energy_exported_to_grid_raw_kwh_5m),
     )
 
     inverter_total_energy_production_filled_kwh_5m = calc_field(fill_accumulator)(

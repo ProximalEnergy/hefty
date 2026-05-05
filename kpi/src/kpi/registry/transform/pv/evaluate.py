@@ -48,10 +48,10 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
         )
 
     @method_calc(
-        total=Required(Clean.project_total_delivered_energy_filled_kwh_5m),
+        total=Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
         power_capacity=Required(Clean.project_dc_capacity_kw),
     )
-    def project_delivered_energy_kwh_5m(
+    def project_energy_exported_to_grid_kwh_5m(
         total: xr.DataArray,
         power_capacity: xr.DataArray,
     ) -> xr.DataArray:

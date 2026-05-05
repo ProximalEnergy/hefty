@@ -35,7 +35,9 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     # PROJECT_ENERGY_PRODUCTION (6)
     @method_calc(
-        energy_total=Required(Clean.project_total_delivered_energy_filled_kwh_5m),
+        energy_total=Required(
+            Clean.project_total_energy_exported_to_grid_filled_kwh_5m
+        ),
         date_local_5m=Required(date_local_5m),
     )
     def project_energy_production_kwh_d(
@@ -127,7 +129,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     @method_calc(
         power_setpoint=Required(Clean.project_power_setpoint_kw_5m),
         expected_energy=Required(Eval.project_expected_energy_best_kwh_5m),
-        actual_energy=Required(Eval.project_delivered_energy_kwh_5m),
+        actual_energy=Required(Eval.project_energy_exported_to_grid_kwh_5m),
         date_local_5m=Required(date_local_5m),
     )
     def project_curtailed_energy_kwh_d(

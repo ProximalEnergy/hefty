@@ -6,7 +6,7 @@ from kpi.op.field_registry import FieldRegistry
 
 
 class DownloadSensorPv(FieldRegistry[SensorProtocol]):
-    project_total_delivered_energy_raw_kwh_5m = sensor_field(
+    project_total_energy_exported_to_grid_raw_kwh_5m = sensor_field(
         sensor_type=SensorTypeEnum.METER_ENERGY_EXPORTED_TO_GRID,
         project_level=True,
         scale=1000,
