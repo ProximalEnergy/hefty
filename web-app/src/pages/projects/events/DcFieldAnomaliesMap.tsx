@@ -508,7 +508,7 @@ const DcFieldAnomaliesMap = ({
                     : 'rgba(255, 255, 255, 0.95)',
               }}
             >
-              <Grid gutter="xs" align="center">
+              <Grid gap="xs" align="center">
                 <Grid.Col
                   span={{ base: 12, md: 4 }}
                   style={{ textAlign: 'center' }}

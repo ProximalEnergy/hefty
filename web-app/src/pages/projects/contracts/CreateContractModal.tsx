@@ -662,7 +662,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
         body: { padding: 0 },
       }}
     >
-      <Grid gutter={0} style={{ height: '80vh' }}>
+      <Grid gap={0} style={{ height: '80vh' }}>
         {/* Left Side - Document Selection and PDF Viewer */}
         <Grid.Col span={6} p="md">
           <Stack h="100%">

@@ -163,7 +163,7 @@ export function Teams() {
     <Stack id="teams">
       <Title order={2}>Teams</Title>
       <Text>Manage teams and members. Changes require explicit save.</Text>
-      <Grid gutter="md">
+      <Grid gap="md">
         <Grid.Col span={{ base: 12, md: 4 }}>
           <Card withBorder>
             <Group justify="space-between" mb="xs">

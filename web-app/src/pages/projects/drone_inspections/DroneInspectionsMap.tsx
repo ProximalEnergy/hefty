@@ -2109,7 +2109,7 @@ const DroneInspectionsMap = ({
               )}
             </Group>
             <Divider />
-            <Grid gutter="xs">
+            <Grid gap="xs">
               <Grid.Col span={{ base: 12, sm: 6 }}>
                 <Stack gap={4}>
                   <Text size="sm">
@@ -2192,7 +2192,7 @@ const DroneInspectionsMap = ({
         <Stack gap="sm">
           {/* Summary */}
           <Card withBorder p="sm">
-            <Grid gutter="xs" align="center">
+            <Grid gap="xs" align="center">
               <Grid.Col span={{ base: 12, md: 3 }}>
                 <Stack gap={4}>
                   <Text fw={700}>Total anomalies filtered</Text>
@@ -2377,7 +2377,7 @@ const DroneInspectionsMap = ({
               </Text>
             </Stack>
           </Card>
-          <Grid gutter="sm">
+          <Grid gap="sm">
             <Grid.Col span={{ base: 12, sm: 6 }}>
               <DateTimePicker
                 label="Open date"

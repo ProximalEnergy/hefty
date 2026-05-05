@@ -978,7 +978,7 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
       </SimpleGrid>
 
       {/* Main Content with Left Pane */}
-      <Grid gutter="lg">
+      <Grid gap="lg">
         {/* Left Pane - Operating Metrics */}
         <Grid.Col span={{ base: 12, lg: 3 }}>
           <Card withBorder p="lg" radius="md" h="fit-content">

@@ -327,7 +327,7 @@ const TrackerRowDetail = React.memo(() => {
                     {showSiblings ? 'Hide' : 'Show'} ({siblingDevices.length})
                   </Button>
                 </Group>
-                <Collapse in={showSiblings}>
+                <Collapse expanded={showSiblings}>
                   <Group gap="xs">
                     {siblingDevices.map((sibling) => (
                       <Link

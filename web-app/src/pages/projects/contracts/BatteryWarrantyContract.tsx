@@ -247,7 +247,7 @@ export const BatteryWarrantyContract = ({
           ))}
         </SimpleGrid>
 
-        <Grid gutter="md">
+        <Grid gap="md">
           <Grid.Col span={{ base: 12, lg: 8 }}>
             {/* Energy Capacity Metrics */}
             <Paper withBorder p="md" mb="md">

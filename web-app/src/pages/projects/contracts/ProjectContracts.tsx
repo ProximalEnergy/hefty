@@ -349,7 +349,7 @@ const ContractCard = ({
         </Group>
       </Group>
 
-      <Grid gutter="md">
+      <Grid gap="md">
         {/* PDF Viewer Section (20% width) */}
         <Grid.Col span={2.4}>
           <Stack gap="xs">
@@ -429,7 +429,7 @@ const ContractCard = ({
 
         {/* Contract Details Section (80% width) */}
         <Grid.Col span={9.6}>
-          <Grid gutter="md">
+          <Grid gap="md">
             {/* First Row - Contract Details (70%) and Contact Info (30%) */}
             <Grid.Col span={8.4}>
               <Stack gap="sm">

@@ -493,7 +493,7 @@ export default function ClaimDetail() {
         </Group>
       </Group>
 
-      <Grid gutter="lg">
+      <Grid gap="lg">
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Stack gap="lg">
             {/* Summary info */}

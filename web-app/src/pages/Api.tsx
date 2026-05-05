@@ -56,7 +56,7 @@ const APIKey = () => {
                 : theme.colors.gray[2]
             }
           >
-            <Group justify="apart" gap="xs">
+            <Group justify="space-between" gap="xs">
               <Text style={{ wordBreak: 'break-all' }}>{data.api_key}</Text>
               <ActionIcon
                 onClick={() => clipboard.copy(data.api_key)}

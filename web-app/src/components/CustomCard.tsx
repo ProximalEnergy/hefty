@@ -7,7 +7,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
-import { useFullscreen } from '@mantine/hooks'
+import { useFullscreenElement } from '@mantine/hooks'
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
@@ -48,7 +48,7 @@ const CardTitle = ({
   allowMinimize?: boolean
 }) => {
   return (
-    <Group justify="apart" wrap="nowrap">
+    <Group justify="space-between" wrap="nowrap">
       <Group gap={3} wrap="nowrap">
         {beta && <Badge variant="filled">Beta</Badge>}
         {title && <span style={{ fontWeight: 500 }}>{title}</span>}
@@ -152,7 +152,7 @@ const CustomCard = ({
   allowMinimize?: boolean
   storageKey?: string
 }) => {
-  const { ref, toggle, fullscreen } = useFullscreen()
+  const { ref, toggle, fullscreen } = useFullscreenElement()
 
   // Load minimized state from localStorage if storageKey is provided
   const getInitialMinimizedState = () => {

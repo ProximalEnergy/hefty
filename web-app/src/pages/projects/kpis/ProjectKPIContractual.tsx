@@ -781,7 +781,7 @@ const ProjectKPIContractual = () => {
                         </Button>
                       </Stack>
                     ) : (
-                      <Text color="dimmed">No document available</Text>
+                      <Text c="dimmed">No document available</Text>
                     )}
                   </Stack>
 

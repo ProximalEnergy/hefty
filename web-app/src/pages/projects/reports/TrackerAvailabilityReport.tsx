@@ -110,7 +110,7 @@ const Page: React.FC = () => {
         />
         {invalidDateWarning && (
           <Stack align="center">
-            <Text color="red">
+            <Text c="red">
               Selected date is unavailable. Please reach out to the Proximal
               team for backfill support.
             </Text>

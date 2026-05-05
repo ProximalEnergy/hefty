@@ -29,7 +29,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
 }) => {
   return (
     <Card h="100%" withBorder p="xs" radius="md" onClick={onClick} miw={400}>
-      <Stack justify="apart" gap={0}>
+      <Stack justify="space-between" gap={0}>
         <Group gap="xs" preventGrowOverflow={true} wrap="nowrap">
           {!is_visible && (
             <ThemeIcon color="gray" size={20} radius="xl">
@@ -61,7 +61,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
         </Group>
 
         <Group align="flex-end" gap="xs" justify="flex-start">
-          <Stack justify="apart" gap={0}>
+          <Stack justify="space-between" gap={0}>
             <Group
               gap={unit === '%' || unit === 'deg' || unit === null ? 0 : 5}
               align="flex-end"
