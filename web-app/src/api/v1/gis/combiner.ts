@@ -4,7 +4,8 @@ import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 import { FeatureCollection } from 'geojson'
 
-const URL = '/v1/gis/combiner/{project_id}/{block_device_id}'
+const URL =
+  '/v1/operational/projects/{project_id}/gis/combiner/{block_device_id}'
 
 type get = types.paths[typeof URL]['get']
 type getPathParams = get['parameters']['path']

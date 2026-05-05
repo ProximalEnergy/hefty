@@ -16,7 +16,9 @@ from app.v1.operational.project import (
     project_event_message_reactions,
     project_event_messages,
     project_events,
+    project_gis_combiner,
     project_kpi_data,
+    project_kpi_types,
     project_om_contractors,
     project_pv_budgeted,
     project_pv_expected,
@@ -48,7 +50,9 @@ router.include_router(project_drone_inspections.router)
 router.include_router(project_event_message_reactions.router)
 router.include_router(project_event_messages.router)
 router.include_router(project_events.router)
+router.include_router(project_gis_combiner.router)
 router.include_router(project_kpi_data.router)
+router.include_router(project_kpi_types.router)
 router.include_router(project_om_contractors.router)
 router.include_router(project_pv_budgeted.router)
 router.include_router(project_pv_expected.router)

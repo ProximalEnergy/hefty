@@ -113,6 +113,16 @@ jobs:
       - name: Run ast-grep fastapi project-id access prefix check
         run: ./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access-prefix api/app
 
+  api-project-id-path:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep api project-id path check
+        run: ./_scripts/ast_grep_check.sh --rules api-no-project-id-path-param-outside-project api/app
+
   forbidden-with-async-db:
     runs-on: ubuntu-latest
     steps:

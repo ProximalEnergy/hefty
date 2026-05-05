@@ -201,10 +201,46 @@ description = "Run static name shorts check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_name_shorts_check.sh"
 
-[tasks."root:ast_grep"]
-description = "Run ast-grep quality checks on the monorepo"
+[tasks."root:kw_only_args"]
+description = "Run ast-grep check: python-enforce-keyword-only-args"
 dir = "."
-run = "./_scripts/ast_grep_check.sh"
+run = "./_scripts/ast_grep_check.sh --rules python-enforce-keyword-only-args"
+
+[tasks."root:docstring_args"]
+description = "Run ast-grep check: python-missing-args-in-docstring"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules python-missing-args-in-docstring"
+
+[tasks."root:sa_query_filter"]
+description = "Run ast-grep check: python-disallow-sqlalchemy-query-filter"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules python-disallow-sqlalchemy-query-filter"
+
+[tasks."root:sa_array_agg"]
+description = "Run ast-grep check: python-disallow-sqlalchemy-array-agg"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules python-disallow-sqlalchemy-array-agg"
+
+[tasks."root:project_id_access"]
+description = "Run ast-grep check: fastapi-project-id-requires-access"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access"
+
+[tasks."root:project_id_prefix"]
+description = "Run ast-grep check: fastapi-project-id-requires-access-prefix"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access-prefix"
+
+[tasks."root:async_db_usage"]
+description = "Run ast-grep check: forbidden-with-async-db-usage"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules forbidden-with-async-db-usage"
+
+
+[tasks."api:project_id_path"]
+description = "Run ast-grep check: api-no-project-id-path-param-outside-project"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules api-no-project-id-path-param-outside-project api/app"
 
 [tasks."root:dbquery_enforcement"]
 description = "Fail on new SQLAlchemy CRUD operations outside DbQuery pattern"
@@ -942,7 +978,7 @@ run = "./_scripts/web_query_time_enum_check.sh"
 [tasks."web:default-query-options-no-explicit-type"]
 description = "Check for explicit type annotation on defaultQueryOptions"
 dir = "."
-run = "uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --error=default-query-options-no-explicit-type web-app/src"
+run = "uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --filter \"^default-query-options-no-explicit-type$\" web-app/src"
 
 [tasks."web:screenshot"]
 description = "Screenshot routes inferred from git diff vs dev into _screenshot/"

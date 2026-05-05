@@ -1656,32 +1656,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/gis/combiner/{project_id}/{block_device_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Combiner Block Performance
-         * @description Get combiner performance at the block level
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         block_device_id: Description for block_device_id.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/gis/{project_id}/tracker-by-block/{block_id}": {
         parameters: {
             query?: never;
@@ -2342,63 +2316,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/kpi-data/{project_id}/excel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Excel
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         kpi_type_id: Description for kpi_type_id.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         db: Description for db.
-         *         sync_db: Description for sync_db.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_kpi_excel_v1_operational_kpi_data__project_id__excel_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-data/{project_id}/kpi-email-alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Email Alerts
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         kpi_type_id: Description for kpi_type_id.
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         */
-        get: operations["get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/kpi-instances": {
         parameters: {
             query?: never;
@@ -2490,30 +2407,6 @@ export interface paths {
          *         db: Description for db.
          */
         get: operations["get_kpi_type_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-types/by-project/{project_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Types By Project
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         */
-        get: operations["get_kpi_types_by_project"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4276,6 +4169,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/gis/combiner/{block_device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Combiner Block Performance
+         * @description Get combiner performance at the block level.
+         *
+         *     Args:
+         *         block_device_id: The device ID of the PV block to query combiners for.
+         *         project_db: Database session for the project's schema.
+         *         project: The project model resolved via dependency injection.
+         */
+        get: operations["get_combiner_block_performance_v1_operational_projects__project_id__gis_combiner__block_device_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
         parameters: {
             query?: never;
@@ -4476,6 +4394,59 @@ export interface paths {
          *         RTEResponse: The RTE for the project.
          */
         get: operations["get_rte_v2_v1_operational_projects__project_id__kpi_data_rte_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/kpi-data/excel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Excel
+         * @description Download KPI data as an Excel file, saved to S3 and returned as a presigned URL.
+         *
+         *     Args:
+         *         project_id: The project UUID.
+         *         kpi_type_id: The KPI type ID.
+         *         start: Start date.
+         *         end: End date.
+         *         sync_db: Synchronous database session.
+         *         project_db: Project-specific database session.
+         *         project: The project model.
+         */
+        get: operations["get_kpi_excel_v1_operational_projects__project_id__kpi_data_excel_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/kpi-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Types By Project
+         * @description Get all KPI types and their associated contract info for a project.
+         *
+         *     Args:
+         *         project_id: Project UUID from path parameter.
+         *         db: Database session.
+         */
+        get: operations["get_kpi_types_by_project"];
         put?: never;
         post?: never;
         delete?: never;
@@ -16023,41 +15994,6 @@ export interface operations {
             };
         };
     };
-    get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "x-api-key"?: string;
-                authorization?: string;
-            };
-            path: {
-                project_id: string;
-                block_device_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get: {
         parameters: {
             query: {
@@ -17139,84 +17075,6 @@ export interface operations {
             };
         };
     };
-    get_kpi_excel_v1_operational_kpi_data__project_id__excel_get: {
-        parameters: {
-            query: {
-                kpi_type_id: number;
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                "x-api-key"?: string;
-                authorization?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                kpi_type_id: number;
-                schema?: string | null;
-            };
-            header?: {
-                "x-api-key"?: string;
-                authorization?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_kpi_instances: {
         parameters: {
             query?: {
@@ -17343,42 +17201,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KPITypeInterface"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_types_by_project: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                "x-api-key"?: string;
-                authorization?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KPITypeWithContractInfo"][];
                 };
             };
             /** @description Validation Error */
@@ -20089,6 +19911,41 @@ export interface operations {
             };
         };
     };
+    get_combiner_block_performance_v1_operational_projects__project_id__gis_combiner__block_device_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                block_device_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
         parameters: {
             query: {
@@ -20347,6 +20204,81 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RTEResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_excel_v1_operational_projects__project_id__kpi_data_excel_get: {
+        parameters: {
+            query: {
+                kpi_type_id: number;
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_types_by_project: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                "x-api-key"?: string;
+                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITypeWithContractInfo"][];
                 };
             };
             /** @description Validation Error */

@@ -1,5 +1,4 @@
 from typing import Annotated
-from uuid import UUID
 
 import numpy as np
 import pandas as pd
@@ -10,39 +9,33 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import core
-from app import dependencies, interfaces, utils
-from app.utils import get_include_in_schema
+from app import interfaces, utils
+from app.dependencies import get_project_api, get_project_db
 from core import models
 
 router = APIRouter(
-    prefix="/combiner",
+    prefix="/gis",
     tags=["gis"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
-    include_in_schema=get_include_in_schema(),
 )
 
 
 @router.get(
-    "/{project_id}/{block_device_id}",
+    "/combiner/{block_device_id}",
     response_model=interfaces.GeoJSON,
 )
 async def get_combiner_block_performance(
     *,
-    project_id: UUID,
     block_device_id: int,
-    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
+    project_db: Annotated[Session, Depends(get_project_db)],
+    project: Annotated[models.Project, Depends(get_project_api)],
 ):
-    # Query data for the last 30 minutes (offset by 5 minutes)
-    """Get combiner performance at the block level
+    """Get combiner performance at the block level.
 
     Args:
-        project_id: Description for project_id.
-        block_device_id: Description for block_device_id.
-        project_db: Description for project_db.
-        project: Description for project.
+        block_device_id: The device ID of the PV block to query combiners for.
+        project_db: Database session for the project's schema.
+        project: The project model resolved via dependency injection.
     """
-    _ = project_id
     end = pd.Timestamp.now("UTC").floor("5min")
     start = end - pd.Timedelta(minutes=30)
 
@@ -60,7 +53,7 @@ async def get_combiner_block_performance(
         )
     device_block = device_block_df.to_dict("records")[0]
 
-    # Get descendent pv_dc_combiner devices of requests pv_block
+    # Get descendent pv_dc_combiner devices of requested pv_block
     devices_combiner_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
         device_id_descendent_of=int(device_block["device_id"]),
@@ -72,7 +65,6 @@ async def get_combiner_block_performance(
         device_ids=devices_combiner_df["device_id"].astype(int).tolist(),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    # Get data for combiner current
     missing_data = False
 
     data = await DataTimeseries(
@@ -95,7 +87,7 @@ async def get_combiner_block_performance(
         missing_data = True
 
     if not missing_data:
-        # Rename columns from tags to device ids
+        # Rename columns from tag ids to device ids
         # NOTE: These device ids are combiner device ids
         tag_id_to_device_id = dict(
             zip(
@@ -131,9 +123,7 @@ async def get_combiner_block_performance(
         for device in devices_combiner_df.to_dict("records")
     ]
 
-    return_data = {
+    return {
         "type": "FeatureCollection",
         "features": features,
     }
-
-    return return_data

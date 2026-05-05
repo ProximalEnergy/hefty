@@ -47,13 +47,17 @@ else
     )
 fi
 
-error_flags=()
-for rule in "${selected_rules[@]}"; do
-    error_flags+=("--error=${rule}")
+filter_regex="^("
+for i in "${!selected_rules[@]}"; do
+    if [ "$i" -gt 0 ]; then
+        filter_regex+="|"
+    fi
+    filter_regex+="${selected_rules[$i]}"
 done
+filter_regex+=")$"
 
 uvx --from ast-grep-cli ast-grep scan \
     --config "${SCRIPT_DIR}/ast-grep/sgconfig.yml" \
-    "${error_flags[@]}" \
+    --filter "${filter_regex}" \
     "${scan_targets[@]}" \
     --globs '!api/app/dependencies.py'

@@ -2,6 +2,7 @@
 - code lines are shorter than 88 characters
 - write descriptive function names
 - Do not ignore knip, mypy, or ruff failures. Fix them.
+- always use ripgrep instead of grep
 
 # Database
 - Do not create alembic migrations from feature/bugfix branches before PR review.

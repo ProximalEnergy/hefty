@@ -39,7 +39,7 @@ jobs:
         with:
           enable-cache: true
       - name: Run ast-grep default-query-options-no-explicit-type check
-        run: uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --error=default-query-options-no-explicit-type web-app/src
+        run: uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --filter "^default-query-options-no-explicit-type$" web-app/src
 
   query-time-enum:
     runs-on: ubuntu-latest

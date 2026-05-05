@@ -1,7 +1,11 @@
 import datetime
+import mimetypes
 import uuid
+from io import BytesIO
 from typing import Annotated, Any, Literal
 
+import boto3
+import numpy as np
 import pandas as pd
 from core.crud.operational.kpi_data import (
     get_project_kpi_data_agg,
@@ -16,14 +20,15 @@ from core.domain.kpis.rte import (
     get_project_rte as core_get_project_rte,
 )
 from core.enumerations import KPITypeEnum
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
-from app import interfaces
+import core
+from app import interfaces, utils
 from app._crud.operational.kpi_data import api_get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
@@ -37,8 +42,10 @@ from app.dependencies import (
     get_async_db,
     get_is_superadmin_async,
     get_project_api,
+    get_project_db,
 )
 from app.interfaces import UserAuthed
+from app.v1.operational.kpi_data import get_kpi_data_helper
 from app.v1.operational.kpi_instances import get_kpi_instances_helper
 from app.v1.operational.project.project_documents import generate_presigned_url
 from core import models
@@ -622,3 +629,141 @@ async def get_rte_v2(
         end=end,
     )
     return RTEResponse(rte=rte)
+
+
+@router.get("/excel")
+async def get_kpi_excel(
+    project_id: uuid.UUID,
+    kpi_type_id: int,
+    start: datetime.date,
+    end: datetime.date,
+    sync_db: Annotated[Session, Depends(get_db)],
+    project_db: Annotated[Session, Depends(get_project_db)],
+    project: Annotated[models.Project, Depends(get_project_api)],
+):
+    """Download KPI data as an Excel file, saved to S3 and returned as a presigned URL.
+
+    Args:
+        project_id: The project UUID.
+        kpi_type_id: The KPI type ID.
+        start: Start date.
+        end: End date.
+        sync_db: Synchronous database session.
+        project_db: Project-specific database session.
+        project: The project model.
+    """
+    kpi_data = get_kpi_data_helper(
+        db=sync_db,
+        start=start,
+        end=end,
+        project_ids=[project_id],
+        kpi_type_ids=[kpi_type_id],
+        include_device_data=True,
+    )
+    kpi_type = crud_get_kpi_types(db=sync_db, kpi_type_ids=[kpi_type_id])[0]
+
+    has_device_data = kpi_data[0]["data"]["device_data_obj"] is not None
+
+    device_df = None
+    if has_device_data:
+        device_df = pd.DataFrame(
+            kpi_data[0]["data"]["device_data_obj"]["device_values"],
+            index=kpi_data[0]["data"]["dates"],
+        )
+        project_schema = utils.get_project_schema(project_db=project_db)
+        device_ids = [int(device_id) for device_id in device_df.columns.to_list()]
+        devices_df = await core.crud.project.devices.get_project_devices(
+            device_ids=device_ids,
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        devices_df = devices_df.copy()
+        devices_df["name_long"] = devices_df["name_long"].fillna("")
+        device_types_df = await core.crud.operational.device_types.get_device_types(
+            device_type_ids=np.unique(
+                devices_df["device_type_id"].astype(int),
+            ).tolist(),
+        ).get_async(output_type=OutputType.POLARS)
+        device_types_dict = (
+            dict(
+                zip(
+                    device_types_df["device_type_id"].to_list(),
+                    device_types_df["name_long"].to_list(),
+                    strict=True,
+                )
+            )
+            if not device_types_df.is_empty()
+            else {}
+        )
+        device_id_to_name_full = {
+            int(device["device_id"]): (
+                f"{device_types_dict[int(device['device_type_id'])]} "
+                f"{device.get('name_long')}"
+            )
+            for device in devices_df.to_dict("records")
+        }
+        device_df = device_df.rename(columns=device_id_to_name_full)
+        device_df.index.name = "Date"
+    project_df = pd.DataFrame(
+        kpi_data[0]["data"]["project_data"],
+        index=kpi_data[0]["data"]["dates"],
+    ).rename(columns={0: "Project"})
+    project_df.index.name = "Date"
+    metadata_df = (
+        pd.DataFrame(kpi_type.__dict__, index=["Value"])
+        .T.loc[["name_long", "description", "aggregation_method", "unit"]]
+        .reset_index()
+        .rename(columns={"index": "Property"})
+    )
+
+    ## Excel writing, saving to S3, returning presigned URL
+    excel_buffer = BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+        metadata_df.to_excel(writer, sheet_name="Overview", index=False, header=True)
+        if has_device_data and device_df is not None:
+            if device_df.shape[1] > 16383:  ## Excel limitation
+                device_df.T.to_excel(writer, sheet_name="Device Data", index=True)
+            else:
+                device_df.to_excel(writer, sheet_name="Device Data", index=True)
+        project_df.to_excel(writer, sheet_name="Project Data", index=True)
+    excel_buffer.seek(0)
+
+    file = UploadFile(
+        filename=(
+            f"{project.name_short}_{kpi_type.name_short}_"
+            f"{start.strftime('%Y-%m-%d')}-{end.strftime('%Y-%m-%d')}.xlsx"
+        ),
+        file=excel_buffer,
+    )
+    file_content = await file.read()
+    s3_client = boto3.client("s3", region_name="us-east-2")
+    prefix = "kpi-data"
+    filename = file.filename
+    bucket_name = "proximal-am-documents"
+    file_key = f"{prefix}/{filename}"
+    content_type, _ = mimetypes.guess_type(file.filename)  # type: ignore
+    if content_type is None:
+        content_type = "application/octet-stream"
+    tags = "temporary"
+    content_disposition = f'attachment; filename="{filename}"'
+
+    presigned_url = None
+    try:
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key=file_key,
+            Body=file_content,
+            ContentType=content_type,
+            Tagging=tags,
+        )
+        presigned_url = s3_client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": bucket_name,
+                "Key": file_key,
+                "ResponseContentDisposition": content_disposition,
+            },
+            ExpiresIn=3600,
+        )
+    except Exception:
+        presigned_url = None
+
+    return presigned_url

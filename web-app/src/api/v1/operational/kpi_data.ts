@@ -115,7 +115,7 @@ export const useGetKPIExcel = ({
 }) => {
   const axiosConfig = {
     method: 'get',
-    url: `/v1/operational/kpi-data/${pathParams.projectId}/excel`,
+    url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/excel`,
   }
 
   const defaultQueryOptions = {

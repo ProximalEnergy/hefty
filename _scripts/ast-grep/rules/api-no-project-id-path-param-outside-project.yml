@@ -1,0 +1,39 @@
+id: api-no-project-id-path-param-outside-project
+message: >-
+  FastAPI route functions must not accept `project_id` as a direct path
+  parameter outside of api/app/v1/operational/project/. Move this route
+  under that directory, or use the project dependency injection pattern.
+severity: error
+language: Python
+files:
+  - "api/app/**/*.py"
+ignores:
+  - "api/app/v1/operational/project/**"
+  - "api/app/v1/operational/projects.py"
+  - "api/app/v1/ai/**"
+  - "api/app/v1/protected/**"
+  - "api/app/v1/admin/**" 
+rule:
+  all:
+    - kind: function_definition
+    - has:
+        field: parameters
+        has:
+          regex: "^project_id(\\s*:|,|\\)|$)"
+    - inside:
+        kind: decorated_definition
+        has:
+          all:
+            - regex: "\\{project_id\\}"
+            - any:
+                - pattern: "@$OBJ.get($$$)"
+                - pattern: "@$OBJ.post($$$)"
+                - pattern: "@$OBJ.put($$$)"
+                - pattern: "@$OBJ.delete($$$)"
+                - pattern: "@$OBJ.patch($$$)"
+                - pattern: "@$OBJ.options($$$)"
+                - pattern: "@$OBJ.head($$$)"
+                - pattern: "@$OBJ.route($$$)"
+                - pattern: "@$OBJ.api_route($$$)"
+                - pattern: "@$OBJ.websocket($$$)"
+                - pattern: "@$OBJ.websocket_route($$$)"

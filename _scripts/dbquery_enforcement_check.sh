@@ -21,7 +21,7 @@ rule:
   pattern: $OBJ.$METHOD($$$ARGS)
 constraints:
   METHOD:
-    regex: "^(add_all|delete|merge|execute|scalar|scalars|flush|commit|bulk_save_objects|bulk_insert_mappings|bulk_update_mappings|exec_driver_sql|query)$"
+    regex: "^(add_all|delete|execute|scalar|scalars|flush|commit|bulk_save_objects|bulk_insert_mappings|bulk_update_mappings|exec_driver_sql|query)$"
 message: "Use DbQuery for DB CRUD operations"
 severity: warning
 ---
@@ -31,6 +31,7 @@ rule:
   any:
     - pattern: $SESSION.add($$$ARGS)
     - pattern: $SESSION.get($$$ARGS)
+    - pattern: $SESSION.merge($$$ARGS)
     - pattern: $QUERY.update($$$ARGS)
 constraints:
   SESSION:
@@ -78,12 +79,14 @@ import hashlib
 import json
 import pathlib
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 
 results_path = pathlib.Path(sys.argv[1])
 baseline_path = pathlib.Path(sys.argv[2])
 
 current: Counter[str] = Counter()
+violation_lines: dict[str, list[int]] = defaultdict(list)
+
 for line in results_path.read_text().splitlines():
     stripped = line.strip()
     if not stripped:
@@ -98,7 +101,11 @@ for line in results_path.read_text().splitlines():
     text_hash = hashlib.sha256(match_text.encode("utf-8")).hexdigest()[:8]
     snippet = " ".join(match_text.split())[:100].strip()
 
-    current[f"{file_path}:{rule_id}:{text_hash}:{snippet}"] += 1
+    key = f"{file_path}:{rule_id}:{text_hash}:{snippet}"
+    current[key] += 1
+
+    line_num = data.get("range", {}).get("start", {}).get("line", 0) + 1
+    violation_lines[key].append(line_num)
 
 baseline: Counter[str] = Counter()
 if baseline_path.exists():
@@ -107,11 +114,25 @@ if baseline_path.exists():
         if line:
             baseline[line] += 1
 
-new_violations = sorted((current - baseline).elements())
+diff = current - baseline
+new_violations = sorted(diff.elements())
+
 if new_violations:
     print("New DbQuery enforcement violations detected:")
-    for violation in new_violations:
-        print(violation)
+    seen = set()
+    unique_violations = []
+    for v in new_violations:
+        if v not in seen:
+            seen.add(v)
+            unique_violations.append(v)
+            
+    for violation in unique_violations:
+        lines = violation_lines.get(violation, [])
+        lines_str = ",".join(str(l) for l in sorted(set(lines)))
+        
+        parts = violation.split(":", 1)
+        for _ in range(diff[violation]):
+            print(f"{parts[0]}:{lines_str}:{parts[1]}")
     raise SystemExit(1)
 
 print("DbQuery enforcement check passed (no new violations).")

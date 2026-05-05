@@ -76,5 +76,5 @@ fi
 
 uvx --from ast-grep-cli ast-grep scan \
     --config "${SCRIPT_DIR}/ast-grep/sgconfig.yml" \
-    --error=query-time-enum \
+    --filter "^query-time-enum$" \
     "${targets[@]}"

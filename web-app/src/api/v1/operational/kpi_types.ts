@@ -78,7 +78,7 @@ export const useGetProjectKPITypes = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/kpi-types/by-project/${pathParams.projectId}`,
+    url: `/v1/operational/projects/${pathParams.projectId}/kpi-types`,
   }
 
   const defaultQueryOptions = {

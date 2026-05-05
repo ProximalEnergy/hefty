@@ -1292,6 +1292,7 @@ if [ "${RUN_API}" = "true" ]; then
     add_check "API: Pytest" "mise run api:pytest"
     add_check "API: Unused Routes Check" \
         "mise run api:unused_routes_detailed"
+    add_check "API: Project ID Path Check" "mise run api:project_id_path"
 fi
 
 if [ "${RUN_PVEEM}" = "true" ]; then
@@ -1313,6 +1314,8 @@ if [ "${RUN_ROOT}" = "true" ]; then
         "mise run root:static_name_shorts"
     add_check "Root: Pyproject Dependency Check" \
         "mise run root:pyproject_dependencies"
+    add_check "Root: DbQuery Enforcement" \
+        "mise run root:dbquery_enforcement"
     add_db_check "Root: Codegen" "mise run root:codegen"
     if [ "${RUN_ALL}" = "true" ] || [ "${ROOT_PYPROJECT_CHANGED}" = "true" ] || [ "${PACKAGE_JSON_CHANGED}" = "true" ]; then
         add_check "Root: pnpm Version Sync" "mise run root:pnpm_version_sync"
@@ -1339,7 +1342,13 @@ if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
-    add_check "Global: ast-grep" "mise run root:ast_grep"
+    add_check "kw-only-args" "mise run root:kw_only_args"
+    add_check "docstring-args" "mise run root:docstring_args"
+    add_check "sa-query-filter" "mise run root:sa_query_filter"
+    add_check "sa-array-agg" "mise run root:sa_array_agg"
+    add_check "project-id-access" "mise run root:project_id_access"
+    add_check "project-id-prefix" "mise run root:project_id_prefix"
+    add_check "async-db-usage" "mise run root:async_db_usage"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
     add_check "Global: Ruff Linting" "mise run root:ruff"
 fi
