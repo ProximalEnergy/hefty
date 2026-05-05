@@ -146,6 +146,26 @@ jobs:
         run: uv run -m src.core.enumerations
         working-directory: core
 
+  vulture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+
+      - name: resolve root vulture requirement
+        id: resolve_vulture
+        uses: ./.github/actions/resolve-dev-requirement
+        with:
+          package-name: vulture
+
+      - name: run vulture dead code check
+        run: >
+          uv run --with "${{ steps.resolve_vulture.outputs.requirement }}"
+          vulture
+
   docstring-args:
     runs-on: ubuntu-latest
     steps:

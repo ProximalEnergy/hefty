@@ -385,7 +385,7 @@ run = "uv run deptry ."
 [tasks."core:vulture"]
 description = "Run vulture for core"
 dir = "."
-run = "uv run vulture core/src/core --min-confidence 100"
+run = "uv run vulture core/src/core"
 
 [tasks."core:ruff"]
 description = "Run ruff linter for core"
@@ -743,7 +743,7 @@ run = "uv run --dev ruff format api/"
 [tasks."api:vulture"]
 description = "Run vulture for api"
 dir = "."
-run = "uv run vulture api/app --min-confidence 100"
+run = "uv run vulture api/app"
 
 [tasks."api:types"]
 description = "Run mypy type checking for api"
