@@ -60,7 +60,6 @@ import {
   IconChartBar,
   IconCurrencyDollar,
   IconExclamationCircle,
-  IconExternalLink,
   IconFileTypePdf,
   IconSun,
 } from '@tabler/icons-react'
@@ -69,16 +68,11 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import html2canvas from 'html2canvas-pro'
 import jsPDF from 'jspdf'
-import {
-  type MRT_Cell,
-  MRT_ColumnDef,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
 import type * as Plotly from 'plotly.js'
 import React, { useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 
+import { EventTable } from '../ProjectEvents'
 import { PerformanceReportMapCard } from './PerformanceReportMapCard'
 
 dayjs.extend(utc)
@@ -1853,174 +1847,6 @@ const Page: React.FC = () => {
     } satisfies Partial<Plotly.Layout>
   }, [colorScheme, energyChartData, energyView, performanceSummary])
 
-  const navigate = useNavigate()
-  const [navigateType, setNavigateType] = useState<'newTab' | 'navigate'>(
-    'navigate',
-  )
-
-  // Table columns for events (similar to ProjectEvents.tsx)
-  const eventsColumns = useMemo<MRT_ColumnDef<EventSummary>[]>(
-    () => [
-      {
-        header: '',
-        accessorKey: 'actions',
-        enableSorting: false,
-        enableColumnFilter: false,
-        enableColumnActions: false,
-        size: 24,
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <ActionIcon
-            onMouseEnter={() => {
-              setNavigateType('newTab')
-            }}
-            onMouseLeave={() => {
-              setNavigateType('navigate')
-            }}
-            variant="transparent"
-            onClick={() => {
-              window.open(
-                `${window.location.origin}/projects/${projectId}/events/event/?eventId=${cell.row.original.event_id}`,
-              )
-            }}
-          >
-            <IconExternalLink size={16} />
-          </ActionIcon>
-        ),
-      },
-      {
-        header: 'Device Type',
-        accessorKey: 'device_type_name',
-      },
-      {
-        header: 'Device',
-        accessorKey: 'device_name_full',
-      },
-      {
-        header: 'Daily Loss ($)',
-        accessorKey: 'loss_daily_financial',
-        aggregationFn: 'sum',
-        mantineTableHeadCellProps: {
-          align: 'right',
-        },
-        mantineTableBodyCellProps: {
-          align: 'right',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null
-              ? cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                })
-              : ''}
-          </Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null &&
-            cell.getValue<number>() !== 0
-              ? cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                })
-              : ''}
-          </Text>
-        ),
-      },
-      {
-        header: 'Start Time',
-        accessorKey: 'time_start',
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {dayjs(cell.getValue<string>())
-              .tz(project.data?.time_zone)
-              .format('MM/DD/YYYY HH:mm:ss')}
-          </Text>
-        ),
-      },
-      {
-        header: 'End Time',
-        accessorKey: 'time_end',
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<string | null>() !== null
-              ? dayjs(cell.getValue<string>())
-                  .tz(project.data?.time_zone)
-                  .format('MM/DD/YYYY HH:mm:ss')
-              : ''}
-          </Text>
-        ),
-      },
-      {
-        header: 'Failure Mode',
-        accessorKey: 'failure_mode',
-      },
-      {
-        header: 'Root Cause',
-        accessorKey: 'root_cause',
-      },
-      {
-        header: 'Daily Loss (MWh)',
-        accessorKey: 'loss_daily_energy',
-        aggregationFn: 'sum',
-        mantineTableHeadCellProps: {
-          align: 'right',
-        },
-        mantineTableBodyCellProps: {
-          align: 'right',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null
-              ? `${cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} MWh`
-              : ''}
-          </Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null &&
-            cell.getValue<number>() !== 0
-              ? `${cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} MWh`
-              : ''}
-          </Text>
-        ),
-      },
-    ],
-    [project.data?.time_zone, projectId],
-  )
-
-  const eventsTable = useMantineReactTable({
-    columns: eventsColumns,
-    data: eventsData.data ?? [],
-    enableGrouping: true,
-    enableColumnDragging: false,
-    initialState: {
-      density: 'xs',
-      grouping: ['device_type_name'],
-      sorting: [{ id: 'loss_daily_financial', desc: true }],
-    },
-    mantineTableBodyRowProps: ({ row }) => ({
-      onClick: () => {
-        if (row.subRows?.length == 0 && navigateType == 'navigate') {
-          navigate(
-            `/projects/${projectId}/events/event/?eventId=${row.original.event_id}`,
-          )
-        }
-      },
-      style: {
-        cursor: row.subRows?.length == 0 ? 'pointer' : 'default',
-      },
-    }),
-  })
-
   // Calculate AI statistics for daily performance summary
   const aiStats = useMemo((): DailyPerformanceStats | null => {
     if (
@@ -2786,7 +2612,12 @@ const Page: React.FC = () => {
                 No events for this day
               </Text>
             ) : (
-              <MantineReactTable table={eventsTable} />
+              project.data && (
+                <EventTable
+                  data={eventsData.data || []}
+                  project={project.data}
+                />
+              )
             )}
           </CustomCard>
 

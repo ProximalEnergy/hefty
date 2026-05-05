@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react'
 import '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import type { PostHogConfig } from 'posthog-js'
-import React from 'react'
+import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 
 import App from './App.tsx'
@@ -48,7 +48,7 @@ const posthogOptions: Partial<PostHogConfig> = {
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  <StrictMode>
     <PostHogProvider
       apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
       options={posthogOptions}
@@ -57,5 +57,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <App />
       </ThemeProvider>
     </PostHogProvider>
-  </React.StrictMode>,
+    ,
+  </StrictMode>,
 )

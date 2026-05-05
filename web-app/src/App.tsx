@@ -20,7 +20,6 @@ import '@mantine/spotlight/styles.css'
 import '@mantine/tiptap/styles.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import 'mantine-react-table/styles.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -149,6 +148,7 @@ import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageR
 import { default as SCADATelemetryLastReportedPage } from './pages/projects/reports/SCADATelemetryLastReported'
 import { default as TrackerAvailabilityReport } from './pages/projects/reports/TrackerAvailabilityReport'
 import WeeklyPerformanceReport from './pages/projects/reports/WeeklyPerformanceReport'
+import ProjectTags from './pages/projects/tags/ProjectTags'
 // Utility
 import BackfillPage from './pages/projects/utility/Backfill'
 import CompanyView from './pages/projects/utility/CompanyView'
@@ -331,6 +331,7 @@ const ClerkProviderWithRoutes = () => {
             {/* Project */}
             <Route path="/projects/:projectId">
               <Route index element={<ProjectHomeRouter />} />
+              <Route path="tags" element={<ProjectTags />} />
               <Route path="custom-dash">
                 <Route index element={<CustomDashMenu />} />
                 <Route path="new" element={<CustomDashPage />} />

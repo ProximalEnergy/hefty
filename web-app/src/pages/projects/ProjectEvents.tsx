@@ -3,7 +3,8 @@ import {
   useGetEventDevices,
   useGetEventsSummary,
 } from '@/api/v1/operational/project/events'
-import { useSelectProject } from '@/api/v1/operational/projects'
+import { type Project, useSelectProject } from '@/api/v1/operational/projects'
+import { DataTable } from '@/components/DataTable'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsEventsTable } from '@/components/Tips'
@@ -11,13 +12,6 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import { useProjectFilter } from '@/hooks/custom'
 import { EventSummary } from '@/hooks/types'
-import EventFirstModal from '@/pages/projects/events/components/EventFirstModal'
-import {
-  EventsCmmsHeaderBadges,
-  EventsCmmsTableCell,
-  eventToModalEventForCmms,
-  useProjectEventsCmms,
-} from '@/pages/projects/events/eventsCmmsShared'
 import {
   ActionIcon,
   Group,
@@ -28,42 +22,42 @@ import {
   Text,
 } from '@mantine/core'
 import { IconExternalLink } from '@tabler/icons-react'
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getExpandedRowModel,
+  getFilteredRowModel,
+  getGroupedRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import {
   default as relativeTime,
   default as utc,
 } from 'dayjs/plugin/relativeTime'
 import timezone from 'dayjs/plugin/timezone'
-import {
-  type MRT_Cell,
-  MRT_ColumnDef,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useState } from 'react'
+import { useParams, useSearchParams } from 'react-router'
 
 dayjs.extend(timezone)
 dayjs.extend(relativeTime)
 dayjs.extend(utc)
 
 const ProjectEvents = () => {
+  // Hooks
   useTipsEventsTable()
-
   useProjectFilter({
     hasEventIntegration: true,
   })
 
-  const { projectId } = useParams<{ projectId: string }>()
-
-  const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([])
+  // Local State
   const [selectedDevices, setSelectedDevices] = useState<string[]>([])
+  const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([])
   const [showClosedEvents, setShowClosedEvents] = useState(false)
-  const [navigateType, setNavigateType] = useState<'newTab' | 'navigate'>(
-    'navigate',
-  )
-  const navigate = useNavigate()
 
+  // URL State
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
   const { startQuery, endQuery } = getQueryParamDateRange({
     searchParams,
@@ -71,19 +65,11 @@ const ProjectEvents = () => {
     format: 'YYYY-MM-DD HH:mm:ss',
   })
 
-  const { data: project, isLoading: isProjectLoading } = useSelectProject(
-    projectId!,
-  )
-  const showLosses = Boolean(
-    project?.project_type_id === ProjectTypeEnum.BESS ||
-    project?.has_expected_energy_integration,
-  )
-
-  const { data: eventDevices, isLoading: isEventDevicesLoading } =
-    useGetEventDevices({
-      pathParams: { projectId: projectId as string },
-    })
-  const { data: events, isLoading: isEventsLoading } = useGetEventsSummary({
+  // Data Fetching
+  const eventDevices = useGetEventDevices({
+    pathParams: { projectId: projectId as string },
+  })
+  const eventsSummary = useGetEventsSummary({
     pathParams: { projectId: projectId as string },
     queryParams: {
       start: startQuery,
@@ -92,387 +78,28 @@ const ProjectEvents = () => {
       device_ids: selectedDevices.map((device) => parseInt(device)),
       open: !showClosedEvents,
     },
-    queryOptions: {
-      enabled: true,
-    },
   })
+  const project = useSelectProject(projectId!)
 
-  const eventIdsForCmms = useMemo(
-    () => events?.map((e) => e.event_id) ?? [],
-    [events],
-  )
-  const cmms = useProjectEventsCmms(eventIdsForCmms)
-  const [linkModalRow, setLinkModalRow] = useState<EventSummary | null>(null)
-
-  const isLoading = isEventDevicesLoading || isProjectLoading
-
-  const defaultColumnVisibility = useMemo(
-    () => ({
-      loss_total_financial: false,
-      loss_total_energy: false,
-      loss_daily_energy: false,
-      loss_daily_financial: showLosses,
-    }),
-    [showLosses],
-  )
-
-  const defaultSorting = useMemo(
-    () =>
-      showLosses
-        ? [{ id: 'loss_daily_financial', desc: true }]
-        : [{ id: 'time_start', desc: true }],
-    [showLosses],
-  )
-
-  /**
-   * MRT keeps prior columnOrder and appends new ids; reset so CMMS is not last.
-   * Include `mrt-row-expand` first — same as MRT getLeadingDisplayColumnIds when
-   * grouping is on; omitting it breaks grouped rows / expand UI.
-   */
-  const eventsTableColumnOrder = useMemo((): string[] => {
-    const ordered = [
-      'mrt-row-expand',
-      'actions',
-      'device_type_name',
-      'device_name_full',
-    ]
-    if (cmms.hasCmmsIntegration) {
-      ordered.push('cmms')
-    }
-    ordered.push(
-      'loss_daily_financial',
-      'loss_total_financial',
-      'time_start',
-      'time_end',
-      'failure_mode',
-      'root_cause',
-      'loss_total_energy',
-      'loss_daily_energy',
-    )
-    return ordered
-  }, [cmms.hasCmmsIntegration])
-
-  const columns = useMemo(
-    () => [
-      {
-        header: '',
-        accessorKey: 'actions',
-        enableSorting: false,
-        enableColumnFilter: false,
-        enableColumnActions: false,
-        size: 24,
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <ActionIcon
-            onMouseEnter={() => {
-              setNavigateType('newTab')
-            }}
-            onMouseLeave={() => {
-              setNavigateType('navigate')
-            }}
-            variant="transparent"
-            onClick={() => {
-              window.open(
-                `${window.location.origin}/projects/${projectId}/events/event/?eventId=${cell.row.original.event_id}`,
-              )
-            }}
-          >
-            <IconExternalLink />
-          </ActionIcon>
-        ),
-      },
-      {
-        header: 'Device Type',
-        accessorKey: 'device_type_name',
-      },
-      {
-        header: 'Device',
-        accessorKey: 'device_name_full',
-      },
-      ...(cmms.hasCmmsIntegration
-        ? [
-            {
-              id: 'cmms',
-              header: 'CMMS',
-              accessorFn: (row: EventSummary) => row.event_id,
-              enableSorting: false,
-              enableColumnFilter: false,
-              enableGrouping: false,
-              size: 200,
-              Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => {
-                const row = cell.row
-                if (row.subRows && row.subRows.length > 0) {
-                  return null
-                }
-                const ev = row.original
-                return (
-                  <EventsCmmsTableCell
-                    projectId={cmms.projectId}
-                    hasCmmsIntegration={cmms.hasCmmsIntegration}
-                    linksLoading={cmms.linksLoading}
-                    linkCount={cmms.linkCountByEventId.get(ev.event_id) ?? 0}
-                    linkedTicketDetailsLoading={cmms.linkedTicketDetailsLoading}
-                    linkedDisplay={
-                      cmms.linkedDisplayByEventId.get(ev.event_id) ?? null
-                    }
-                    onOpenLinkage={() => setLinkModalRow(ev)}
-                  />
-                )
-              },
-            },
-          ]
-        : []),
-      {
-        header: 'Daily Loss ($)',
-        accessorKey: 'loss_daily_financial',
-        aggregationFn: 'sum',
-        mantineTableHeadCellProps: {
-          align: 'right',
-        },
-        mantineTableBodyCellProps: {
-          align: 'right',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null
-              ? cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                })
-              : ''}
-          </Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null &&
-            cell.getValue<number>() !== 0
-              ? cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                })
-              : ''}
-          </Text>
-        ),
-      },
-      {
-        header: 'Total Loss ($)',
-        accessorKey: 'loss_total_financial',
-        aggregationFn: 'sum',
-        mantineTableHeadCellProps: {
-          align: 'right',
-        },
-        mantineTableBodyCellProps: {
-          align: 'right',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null
-              ? cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                })
-              : ''}
-          </Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null &&
-            cell.getValue<number>() !== 0
-              ? cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD',
-                })
-              : ''}
-          </Text>
-        ),
-      },
-      {
-        header: 'Start Time',
-        accessorKey: 'time_start',
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {dayjs(cell.getValue<string>())
-              .tz(project?.time_zone)
-              .format('MM/DD/YYYY HH:mm:ss')}
-          </Text>
-        ),
-      },
-      {
-        header: 'End Time',
-        accessorKey: 'time_end',
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<string | null>() !== null
-              ? dayjs(cell.getValue<string>())
-                  .tz(project?.time_zone)
-                  .format('MM/DD/YYYY HH:mm:ss')
-              : ''}
-          </Text>
-        ),
-      },
-      {
-        header: 'Failure Mode',
-        accessorKey: 'failure_mode',
-      },
-      {
-        header: 'Root Cause',
-        accessorKey: 'root_cause',
-      },
-      {
-        header: 'Total Loss (MWh)',
-        accessorKey: 'loss_total_energy',
-        aggregationFn: 'sum',
-        mantineTableHeadCellProps: {
-          align: 'right',
-        },
-        mantineTableBodyCellProps: {
-          align: 'right',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null
-              ? `${cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} MWh`
-              : ''}
-          </Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null &&
-            cell.getValue<number>() !== 0
-              ? `${cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} MWh`
-              : ''}
-          </Text>
-        ),
-      },
-      {
-        header: 'Daily Loss (MWh)',
-        accessorKey: 'loss_daily_energy',
-        aggregationFn: 'sum',
-        mantineTableHeadCellProps: {
-          align: 'right',
-        },
-        mantineTableBodyCellProps: {
-          align: 'right',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null
-              ? `${cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} MWh`
-              : ''}
-          </Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
-          <Text size="sm">
-            {cell.getValue<number | null>() !== null &&
-            cell.getValue<number>() !== 0
-              ? `${cell.getValue<number>().toLocaleString('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} MWh`
-              : ''}
-          </Text>
-        ),
-      },
-    ],
-    [
-      project?.time_zone,
-      projectId,
-      cmms.hasCmmsIntegration,
-      cmms.linksLoading,
-      cmms.projectId,
-      cmms.linkCountByEventId,
-      cmms.linkedDisplayByEventId,
-      cmms.linkedTicketDetailsLoading,
-    ],
-  )
-  const table = useMantineReactTable({
-    columns: columns as MRT_ColumnDef<EventSummary>[],
-    data: events ?? [],
-    enableGrouping: true,
-    enableColumnDragging: false,
-    initialState: {
-      density: 'xs',
-      grouping: ['device_type_name'],
-      columnVisibility: defaultColumnVisibility,
-      sorting: defaultSorting,
-      columnOrder: eventsTableColumnOrder,
-    },
-    mantineTableBodyRowProps: ({ row }) => ({
-      onClick: () => {
-        if (row.subRows?.length == 0 && navigateType == 'navigate') {
-          navigate(
-            `/projects/${projectId}/events/event/?eventId=${row.original.event_id}`,
-          )
-        }
-      },
-      style: {
-        cursor: row.subRows?.length == 0 ? 'pointer' : 'default',
-      },
-    }),
-  })
-
-  useEffect(() => {
-    table.setColumnVisibility(defaultColumnVisibility)
-    table.setSorting(defaultSorting)
-    table.setColumnOrder(eventsTableColumnOrder)
-  }, [
-    defaultColumnVisibility,
-    defaultSorting,
-    eventsTableColumnOrder,
-    projectId,
-    table,
-  ])
-
-  if (isLoading) {
+  if (project.isLoading) {
     return <PageLoader />
   }
-  const modalLinkedTicketIds =
-    linkModalRow == null
-      ? []
-      : (cmms.linksData
-          ?.filter((r) => r.event_id === linkModalRow.event_id)
-          .map((r) => r.cmms_ticket_id) ?? [])
 
   return (
-    <Stack w="100%" p="md">
-      <Group justify="space-between" align="flex-start" wrap="nowrap" w="100%">
-        <PageTitle
-          info={
-            <Text>
-              This page displays a summary of project events. Use the filters to
-              narrow down the events displayed in the table.
-            </Text>
-          }
-        >
-          Events
-        </PageTitle>
-        <EventsCmmsHeaderBadges
-          hasCmmsIntegration={cmms.hasCmmsIntegration}
-          permissionsLoading={cmms.permissionsLoading}
-        />
-      </Group>
+    <Stack p="md">
+      <PageTitle
+        info={
+          'This page displays a summary of project events. Use the filters to narrow down the events displayed in the table.'
+        }
+      >
+        Events
+      </PageTitle>
       <Group justify="space-between">
-        <Group>
-          <Switch
-            checked={showClosedEvents}
-            onChange={(event) =>
-              setShowClosedEvents(event.currentTarget.checked)
-            }
-            label="Include Closed Events"
-          />
-        </Group>
+        <Switch
+          checked={showClosedEvents}
+          onChange={(event) => setShowClosedEvents(event.currentTarget.checked)}
+          label="Include Closed Events"
+        />
         <Group>
           <AdvancedDatePicker
             defaultRange="today"
@@ -481,7 +108,7 @@ const ProjectEvents = () => {
             includeTodayInDateRange={true}
           />
           <MultiSelect
-            data={eventDevices?.unique_types.map((type) => ({
+            data={eventDevices.data?.unique_types.map((type) => ({
               value: type.device_type_id.toString(),
               label: type.device_type_name,
             }))}
@@ -495,7 +122,7 @@ const ProjectEvents = () => {
             clearable
           />
           <MultiSelect
-            data={eventDevices?.unique_devices.map((device) => ({
+            data={eventDevices.data?.unique_devices.map((device) => ({
               value: device.device_id.toString(),
               label: device.device_name_full,
             }))}
@@ -510,21 +137,185 @@ const ProjectEvents = () => {
           />
         </Group>
       </Group>
-      <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-        <LoadingOverlay visible={isEventsLoading} />
-        <MantineReactTable table={table} />
-      </div>
-      {linkModalRow != null && projectId ? (
-        <EventFirstModal
-          opened
-          onClose={() => setLinkModalRow(null)}
-          event={eventToModalEventForCmms(linkModalRow)}
-          linkedTicketIds={modalLinkedTicketIds}
-          projectId={projectId}
-        />
-      ) : null}
+      {eventsSummary.isLoading ? (
+        <div style={{ position: 'relative', height: '250px', width: '100%' }}>
+          <LoadingOverlay visible={true} />
+        </div>
+      ) : (
+        project.data && (
+          <EventTable data={eventsSummary.data ?? []} project={project.data} />
+        )
+      )}
     </Stack>
   )
+}
+
+const columnHelper = createColumnHelper<EventSummary>()
+
+const formatEventTableCurrency = (value: number | null) => {
+  return value !== null && value !== 0
+    ? value.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      })
+    : ''
+}
+
+const formatEventTableTime = (value: string | null, timeZone: string) => {
+  return value !== null
+    ? dayjs(value).tz(timeZone).format('MM/DD/YYYY HH:mm:ss')
+    : ''
+}
+
+const formatEventTableEnergy = (value: number | null) => {
+  return value !== null && value !== 0
+    ? value.toLocaleString('en-US', {
+        style: 'decimal',
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      }) + ' MWh'
+    : ''
+}
+
+const columns = (project: Project) => {
+  return [
+    columnHelper.display({
+      id: 'actions',
+      header: '',
+      size: 48,
+      cell: (props) => (
+        <ActionIcon
+          variant="transparent"
+          onClick={() => {
+            window.open(
+              `${window.location.origin}/projects/${project.project_id}/events/event/?eventId=${props.cell.row.original.event_id}`,
+            )
+          }}
+        >
+          <IconExternalLink />
+        </ActionIcon>
+      ),
+    }),
+    columnHelper.accessor('device_type_name', { header: 'Device Type' }),
+    columnHelper.accessor('device_name_full', { header: 'Device' }),
+    columnHelper.accessor('loss_daily_financial', {
+      header: 'Daily Loss ($)',
+      aggregationFn: 'sum',
+      cell: (props) => (
+        <Text>
+          {formatEventTableCurrency(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+      aggregatedCell: (props) => (
+        <Text>
+          {formatEventTableCurrency(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+    }),
+    columnHelper.accessor('loss_total_financial', {
+      header: 'Total Loss ($)',
+      aggregationFn: 'sum',
+      cell: (props) => (
+        <Text>
+          {formatEventTableCurrency(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+      aggregatedCell: (props) => (
+        <Text>
+          {formatEventTableCurrency(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+    }),
+    columnHelper.accessor('time_start', {
+      header: 'Start Time',
+      cell: (props) => (
+        <Text>
+          {formatEventTableTime(
+            props.cell.getValue<string | null>(),
+            project.time_zone,
+          )}
+        </Text>
+      ),
+    }),
+    columnHelper.accessor('time_end', {
+      header: 'End Time',
+      cell: (props) => (
+        <Text>
+          {formatEventTableTime(
+            props.cell.getValue<string | null>(),
+            project.time_zone,
+          )}
+        </Text>
+      ),
+    }),
+    columnHelper.accessor('failure_mode', { header: 'Failure Mode' }),
+    columnHelper.accessor('root_cause', { header: 'Root Cause' }),
+    columnHelper.accessor('loss_total_energy', {
+      header: 'Total Loss (MWh)',
+      aggregationFn: 'sum',
+      cell: (props) => (
+        <Text>
+          {formatEventTableEnergy(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+      aggregatedCell: (props) => (
+        <Text>
+          {formatEventTableEnergy(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+    }),
+    columnHelper.accessor('loss_daily_energy', {
+      header: 'Daily Loss (MWh)',
+      aggregationFn: 'sum',
+      cell: (props) => (
+        <Text>
+          {formatEventTableEnergy(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+      aggregatedCell: (props) => (
+        <Text>
+          {formatEventTableEnergy(props.cell.getValue<number | null>())}
+        </Text>
+      ),
+    }),
+  ]
+}
+
+export const EventTable = ({
+  data,
+  project,
+}: {
+  data: EventSummary[]
+  project: Project
+}) => {
+  const showLosses = Boolean(
+    project.project_type_id === ProjectTypeEnum.BESS ||
+    project.has_expected_energy_integration,
+  )
+
+  const table = useReactTable({
+    data,
+    columns: columns(project),
+    initialState: {
+      grouping: ['device_type_name'],
+      sorting: showLosses
+        ? [{ id: 'loss_daily_financial', desc: true }]
+        : [{ id: 'time_start', desc: true }],
+      columnVisibility: {
+        loss_daily_financial: showLosses,
+        loss_total_financial: showLosses,
+        loss_daily_energy: showLosses,
+        loss_total_energy: showLosses,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  })
+
+  return <DataTable table={table} />
 }
 
 export default ProjectEvents
