@@ -216,6 +216,11 @@ description = "Run ast-grep quality checks on the monorepo"
 dir = "."
 run = "./_scripts/ast_grep_check.sh"
 
+[tasks."root:dbquery_enforcement"]
+description = "Fail on new SQLAlchemy CRUD operations outside DbQuery pattern"
+dir = "."
+run = "./_scripts/dbquery_enforcement_check.sh"
+
 [tasks."root:no_package_json"]
 description = "Fail when JS manifests or lockfiles exist at repo root"
 dir = "."

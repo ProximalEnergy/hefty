@@ -1,0 +1,31 @@
+name: DbQuery Enforcement
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+    paths:
+      - "core/**"
+      - "api/**"
+      - "microservices/**"
+      - "pv-eem/**"
+      - "_scripts/dbquery_enforcement_check.sh"
+      - "_scripts/ast-grep/dbquery-baseline.txt"
+      - ".mise.toml"
+      - ".github/workflows/dbquery-enforcement.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dbquery-enforcement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+      - name: Run DbQuery enforcement check
+        run: mise run root:dbquery_enforcement
