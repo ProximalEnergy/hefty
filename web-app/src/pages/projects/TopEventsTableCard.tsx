@@ -28,7 +28,13 @@ import {
 } from './events/eventsCmmsShared'
 
 /** Top Events card for project home (PV and BESS), including CMMS link status. */
-export function TopEventsTableCard({ showLosses }: { showLosses: boolean }) {
+export function TopEventsTableCard({
+  showLosses,
+  onEventHover,
+}: {
+  showLosses: boolean
+  onEventHover?: (eventId: number | null) => void
+}) {
   const { projectId } = useParams()
   const [sortBy, setSortBy] = useState<'daily' | 'total'>('daily')
   const [linkModalEvent, setLinkModalEvent] = useState<EnrichedEvent | null>(
@@ -150,7 +156,11 @@ export function TopEventsTableCard({ showLosses }: { showLosses: boolean }) {
               </Table.Thead>
               <Table.Tbody>
                 {homepageSummary.data.top_events.map((event) => (
-                  <Table.Tr key={event.event_id}>
+                  <Table.Tr
+                    key={event.event_id}
+                    onMouseEnter={() => onEventHover?.(event.event_id)}
+                    onMouseLeave={() => onEventHover?.(null)}
+                  >
                     <Table.Td>
                       <Link
                         to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
@@ -214,7 +224,11 @@ export function TopEventsTableCard({ showLosses }: { showLosses: boolean }) {
               </Table.Thead>
               <Table.Tbody>
                 {homepageSummary.data.top_events.map((event) => (
-                  <Table.Tr key={event.event_id}>
+                  <Table.Tr
+                    key={event.event_id}
+                    onMouseEnter={() => onEventHover?.(event.event_id)}
+                    onMouseLeave={() => onEventHover?.(null)}
+                  >
                     <Table.Td>
                       <Link
                         to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}

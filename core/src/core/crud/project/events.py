@@ -360,6 +360,27 @@ def get_event_device_ids() -> DbQuery[Any, Literal[False]]:
     return DbQuery(query=stmt)
 
 
+def get_event_devices_summary() -> DbQuery[Any, Literal[False]]:
+    """Return distinct event devices with device and type labels."""
+    stmt = (
+        sa.select(
+            models.Device.device_type_id.label("device_type_id"),
+            models.DeviceType.name_long.label("device_type_name"),
+            models.Event.device_id.label("device_id"),
+            models.Device.name_long.label("device_name"),
+        )
+        .select_from(models.Event)
+        .join(models.Device, models.Event.device_id == models.Device.device_id)
+        .join(
+            models.DeviceType,
+            models.Device.device_type_id == models.DeviceType.device_type_id,
+            isouter=True,
+        )
+        .distinct()
+    )
+    return DbQuery(query=stmt)
+
+
 def get_paginated_events(
     *,
     page: int,
@@ -517,7 +538,7 @@ def get_events_summary(
     This is specifically designed for generating event summaries with device info.
 
     Args:
-        open: Include only open events when True.
+        open: Include only currently open events when True.
         start: Window start for event overlap filtering.
         end: Window end for event overlap filtering.
         device_type_ids: Filter by device type ids.
@@ -527,6 +548,7 @@ def get_events_summary(
         sa.select(
             models.Event,
             models.Device.name_long.label("device_name_long"),
+            models.Device.device_type_id.label("device_type_id"),
             models.DeviceType.name_long.label("device_type_name_long"),
         )
         .select_from(models.Event)

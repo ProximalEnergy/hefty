@@ -3,6 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { Tag } from '@/hooks/projectTags'
 import * as types from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
+import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
@@ -104,6 +105,8 @@ export const useGetEventsSummary = ({
     device_type_ids?: number[]
     start?: string
     end?: string
+    include_losses?: boolean
+    include_energy_losses?: boolean
     open?: boolean
   }
   queryOptions?: Partial<UseQueryOptions>
@@ -134,7 +137,10 @@ export const useGetEventDevices = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-devices`,
   }
 
-  const defaultQueryOptions = {}
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: QUERY_TIME.NEVER,
+  }
 
   return useCustomQuery<types.EventDeviceInfo>({
     axiosConfig,

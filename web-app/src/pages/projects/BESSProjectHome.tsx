@@ -1759,6 +1759,9 @@ const BESSProjectHome = () => {
   const { projectId } = useParams()
   const { ref: stackRef } = useElementSize()
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
+  const [topEventsHoveredEventId, setTopEventsHoveredEventId] = useState<
+    number | null
+  >(null)
 
   const project = useSelectProject(projectId!)
   const [kioskModeEnabled, setKioskModeEnabled] = useState(false)
@@ -2059,7 +2062,7 @@ const BESSProjectHome = () => {
               style={{ flex: 1 }}
               key={projectId}
             >
-              <AdaptiveGisBESS />
+              <AdaptiveGisBESS tableHoveredEventId={topEventsHoveredEventId} />
             </CustomCard>
             <BatteryHealthBESSProjectHome />
           </>
@@ -2067,6 +2070,7 @@ const BESSProjectHome = () => {
         <Stack h="100%" flex={1}>
           {project.data.has_event_integration && (
             <TopEventsTableCard
+              onEventHover={setTopEventsHoveredEventId}
               showLosses={
                 project.data.project_type_id === ProjectTypeEnum.BESS ||
                 project.data.has_expected_energy_integration

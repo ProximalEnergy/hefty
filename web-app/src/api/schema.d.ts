@@ -3930,7 +3930,7 @@ export interface paths {
          * @description Retrieve unique device types and devices that have associated events.
          *
          *     Args:
-         *         project_db: Project database session.
+         *         _project_db: Project database session.
          *         project_id: UUID of the project to query.
          */
         get: operations["get_event_devices_v1_operational_projects__project_id__events_event_devices_get"];
@@ -3956,6 +3956,8 @@ export interface paths {
          *     Args:
          *         project_db: Project database session for loss queries.
          *         open: Include only open events (default True).
+         *         include_losses: Include event loss aggregation in the response.
+         *         include_energy_losses: Include energy loss aggregation from event_losses.
          *         start: Filter events starting at or after this datetime.
          *         end: Filter events starting before this datetime.
          *         device_type_ids: Filter to specific device type IDs.
@@ -10683,10 +10685,15 @@ export interface components {
         EventSummary: {
             /** Event Id */
             event_id: number;
+            /** Device Id */
+            device_id: number;
+            /** Device Type Id */
+            device_type_id: number;
             /** Device Type Name */
             device_type_name: string;
             /** Device Name Full */
             device_name_full: string;
+            location_point?: components["schemas"]["Point"] | null;
             /**
              * Time Start
              * Format: date-time
@@ -19574,6 +19581,8 @@ export interface operations {
         parameters: {
             query?: {
                 open?: boolean;
+                include_losses?: boolean;
+                include_energy_losses?: boolean;
                 end?: string | null;
                 device_type_ids?: number[] | null;
                 device_ids?: number[] | null;

@@ -1,6 +1,7 @@
 import { HexLoaderInline } from '@/HexLoaderInline'
 import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetDevicesInViewport } from '@/api/v1/analytics/gis'
+import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
 import { PageError } from '@/components/Error'
@@ -9,6 +10,15 @@ import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { EventSummary } from '@/hooks/types'
+import { usePerProjectHiddenMapEventDeviceTypes } from '@/hooks/usePerProjectHiddenMapEventDeviceTypes'
+import ProjectEventHoverCard from '@/pages/projects/events/ProjectEventHoverCard'
+import ProjectEventOverlayLayers, {
+  EVENT_CLUSTER_LAYER_ID,
+  EVENT_POINT_LAYER_ID,
+  EVENT_SOURCE_ID,
+  isProjectEventLayerId,
+} from '@/pages/projects/events/ProjectEventOverlayLayers'
 import * as gisUtils from '@/utils/GIS'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
@@ -16,6 +26,7 @@ import {
   Box,
   Button,
   Group,
+  Loader,
   Menu,
   Paper,
   Stack,
@@ -29,6 +40,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { Feature, FeatureCollection } from 'geojson'
+import type { GeoJSONSource } from 'mapbox-gl'
 import {
   useCallback,
   useContext,
@@ -107,6 +119,8 @@ const OPACITY_NON_COMM = 0.5
 
 const FIT_BOUNDS_PADDING = { top: 25, bottom: 25, left: 65, right: 65 }
 
+const EMPTY_EVENT_SUMMARIES: EventSummary[] = []
+
 function getViewNameForZoom({
   zoom,
   layerAvailability,
@@ -156,9 +170,29 @@ function getHighestAvailableViewName({
   )
 }
 
-function AdaptiveGisBESS() {
+interface AdaptiveGisBESSProps {
+  eventSummaries?: EventSummary[]
+  mapHoverEventLookup?: EventSummary[]
+  forceShowEvents?: boolean
+  disableEventToggle?: boolean
+  eventMarkersLoading?: boolean
+  tableHoveredEventId?: number | null
+}
+
+function AdaptiveGisBESS({
+  eventSummaries,
+  mapHoverEventLookup,
+  forceShowEvents = false,
+  disableEventToggle = false,
+  eventMarkersLoading = false,
+  tableHoveredEventId = null,
+}: AdaptiveGisBESSProps = {}) {
   const context = useContext(GISContext)
   const { projectId } = useParams()
+  const mapEventDeviceSurface =
+    eventSummaries !== undefined ? ('events' as const) : ('home' as const)
+  const [hiddenMapEventDeviceTypeIds, setHiddenMapEventDeviceTypeIds] =
+    usePerProjectHiddenMapEventDeviceTypes(projectId, mapEventDeviceSurface)
   const navigate = useNavigate()
   const computedColorScheme = useComputedColorScheme('dark')
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
@@ -878,37 +912,21 @@ function AdaptiveGisBESS() {
       features,
       point: { x, y },
     } = event
-    const hoveredFeature = features && features[0]
+
+    const hoveredEventFeature =
+      features?.find((feature) => isProjectEventLayerId(feature.layer?.id)) ??
+      null
+
+    if (hoveredEventFeature) {
+      setHoverInfo({ feature: hoveredEventFeature, x, y })
+      return
+    }
+
+    const hoveredFeature = features?.[0] ?? null
+
     if (hoveredFeature) setHoverInfo({ feature: hoveredFeature, x, y })
     else setHoverInfo({ feature: null, x: 0, y: 0 })
   }, [])
-
-  const handleMapMouseUp = useCallback(
-    (e: MapMouseEvent) => {
-      if (mouseDownPos.current && mapRef.current) {
-        const dx = e.point.x - mouseDownPos.current.x
-        const dy = e.point.y - mouseDownPos.current.y
-        const distance = Math.sqrt(dx * dx + dy * dy)
-        if (distance < 5) {
-          const features = mapRef.current.queryRenderedFeatures(e.point, {
-            layers: ['data-polygons'],
-          })
-          if (features && features.length > 0) {
-            const first = features[0]
-            const deviceId = first.properties?.device_id
-            const deviceTypeId = first.properties?.device_type_id
-            if (deviceId && deviceTypeId !== DeviceTypeEnum.BESS_ENCLOSURE) {
-              navigate(
-                `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
-              )
-            }
-          }
-        }
-      }
-      mouseDownPos.current = null
-    },
-    [navigate, projectId],
-  )
 
   // --- Lock Toggle Handler ---
   const handleAdaptiveGisBessLockToggle = () => {
@@ -945,7 +963,89 @@ function AdaptiveGisBESS() {
   if (!context) {
     throw new Error('GISContext is not provided')
   }
-  const { showLabels, showSatellite, colorsGoodBad, colorsHighLow } = context
+  const {
+    showEvents,
+    setShowEvents,
+    showLabels,
+    showSatellite,
+    colorsGoodBad,
+    colorsHighLow,
+  } = context
+  const shouldShowEvents = forceShowEvents || showEvents
+  const shouldFetchMapEvents =
+    eventSummaries === undefined &&
+    (shouldShowEvents || tableHoveredEventId != null) &&
+    !!projectId
+  const mapEvents = useGetEventsSummary({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      include_losses: true,
+      include_energy_losses: true,
+      open: true,
+    },
+    queryOptions: {
+      enabled: shouldFetchMapEvents,
+      refetchOnWindowFocus: false,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
+    },
+  })
+  const effectiveEventSummaries = useMemo(
+    () => eventSummaries ?? mapEvents.data ?? EMPTY_EVENT_SUMMARIES,
+    [eventSummaries, mapEvents.data],
+  )
+
+  const mapEventDeviceTypeOptions = useMemo(() => {
+    const byId = new Map<number, string>()
+    for (const e of effectiveEventSummaries) {
+      if (e.device_type_id == null) {
+        continue
+      }
+      if (!byId.has(e.device_type_id)) {
+        const label =
+          e.device_type_name?.trim() || `Device type ${e.device_type_id}`
+        byId.set(e.device_type_id, label)
+      }
+    }
+    return [...byId.entries()]
+      .sort((a, b) =>
+        a[1].localeCompare(b[1], undefined, { sensitivity: 'base' }),
+      )
+      .map(([deviceTypeId, label]) => ({ deviceTypeId, label }))
+  }, [effectiveEventSummaries])
+
+  const mapEventSummaries = useMemo(() => {
+    if (hiddenMapEventDeviceTypeIds.length === 0) {
+      return effectiveEventSummaries
+    }
+    const hidden = new Set(hiddenMapEventDeviceTypeIds)
+    return effectiveEventSummaries.filter(
+      (e) => e.device_type_id == null || !hidden.has(e.device_type_id),
+    )
+  }, [effectiveEventSummaries, hiddenMapEventDeviceTypeIds])
+
+  const setMapEventDeviceTypeVisible = useCallback(
+    (deviceTypeId: number, visible: boolean) => {
+      setHiddenMapEventDeviceTypeIds((prev) => {
+        const next = new Set(prev)
+        if (visible) {
+          next.delete(deviceTypeId)
+        } else {
+          next.add(deviceTypeId)
+        }
+        return [...next].sort((a, b) => a - b)
+      })
+    },
+    [setHiddenMapEventDeviceTypeIds],
+  )
+
+  const hasVisibleEventOverlay =
+    shouldShowEvents && mapEventSummaries.length > 0
+  const showProjectEventLayers =
+    hasVisibleEventOverlay || tableHoveredEventId != null
+  const showMapEventLoadingIndicator =
+    (shouldShowEvents || tableHoveredEventId != null) &&
+    (eventMarkersLoading || (shouldFetchMapEvents && mapEvents.isLoading))
 
   if (project.isLoading) return <PageLoader />
   if (viewportDevices.error) return <PageError error={viewportDevices.error} />
@@ -1048,10 +1148,93 @@ function AdaptiveGisBESS() {
                   borderBottomRightRadius: 'inherit',
                 }}
                 ref={mapRef}
-                interactiveLayerIds={['data-polygons']}
+                interactiveLayerIds={[
+                  'data-polygons',
+                  ...(hasVisibleEventOverlay
+                    ? [EVENT_CLUSTER_LAYER_ID, EVENT_POINT_LAYER_ID]
+                    : []),
+                ]}
                 onMouseMove={onHover}
                 onMouseDown={(e) => (mouseDownPos.current = e.point)}
-                onMouseUp={handleMapMouseUp}
+                onMouseUp={(e) => {
+                  if (mouseDownPos.current && mapRef.current) {
+                    const dx = e.point.x - mouseDownPos.current.x
+                    const dy = e.point.y - mouseDownPos.current.y
+                    const distance = Math.sqrt(dx * dx + dy * dy)
+                    if (distance < 5) {
+                      const features = mapRef.current.queryRenderedFeatures(
+                        e.point,
+                        {
+                          layers: [
+                            'data-polygons',
+                            ...(hasVisibleEventOverlay
+                              ? [EVENT_CLUSTER_LAYER_ID, EVENT_POINT_LAYER_ID]
+                              : []),
+                          ],
+                        },
+                      )
+                      if (features && features.length > 0) {
+                        const first = features[0]
+                        const layerId = first.layer?.id
+                        if (isProjectEventLayerId(layerId)) {
+                          if (
+                            layerId === EVENT_CLUSTER_LAYER_ID &&
+                            first.geometry.type === 'Point'
+                          ) {
+                            const clusterCenter = first.geometry
+                              .coordinates as [number, number]
+                            const clusterId = Number(
+                              first.properties?.cluster_id,
+                            )
+                            const source = mapRef.current
+                              .getMap()
+                              .getSource(EVENT_SOURCE_ID) as
+                              | GeoJSONSource
+                              | undefined
+
+                            if (source && Number.isFinite(clusterId)) {
+                              source.getClusterExpansionZoom(
+                                clusterId,
+                                (error, zoom) => {
+                                  if (error || typeof zoom !== 'number') {
+                                    return
+                                  }
+                                  mapRef.current?.easeTo({
+                                    center: clusterCenter,
+                                    zoom,
+                                    duration: 500,
+                                  })
+                                },
+                              )
+                            }
+                          }
+                          if (layerId === EVENT_POINT_LAYER_ID) {
+                            const eventId = Number(first.properties?.eventId)
+                            if (Number.isFinite(eventId)) {
+                              navigate(
+                                `/projects/${projectId}/events/event/?eventId=${eventId}`,
+                              )
+                            }
+                          }
+                          mouseDownPos.current = null
+                          return
+                        }
+                        const deviceId = first.properties?.device_id
+                        const deviceTypeId = first.properties?.device_type_id
+                        // Temporarily disable navigation for DC Enclosures
+                        if (
+                          deviceId &&
+                          deviceTypeId !== DeviceTypeEnum.BESS_ENCLOSURE
+                        ) {
+                          navigate(
+                            `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
+                          )
+                        }
+                      }
+                    }
+                  }
+                  mouseDownPos.current = null
+                }}
                 mapStyle={
                   gisUtils.mapStyle({
                     empty: mapStyleEmpty,
@@ -1316,7 +1499,19 @@ function AdaptiveGisBESS() {
                     />
                   )}
                 </Source>
-                {hoverInfo.feature && <BessHoverCard hoverInfo={hoverInfo} />}
+                {showProjectEventLayers && (
+                  <ProjectEventOverlayLayers
+                    events={mapEventSummaries}
+                    mapHoverEventLookup={mapHoverEventLookup}
+                    tableHoveredEventId={tableHoveredEventId}
+                  />
+                )}
+                {hoverInfo.feature && (
+                  <BessHoverCard
+                    hoverInfo={hoverInfo}
+                    timeZone={project.data.time_zone}
+                  />
+                )}
               </MapboxMap>
 
               {/* PCS Color Scale Legend - Left Side */}
@@ -1375,7 +1570,28 @@ function AdaptiveGisBESS() {
           p="md"
           gap="sm"
         >
-          <MapSettings disableSatellite={mapStyleEmpty} />
+          <Group gap="xs" align="center">
+            <MapSettings
+              disableEvents={disableEventToggle}
+              disableSatellite={mapStyleEmpty}
+              mapEventDeviceTypes={
+                mapEventDeviceTypeOptions.length > 0
+                  ? {
+                      options: mapEventDeviceTypeOptions,
+                      hiddenIds: hiddenMapEventDeviceTypeIds,
+                      onVisibilityChange: setMapEventDeviceTypeVisible,
+                    }
+                  : undefined
+              }
+              showEvents={shouldShowEvents}
+              onShowEventsChange={setShowEvents}
+            />
+            {showMapEventLoadingIndicator ? (
+              <Tooltip label="Loading event markers" position="right">
+                <Loader size={14} color="gray" />
+              </Tooltip>
+            ) : null}
+          </Group>
 
           {/* Lock Button and Label Group */}
           <Menu shadow="md" width={200} position="top-start" withArrow>
@@ -1446,12 +1662,22 @@ function AdaptiveGisBESS() {
   )
 }
 
-function BessHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
+function BessHoverCard({
+  hoverInfo,
+  timeZone,
+}: {
+  hoverInfo: HoverInfo
+  timeZone?: string | null
+}) {
   if (
     hoverInfo.feature?.properties === null ||
     hoverInfo.feature?.properties === undefined
   ) {
     return null
+  }
+
+  if (isProjectEventLayerId(hoverInfo.feature.layer?.id)) {
+    return <ProjectEventHoverCard hoverInfo={hoverInfo} timeZone={timeZone} />
   }
 
   type Props = {

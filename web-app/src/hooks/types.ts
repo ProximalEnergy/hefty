@@ -88,8 +88,14 @@ export interface PaginatedEvent {
 
 export interface EventSummary {
   event_id: number
+  device_id: number
+  device_type_id: number
   device_type_name: string
   device_name_full: string
+  location_point?: {
+    type: string
+    coordinates: number[]
+  } | null
   time_start: string
   time_end: string | null
   failure_mode: string

@@ -4,6 +4,7 @@ import {
   ActionIcon,
   Paper,
   Popover,
+  ScrollArea,
   Stack,
   Switch,
   Text,
@@ -60,11 +61,24 @@ export function ColorBar({
 export function MapSettings({
   disableLabels = false,
   disableSatellite = false,
+  disableEvents = false,
+  showEvents,
+  onShowEventsChange,
+  mapEventDeviceTypes,
   showDemo,
   onDemoChange,
 }: {
   disableLabels?: boolean
   disableSatellite?: boolean
+  disableEvents?: boolean
+  showEvents?: boolean
+  onShowEventsChange?: (checked: boolean) => void
+  /** Per device type: which event types appear as markers (from current data). */
+  mapEventDeviceTypes?: {
+    options: { deviceTypeId: number; label: string }[]
+    hiddenIds: number[]
+    onVisibilityChange: (deviceTypeId: number, visible: boolean) => void
+  }
   showDemo?: boolean
   onDemoChange?: (checked: boolean) => void
 }) {
@@ -77,8 +91,11 @@ export function MapSettings({
 
   const { showLabels, setShowLabels, showSatellite, setShowSatellite } = context
 
+  const shouldShowEventsToggle =
+    showEvents !== undefined && onShowEventsChange !== undefined
+
   // If all settings are disabled, don't render anything
-  if (disableLabels && disableSatellite) {
+  if (disableLabels && disableSatellite && !shouldShowEventsToggle) {
     return null
   }
 
@@ -92,7 +109,7 @@ export function MapSettings({
           <IconSettings style={{ width: rem(18), height: rem(18) }} />
         </ActionIcon>
       </Popover.Target>
-      <Popover.Dropdown>
+      <Popover.Dropdown maw={320}>
         <Stack gap="xs">
           {isSuperadmin && showDemo !== undefined && onDemoChange && (
             <Switch
@@ -120,6 +137,51 @@ export function MapSettings({
               onChange={(event) => setShowLabels(event.currentTarget.checked)}
             />
           )}
+          {shouldShowEventsToggle && (
+            <Switch
+              label="Events"
+              size={switchSize}
+              checked={showEvents}
+              disabled={disableEvents}
+              onChange={(event) =>
+                onShowEventsChange(event.currentTarget.checked)
+              }
+            />
+          )}
+          {mapEventDeviceTypes != null &&
+            mapEventDeviceTypes.options.length > 0 &&
+            shouldShowEventsToggle && (
+              <>
+                <Text size="xs" c="dimmed" fw={600}>
+                  Event types on map
+                </Text>
+                <ScrollArea.Autosize mah={280} type="auto" offsetScrollbars>
+                  <Stack gap={6}>
+                    {mapEventDeviceTypes.options.map(
+                      ({ deviceTypeId, label }) => (
+                        <Switch
+                          key={deviceTypeId}
+                          size={switchSize}
+                          label={label}
+                          checked={
+                            !mapEventDeviceTypes.hiddenIds.includes(
+                              deviceTypeId,
+                            )
+                          }
+                          disabled={!showEvents}
+                          onChange={(event) =>
+                            mapEventDeviceTypes.onVisibilityChange(
+                              deviceTypeId,
+                              event.currentTarget.checked,
+                            )
+                          }
+                        />
+                      ),
+                    )}
+                  </Stack>
+                </ScrollArea.Autosize>
+              </>
+            )}
         </Stack>
       </Popover.Dropdown>
     </Popover>

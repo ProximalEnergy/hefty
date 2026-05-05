@@ -12,6 +12,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import { useProjectFilter } from '@/hooks/custom'
 import { EventSummary } from '@/hooks/types'
+import ProjectEventsMap from '@/pages/projects/events/ProjectEventsMap'
 import {
   ActionIcon,
   Group,
@@ -54,21 +55,38 @@ const ProjectEvents = () => {
   // Local State
   const [selectedDevices, setSelectedDevices] = useState<string[]>([])
   const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([])
-  const [showClosedEvents, setShowClosedEvents] = useState(false)
 
   // URL State
   const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
-  const { startQuery, endQuery } = getQueryParamDateRange({
+  const { start, end, startQuery, endQuery } = getQueryParamDateRange({
     searchParams,
     maxDays: 30,
     format: 'YYYY-MM-DD HH:mm:ss',
   })
-
+  const selectedDateRangeKey =
+    start && end
+      ? `${start.format('YYYY-MM-DD')}:${end.format('YYYY-MM-DD')}`
+      : null
+  const selectedRangeIsToday = Boolean(
+    start && end && start.isSame(dayjs(), 'day') && end.isSame(dayjs(), 'day'),
+  )
+  const defaultShowClosedEvents = Boolean(
+    selectedDateRangeKey && !selectedRangeIsToday,
+  )
+  const [closedEventsState, setClosedEventsState] = useState<{
+    rangeKey: string | null
+    value: boolean
+  }>({ rangeKey: null, value: false })
+  const showClosedEvents =
+    closedEventsState.rangeKey === selectedDateRangeKey
+      ? closedEventsState.value
+      : defaultShowClosedEvents
   // Data Fetching
   const eventDevices = useGetEventDevices({
     pathParams: { projectId: projectId as string },
   })
+  const isEventDevicesLoading = eventDevices.isLoading
   const eventsSummary = useGetEventsSummary({
     pathParams: { projectId: projectId as string },
     queryParams: {
@@ -97,7 +115,12 @@ const ProjectEvents = () => {
       <Group justify="space-between">
         <Switch
           checked={showClosedEvents}
-          onChange={(event) => setShowClosedEvents(event.currentTarget.checked)}
+          onChange={(event) =>
+            setClosedEventsState({
+              rangeKey: selectedDateRangeKey,
+              value: event.currentTarget.checked,
+            })
+          }
           label="Include Closed Events"
         />
         <Group>
@@ -112,6 +135,7 @@ const ProjectEvents = () => {
               value: type.device_type_id.toString(),
               label: type.device_type_name,
             }))}
+            disabled={isEventDevicesLoading}
             placeholder={
               selectedDeviceTypes.length == 0
                 ? 'Select device types...'
@@ -126,6 +150,7 @@ const ProjectEvents = () => {
               value: device.device_id.toString(),
               label: device.device_name_full,
             }))}
+            disabled={isEventDevicesLoading}
             placeholder={
               selectedDevices.length == 0 ? 'Search devices...' : undefined
             }
@@ -143,7 +168,16 @@ const ProjectEvents = () => {
         </div>
       ) : (
         project.data && (
-          <EventTable data={eventsSummary.data ?? []} project={project.data} />
+          <Stack>
+            <EventTable
+              data={eventsSummary.data ?? []}
+              project={project.data}
+            />
+            <ProjectEventsMap
+              events={eventsSummary.data ?? []}
+              project={project.data}
+            />
+          </Stack>
         )
       )}
     </Stack>

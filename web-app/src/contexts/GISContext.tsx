@@ -18,6 +18,8 @@ interface GISContextType {
   setShowLabels: React.Dispatch<React.SetStateAction<boolean>>
   showSatellite: boolean
   setShowSatellite: React.Dispatch<React.SetStateAction<boolean>>
+  showEvents: boolean
+  setShowEvents: React.Dispatch<React.SetStateAction<boolean>>
   colorsHighLow: Colors
   setColorsHighLow: React.Dispatch<React.SetStateAction<Colors>>
   colorsGoodBad: Colors
@@ -38,6 +40,10 @@ const GISProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   })
   const [showSatellite, setShowSatellite] = useLocalStorage<boolean>({
     key: 'proximal-gis-show-satellite',
+    defaultValue: false,
+  })
+  const [showEvents, setShowEvents] = useLocalStorage<boolean>({
+    key: 'proximal-gis-show-events',
     defaultValue: false,
   })
   const [colorsHighLow, setColorsHighLow] = useLocalStorage<Colors>({
@@ -63,6 +69,8 @@ const GISProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         setShowLabels,
         showSatellite,
         setShowSatellite,
+        showEvents,
+        setShowEvents,
         colorsHighLow,
         setColorsHighLow,
         colorsGoodBad,

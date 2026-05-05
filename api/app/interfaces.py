@@ -38,6 +38,7 @@ PANDAS_NULL_ENCODERS: dict[Any, Callable[[Any], Any]] = {
     np.integer: lambda value: int(value),
     np.floating: lambda value: None if np.isnan(value) else float(value),
 }
+HEX_DIGITS_SET = frozenset("0123456789abcdefABCDEF")
 
 
 def normalize_pandas_nullable(*, content: Any) -> Any:
@@ -259,20 +260,34 @@ def convert(*, WKBElement: Any) -> dict[str, Any] | None:
     """Handle convert.
 
     Args:
-        WKBElement: GeoAlchemy WKBElement, GeoJSON dict, WKB bytes, or
-            WKT string to convert.
+        WKBElement: GeoAlchemy WKBElement, GeoJSON dict, WKB/EWKB ``bytes`` /
+            ``bytearray`` / ``memoryview`` (e.g. Polars ``read_database``), WKT
+            string, or hex-encoded EWKB string.
     """
     if WKBElement is None:
         return None
     # If it's already a dict (GeoJSON), return as-is
     if isinstance(WKBElement, dict):
         return cast(dict[str, Any], WKBElement)
-    # If it's raw WKB bytes (e.g. from Polars/Pandas via db_query), parse with shapely
-    if isinstance(WKBElement, bytes):
-        return cast(dict[str, Any], mapping(wkb.loads(WKBElement)))
-    # If it's WKT string (unlikely but possible), parse with shapely
+    # Raw WKB/EWKB from drivers (Polars/Arrow often use memoryview/bytearray)
+    if isinstance(WKBElement, (bytes, bytearray, memoryview)):
+        return cast(dict[str, Any], mapping(wkb.loads(bytes(WKBElement))))
     if isinstance(WKBElement, str):
-        return cast(dict[str, Any], mapping(wkt.loads(WKBElement)))
+        s = WKBElement.strip()
+        try:
+            return cast(dict[str, Any], mapping(wkt.loads(s)))
+        except Exception:
+            hex_candidate = s[2:] if s.startswith(("0x", "0X")) else s
+            if (
+                len(hex_candidate) >= 2
+                and len(hex_candidate) % 2 == 0
+                and set(hex_candidate).issubset(HEX_DIGITS_SET)
+            ):
+                return cast(
+                    dict[str, Any],
+                    mapping(wkb.loads(bytes.fromhex(hex_candidate))),
+                )
+            raise
     # Only convert WKBElement objects from the database
     return cast(dict[str, Any], mapping(to_shape(WKBElement)))
 
@@ -976,8 +991,11 @@ class EventSummary(BaseModel):
     """Eventsummary model."""
 
     event_id: int
+    device_id: int
+    device_type_id: int
     device_type_name: str
     device_name_full: str
+    location_point: Point | None = None
     time_start: datetime.datetime
     time_end: datetime.datetime | None
     failure_mode: str

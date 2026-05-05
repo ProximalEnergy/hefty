@@ -3,8 +3,7 @@ import datetime
 import logging
 import uuid
 from collections.abc import Sequence
-from typing import Annotated, Any, Literal
-from zoneinfo import ZoneInfo
+from typing import Annotated, Any, Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -29,6 +28,8 @@ from core.enumerations import (
     SensorTypeEnum,
 )
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from shapely.errors import ShapelyError
+from shapely.geometry import shape
 from sqlalchemy import insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -75,6 +76,167 @@ def _none_if_nan(x: Any) -> float | None:  # no-star-syntax
 # or object with attributes
 def _dtype_name_long(*, v: Any) -> str | None:
     return v.get("name_long") if isinstance(v, dict) else getattr(v, "name_long", None)
+
+
+def _multipolygon_coordinates_bbox_center(
+    *,
+    coordinates: list[Any],
+) -> interfaces.Point | None:
+    """Axis-aligned bounding-box center of all polygon coordinates (fallback).
+
+    Args:
+        coordinates: Nested polygon coordinates to scan for longitude/latitude
+            pairs.
+    """
+    longitudes: list[float] = []
+    latitudes: list[float] = []
+
+    def _collect_coordinates(
+        *,
+        node: Any,
+        longitudes: list[float],
+        latitudes: list[float],
+    ) -> None:
+        if not isinstance(node, (list, tuple)):
+            return
+        if (
+            len(node) >= 2
+            and isinstance(node[0], (int, float))
+            and isinstance(node[1], (int, float))
+        ):
+            longitudes.append(float(node[0]))
+            latitudes.append(float(node[1]))
+            return
+        for child in node:
+            _collect_coordinates(
+                node=child,
+                longitudes=longitudes,
+                latitudes=latitudes,
+            )
+
+    _collect_coordinates(
+        node=coordinates,
+        longitudes=longitudes,
+        latitudes=latitudes,
+    )
+    if not longitudes or not latitudes:
+        return None
+    return interfaces.Point(
+        type="Point",
+        coordinates=[
+            (min(longitudes) + max(longitudes)) / 2,
+            (min(latitudes) + max(latitudes)) / 2,
+        ],
+    )
+
+
+def _point_from_device_own_geometry(
+    *, device: interfaces.DeviceInterface
+) -> interfaces.Point | None:
+    """Map point from this device's own ``point`` or ``polygon`` only.
+
+    Args:
+        device: Device row (no parent fallback).
+    """
+    if device.point is not None:
+        return device.point
+    if device.polygon is None:
+        return None
+
+    coords = device.polygon.coordinates
+    try:
+        geom = shape(
+            {"type": device.polygon.type, "coordinates": coords},
+        )
+        centroid = geom.centroid
+        if not centroid.is_empty:
+            return interfaces.Point(
+                type="Point",
+                coordinates=[float(centroid.x), float(centroid.y)],
+            )
+    except (
+        TypeError,
+        ValueError,
+        KeyError,
+        IndexError,
+        ShapelyError,
+    ):
+        pass
+    return _multipolygon_coordinates_bbox_center(coordinates=coords)
+
+
+def _get_event_location_point(
+    *,
+    device: interfaces.DeviceInterface | None,
+    devices_by_id: dict[int, interfaces.DeviceInterface],
+) -> interfaces.Point | None:
+    """Resolve a representative point for an event's device.
+
+    Uses the event device's ``point`` / ``polygon`` when present; otherwise walks
+    ``parent_device_id`` using ``devices_by_id`` until a geometry is found.
+
+    Args:
+        device: Device associated with the event.
+        devices_by_id: All loaded devices (expanded to include parents as needed).
+    """
+    if device is None:
+        return None
+    visited: set[int] = set()
+    current: interfaces.DeviceInterface | None = device
+    while current is not None:
+        if current.device_id in visited:
+            break
+        visited.add(current.device_id)
+        own = _point_from_device_own_geometry(device=current)
+        if own is not None:
+            return own
+        pid = current.parent_device_id
+        if pid is None:
+            break
+        current = devices_by_id.get(pid)
+    return None
+
+
+async def _expand_device_map_with_parents_for_missing_geometry(
+    *,
+    device_map: dict[int, interfaces.DeviceInterface],
+    project_name_short: str,
+) -> None:
+    """Fetch parent devices when event devices lack point and polygon.
+
+    Args:
+        device_map: In-place map of device_id to Device; parents merged in.
+        project_name_short: Project schema name for the devices query.
+    """
+    max_passes = 32
+    for _ in range(max_passes):
+        need_parent_ids: set[int] = set()
+        for dev in device_map.values():
+            if _point_from_device_own_geometry(device=dev) is not None:
+                continue
+            if dev.parent_device_id is None:
+                continue
+            if dev.parent_device_id not in device_map:
+                need_parent_ids.add(dev.parent_device_id)
+        if not need_parent_ids:
+            break
+        parent_df = await crud_get_project_devices(
+            device_ids=list(need_parent_ids),
+            deep=False,
+        ).get_async(
+            schema=project_name_short,
+            output_type=OutputType.POLARS,
+        )
+        if parent_df is None or parent_df.is_empty():
+            break
+        added = False
+        for row in parent_df.to_dicts():
+            did = int(row["device_id"])
+            if did not in device_map:
+                device_map[did] = interfaces.DeviceInterface.model_validate(row)
+                added = True
+        if not added:
+            break
 
 
 @router.get("", response_model=list[interfaces.EventInterface])
@@ -477,66 +639,40 @@ async def update_event_root_cause_route(
 
 @router.get("/event-devices")
 async def get_event_devices(
-    project_db: Annotated[Session, Depends(get_project_db)],
+    _project_db: Annotated[Session, Depends(get_project_db)],
     project_id: uuid.UUID,
 ):
     """Retrieve unique device types and devices that have associated events.
 
     Args:
-        project_db: Project database session.
+        _project_db: Project database session.
         project_id: UUID of the project to query.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    device_ids_query = core_events.get_event_device_ids()
-    device_ids_df = await device_ids_query.get_async(
+    event_devices_df = await core_events.get_event_devices_summary().get_async(
         schema=project_name_short,
         output_type=OutputType.POLARS,
     )
-    if device_ids_df is None or device_ids_df.is_empty():
-        return {"unique_types": [], "unique_devices": []}
-    device_ids = [
-        int(row["device_id"])
-        for row in device_ids_df.to_dicts()
-        if row.get("device_id") is not None
-    ]
-
-    if not device_ids:
+    if event_devices_df is None or event_devices_df.is_empty():
         return {"unique_types": [], "unique_devices": []}
 
-    project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await crud_get_project_devices(
-        device_ids=device_ids,
-        deep=False,
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-
-    device_type_ids = devices_df["device_type_id"].dropna().astype(int).tolist()
-    device_types = await get_device_types(
-        device_type_ids=device_type_ids,
-    ).get_async(output_type=OutputType.SQLALCHEMY)
-    device_type_names = {
-        device_type.device_type_id: device_type.name_long
-        for device_type in device_types
-    }
-
-    unique_type_names = {
-        device_type_id: device_type_name
-        for device_type_id, device_type_name in device_type_names.items()
-    }
-    unique_device_names = {}
-    for device in devices_df.to_dict("records"):
-        device_type_id = device.get("device_type_id")
-        if device_type_id is None or pd.isna(device_type_id):
+    unique_type_names: dict[int, str] = {}
+    unique_device_names: dict[int, str] = {}
+    for row in event_devices_df.to_dicts():
+        device_type_id = row.get("device_type_id")
+        if device_type_id is None:
             continue
-        device_name = device.get("name_long")
-        if pd.isna(device_name):
-            device_name = ""
-        device_type_name = device_type_names.get(int(device_type_id))
-        if not device_type_name:
+        device_type_name = str(row.get("device_type_name") or "Unknown")
+        unique_type_names[int(device_type_id)] = device_type_name
+
+        device_id = row.get("device_id")
+        if device_id is None:
             continue
-        unique_device_names[int(device["device_id"])] = (
+        device_name = str(row.get("device_name") or "")
+        unique_device_names[int(device_id)] = (
             f"{device_type_name} {device_name}".strip()
         )
 
@@ -558,6 +694,8 @@ async def get_events_summary_route(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     open: bool = True,
+    include_losses: bool = True,
+    include_energy_losses: bool = True,
     start: Annotated[
         datetime.datetime | None,
         Depends(filter_start_datetime_or_none_to_date_access_start_time),
@@ -572,6 +710,8 @@ async def get_events_summary_route(
     Args:
         project_db: Project database session for loss queries.
         open: Include only open events (default True).
+        include_losses: Include event loss aggregation in the response.
+        include_energy_losses: Include energy loss aggregation from event_losses.
         start: Filter events starting at or after this datetime.
         end: Filter events starting before this datetime.
         device_type_ids: Filter to specific device type IDs.
@@ -579,15 +719,6 @@ async def get_events_summary_route(
         project_id: UUID of the project (optional if project is provided).
         project: Project model from dependency injection.
     """
-
-    # Time zone (same behavior: only use project's tz if project_id is provided)
-    tzinfo = ZoneInfo(project.time_zone if project_id else "UTC")
-
-    if start is not None:
-        start = start.astimezone(tzinfo)
-    if end is not None:
-        end = end.astimezone(tzinfo)
-
     # Fetch events via DbQuery to avoid ORM overhead
     project_name_short = (
         get_project_name_short(project_id=project_id)
@@ -621,6 +752,9 @@ async def get_events_summary_route(
     root_cause_ids = list(
         {int(e["root_cause_id"]) for e in events if e["root_cause_id"] is not None}
     )
+    device_ids_in_events = list(
+        {int(e["device_id"]) for e in events if e["device_id"] is not None}
+    )
 
     unknown = "Unknown"
 
@@ -639,17 +773,43 @@ async def get_events_summary_route(
         if root_cause_ids
         else asyncio.sleep(0, result=pd.DataFrame())
     )
-    # Run loss query in parallel with other async calls
-    losses_task = asyncio.to_thread(
-        core_event_losses.get_event_losses_summary_in_sql,
-        project_db,
-        project_name=project_name_short,
-        event_ids=event_ids,
+    losses_task = (
+        asyncio.to_thread(
+            core_event_losses.get_event_losses_summary_in_sql,
+            project_db,
+            project_name=project_name_short,
+            event_ids=event_ids,
+        )
+        if include_losses and include_energy_losses
+        else asyncio.sleep(0, result=[])
+    )
+    devices_task = (
+        crud_get_project_devices(
+            device_ids=device_ids_in_events,
+            deep=False,
+        ).get_async(
+            schema=project_name_short,
+            output_type=OutputType.POLARS,
+        )
+        if device_ids_in_events
+        else asyncio.sleep(0, result=cast(Any, None))
     )
 
     # Wait for all async operations to complete
-    failure_modes_df, root_causes_df, losses = await asyncio.gather(
-        failure_modes_task, root_causes_task, losses_task
+    failure_modes_df, root_causes_df, losses, devices_df = await asyncio.gather(
+        failure_modes_task, root_causes_task, losses_task, devices_task
+    )
+
+    device_map: dict[int, interfaces.DeviceInterface] = {}
+    if devices_df is not None and not devices_df.is_empty():
+        device_map = {
+            int(device["device_id"]): interfaces.DeviceInterface.model_validate(device)
+            for device in devices_df.to_dicts()
+        }
+
+    await _expand_device_map_with_parents_for_missing_geometry(
+        device_map=device_map,
+        project_name_short=project_name_short,
     )
 
     failure_mode_id_to_name = (
@@ -749,8 +909,12 @@ async def get_events_summary_route(
             }
         return losses_map
 
-    losses_map = await asyncio.to_thread(
-        process_losses_data, losses_rows=losses, events_list=events
+    losses_map = (
+        await asyncio.to_thread(
+            process_losses_data, losses_rows=losses, events_list=events
+        )
+        if include_losses and include_energy_losses
+        else {}
     )
 
     out: list[interfaces.EventSummary] = []
@@ -758,13 +922,27 @@ async def get_events_summary_route(
         device_type_name = e.get("device_type_name_long") or unknown
         device_name = e.get("device_name_long") or ""
         device_name_full = f"{device_type_name} {device_name}"
+        device_id = int(e["device_id"])
+        location_point = _get_event_location_point(
+            device=device_map.get(device_id),
+            devices_by_id=device_map,
+        )
 
         event_losses = losses_map.get(e["event_id"], {})
+        loss_total_financial = (
+            _none_if_nan(e.get("loss_total_financial")) if include_losses else None
+        )
+        loss_daily_financial = (
+            _none_if_nan(e.get("loss_daily_financial")) if include_losses else None
+        )
         out.append(
             interfaces.EventSummary(
                 event_id=e["event_id"],
+                device_id=device_id,
+                device_type_id=int(e.get("device_type_id") or 0),
                 device_type_name=device_type_name,
                 device_name_full=device_name_full,
+                location_point=location_point,
                 time_start=e["time_start"],
                 time_end=e["time_end"],
                 failure_mode=failure_mode_id_to_name.get(
@@ -775,9 +953,9 @@ async def get_events_summary_route(
                     e["root_cause_id"],
                     unknown,
                 ),
-                loss_total_financial=event_losses.get("loss_total_financial"),
+                loss_total_financial=loss_total_financial,
                 loss_total_energy=event_losses.get("loss_total_energy"),
-                loss_daily_financial=event_losses.get("loss_daily_financial"),
+                loss_daily_financial=loss_daily_financial,
                 loss_daily_energy=event_losses.get("loss_daily_energy"),
             )
         )

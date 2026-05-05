@@ -493,6 +493,9 @@ const ProjectHome = () => {
   const { ref: stackRef } = useElementSize()
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
+  const [topEventsHoveredEventId, setTopEventsHoveredEventId] = useState<
+    number | null
+  >(null)
 
   const project = useSelectProject(projectId!)
   const [kioskModeEnabled, setKioskModeEnabled] = useState(false)
@@ -501,7 +504,9 @@ const ProjectHome = () => {
   if (project.isError) return <PageError error={project.error} />
   if (project.data === undefined) return <PageError error={undefined} />
 
-  const mapComponent = <AdaptiveGisMap />
+  const mapComponent = (
+    <AdaptiveGisMap tableHoveredEventId={topEventsHoveredEventId} />
+  )
 
   return (
     <Stack p="md" h="100%" ref={stackRef}>
@@ -690,6 +695,7 @@ const ProjectHome = () => {
         <Stack h="100%" flex={1}>
           {project.data.has_event_integration && (
             <TopEventsTableCard
+              onEventHover={setTopEventsHoveredEventId}
               showLosses={project.data.has_expected_energy_integration}
             />
           )}
