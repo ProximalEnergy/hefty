@@ -44,7 +44,6 @@ if [ -d "$ROOT_DIR" ]; then
   uv sync --directory core
   uv sync --directory api
   mise run web:install
-  mise run web:plotly
 else
   echo "Error: Directory $ROOT_DIR not found."
   exit 1

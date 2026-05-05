@@ -21,9 +21,8 @@ mise install && \
 uv sync --directory core && \
 uv sync --directory api && \
 mise run web:install && \
-mise run web:plotly && \
 aws configure && \
-(gh auth status >/dev/null 2>&1 || gh auth login) && \
+(gh auth status >/dev/null 2>&1 || gh auth login) && \ 
 mise run api:get_env && \
 cp api/.env.from_parameter_store api/.env && \
 mise run web:get_env && \
@@ -41,7 +40,6 @@ mise install && \
 uv sync --directory core && \
 uv sync --directory api && \
 mise run web:install && \
-mise run web:plotly && \
 echo "Async agent setup complete"
 """
 
@@ -867,10 +865,6 @@ else
 fi
 """
 
-[tasks."web:plotly"]
-description = "Build custom Plotly bundle for web-app"
-dir = "web-app"
-run = "node build-plotly-custom.js"
 
 [tasks."web:dev"]
 description = "Run web-app development server"
@@ -895,7 +889,10 @@ run = "uv run ../web-app/_scripts/generate_env_from_parameter_store.py"
 [tasks."web:typecheck"]
 description = "Run TypeScript check for web-app"
 dir = "web-app"
-run = "pnpm run typecheck"
+run = """
+pnpm approve-builds
+pnpm run typecheck
+"""
 
 [tasks."web:prettier"]
 description = "Run Prettier for web-app"

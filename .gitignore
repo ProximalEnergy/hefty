@@ -284,3 +284,6 @@ issues/sample_data/*
 
 # Fallow
 web-app/.fallow
+
+# Unignore the web-app lib directory which gets ignored by the python lib/ rule
+!web-app/src/lib/

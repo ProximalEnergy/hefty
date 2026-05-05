@@ -74,7 +74,6 @@ jobs:
           key: >-
             pnpm-${{ runner.os }}-${{
             hashFiles('.mise.toml', 'web-app/package.json',
-            'web-app/build-plotly-custom.js') }}
           restore-keys: |
             pnpm-${{ runner.os }}-
 
@@ -89,7 +88,6 @@ jobs:
 
       - name: Build custom Plotly bundle
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: mise run web:plotly
 
       - name: TypeScript Check
         run: mise run web:typecheck

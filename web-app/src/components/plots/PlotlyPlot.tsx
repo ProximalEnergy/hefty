@@ -1,5 +1,6 @@
 import { traceColors } from '@/components/plots/PlotlyPlotUtils'
 import { GISContext } from '@/contexts/GISContext'
+import Plotly from '@/lib/plotly'
 import {
   Center,
   LoadingOverlay,
@@ -12,15 +13,17 @@ import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
 import chroma from 'chroma-js'
 import merge from 'lodash/merge'
-import { Annotations, Shape, YAxisName } from 'plotly.js'
-import Plotly, {
+import type {
+  Annotations,
   Config,
   Data,
   Layout,
   PlotHoverEvent,
   PlotMouseEvent,
   PlotRelayoutEvent,
-} from 'plotly.js/dist/plotly-custom.min.js'
+  Shape,
+  YAxisName,
+} from 'plotly.js'
 import {
   useCallback,
   useContext,
@@ -179,7 +182,7 @@ const PlotlyPlot = ({
 }) => {
   //////////////////////////////////////////////////////////////////////////////
   /////// If the plot you're looking for is not working, go check //////////////
-  /////// that the plot type exists in the build-plotly-custom.js file /////////
+  /////// that the plot type exists in the src/lib/plotly.ts file      /////////
   //////////////////////////////////////////////////////////////////////////////
 
   const theme = useMantineTheme()

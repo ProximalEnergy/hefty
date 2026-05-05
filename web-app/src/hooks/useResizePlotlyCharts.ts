@@ -1,4 +1,4 @@
-import Plotly from 'plotly.js/dist/plotly-custom.min.js'
+import Plotly from '@/lib/plotly'
 import { type RefObject, useEffect } from 'react'
 
 type UseResizePlotlyChartsOptions = {

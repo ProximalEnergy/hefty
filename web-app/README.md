@@ -9,8 +9,7 @@ does not auto-activate `mise`, prefix direct `pnpm` commands with
 1. Install toolchain versions with `mise install` from the repo root.
 2. Install dependencies using `mise run web:install`.
 3. Fix non-breaking dependencies with `pnpm audit` and apply fixes manually
-4. `mise run web:plotly` (see \_README_PLOTLY.md)
-5. Create a `.env` file and add the following variables. Reach out to someone on the team to get the correct values.
+4. Create a `.env` file and add the following variables. Reach out to someone on the team to get the correct values.
    - `VITE_CLERK_SECRET_KEY`
    - `VITE_CLERK_PUBLISHABLE_KEY`
    - `VITE_OPENWEATHERMAP_APP_ID`
@@ -19,8 +18,8 @@ does not auto-activate `mise`, prefix direct `pnpm` commands with
    - Optional: `VITE_API_BASE_URL`
    - Optional: `VITE_CHAT_WS_URL`
 
-6. Run the development server using `mise run web:dev`.
-7. Navigate to `http://localhost:5173` to view the application!
+5. Run the development server using `mise run web:dev`.
+6. Navigate to `http://localhost:5173` to view the application!
 
 In order to see data, you will need to also run the API on your local machine. See the [API README](https://github.com/ProximalEnergy/api/blob/main/README.md) for how to get started.
 

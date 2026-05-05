@@ -23,11 +23,7 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import {
-  Data,
-  Layout,
-  PlotMouseEvent,
-} from 'plotly.js/dist/plotly-custom.min.js'
+import { Data, Layout, PlotMouseEvent } from 'plotly.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 

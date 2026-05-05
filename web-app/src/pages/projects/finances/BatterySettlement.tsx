@@ -44,7 +44,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import MarkdownIt from 'markdown-it'
-import { Data } from 'plotly.js/dist/plotly-custom.min.js'
+import { Data } from 'plotly.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { v4 as uuidv4 } from 'uuid'

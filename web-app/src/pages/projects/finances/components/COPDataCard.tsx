@@ -9,7 +9,7 @@ import { Skeleton, Text, useMantineTheme } from '@mantine/core'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import { Data, Layout } from 'plotly.js/dist/plotly-custom.min.js'
+import { Data, Layout } from 'plotly.js'
 import { useMemo } from 'react'
 
 dayjs.extend(utc)

@@ -45,6 +45,7 @@
     {
       matchFileNames: ["web-app/**"],
       groupName: "web-app",
+      reviewers: ["hunter-proximal"],
     },
     {
       matchFileNames: ["docs-mdbook/**"],
