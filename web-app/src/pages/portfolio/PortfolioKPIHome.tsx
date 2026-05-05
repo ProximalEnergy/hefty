@@ -371,7 +371,9 @@ const PortfolioKPIHome = () => {
             label="Select Date"
             placeholder="Pick a date"
             value={selectedDate}
-            onChange={setSelectedDate}
+            onChange={(value) =>
+              setSelectedDate(value ? new Date(value) : null)
+            }
             maxDate={dayjs().subtract(1, 'day').toDate()}
             leftSection={<IconCalendar size={16} />}
             clearable={false}

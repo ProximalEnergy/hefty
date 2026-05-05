@@ -2383,7 +2383,9 @@ const DroneInspectionsMap = ({
                 label="Open date"
                 placeholder="Pick date and time"
                 value={openDate}
-                onChange={setOpenDate}
+                onChange={(value) =>
+                  setOpenDate(value ? new Date(value) : null)
+                }
                 locale="en-US"
                 valueFormat="MM/DD/YYYY HH:mm"
                 required
@@ -2394,7 +2396,9 @@ const DroneInspectionsMap = ({
                 label="Close date (optional)"
                 placeholder="Pick date and time"
                 value={closeDate}
-                onChange={setCloseDate}
+                onChange={(value) =>
+                  setCloseDate(value ? new Date(value) : null)
+                }
                 locale="en-US"
                 valueFormat="MM/DD/YYYY HH:mm"
                 clearable

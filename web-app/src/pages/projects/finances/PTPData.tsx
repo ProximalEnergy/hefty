@@ -542,7 +542,12 @@ const PTPDataPage = () => {
             label="Date Range"
             placeholder="Pick dates range"
             value={dateRange}
-            onChange={setDateRange}
+            onChange={(value) =>
+              setDateRange([
+                value[0] ? new Date(value[0]) : null,
+                value[1] ? new Date(value[1]) : null,
+              ])
+            }
             w={300}
           />
           <Button variant="subtle" onClick={handleCloseViewer}>

@@ -288,7 +288,7 @@ export const OrderDroneInspectionModal: React.FC<
               onChange={(date) =>
                 form.setFieldValue(
                   'specificDate',
-                  date ? date.toISOString().split('T')[0] : '',
+                  date ? new Date(date).toISOString().split('T')[0] : '',
                 )
               }
               required

@@ -471,7 +471,12 @@ export function AdvancedDatePicker({
                     minDate={minDate}
                     maxDate={maxDate}
                     value={dateRange[0]}
-                    onChange={(value) => onDateRangeChange([value, value])}
+                    onChange={(value) =>
+                      onDateRangeChange([
+                        value ? new Date(value) : null,
+                        value ? new Date(value) : null,
+                      ])
+                    }
                   />
                 ) : (
                   <DatePicker
@@ -480,7 +485,12 @@ export function AdvancedDatePicker({
                     minDate={minDate}
                     maxDate={maxDate}
                     value={dateRange}
-                    onChange={onDateRangeChange}
+                    onChange={(values) =>
+                      onDateRangeChange([
+                        values[0] ? new Date(values[0]) : null,
+                        values[1] ? new Date(values[1]) : null,
+                      ])
+                    }
                   />
                 )}
               </DatesProvider>

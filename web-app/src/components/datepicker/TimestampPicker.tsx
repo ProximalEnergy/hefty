@@ -57,7 +57,9 @@ export function TimestampPicker({
         <Popover.Dropdown>
           <DatePicker
             value={value}
-            onChange={handleDateChange}
+            onChange={(value) =>
+              handleDateChange(value ? new Date(value) : null)
+            }
             minDate={minDate}
             maxDate={maxDate || new Date()}
           />

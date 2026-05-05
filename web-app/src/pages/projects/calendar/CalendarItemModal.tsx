@@ -889,8 +889,13 @@ export const CalendarItemModal = ({
             }
             onChange={(date) => {
               if (date) {
+                const typedDate = new Date(date)
                 const newStartTime = new Date(
-                  Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+                  Date.UTC(
+                    typedDate.getFullYear(),
+                    typedDate.getMonth(),
+                    typedDate.getDate(),
+                  ),
                 ).toISOString()
                 handleStartTimeChange(newStartTime)
               }
@@ -1017,7 +1022,10 @@ export const CalendarItemModal = ({
                     form.values.endDate ? new Date(form.values.endDate) : null
                   }
                   onChange={(date) =>
-                    form.setFieldValue('endDate', date?.toISOString())
+                    form.setFieldValue(
+                      'endDate',
+                      date ? new Date(date).toISOString() : undefined,
+                    )
                   }
                 />
               )}

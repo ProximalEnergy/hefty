@@ -32,7 +32,9 @@ const MonthlyPerformanceReport = () => {
             label="Select Month"
             placeholder="Pick a month"
             value={selectedMonth}
-            onChange={(value) => setSelectedMonth(value || previousMonth)}
+            onChange={(value) =>
+              setSelectedMonth(value ? new Date(value) : previousMonth)
+            }
             clearable={false}
           />
 

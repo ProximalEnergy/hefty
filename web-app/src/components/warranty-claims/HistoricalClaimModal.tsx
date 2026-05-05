@@ -608,9 +608,7 @@ export default function HistoricalClaimModal({
                 description="Used to filter related events"
                 placeholder="Pick a date"
                 value={claimDate}
-                onChange={(v) =>
-                  setClaimDate(v instanceof Date ? v : v ? new Date(v) : null)
-                }
+                onChange={(v) => setClaimDate(v ? new Date(v) : null)}
                 clearable
               />
             </Group>
@@ -906,12 +904,7 @@ export default function HistoricalClaimModal({
                                   j === i
                                     ? {
                                         ...r,
-                                        occurred_at:
-                                          v instanceof Date
-                                            ? v
-                                            : v
-                                              ? new Date(v)
-                                              : null,
+                                        occurred_at: v ? new Date(v) : null,
                                       }
                                     : r,
                                 ),

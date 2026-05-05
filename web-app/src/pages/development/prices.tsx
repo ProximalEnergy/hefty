@@ -46,14 +46,19 @@ const Prices = () => {
   return (
     <Stack h="100%" p="md">
       <Group w="100%">
-        <DatesProvider settings={{ timezone: 'America/Chicago' }}>
+        <DatesProvider settings={{ locale: 'en' }}>
           <DatePickerInput
             type="range"
             allowSingleDateInRange
             maxDate={new Date()}
             placeholder="Pick date"
             value={dateRange}
-            onChange={setDateRange}
+            onChange={(values) =>
+              setDateRange([
+                values[0] ? new Date(values[0]) : null,
+                values[1] ? new Date(values[1]) : null,
+              ])
+            }
             flex={1}
           ></DatePickerInput>
         </DatesProvider>

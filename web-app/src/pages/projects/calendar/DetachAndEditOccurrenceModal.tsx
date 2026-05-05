@@ -386,10 +386,7 @@ export const DetachAndEditOccurrenceModal = ({
                 valueFormat="DD MMM YYYY hh:mm A"
                 {...form.getInputProps('start_time')}
                 onChange={(date) =>
-                  form.setFieldValue(
-                    'start_time',
-                    date, // Set as Date or null
-                  )
+                  form.setFieldValue('start_time', date ? new Date(date) : null)
                 }
               />
               <DateTimePicker
@@ -398,8 +395,8 @@ export const DetachAndEditOccurrenceModal = ({
                 required
                 valueFormat="DD MMM YYYY hh:mm A"
                 {...form.getInputProps('end_time')}
-                onChange={
-                  (date) => form.setFieldValue('end_time', date) // Set as Date or null
+                onChange={(date) =>
+                  form.setFieldValue('end_time', date ? new Date(date) : null)
                 }
               />
             </Group>
@@ -410,13 +407,13 @@ export const DetachAndEditOccurrenceModal = ({
               required
               {...form.getInputProps('start_time')} // For all-day, start_time holds the date
               onChange={(date) => {
-                form.setFieldValue('start_time', date) // Set as Date or null
+                form.setFieldValue('start_time', date ? new Date(date) : null) // Set as Date or null
                 // For all-day, you might want end_time to also reflect this date, possibly end of day or exclusive next day
                 if (date) {
                   const endDateForAllDay = new Date(date)
                   // Example: make end_time the start of the next day for FullCalendar compatibility if it's exclusive
                   // Or, set it to end of selected day if your backend/FC interprets it inclusively
-                  endDateForAllDay.setDate(date.getDate() + 1) // FC interprets exclusive end for all-day
+                  endDateForAllDay.setDate(new Date(date).getDate() + 1) // FC interprets exclusive end for all-day
                   endDateForAllDay.setHours(0, 0, 0, 0)
                   form.setFieldValue('end_time', endDateForAllDay) // Set as Date
                 } else {

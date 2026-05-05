@@ -917,7 +917,9 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
                   label="Execution Date"
                   placeholder="Select execution date"
                   value={executionDate}
-                  onChange={setExecutionDate}
+                  onChange={(value) =>
+                    setExecutionDate(value ? new Date(value) : null)
+                  }
                   required
                   size="md"
                 />
@@ -958,7 +960,9 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
                     label="Term Start Date"
                     placeholder="Contract start date"
                     value={termStartDate}
-                    onChange={setTermStartDate}
+                    onChange={(value) =>
+                      setTermStartDate(value ? new Date(value) : null)
+                    }
                     size="md"
                   />
                 </SourceReferenceHoverCard>
@@ -970,7 +974,9 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
                     label="Term End Date"
                     placeholder="Contract end date"
                     value={termEndDate}
-                    onChange={setTermEndDate}
+                    onChange={(value) =>
+                      setTermEndDate(value ? new Date(value) : null)
+                    }
                     size="md"
                   />
                 </SourceReferenceHoverCard>
