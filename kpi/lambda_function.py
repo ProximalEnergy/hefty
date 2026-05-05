@@ -39,7 +39,7 @@ from pydantic import BaseModel
 from sqlalchemy.exc import DBAPIError, OperationalError
 
 
-class Event(BaseModel):
+class KpiLambdaEvent(BaseModel):
     """Lambda payload."""
 
     start_date: datetime.date
@@ -70,7 +70,7 @@ set_global_observer(
 def lambda_handler(event, _context):
     """Lambda handler."""
     sentry_sdk.set_context("lambda_payload", event)
-    event = Event(**event)
+    event = KpiLambdaEvent.model_validate(event)
 
     project_id = ProjectID[event.project_name_short.upper()].value
 

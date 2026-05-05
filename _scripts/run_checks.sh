@@ -1148,10 +1148,6 @@ diff_has() {
     echo "${DIFF_FILES}" | grep -E -q "${pattern}"
 }
 
-check_duplicate_classes_for_diff() {
-    mise run root:duplicate_classes_diff "${DIFF_BASE}"
-}
-
 RUN_CORE=false
 RUN_API=false
 RUN_MICRO=false
@@ -1329,16 +1325,8 @@ if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
     || [ "${RUN_WEB}" = "true" ]; then
     add_check "Global: Duplicate Function Names" \
         "mise run root:duplicate_functions"
-fi
-
-if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
-    if [ "${REQUESTED_DIFF_ONLY}" = "true" ] && [ -n "${DIFF_FILES}" ]; then
-        add_warning_check "Global: Duplicate Class Names" \
-            "check_duplicate_classes_for_diff"
-    else
-        add_warning_check "Global: Duplicate Class Names" \
-            "mise run root:duplicate_classes"
-    fi
+    add_check "Global: Duplicate Class Names" \
+        "mise run root:duplicate_classes"
 fi
 
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then

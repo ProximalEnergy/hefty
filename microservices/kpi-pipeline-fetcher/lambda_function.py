@@ -15,6 +15,7 @@ sentry_sdk.init(
 
 import datetime
 from datetime import timedelta
+from typing import Any
 
 import core.models as models
 import pandas as pd
@@ -23,7 +24,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 
-class Event(BaseModel):
+class FetcherLambdaEvent(BaseModel):
     """Lambda invocation payload: date range and optional filters."""
 
     start: datetime.date = Field(default_factory=datetime.date.today)
@@ -43,32 +44,36 @@ class ResponseItem(BaseModel):
     kpi_type_ids: list[int]
 
 
-def lambda_handler(event: Event, _context) -> list[str]:
+def lambda_handler(event: dict[str, Any], _context) -> list[str]:
     """Lambda handler for the kpi pipeline fetcher.
 
     Args:
-        event: The event object, an instance of the Event class.
+        event: The raw Lambda payload to validate into FetcherLambdaEvent.
         _context: AWS Lambda context (unused).
 
     Returns:
         A list of response items.
     """
-    event = Event.model_validate(event)
+    validated_event = FetcherLambdaEvent.model_validate(event)
     # by default the start date is the day before the end date
 
-    true_start = event.start - timedelta(days=event.backfill_days)
-    if true_start >= event.end:
+    true_start = validated_event.start - timedelta(days=validated_event.backfill_days)
+    if true_start >= validated_event.end:
         return []
 
     with with_db(schema=None) as db:
         stmt = select(models.KPIInstance)
-        if event.project_name_short_list is not None:
+        if validated_event.project_name_short_list is not None:
             stmt = stmt.join(
                 models.Project,
                 models.KPIInstance.project_id == models.Project.project_id,
-            ).where(models.Project.name_short.in_(event.project_name_short_list))
-        if event.kpi_type_ids is not None:
-            stmt = stmt.where(models.KPIInstance.kpi_type_id.in_(event.kpi_type_ids))
+            ).where(
+                models.Project.name_short.in_(validated_event.project_name_short_list)
+            )
+        if validated_event.kpi_type_ids is not None:
+            stmt = stmt.where(
+                models.KPIInstance.kpi_type_id.in_(validated_event.kpi_type_ids)
+            )
         kpi_instances = db.execute(stmt).scalars().all()
         project_names_by_id = {
             project.project_id: project.name_short
@@ -90,15 +95,16 @@ def lambda_handler(event: Event, _context) -> list[str]:
 
         for date in pd.date_range(
             start=true_start,
-            end=event.end,
-            freq=str(event.days_per_chunk) + "D",
+            end=validated_event.end,
+            freq=str(validated_event.days_per_chunk) + "D",
             inclusive="left",
         ):
             responses.append(
                 ResponseItem(
                     start_date=date.date(),
                     end_date=min(
-                        date.date() + timedelta(days=event.days_per_chunk), event.end
+                        date.date() + timedelta(days=validated_event.days_per_chunk),
+                        validated_event.end,
                     ),
                     project_name_short=project_names_by_id[project_id],
                     kpi_type_ids=list(kpi_type_ids),

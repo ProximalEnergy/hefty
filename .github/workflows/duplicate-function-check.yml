@@ -27,3 +27,19 @@ jobs:
 
       - name: Run duplicate function check
         run: mise run root:duplicate_functions
+
+  duplicate-classes:
+    name: Duplicate Class Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install ast-grep
+        run: mise install ast-grep
+
+      - name: Run duplicate class check
+        run: mise run root:duplicate_classes
