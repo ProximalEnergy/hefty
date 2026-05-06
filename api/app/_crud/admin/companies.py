@@ -15,14 +15,9 @@ async def get_companies_with_projects(
 ) -> list[interfaces.CompanyWithProjects]:
     """Return companies with aggregated project IDs from user_projects.
 
-    Returns all companies that have at least one user with at least one project.
-    The project_ids for each company is the union of all projects accessible by
-    any user in that company. Only includes projects that the requesting user
-    also has access to.
-
     Args:
         db: Async SQLAlchemy session.
-        user_id: The requesting user's ID, to filter to accessible projects.
+        user_id: Requesting user ID used to filter accessible projects.
     """
     user_accessible_projects_subquery = (
         select(models.UserProject.operational_project_id)

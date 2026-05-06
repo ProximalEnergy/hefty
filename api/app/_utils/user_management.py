@@ -251,37 +251,11 @@ async def update_clerk_user_theme(*, user_id: str, theme: str, vite_environment:
         theme (str): The theme to update the user to.
         vite_environment (str): The environment to use.
     """
-    if vite_environment in ["PRODUCTION", "DEMO"]:
-        clerk_secret_key = settings.CLERK_SECRET_KEY
-    elif vite_environment in ["STAGING", "DEV"]:
-        clerk_secret_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
-    else:
-        raise ValueError("Invalid Vite environment")
-    if clerk_secret_key is None:
-        raise ValueError("Clerk secret key is not set for this environment")
-    try:
-        # First get the current metadata to preserve it
-        current_metadata = await get_clerk_user_metadata(
-            user_id=user_id, clerk_secret_key=clerk_secret_key
-        )
-        if "error" in current_metadata:
-            return current_metadata
-
-        # Update the theme while preserving other metadata
-        updated_metadata = {**current_metadata, "parent_company": theme}
-
-        with Clerk(
-            bearer_auth=clerk_secret_key,
-        ) as clerk:
-            clerk_user = clerk.users.update(
-                user_id=user_id,
-                public_metadata=updated_metadata,
-            )
-            if not clerk_user:
-                raise ValueError("Failed to update user")
-        return {"success": True}
-    except models.ClerkErrors as e:
-        return {"error": f"Failed to update user: {e.data.errors[0].message}"}
+    return await _update_clerk_public_metadata(
+        user_id=user_id,
+        metadata_updates={"parent_company": theme},
+        vite_environment=vite_environment,
+    )
 
 
 async def update_clerk_user_demo_mode(
@@ -289,29 +263,91 @@ async def update_clerk_user_demo_mode(
 ):
     """Toggle a user's demo mode in Clerk while preserving existing metadata.
 
+    For superadmins on localhost/staging, their user account may exist in the
+    production Clerk instance rather than the development instance. This function
+    will try the primary Clerk instance first (based on vite_environment), then
+    fall back to the other instance if the user is not found.
+
     Args:
         user_id (str): The ID of the user to update.
         demo_mode (bool): Set to True to enable demo mode, False to disable.
         vite_environment (str): The environment to use.
     """
+    return await _update_clerk_public_metadata(
+        user_id=user_id,
+        metadata_updates={"demo": demo_mode},
+        vite_environment=vite_environment,
+    )
+
+
+async def _update_clerk_public_metadata(
+    *, user_id: str, metadata_updates: dict, vite_environment: str
+) -> dict:
+    """Update Clerk public metadata with fallback between Clerk instances.
+
+    Args:
+        user_id: The ID of the user to update.
+        metadata_updates: Public metadata fields to update.
+        vite_environment: The environment to use.
+
+    Returns:
+        dict: Either {"success": True} or {"error": "error message"}.
+    """
     if vite_environment in ["PRODUCTION", "DEMO"]:
-        clerk_secret_key = settings.CLERK_SECRET_KEY
+        primary_key = settings.CLERK_SECRET_KEY
+        fallback_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
     elif vite_environment in ["STAGING", "DEV"]:
-        clerk_secret_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
+        primary_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
+        fallback_key = settings.CLERK_SECRET_KEY
     else:
         raise ValueError("Invalid Vite environment")
-    if clerk_secret_key is None:
+
+    if primary_key is None:
         raise ValueError("Clerk secret key is not set for this environment")
+
+    result = await _try_update_clerk_public_metadata(
+        user_id=user_id,
+        metadata_updates=metadata_updates,
+        clerk_secret_key=primary_key,
+    )
+
+    error_message = result.get("error", "").lower()
+    if any(term in error_message for term in ["not found", "resource_not_found"]):
+        if fallback_key is not None:
+            logging.info(
+                "User %s not found in primary Clerk instance, trying fallback",
+                user_id,
+            )
+            result = await _try_update_clerk_public_metadata(
+                user_id=user_id,
+                metadata_updates=metadata_updates,
+                clerk_secret_key=fallback_key,
+            )
+
+    return result
+
+
+async def _try_update_clerk_public_metadata(
+    *, user_id: str, metadata_updates: dict, clerk_secret_key: str
+) -> dict:
+    """Attempt to update metadata for a user in a specific Clerk instance.
+
+    Args:
+        user_id: The ID of the user to update.
+        metadata_updates: Public metadata fields to update.
+        clerk_secret_key: The Clerk API secret key to use.
+
+    Returns:
+        dict: Either {"success": True} or {"error": "error message"}.
+    """
     try:
-        # First get the current metadata to preserve it
         current_metadata = await get_clerk_user_metadata(
             user_id=user_id, clerk_secret_key=clerk_secret_key
         )
         if "error" in current_metadata:
             return current_metadata
 
-        # Update the demo mode while preserving other metadata
-        updated_metadata = {**current_metadata, "demo": demo_mode}
+        updated_metadata = {**current_metadata, **metadata_updates}
 
         with Clerk(
             bearer_auth=clerk_secret_key,

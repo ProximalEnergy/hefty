@@ -384,8 +384,8 @@ export interface paths {
          * Get Companies With Projects Route
          * @description Get companies with aggregated project IDs accessible to the user.
          *
-         *     Returns all companies that have at least one user with project access.
-         *     Project lists are filtered to those the requesting user can also access.
+         *     Returns companies that have at least one user with project access. Project
+         *     lists are filtered to projects the requesting user can also access.
          *
          *     Args:
          *         db: Async database session.
@@ -9951,7 +9951,10 @@ export interface components {
         DemoModeUpdateRequest: {
             /** Demo Mode */
             demo_mode: boolean;
-            /** Vite Environment */
+            /**
+             * Vite Environment
+             * @default DEV
+             */
             vite_environment: string;
         };
         /**
@@ -12953,7 +12956,10 @@ export interface components {
         ThemeUpdateRequest: {
             /** Theme */
             theme: string;
-            /** Vite Environment */
+            /**
+             * Vite Environment
+             * @default DEV
+             */
             vite_environment: string;
         };
         /**
@@ -14173,6 +14179,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
+                authorization?: string;
             };
             path?: never;
             cookie?: never;

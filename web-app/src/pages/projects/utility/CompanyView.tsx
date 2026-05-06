@@ -3,6 +3,7 @@ import {
   useUpdateSelfClerkTheme,
 } from '@/api/admin'
 import { useGetProjects } from '@/api/v1/operational/projects'
+import { COMPANY_THEME_CONFIG } from '@/components/CompanyThemeManager'
 import {
   Box,
   Button,
@@ -19,6 +20,10 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 const PROXIMAL_NAME_SHORT = 'proximal'
+const COMPANY_VIEW_NAME_SHORTS = new Set([
+  PROXIMAL_NAME_SHORT,
+  ...Object.keys(COMPANY_THEME_CONFIG),
+])
 
 const CompanyView = () => {
   const queryClient = useQueryClient()
@@ -39,10 +44,14 @@ const CompanyView = () => {
   const selectData = useMemo(() => {
     if (!companiesQuery.data) return []
 
-    return companiesQuery.data.map((company) => ({
-      value: company.company_id,
-      label: company.name_long,
-    }))
+    return companiesQuery.data
+      .filter((company) =>
+        COMPANY_VIEW_NAME_SHORTS.has(company.name_short.toLowerCase()),
+      )
+      .map((company) => ({
+        value: company.company_id,
+        label: company.name_long,
+      }))
   }, [companiesQuery.data])
 
   const selectedCompany = useMemo(() => {
@@ -104,19 +113,23 @@ const CompanyView = () => {
         </Text>
         <Box style={{ flex: 1 }} />
       </Group>
-      <Select
-        data={selectData}
-        placeholder="Select a company"
-        onChange={(value) => setSelectedCompanyId(value)}
-        searchable
-      />
-      <Button
-        onClick={() => handleClickProxy()}
-        loading={updateThemeMutation.isPending}
-        disabled={!selectedCompany}
-      >
-        Proxy to Company
-      </Button>
+      <Box maw={420} w="100%">
+        <Stack>
+          <Select
+            data={selectData}
+            placeholder="Select a company"
+            onChange={(value) => setSelectedCompanyId(value)}
+            searchable
+          />
+          <Button
+            onClick={() => handleClickProxy()}
+            loading={updateThemeMutation.isPending}
+            disabled={!selectedCompany}
+          >
+            Proxy to Company
+          </Button>
+        </Stack>
+      </Box>
     </Stack>
   )
 }

@@ -62,6 +62,7 @@ async def get_companies_route(
 @router.get(
     "/with-projects",
     response_model=list[interfaces.CompanyWithProjects],
+    dependencies=[Depends(dependencies.requires_superadmin_async)],
 )
 async def get_companies_with_projects_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -69,8 +70,8 @@ async def get_companies_with_projects_route(
 ):
     """Get companies with aggregated project IDs accessible to the user.
 
-    Returns all companies that have at least one user with project access.
-    Project lists are filtered to those the requesting user can also access.
+    Returns companies that have at least one user with project access. Project
+    lists are filtered to projects the requesting user can also access.
 
     Args:
         db: Async database session.

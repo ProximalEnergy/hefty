@@ -176,7 +176,7 @@ class ThemeUpdateRequest(BaseModel):
     """Request body for updating the user's theme preferences in Clerk."""
 
     theme: str
-    vite_environment: str
+    vite_environment: str = "DEV"
 
 
 @router.put(
@@ -205,7 +205,7 @@ class DemoModeUpdateRequest(BaseModel):
     """Request body for toggling demo mode flags for a Clerk user."""
 
     demo_mode: bool
-    vite_environment: str
+    vite_environment: str = "DEV"
 
 
 @router.put(
