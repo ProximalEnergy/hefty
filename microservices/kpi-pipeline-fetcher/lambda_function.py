@@ -1,27 +1,49 @@
-import os
-
 import sentry_sdk
-from dotenv import load_dotenv
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
-load_dotenv()
+SENTRY_DSN = (
+    "https://11a4bd8327572edf71196106139c0298"
+    "@o4506555874672640.ingest.us.sentry.io/4510524365799424"
+)
 
 sentry_sdk.init(
-    dsn=os.getenv("SENTRY_DSN"),
+    dsn=SENTRY_DSN,
     send_default_pii=True,
     integrations=[AwsLambdaIntegration(timeout_warning=True)],
 )
 
+import datetime  # noqa: E402
+import json  # noqa: E402
+import os  # noqa: E402
+from datetime import timedelta  # noqa: E402
+from typing import Any  # noqa: E402
 
-import datetime
-from datetime import timedelta
-from typing import Any
+import boto3  # noqa: E402
+import pandas as pd  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
+from sqlalchemy import select  # noqa: PLC0415
 
-import core.models as models
-import pandas as pd
-from core.dependencies import with_db
-from pydantic import BaseModel, Field
-from sqlalchemy import select
+_DEFAULT_SECRET_NAME = "microservices/kpi_pipeline_fetcher"  # noqa: S105
+
+
+def _load_kpi_pipeline_fetcher_secret_into_env() -> None:
+    """Load Lambda configuration from AWS Secrets Manager."""
+    secret_name = os.getenv("KPI_PIPELINE_FETCHER_SECRET_NAME", _DEFAULT_SECRET_NAME)
+    region = os.getenv("AWS_REGION", "us-east-2")
+    client = boto3.client("secretsmanager", region_name=region)
+    response = client.get_secret_value(SecretId=secret_name)
+    secret_string = response.get("SecretString")
+    if not secret_string:
+        raise ValueError(f"Secret {secret_name} has no SecretString")
+
+    for key, value in json.loads(secret_string).items():
+        os.environ[key] = str(value)
+
+
+_load_kpi_pipeline_fetcher_secret_into_env()
+
+import core.models as models  # noqa: PLC0415
+from core.dependencies import with_db  # noqa: PLC0415
 
 
 class FetcherLambdaEvent(BaseModel):
@@ -54,6 +76,7 @@ def lambda_handler(event: dict[str, Any], _context) -> list[str]:
     Returns:
         A list of response items.
     """
+
     validated_event = FetcherLambdaEvent.model_validate(event)
     # by default the start date is the day before the end date
 

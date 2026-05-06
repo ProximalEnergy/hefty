@@ -20,9 +20,6 @@ FROM public.ecr.aws/lambda/python:3.12
 # Copy dependencies from builder stage
 COPY --from=builder /tmp/deps ${LAMBDA_TASK_ROOT}
 
-# copy .env file into the container
-COPY .env ${LAMBDA_TASK_ROOT}
-
 # Copy the lambda function code
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 
