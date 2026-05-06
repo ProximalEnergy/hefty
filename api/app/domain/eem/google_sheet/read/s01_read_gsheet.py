@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+from typing import Any
 
 import pandas as pd
 from google.oauth2 import service_account
@@ -50,6 +51,23 @@ def _column_index_to_letter(*, index: int) -> str:
     return result
 
 
+def _build_google_sheets_service() -> Any:
+    """Build an authenticated Google Sheets service client."""
+    credentials = None
+    encoded_credentials = settings.COMMISSIONING_KEY_JSON
+    if encoded_credentials:
+        decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
+        service_account_info = json.loads(decoded_credentials)
+        credentials = service_account.Credentials.from_service_account_info(
+            service_account_info,
+            scopes=GSHEET_SCOPES,
+        )
+    else:
+        raise ValueError("Google sheet credentials not found in env")
+
+    return build("sheets", "v4", credentials=credentials, cache_discovery=False)
+
+
 def read_google_sheet(
     *,
     spreadsheet_id: str,
@@ -62,23 +80,8 @@ def read_google_sheet(
         spreadsheet_id: Description for spreadsheet_id.
         end_column_name: Description for end_column_name.
     """
-    credentials = None
-    # Try to get credentials from environment variable
-    encoded_credentials = settings.COMMISSIONING_KEY_JSON
-    if encoded_credentials:
-        # Parse the JSON string from environment variable
-        decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
-        service_account_info = json.loads(decoded_credentials)
-        credentials = service_account.Credentials.from_service_account_info(
-            service_account_info,
-            scopes=GSHEET_SCOPES,
-        )
-    else:
-        raise ValueError("Google sheet credentials not found in env")
-
     try:
-        # Build the Google Sheets API client (disable cache to suppress info message)
-        service = build("sheets", "v4", credentials=credentials, cache_discovery=False)
+        service = _build_google_sheets_service()
 
         # --- Example Operations ---
 

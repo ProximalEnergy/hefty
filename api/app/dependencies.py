@@ -336,6 +336,7 @@ async def get_user_data_async(
     return user_data
 
 
+@deprecated("Use _dependencies.authentication.require_user_project instead.")
 def check_project_access_async(
     *,
     user_data: interfaces.UserData = Depends(get_user_data_async),
@@ -351,6 +352,7 @@ def check_project_access_async(
         raise HTTPException(status_code=403, detail="Forbidden")
 
 
+@deprecated("Use app._dependencies.authentication.require_user_project instead.")
 def check_project_access_from_query_async(
     *,
     user_data: interfaces.UserData = Depends(get_user_data_async),

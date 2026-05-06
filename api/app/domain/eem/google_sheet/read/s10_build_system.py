@@ -1,4 +1,52 @@
 import pandas as pd
+from fastapi import HTTPException, status
+
+MET_NAME_COLUMN = "Met Name"
+
+
+def _validate_met_name_column(*, system: pd.DataFrame) -> None:
+    """Require Met Name values before building the S3 system file.
+
+    Args:
+        system: Google Sheet Input tab data before system file formatting.
+    """
+    if MET_NAME_COLUMN not in system.columns:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Google Sheet Input tab is missing the 'Met Name' column. "
+                "Add the column or use Map Inverters to Met Stations before "
+                "updating the System S3 file."
+            ),
+        )
+
+    met_names = system[MET_NAME_COLUMN]
+    blank_met_name_mask = met_names.isna() | met_names.astype(str).str.strip().eq("")
+    if not blank_met_name_mask.any():
+        return
+
+    blank_rows = blank_met_name_mask[blank_met_name_mask]
+    blank_row_numbers = (blank_rows.index + 2).tolist()
+    if len(blank_row_numbers) == len(system):
+        detail = (
+            "Google Sheet Input tab has an empty 'Met Name' column. Use "
+            "Map Inverters to Met Stations before updating the System S3 file, "
+            "or manually fill Met Name for each row."
+        )
+    else:
+        visible_rows = ", ".join(map(str, blank_row_numbers[:10]))
+        detail = (
+            "Google Sheet Input tab has blank 'Met Name' values in row(s): "
+            f"{visible_rows}. Use Map Inverters to Met Stations before "
+            "updating the System S3 file, or manually fill those rows."
+        )
+        if len(blank_row_numbers) > 10:
+            detail += f" ({len(blank_row_numbers) - 10} more)."
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=detail,
+    )
 
 
 def build_system(
@@ -11,6 +59,8 @@ def build_system(
     Args:
         system: Description for system.
     """
+    _validate_met_name_column(system=system)
+
     system["string_id"] = range(len(system))
     system["racking_device_id"] = -999
     system["pcs_module_id"] = -999

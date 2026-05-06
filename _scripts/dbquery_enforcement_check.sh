@@ -98,6 +98,11 @@ for line in results_path.read_text().splitlines():
         rule_id = "sqlalchemy-db-crud-outside-dbquery"
 
     match_text = data.get("text", "")
+    if rule_id == "sqlalchemy-db-crud-outside-dbquery":
+        normalized_text = " ".join(match_text.split())
+        if normalized_text.startswith("google_request.execute("):
+            continue
+
     text_hash = hashlib.sha256(match_text.encode("utf-8")).hexdigest()[:8]
     snippet = " ".join(match_text.split())[:100].strip()
 

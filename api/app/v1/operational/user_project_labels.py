@@ -46,22 +46,6 @@ def _normalize_label_name(*, label_name: str) -> str:
     return normalized_name
 
 
-def _validate_project_access(*, user: UserAuthed, project_ids: list[uuid.UUID]) -> None:
-    """Validate that all requested projects are accessible by the user.
-
-    Args:
-        user: Authenticated user data.
-        project_ids: Requested project IDs.
-    """
-    permitted_project_ids = set(user.operational_project_ids)
-    requested_project_ids = set(project_ids)
-    if not requested_project_ids.issubset(permitted_project_ids):
-        raise HTTPException(
-            status_code=403,
-            detail="User does not have access to one or more selected projects",
-        )
-
-
 async def _build_user_project_labels(
     *,
     user_id: str,
@@ -136,7 +120,17 @@ async def create_user_project_label(
     """
     normalized_name = _normalize_label_name(label_name=user_project_label.name)
     normalized_project_ids = list(dict.fromkeys(user_project_label.project_ids))
-    _validate_project_access(user=user, project_ids=normalized_project_ids)
+    permitted_project_ids = set(user.operational_project_ids)
+    denied_project_ids = [
+        project_id
+        for project_id in normalized_project_ids
+        if project_id not in permitted_project_ids
+    ]
+    if denied_project_ids:
+        raise HTTPException(
+            status_code=403,
+            detail="User does not have access to one or more selected projects",
+        )
 
     try:
         created_label = await add_user_project_label(
@@ -179,7 +173,17 @@ async def update_user_project_label_route(
     """
     normalized_name = _normalize_label_name(label_name=user_project_label.name)
     normalized_project_ids = list(dict.fromkeys(user_project_label.project_ids))
-    _validate_project_access(user=user, project_ids=normalized_project_ids)
+    permitted_project_ids = set(user.operational_project_ids)
+    denied_project_ids = [
+        project_id
+        for project_id in normalized_project_ids
+        if project_id not in permitted_project_ids
+    ]
+    if denied_project_ids:
+        raise HTTPException(
+            status_code=403,
+            detail="User does not have access to one or more selected projects",
+        )
 
     try:
         await update_user_project_label_crud(

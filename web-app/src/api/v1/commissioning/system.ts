@@ -11,15 +11,23 @@ interface ProjectSystemFileStatus {
   exists: boolean
 }
 
+interface InverterMetStationMappingResponse {
+  rows_updated: number
+  inverters_mapped: number
+  met_stations_available: number
+}
+
+const PROJECT_SYSTEM_URL = '/v1/commissioning/system/{project_id}'
+
 export const useGetProjectSystemFileStatus = ({
   pathParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: string }
+  pathParams: { project_id: string }
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: '/v1/commissioning/projects/{project_id}/system/file-status',
+    url: `${PROJECT_SYSTEM_URL}/file-status`,
   }
 
   const defaultQueryOptions = {
@@ -30,7 +38,7 @@ export const useGetProjectSystemFileStatus = ({
   return useCustomQuery<ProjectSystemFileStatus>({
     axiosConfig,
     queryName: 'getProjectSystemFileStatus',
-    pathParams: { project_id: pathParams.projectId },
+    pathParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -44,7 +52,30 @@ export const useImportProjectSystem = () => {
 
       const response = await axios({
         method: 'put',
-        url: `${baseURL}/v1/commissioning/projects/${projectId}/system/import`,
+        url: `${baseURL}/v1/commissioning/system/${projectId}/import`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      return response.data
+    },
+  })
+}
+
+export const useMapInvertersToMetStations = () => {
+  const { getToken } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({ projectId }: { projectId: string }) => {
+      const token = await getToken({ template: 'default' })
+
+      const response = await axios<InverterMetStationMappingResponse>({
+        method: 'put',
+        url:
+          `${baseURL}/v1/commissioning/system/${projectId}` +
+          '/map-inverters-to-met-stations',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

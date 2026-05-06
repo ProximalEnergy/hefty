@@ -1250,7 +1250,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/commissioning/projects/{project_id}/system/import": {
+    "/v1/commissioning/system/{project_id}/import": {
         parameters: {
             query?: never;
             header?: never;
@@ -1266,7 +1266,7 @@ export interface paths {
          *         db: The database session for the project.
          *         project: The project object.
          */
-        put: operations["put_project_system_import_v1_commissioning_projects__project_id__system_import_put"];
+        put: operations["put_project_system_import_v1_commissioning_system__project_id__import_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1274,7 +1274,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/commissioning/projects/{project_id}/system/file-status": {
+    "/v1/commissioning/system/{project_id}/map-inverters-to-met-stations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Project System Map Inverters To Met Stations
+         * @description Populate Google Sheet Met Name values from nearest met station devices.
+         *
+         *     Args:
+         *         project_db: The database session for the project.
+         *         project: The project object.
+         */
+        put: operations["put_project_system_map_inverters_to_met_stations_v1_commissioning_system__project_id__map_inverters_to_met_stations_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/commissioning/system/{project_id}/file-status": {
         parameters: {
             query?: never;
             header?: never;
@@ -1285,7 +1309,7 @@ export interface paths {
          * Get Project System File Status
          * @description Return existence status for the system import output file in S3.
          */
-        get: operations["get_project_system_file_status_v1_commissioning_projects__project_id__system_file_status_get"];
+        get: operations["get_project_system_file_status_v1_commissioning_system__project_id__file_status_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10918,6 +10942,18 @@ export interface components {
             night_tare: number;
         };
         /**
+         * InverterMetStationMappingResponse
+         * @description Response for Google Sheet inverter to met station mapping.
+         */
+        InverterMetStationMappingResponse: {
+            /** Rows Updated */
+            rows_updated: number;
+            /** Inverters Mapped */
+            inverters_mapped: number;
+            /** Met Stations Available */
+            met_stations_available: number;
+        };
+        /**
          * KPIBackfillEvent
          * @description Payload for a KPI backfill request.
          */
@@ -15449,12 +15485,11 @@ export interface operations {
             };
         };
     };
-    put_project_system_import_v1_commissioning_projects__project_id__system_import_put: {
+    put_project_system_import_v1_commissioning_system__project_id__import_put: {
         parameters: {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -15483,12 +15518,44 @@ export interface operations {
             };
         };
     };
-    get_project_system_file_status_v1_commissioning_projects__project_id__system_file_status_get: {
+    put_project_system_map_inverters_to_met_stations_v1_commissioning_system__project_id__map_inverters_to_met_stations_put: {
         parameters: {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InverterMetStationMappingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_system_file_status_v1_commissioning_system__project_id__file_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
             };
             path: {
                 project_id: string;

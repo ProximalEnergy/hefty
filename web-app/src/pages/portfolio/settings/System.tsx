@@ -1,6 +1,7 @@
 import {
   useGetProjectSystemFileStatus,
   useImportProjectSystem,
+  useMapInvertersToMetStations,
 } from '@/api/v1/commissioning/system'
 import { useGetProjects, useUpdateProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
@@ -20,6 +21,7 @@ import {
   IconArrowUpToArc,
   IconCheck,
   IconDeviceFloppy,
+  IconMapPin,
   IconX,
 } from '@tabler/icons-react'
 import axios from 'axios'
@@ -32,6 +34,7 @@ const System = () => {
   })
   const updateProject = useUpdateProject()
   const importProjectSystem = useImportProjectSystem()
+  const mapInvertersToMetStations = useMapInvertersToMetStations()
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null,
@@ -40,7 +43,7 @@ const System = () => {
     Record<string, string>
   >({})
   const systemFileStatus = useGetProjectSystemFileStatus({
-    pathParams: { projectId: selectedProjectId ?? '' },
+    pathParams: { project_id: selectedProjectId ?? '' },
     queryOptions: { enabled: !!selectedProjectId },
   })
 
@@ -86,6 +89,13 @@ const System = () => {
     !selectedProjectId ||
     updateProject.isPending ||
     importProjectSystem.isPending ||
+    mapInvertersToMetStations.isPending ||
+    projectsQuery.isLoading
+  const isMapDisabled =
+    !selectedProjectId ||
+    updateProject.isPending ||
+    importProjectSystem.isPending ||
+    mapInvertersToMetStations.isPending ||
     projectsQuery.isLoading
 
   const handlePortfolioSystemSave = () => {
@@ -210,6 +220,91 @@ const System = () => {
     )
   }
 
+  const handleMapInvertersToMetStations = async () => {
+    if (!selectedProjectId) {
+      return
+    }
+
+    const savedGoogleSheetId = (selectedProject?.gsheet_id ?? '').trim()
+
+    if (normalizedGoogleSheetId !== savedGoogleSheetId) {
+      try {
+        await updateProject.mutateAsync({
+          projectId: selectedProjectId,
+          projectData: {
+            gsheet_id:
+              normalizedGoogleSheetId.length > 0
+                ? normalizedGoogleSheetId
+                : null,
+          },
+        })
+        setGoogleSheetDrafts((prev) => ({
+          ...prev,
+          [selectedProjectId]: normalizedGoogleSheetId,
+        }))
+      } catch (error) {
+        notifications.show({
+          title: 'Mapping failed',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unable to save Google Sheet ID before mapping.',
+          color: 'red',
+          icon: <IconX size={16} />,
+        })
+        return
+      }
+    }
+
+    mapInvertersToMetStations.mutate(
+      { projectId: selectedProjectId },
+      {
+        onSuccess: (data) => {
+          notifications.show({
+            title: 'Met station mapping updated',
+            message:
+              `Mapped ${data.inverters_mapped} inverter(s) across ` +
+              `${data.rows_updated} Google Sheet row(s).`,
+            color: 'green',
+            icon: <IconCheck size={16} />,
+          })
+        },
+        onError: (error: unknown) => {
+          let errorMessage = 'Unable to map inverters to met stations.'
+
+          if (axios.isAxiosError(error)) {
+            const detail = error.response?.data?.detail
+            if (typeof detail === 'string' && detail.trim().length > 0) {
+              errorMessage = detail
+            } else if (Array.isArray(detail)) {
+              errorMessage = detail
+                .map((item) => {
+                  if (typeof item === 'string') return item
+                  if (item && typeof item === 'object') {
+                    return item.msg || item.message
+                  }
+                  return null
+                })
+                .filter(Boolean)
+                .join('; ')
+            } else if (typeof error.message === 'string') {
+              errorMessage = error.message
+            }
+          } else if (error instanceof Error) {
+            errorMessage = error.message
+          }
+
+          notifications.show({
+            title: 'Mapping failed',
+            message: errorMessage,
+            color: 'red',
+            icon: <IconX size={16} />,
+          })
+        },
+      },
+    )
+  }
+
   const handleGoogleSheetIdChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!selectedProjectId) {
       return
@@ -303,6 +398,15 @@ const System = () => {
           )}
 
           <Group style={{ justifyContent: 'flex-end' }} mt="md">
+            <Button
+              variant="light"
+              leftSection={<IconMapPin size={16} />}
+              onClick={handleMapInvertersToMetStations}
+              loading={mapInvertersToMetStations.isPending}
+              disabled={isMapDisabled}
+            >
+              Map Inverters to Met Stations
+            </Button>
             <Button
               variant="light"
               leftSection={<IconArrowUpToArc size={16} />}
