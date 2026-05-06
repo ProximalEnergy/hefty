@@ -8,6 +8,7 @@ dependencies = [
     "boto3>=1.38,<2",
     "core==0.2.39",
     "pydantic>=2,<3",
+    "python-dotenv>=1,<2",
     "sentry-sdk>=2,<3",
 ]
 

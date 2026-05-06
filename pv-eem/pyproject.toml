@@ -14,7 +14,7 @@ dependencies = [
     "pyarrow~=23.0", # needed for polars database connection
     "python-dotenv~=1.2", # environment variables
     "s3fs~=2026.2", # needed for s3 connection
-    "sentry-sdk~=2.52",
+    "sentry-sdk~=2.58",
     "solarfactors~=1.6",
     "sqlalchemy", # for database interactions
     "tomli>=2.0.1,<3", # needed to read version from pyproject.toml

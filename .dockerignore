@@ -99,6 +99,9 @@ microservices/microservice_1/**/*
 !microservices/calendar_notifications_lambda/pyproject.toml
 !microservices/weather_alerts_lambda/pyproject.toml
 !microservices/data_connection_outage_notifications_lambda/pyproject.toml
+!microservices/cmms-ticket-download/pyproject.toml
+!microservices/cmms-ticket-download/docker-workspace.toml
+!microservices/cmms-ticket-download/.env
 !issues/pyproject.toml
 !issues/README.md
 !kpi/pyproject.toml

@@ -45,7 +45,13 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["api", "core", "pv-eem", "issues"]
+members = [
+    "api",
+    "core",
+    "pv-eem",
+    "issues",
+    "microservices/cmms-ticket-download",
+]
 
 [[tool.uv.index]]
 name = "proximal-package-index"

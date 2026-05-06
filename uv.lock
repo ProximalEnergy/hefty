@@ -10,6 +10,7 @@ resolution-markers = [
 [manifest]
 members = [
     "api",
+    "cmms-ticket-download",
     "core",
     "issues",
     "mono",
@@ -250,7 +251,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.4,<3" },
     { name = "s3fs", specifier = "~=2026.2" },
     { name = "scipy", specifier = "~=1.17" },
-    { name = "sentry-sdk", specifier = ">=2.17.0,<3" },
+    { name = "sentry-sdk", specifier = "~=2.58" },
     { name = "shapely", specifier = ">=2.1.1,<3" },
     { name = "sqlalchemy", specifier = ">=2.0.44,<3" },
     { name = "starlette", specifier = "~=0.51" },
@@ -606,6 +607,31 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/05/91cf7cc817ff91bc96f1e2afc84346b42e88831c9c0a7fd56e78907b5320/clickhouse_connect-0.15.1-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:5462bad97d97919a4ed230e2ef28d0b76bec0354a343218647830aac7744a43b", size = 1133723, upload-time = "2026-03-30T18:57:25.105Z" },
     { url = "https://files.pythonhosted.org/packages/d7/b0/e7a71b96b7bc1df6bbacf9fa71f0cc3b8f195f58386535b72aa92304b1fb/clickhouse_connect-0.15.1-cp312-cp312-win32.whl", hash = "sha256:e1a157205efd47884c22bfe061fc6f8c9aea844929ee755c47b446093805d21a", size = 257279, upload-time = "2026-03-30T18:57:26.288Z" },
     { url = "https://files.pythonhosted.org/packages/b9/03/0ef116ef0efc6861d6e9674419709b9873603f330f95853220a145748576/clickhouse_connect-0.15.1-cp312-cp312-win_amd64.whl", hash = "sha256:5de299ada0f7eb9090bb5a6304d8d78163d4d9cc8eb04d8f552bfb82bafb61d5", size = 275916, upload-time = "2026-03-30T18:57:27.372Z" },
+]
+
+[[package]]
+name = "cmms-ticket-download"
+version = "0.1.0"
+source = { editable = "microservices/cmms-ticket-download" }
+dependencies = [
+    { name = "boto3" },
+    { name = "core" },
+    { name = "httpx" },
+    { name = "pandas" },
+    { name = "psycopg2-binary" },
+    { name = "python-dotenv" },
+    { name = "sentry-sdk" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3" },
+    { name = "core", editable = "core" },
+    { name = "httpx" },
+    { name = "pandas" },
+    { name = "psycopg2-binary" },
+    { name = "python-dotenv" },
+    { name = "sentry-sdk", specifier = "~=2.58" },
 ]
 
 [[package]]
@@ -2345,7 +2371,7 @@ requires-dist = [
     { name = "pyarrow", specifier = "~=23.0" },
     { name = "python-dotenv", specifier = "~=1.2" },
     { name = "s3fs", specifier = "~=2026.2" },
-    { name = "sentry-sdk", specifier = "~=2.52" },
+    { name = "sentry-sdk", specifier = "~=2.58" },
     { name = "solarfactors", specifier = "~=1.6" },
     { name = "sqlalchemy" },
     { name = "tomli", specifier = ">=2.0.1,<3" },
