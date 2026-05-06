@@ -61,32 +61,49 @@ uv sync --directory kpi && \
 )
 """
 
-[tasks.sync-deps-if-lock-changed]
-description = "Run sync-deps when dependency manifests change"
+[tasks.sync-deps-if-needed]
+description = "Run sync-deps when dependency environments are stale"
 run = """
-LOCKFILE_PATTERN='^(uv\\..lock|core/uv\\..lock|\
-web-app/package\\..json|web-app/pnpm-lock\\..yaml)$'
+#!/usr/bin/env bash
+set -uo pipefail
 
-BASE_REF=""
-if git show-ref --verify --quiet refs/remotes/origin/dev; then
-  BASE_REF="$(git merge-base HEAD origin/dev)"
-elif git show-ref --verify --quiet refs/heads/dev; then
-  BASE_REF="$(git merge-base HEAD dev)"
-else
-  BASE_REF="HEAD~1"
+NEEDS_SYNC=false
+UV_CHANGE_PATTERN='^Would (create|download|install|remove|uninstall|update)'
+
+uv_sync_dry_run_shows_changes() {
+  local project_dir="$1"
+  local output
+
+  if output="$(
+    env -u VIRTUAL_ENV uv sync --directory "${project_dir}" --dry-run 2>&1
+  )"; then
+    if echo "${output}" | rg -q "${UV_CHANGE_PATTERN}"; then
+      echo "Stale uv environment: ${project_dir}"
+      return 0
+    fi
+    return 1
+  fi
+
+  echo "uv sync --dry-run failed for ${project_dir}; syncing dependencies."
+  echo "${output}"
+  return 0
+}
+
+for project_dir in . core api kpi; do
+  if uv_sync_dry_run_shows_changes "${project_dir}"; then
+    NEEDS_SYNC=true
+  fi
+done
+
+if ! (cd web-app && pnpm install --frozen-lockfile --dry-run >/dev/null); then
+  echo "Stale pnpm environment: web-app"
+  NEEDS_SYNC=true
 fi
 
-CHANGED_FILES="$(
-  {
-    git diff --name-only "${BASE_REF}...HEAD"
-    git diff --name-only HEAD
-  } | sort -u
-)"
-
-if echo "${CHANGED_FILES}" | grep -E -q "${LOCKFILE_PATTERN}"; then
+if [ "${NEEDS_SYNC}" = "true" ]; then
   mise run sync-deps
 else
-  echo "No dependency manifest changes detected; skipping sync-deps."
+  echo "Dependency environments are current; skipping sync-deps."
 fi
 """
 
@@ -97,11 +114,11 @@ usage = '''
 '''
 run = """
 if [ "${usage_no_sync:-false}" = "true" ]; then
-  mise run sync-deps-if-lock-changed && \
+  mise run sync-deps-if-needed && \
   ./_scripts/run_dev.sh
 else
   mise run sync && \
-  mise run sync-deps-if-lock-changed && \
+  mise run sync-deps-if-needed && \
   ./_scripts/run_dev.sh
 fi
 """
