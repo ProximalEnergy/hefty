@@ -38,12 +38,14 @@ export function PortfolioProjectCard({
         className={styles.root}
         style={{ position: 'relative' }}
       >
-        <PortfolioProjectCardHeader
-          project={project}
-          projectDataLastUpdated={projectDataLastUpdated}
-          isFavorited={isFavorited}
-          projectLabels={projectLabels}
-        />
+        <Card.Section withBorder>
+          <PortfolioProjectCardHeader
+            project={project}
+            projectDataLastUpdated={projectDataLastUpdated}
+            isFavorited={isFavorited}
+            projectLabels={projectLabels}
+          />
+        </Card.Section>
         <Group gap="sm" h={210} mt="md">
           <Box h="100%" flex={1}>
             <PortfolioProjectSparkline

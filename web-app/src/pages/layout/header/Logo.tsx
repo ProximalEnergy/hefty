@@ -151,7 +151,7 @@ const Logo = () => {
       case 'longroad_energy':
         return (
           <>
-            <Image src={getCompanyLogoUrl('logo_mccarthy.png')} h="75%" />
+            <Image src={getCompanyLogoUrl('logo_mccarthy.png')} w={200} />
             <Stack gap={0}>
               <Title fs="italic" lh={1} order={2} c="#db0032">
                 AMP

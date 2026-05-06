@@ -32,6 +32,11 @@ dayjs.updateLocale('en', {
   weekStart: 1,
 })
 
+/** Mantine date pickers emit `YYYY-MM-DD` strings; avoid `new Date(str)` (UTC parse). */
+function dateStringToLocalDate(value: string | null): Date | null {
+  return value ? dayjs(value).toDate() : null
+}
+
 type DurationTerms =
   | 'today'
   | 'yesterday'
@@ -471,12 +476,10 @@ export function AdvancedDatePicker({
                     minDate={minDate}
                     maxDate={maxDate}
                     value={dateRange[0]}
-                    onChange={(value) =>
-                      onDateRangeChange([
-                        value ? new Date(value) : null,
-                        value ? new Date(value) : null,
-                      ])
-                    }
+                    onChange={(value) => {
+                      const d = dateStringToLocalDate(value)
+                      onDateRangeChange([d, d])
+                    }}
                   />
                 ) : (
                   <DatePicker
@@ -485,12 +488,11 @@ export function AdvancedDatePicker({
                     minDate={minDate}
                     maxDate={maxDate}
                     value={dateRange}
-                    onChange={(values) =>
-                      onDateRangeChange([
-                        values[0] ? new Date(values[0]) : null,
-                        values[1] ? new Date(values[1]) : null,
-                      ])
-                    }
+                    onChange={(values) => {
+                      const start = dateStringToLocalDate(values[0])
+                      const end = dateStringToLocalDate(values[1])
+                      onDateRangeChange([start, end])
+                    }}
                   />
                 )}
               </DatesProvider>

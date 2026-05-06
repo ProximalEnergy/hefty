@@ -22,7 +22,6 @@ import ProjectEventOverlayLayers, {
 import * as gisUtils from '@/utils/GIS'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
-  ActionIcon,
   Box,
   Button,
   Group,
@@ -1594,66 +1593,55 @@ function AdaptiveGisBESS({
           </Group>
 
           {/* Lock Button and Label Group */}
-          <Menu shadow="md" width={200} position="top-start" withArrow>
-            <Group gap={0}>
-              <Tooltip
-                label={
-                  effectiveIsViewLocked ? 'Unlock View' : 'Lock Current View'
+          <Button.Group>
+            <Tooltip
+              label={
+                effectiveIsViewLocked
+                  ? 'Unlock View'
+                  : 'Lock Current View'
+              }
+              position="right"
+            >
+              <Button
+                variant="default"
+                size="compact-lg"
+                onClick={handleAdaptiveGisBessLockToggle}
+                leftSection={
+                  effectiveIsViewLocked ? (
+                    <IconLock size={16} />
+                  ) : (
+                    <IconLockOpen size={16} />
+                  )
                 }
-                position="right"
               >
-                <Button
-                  size="compact-md"
-                  variant="default"
-                  onClick={handleAdaptiveGisBessLockToggle}
-                  leftSection={
-                    effectiveIsViewLocked ? (
-                      <IconLock size={16} />
-                    ) : (
-                      <IconLockOpen size={16} />
-                    )
-                  }
-                  style={{
-                    borderTopRightRadius: 0,
-                    borderBottomRightRadius: 0,
-                  }}
-                >
-                  {effectiveIsViewLocked
-                    ? `${lockedViewName}`
-                    : `${currentViewName}`}
-                </Button>
-              </Tooltip>
+                {effectiveIsViewLocked
+                  ? `${lockedViewName}`
+                  : `${currentViewName}`}
+              </Button>
+            </Tooltip>
+            <Menu shadow="md" width={200} position="top-start" withArrow>
               <Menu.Target>
-                <Tooltip label="Select Layer to Lock" position="right">
-                  <ActionIcon
-                    variant="default"
-                    size="1.875rem"
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                      borderLeft: 0,
-                    }}
-                  >
-                    <IconChevronDown size="1rem" />
-                  </ActionIcon>
-                </Tooltip>
+                <Button variant="default" size="compact-lg">
+                  <IconChevronDown size={16} />
+                </Button>
               </Menu.Target>
-            </Group>
-
-            <Menu.Dropdown>
-              <Menu.Label>Lock to Layer</Menu.Label>
-              {(Object.keys(layerLockConfig) as LayerViewName[])
-                .filter((layer) => layerAvailability[layer])
-                .map((layer) => (
+              <Menu.Dropdown>
+                <Menu.Label>Lock to Layer</Menu.Label>
+                {(Object.keys(layerLockConfig) as LayerViewName[]).filter(
+                  (layerName) => layerAvailability[layerName],
+                ).map((layerName) => (
                   <Menu.Item
-                    key={layer}
-                    onClick={() => handleAdaptiveGisBessLockToLayer(layer)}
+                    key={layerName}
+                    onClick={() =>
+                      handleAdaptiveGisBessLockToLayer(layerName)
+                    }
                   >
-                    {layer}
+                    {layerName}
                   </Menu.Item>
                 ))}
-            </Menu.Dropdown>
-          </Menu>
+              </Menu.Dropdown>
+            </Menu>
+          </Button.Group>
         </Stack>
 
         <Attribution />

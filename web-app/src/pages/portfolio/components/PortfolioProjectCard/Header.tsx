@@ -7,7 +7,6 @@ import { useUser } from '@clerk/react'
 import {
   ActionIcon,
   Badge,
-  Card,
   Group,
   Title,
   Tooltip,
@@ -51,66 +50,64 @@ export function PortfolioProjectCardHeader({
   }
 
   return (
-    <Card.Section withBorder>
-      <Group gap="xs" p="md" style={{ flexWrap: 'nowrap' }}>
-        <DataStatus
-          data={projectDataLastUpdated}
-          data_receive_schedule={project.data_receive_schedule}
-          isLoading={false}
-          isError={false}
-        />
-        <Group gap="xs" flex={1} style={{ flexWrap: 'nowrap' }}>
-          <Title order={5} lh={1} textWrap="nowrap">
-            {project.name_long}
-          </Title>
-          <Tooltip label={description}>
-            <Group gap={0}>
-              {(project.project_type_id === ProjectTypeEnum.PV ||
-                project.project_type_id === ProjectTypeEnum.PVS) && (
-                <IconSolarPanel />
-              )}
-              {(project.project_type_id === ProjectTypeEnum.BESS ||
-                project.project_type_id === ProjectTypeEnum.PVS) && (
-                <IconBattery4 />
-              )}
-            </Group>
+    <Group gap="xs" p="md" style={{ flexWrap: 'nowrap' }}>
+      <DataStatus
+        data={projectDataLastUpdated}
+        data_receive_schedule={project.data_receive_schedule}
+        isLoading={false}
+        isError={false}
+      />
+      <Group gap="xs" flex={1} style={{ flexWrap: 'nowrap' }}>
+        <Title order={5} lh={1} textWrap="nowrap">
+          {project.name_long}
+        </Title>
+        <Tooltip label={description}>
+          <Group gap={0}>
+            {(project.project_type_id === ProjectTypeEnum.PV ||
+              project.project_type_id === ProjectTypeEnum.PVS) && (
+              <IconSolarPanel />
+            )}
+            {(project.project_type_id === ProjectTypeEnum.BESS ||
+              project.project_type_id === ProjectTypeEnum.PVS) && (
+              <IconBattery4 />
+            )}
+          </Group>
+        </Tooltip>
+        {!project.has_real_time_data && (
+          <Tooltip label="Real time data is not available for this project. Data shown is from yesterday.">
+            <ActionIcon variant="subtle" color="yellow" size="sm">
+              <IconInfoCircle size={16} />
+            </ActionIcon>
           </Tooltip>
-          {!project.has_real_time_data && (
-            <Tooltip label="Real time data is not available for this project. Data shown is from yesterday.">
-              <ActionIcon variant="subtle" color="yellow" size="sm">
-                <IconInfoCircle size={16} />
-              </ActionIcon>
-            </Tooltip>
-          )}
-        </Group>
-        <Group
-          gap="xs"
-          style={{
-            flexWrap: 'nowrap',
-            overflowX: 'auto',
-            whiteSpace: 'nowrap',
-            minWidth: 0,
-          }}
-        >
-          {projectLabels.map((label) => (
-            <Badge
-              autoContrast={true}
-              key={label.name}
-              color={label.color}
-              variant="light"
-            >
-              {label.name}
-            </Badge>
-          ))}
-        </Group>
-        <ActionIcon variant="subtle" size="sm" onClick={handleFavoriteToggle}>
-          {isFavorited ? (
-            <IconHeartFilled size={16} color={theme.colors.red[6]} />
-          ) : (
-            <IconHeart size={16} />
-          )}
-        </ActionIcon>
+        )}
       </Group>
-    </Card.Section>
+      <Group
+        gap="xs"
+        style={{
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap',
+          minWidth: 0,
+        }}
+      >
+        {projectLabels.map((label) => (
+          <Badge
+            autoContrast={true}
+            key={label.name}
+            color={label.color}
+            variant="light"
+          >
+            {label.name}
+          </Badge>
+        ))}
+      </Group>
+      <ActionIcon variant="subtle" size="sm" onClick={handleFavoriteToggle}>
+        {isFavorited ? (
+          <IconHeartFilled size={16} color={theme.colors.red[6]} />
+        ) : (
+          <IconHeart size={16} />
+        )}
+      </ActionIcon>
+    </Group>
   )
 }
