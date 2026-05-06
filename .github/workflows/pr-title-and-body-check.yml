@@ -18,6 +18,20 @@
 # No personal access tokens or external secrets are required.
 #
 # ─────────────────────────────────────────────────────────────────────────────
+# PR BODY CHECKS
+# ─────────────────────────────────────────────────────────────────────────────
+# 1) High Impact Changes checkboxes
+#    - Automatically checks/unchecks the boxes in the "## High Impact Changes"
+#      section of the PR description based on which parts of the monorepo are
+#      touched by the PR.
+#
+# 2) Checklist enforcement (author action required)
+#    - Ensures both checklist items under "## Checklist" are explicitly marked
+#      as either completed (`- [x] ...`) or not applicable (`- [N/A] ...`).
+#    - If either item is missing or still unchecked (`- [ ] ...`), the workflow
+#      comments on the PR and tags the author with clear instructions.
+#
+# ─────────────────────────────────────────────────────────────────────────────
 # LIMITATIONS
 # ─────────────────────────────────────────────────────────────────────────────
 # - The GitHub API returns at most 100 files per page. PRs touching more than
@@ -61,6 +75,7 @@ on:
 # All other permissions are left at their default (read or none).
 permissions:
   pull-requests: write
+  issues: write
 
 # Only allow one run per PR at a time. If a new event arrives (e.g. the
 # `edited` event fired by our own title PATCH) while a run is still in
@@ -282,3 +297,162 @@ jobs:
               body: newBody,
             });
             core.info("Updated High Impact checkboxes.");
+
+      - name: Validate PR checklist boxes (x / N/A)
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pullNumber = context.payload.pull_request.number;
+            const authorLogin = context.payload.pull_request.user.login;
+
+            const REQUIRED_CHECKLIST_LINES = [
+              [
+                "I confirmed there are no console warnings or errors in the `api`",
+                "or `web-app` related to this change.",
+              ].join(" "),
+              [
+                "I confirmed changed pages (from either `web-app` changes",
+                "directly or via underlying `core`/`api` functions) loaded",
+                "correctly.",
+              ].join(" "),
+            ];
+
+            const COMMENT_MARKER = "<!-- pr-checklist-enforcer -->";
+
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+            const body = pullRequest.body ?? "";
+            const lines = body.split("\n");
+
+            const checklistHeadingRe = /^##\s+Checklist\s*$/;
+            const anyHeadingRe = /^##\s+/;
+
+            const startIdx = lines.findIndex((line) =>
+              checklistHeadingRe.test(line),
+            );
+            const checklistLines = [];
+            if (startIdx !== -1) {
+              for (let i = startIdx + 1; i < lines.length; i += 1) {
+                const line = lines[i];
+                if (anyHeadingRe.test(line)) {
+                  break;
+                }
+                checklistLines.push(line);
+              }
+            }
+
+            function normalizeMark(markRaw) {
+              return markRaw.trim();
+            }
+
+            function isValidMark(mark) {
+              if (/^x$/i.test(mark)) {
+                return true;
+              }
+              if (/^n\/a$/i.test(mark)) {
+                return true;
+              }
+              return false;
+            }
+
+            function findChecklistLine(targetText) {
+              for (const line of checklistLines) {
+                const match = line.match(/^- \[([^\]]+)\]\s+(.*)$/);
+                if (!match) {
+                  continue;
+                }
+                const text = match[2].trimEnd();
+                if (text === targetText) {
+                  return { line, markRaw: match[1], text };
+                }
+              }
+              return null;
+            }
+
+            const failures = [];
+            for (const requiredText of REQUIRED_CHECKLIST_LINES) {
+              const found = findChecklistLine(requiredText);
+              if (!found) {
+                failures.push({
+                  text: requiredText,
+                  reason: "Missing checklist item",
+                });
+                continue;
+              }
+
+              const mark = normalizeMark(found.markRaw);
+              if (!isValidMark(mark)) {
+                failures.push({
+                  text: requiredText,
+                  reason: `Invalid checkbox value: "${mark}" (expected "x" or "N/A")`,
+                });
+              }
+            }
+
+            const existingComments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: pullNumber, per_page: 100 },
+            );
+            const priorBotComments = existingComments.filter(
+              (c) => (c.body ?? "").includes(COMMENT_MARKER),
+            );
+            const prior = priorBotComments.length > 0 ? priorBotComments[0] : null;
+            const extraPrior = priorBotComments.slice(1);
+
+            if (failures.length === 0) {
+              for (const comment of extraPrior) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: comment.id,
+                });
+              }
+              if (prior) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: prior.id,
+                });
+                core.info("Checklist valid; removed prior reminder comment.");
+              } else {
+                core.info("Checklist valid.");
+              }
+              return;
+            }
+
+            const commentBody = [
+              COMMENT_MARKER,
+              `@${authorLogin} please update the Checklist in the PR description.`,
+              "",
+              "Both checklist items under ## Checklist must be either checked ([x]) or marked not applicable ([N/A]).",
+            ].join("\n");
+
+            if (prior) {
+              for (const comment of extraPrior) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: comment.id,
+                });
+              }
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: prior.id,
+                body: commentBody,
+              });
+              core.info("Updated existing checklist reminder comment.");
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pullNumber,
+                body: commentBody,
+              });
+              core.info("Created checklist reminder comment.");
+            }
