@@ -1,17 +1,17 @@
 # Initialize Sentry even before imports
 
-import os
 
 import sentry_sdk
 import sentry_sdk.integrations.aws_lambda as sentry_aws_lambda
-from dotenv import load_dotenv
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
-load_dotenv()
+SENTRY_DSN = "https://11a4bd8327572edf71196106139c0298@o4506555874672640.ingest.us.sentry.io/4510524365799424"
+
+
 # SDK uses this constant (ms before timeout to fire warning). Default 1500; use 30s.
 sentry_aws_lambda.TIMEOUT_WARNING_BUFFER = 30_000
 sentry_sdk.init(
-    dsn=os.getenv("SENTRY_DSN"),
+    dsn=SENTRY_DSN,
     send_default_pii=True,
     integrations=[AwsLambdaIntegration(timeout_warning=True)],
 )
@@ -19,9 +19,33 @@ sentry_sdk.init(
 # now do all of the imports
 
 import datetime
+import json
+import os
 import warnings
 
+import boto3  # type: ignore[import-untyped]
 from asyncpg.exceptions import ProtocolViolationError  # type: ignore[import-untyped]
+from pydantic import BaseModel
+from sqlalchemy.exc import DBAPIError, OperationalError
+
+_KPI_SECRET_NAME = "kpi"  # noqa: S105
+
+
+def _load_kpi_secret_into_env() -> None:
+    """Load Lambda configuration from AWS Secrets Manager."""
+    region = os.getenv("AWS_REGION", "us-east-2")
+    client = boto3.client("secretsmanager", region_name=region)
+    response = client.get_secret_value(SecretId=_KPI_SECRET_NAME)
+    secret_string = response.get("SecretString")
+    if not secret_string:
+        raise ValueError(f"Secret {_KPI_SECRET_NAME} has no SecretString")
+
+    for key, value in json.loads(secret_string).items():
+        os.environ[key] = str(value)
+
+
+_load_kpi_secret_into_env()
+
 from core.enumerations import KPITypeEnum, ProjectID
 from kpi.base.exception import (
     DatasetAccessError,
@@ -35,8 +59,6 @@ from kpi.op.observer import SentryObserver, observe, set_global_observer
 from kpi.op.plan import get_plan
 from kpi.registry.upload.api import UPLOAD
 from kpi.schema.api import get_pipeline
-from pydantic import BaseModel
-from sqlalchemy.exc import DBAPIError, OperationalError
 
 
 class KpiLambdaEvent(BaseModel):

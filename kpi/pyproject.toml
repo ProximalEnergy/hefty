@@ -6,6 +6,7 @@ authors = [{ name = "David Kyle", email = "dkpollster@gmail.com" }]
 requires-python = ">=3.12.8, <3.13"
 dependencies = [
     "asyncpg~=0.30",
+    "boto3>=1.38,<2",
     "bottleneck~=1.6",
     "core",
     "flox~=0.10",
