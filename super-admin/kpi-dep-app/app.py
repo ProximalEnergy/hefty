@@ -293,7 +293,9 @@ def get_sensor_type_ids_for_kpis(*, kpi_type_ids: list[int]) -> list[int]:
     if not kpi_type_ids:
         return []
     pipeline = BasePipeline()
-    plan = get_plan(pipeline, outputs=[KPITypeEnum(idx).name for idx in kpi_type_ids])
+    plan = get_plan(
+        schema=pipeline, outputs={KPITypeEnum(idx).name for idx in kpi_type_ids}
+    )
 
     download_plan = plan.steps.get("download")
     if not isinstance(download_plan, PipelinePlan):

@@ -1,6 +1,6 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/pyright-internal/schemas/pyrightconfig.schema.json",
   "venvPath": ".",
   "venv": ".venv",
+  "extraPaths": ["../../core/src", "../../kpi/src"],
   "typeCheckingMode": "off"
 }
