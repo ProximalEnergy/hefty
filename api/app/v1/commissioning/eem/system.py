@@ -5,10 +5,10 @@ from uuid import UUID
 import boto3
 from app import dependencies, interfaces, settings
 from app._dependencies.authorization import require_user_project
-from app.domain.eem.google_sheet.read.c_read import import_google_sheet
 from app.domain.eem.google_sheet.inverter_met_mapping import (
     map_inverters_to_met_stations as met_station_mapping,
 )
+from app.domain.eem.google_sheet.read.c_read import import_google_sheet
 from botocore.exceptions import ClientError
 from core.database import with_db
 from fastapi import APIRouter, Depends, HTTPException, Path

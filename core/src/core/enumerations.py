@@ -666,6 +666,7 @@ class KPITypeEnum(BaseDatabaseEnum[int], IntEnum):
     BESS_PROJECT_POWER_AVAILABILITY = 123
     BESS_PROJECT_ENERGY_AVAILABILITY = 124
     BESS_PROJECT_NER_AVAILABILITY = 125
+    BESS_PROJECT_SYSTEM_AVAILABILITY = 126
 
 
 class EventLossTypeEnum(BaseDatabaseEnum[int], IntEnum):
