@@ -21,6 +21,10 @@ import { useParams } from 'react-router'
 import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const MAX_DAYS = 7
+const naturalSortCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+})
 
 const EquipmentAnalysisMetStationPage = () => {
   useProjectFilter({
@@ -230,6 +234,12 @@ const EquipmentAnalysisMetStationPage = () => {
 
     plotData.push(...windData)
   }
+
+  plotData.sort((firstTrace, secondTrace) => {
+    const firstName = String(firstTrace.name ?? '')
+    const secondName = String(secondTrace.name ?? '')
+    return naturalSortCollator.compare(firstName, secondName)
+  })
 
   return (
     <Stack h="100%" p="md">
