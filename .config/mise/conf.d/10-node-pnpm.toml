@@ -2,4 +2,6 @@
 # path in MISE_OVERRIDE_CONFIG_FILENAMES (see amplify.yml).
 [tools]
 node = "24.13"
-pnpm = "10.33"
+# 10.33.3+ GitHub assets omit .tar.gz; mise aqua install fails until registry
+# catches up — keep in sync with web-app package.json packageManager.
+pnpm = "10.33.2"
