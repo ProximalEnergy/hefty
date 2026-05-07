@@ -6,9 +6,8 @@ from core.db_query import OutputType
 from core.enumerations import SensorTypeEnum, TimeOffset
 from sqlalchemy.orm import Session
 
-import core
 from app import utils
-from core import models
+from core import crud, models
 
 
 async def get_bess_data(
@@ -31,7 +30,7 @@ async def get_bess_data(
         A dictionary containing BESS data.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[
             SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT,
             SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT,

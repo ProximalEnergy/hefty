@@ -5,8 +5,8 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from shapely.wkb import loads
 
-import core
 from app import dependencies, settings
+from core import crud, models
 
 router = APIRouter(
     prefix="/{project_id}",
@@ -21,9 +21,9 @@ async def _get_project_lat_lon(*, project_id: UUID) -> tuple[float, float]:
     Args:
         project_id: Project UUID used to look up coordinates.
     """
-    project_query = core.crud.operational.projects.get_project(
+    project_query = crud.operational.projects.get_project(
         project_id=project_id,
-        columns=(core.models.Project.point,),
+        columns=(models.Project.point,),
     )
     project_data = await project_query.get_async(
         output_type=OutputType.SQLALCHEMY,

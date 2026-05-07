@@ -251,6 +251,11 @@ description = "Run ast-grep check: forbidden-with-async-db-usage"
 dir = "."
 run = "./_scripts/ast_grep_check.sh --rules forbidden-with-async-db-usage"
 
+[tasks."root:core_imports"]
+description = "Run ast-grep check: python-core-require-selective-imports"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules python-core-require-selective-imports"
+
 
 [tasks."api:project_id_path"]
 description = "Run ast-grep check: api-no-project-id-path-param-outside-project"

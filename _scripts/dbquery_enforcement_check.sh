@@ -30,10 +30,53 @@ language: Python
 rule:
   any:
     - pattern: $SESSION.add($$$ARGS)
-    - pattern: $SESSION.get($$$ARGS)
+    - all:
+        - pattern: $SESSION.get($$$ARGS)
+        - not:
+            inside:
+              stopBy: end
+              any:
+                - pattern:
+                    context: |
+                      async def $FUNC(
+                          $$$BEFORE,
+                          $SESSION: $TYPE = Depends($DEP),
+                          $$$AFTER,
+                      ):
+                          $$$BODY
+                    selector: function_definition
+                - pattern:
+                    context: |
+                      def $FUNC(
+                          $$$BEFORE,
+                          $SESSION: $TYPE = Depends($DEP),
+                          $$$AFTER,
+                      ):
+                          $$$BODY
+                    selector: function_definition
+                - pattern:
+                    context: |
+                      async def $FUNC(
+                          $$$BEFORE,
+                          $SESSION: Annotated[$TYPE, Depends($DEP)],
+                          $$$AFTER,
+                      ):
+                          $$$BODY
+                    selector: function_definition
+                - pattern:
+                    context: |
+                      def $FUNC(
+                          $$$BEFORE,
+                          $SESSION: Annotated[$TYPE, Depends($DEP)],
+                          $$$AFTER,
+                      ):
+                          $$$BODY
+                    selector: function_definition
     - pattern: $SESSION.merge($$$ARGS)
     - pattern: $QUERY.update($$$ARGS)
 constraints:
+  DEP:
+    regex: "^([a-zA-Z_][a-zA-Z0-9_]*\\.)?get_project_db_async$"
   SESSION:
     regex: "^(self\\.)?[a-zA-Z0-9_]*(session|db)[a-zA-Z0-9_]*$"
   QUERY:

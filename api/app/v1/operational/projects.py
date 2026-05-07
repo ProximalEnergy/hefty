@@ -11,7 +11,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, interfaces, utils
 from app._crud.operational.kpi_instances import (
     api_get_kpi_instances as crud_get_kpi_instances,
@@ -25,7 +24,7 @@ from app._crud.operational.report_instances import (
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
 from app.logger import logger
-from core import enumerations, models
+from core import crud, enumerations, models
 
 DESCRIPTION_404 = "Project not found"
 
@@ -145,7 +144,7 @@ async def get_projects_route(
             set(project_ids_requested) & set(project_ids_kpi_instances),
         )
 
-    projects_query = core.crud.operational.projects.get_projects(
+    projects_query = crud.operational.projects.get_projects(
         project_ids=project_ids_requested,
         project_type_ids=project_type_ids,
         project_status_type_ids=project_status_type_ids,
@@ -189,7 +188,7 @@ async def get_project_route(
         project_id: Description for project_id.
         user_data: Description for user_data.
     """
-    project_query = core.crud.operational.projects.get_project(
+    project_query = crud.operational.projects.get_project(
         project_id=project_id,
     )
     project_db_model = await project_query.get_async(

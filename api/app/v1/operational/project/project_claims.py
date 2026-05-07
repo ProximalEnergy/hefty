@@ -24,7 +24,6 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, interfaces
 from app._crud.operational import (
     claim_attachments,
@@ -37,7 +36,7 @@ from app._utils.claim_emails import (
     build_claim_submission_email_html,
     send_claim_submission_email,
 )
-from core import enumerations, models
+from core import crud, domain, enumerations, models
 
 router = APIRouter(
     prefix="/claims",
@@ -497,7 +496,7 @@ async def get_claim_event_data_csv(
 
     start = event.time_start - EVENT_DATA_WINDOW
     end = event.time_start + EVENT_DATA_WINDOW
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         in_tsdb=True,
         device_ids=[event.device_id],
         deep=True,
@@ -543,7 +542,7 @@ async def get_claim_event_data_csv(
     ]
     if status_tag_ids:
         decoded_status = (
-            await core.domain.statuses.statuses.get_status_timeseries_interpreted(
+            await domain.statuses.statuses.get_status_timeseries_interpreted(
                 project_db=project_db,
                 project=project,
                 tag_ids=status_tag_ids,

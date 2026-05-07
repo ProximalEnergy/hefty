@@ -8,10 +8,9 @@ from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import core
 from app import interfaces, utils
 from app.dependencies import get_project_api, get_project_db
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/gis",
@@ -41,7 +40,7 @@ async def get_combiner_block_performance(
 
     # Get requested pv_block device
     project_schema = utils.get_project_schema(project_db=project_db)
-    device_block_df = await core.crud.project.devices.get_project_device(
+    device_block_df = await crud.project.devices.get_project_device(
         device_id=block_device_id,
         deep=False,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -54,13 +53,13 @@ async def get_combiner_block_performance(
     device_block = device_block_df.to_dict("records")[0]
 
     # Get descendent pv_dc_combiner devices of requested pv_block
-    devices_combiner_df = await core.crud.project.devices.get_project_devices(
+    devices_combiner_df = await crud.project.devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
         device_id_descendent_of=int(device_block["device_id"]),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get tags for combiner current
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         device_ids=devices_combiner_df["device_id"].astype(int).tolist(),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)

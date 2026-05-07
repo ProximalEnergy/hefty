@@ -12,11 +12,11 @@ import httpx
 import numpy as np
 import pandas as pd
 from core.db_query import OutputType
+from core.utils.core_utils import model_list_to_pandas
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import core
 from app import dependencies, utils
 from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
@@ -25,7 +25,7 @@ from app.interfaces import UserAuthed
 from app.v1.protected.web_application.projects.ptp_data.ptp_data import (
     _get_ptp_identifiers,
 )
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/market-performance",
@@ -157,7 +157,7 @@ async def get_market_performance_debug_raw(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -170,7 +170,7 @@ async def get_market_performance_debug_raw(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -271,7 +271,7 @@ async def get_market_performance_realtime(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -284,7 +284,7 @@ async def get_market_performance_realtime(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -396,12 +396,11 @@ async def get_market_performance_realtime(
     df = df.replace({pd.NA: None, pd.NaT: None, np.nan: None})
 
     # Get field mappings
-    fields = await core.crud.operational.qse_integrations.get_qse_fields_by_provider_id(
+    fields = await crud.operational.qse_integrations.get_qse_fields_by_provider_id(
         db=db_async, provider_id=qse_integration.qse_provider_id
     )
-    fields_df = core.utils.core_utils.model_list_to_pandas(model_list=fields).set_index(
-        "qse_field_name"
-    )
+
+    fields_df = model_list_to_pandas(model_list=fields).set_index("qse_field_name")
 
     # Replace null-like values with None for JSON serialization
     df = df.replace({pd.NA: None, pd.NaT: None, np.nan: None})
@@ -618,7 +617,7 @@ async def get_realtime_price(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -631,7 +630,7 @@ async def get_realtime_price(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -748,7 +747,7 @@ async def get_project_identifiers(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -761,7 +760,7 @@ async def get_project_identifiers(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )

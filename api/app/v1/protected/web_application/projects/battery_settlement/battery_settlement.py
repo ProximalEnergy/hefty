@@ -12,11 +12,11 @@ from app._dependencies.filtering import filter_start_datetime_to_data_access_sta
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
 from core.db_query import OutputType
+from core.utils.core_utils import model_list_to_pandas
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import core
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/battery-settlement",
@@ -119,7 +119,7 @@ async def get_battery_settlement_details(
         db_async: Async database session.
     """
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -131,7 +131,7 @@ async def get_battery_settlement_details(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -144,12 +144,10 @@ async def get_battery_settlement_details(
     )
     if not has_permission:
         raise HTTPException(status_code=403, detail="Forbidden")
-    fields = await core.crud.operational.qse_integrations.get_qse_fields_by_provider_id(
+    fields = await crud.operational.qse_integrations.get_qse_fields_by_provider_id(
         db=db_async, provider_id=qse_integration.qse_provider_id
     )
-    fields_df = core.utils.core_utils.model_list_to_pandas(model_list=fields).set_index(
-        "qse_field_name"
-    )
+    fields_df = model_list_to_pandas(model_list=fields).set_index("qse_field_name")
     token = await tps_token.get_token()
     df = get_battery_settlement_details_dataframe(
         identifier=qse_integration.qse_project_identifier,

@@ -7,10 +7,9 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-import core
 from app import utils
 from app.dependencies import get_project_api, get_project_db
-from core import models
+from core import crud, models
 
 DESCRIPTION_404 = "Tag not found"
 
@@ -57,7 +56,7 @@ async def get_expected_power(
         query_device_ids.append(project_device_id)
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices = await core.crud.project.devices.get_project_devices(
+    devices = await crud.project.devices.get_project_devices(
         device_ids=query_device_ids
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices = devices.set_index("device_id")
@@ -97,7 +96,7 @@ async def get_expected_power(
     start_query = pd.Timestamp(start).tz_convert(project.time_zone)
     end_query = pd.Timestamp(end).tz_convert(project.time_zone)
     eem_priority_expected_metric_ids = [[12, 11, 5, 6], [10, 9, 3, 4], [8, 7, 1, 2]]
-    data = await core.crud.project.data_expected.get_project_data_expected(
+    data = await crud.project.data_expected.get_project_data_expected(
         start=start_query,
         end=end_query,
         device_ids=devices.index.tolist(),

@@ -7,7 +7,6 @@ from core.enumerations import ReportTypeEnum
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import core
 from app import interfaces
 from app._crud.operational.report_instances import (
     bulk_upsert_report_instances,
@@ -19,6 +18,7 @@ from app.dependencies import (
     requires_superadmin_async,
 )
 from app.interfaces import UserAuthed
+from core import crud
 
 SABLE_POINT_COMPANY_ID = UUID("38a8e696-dafa-44c0-b817-e3aee8cdfe8c")
 
@@ -51,7 +51,7 @@ async def get_project_reports_instances(
     else:
         is_visible = True
 
-    query = core.crud.project.reports.get_project_report_instances(
+    query = crud.project.reports.get_project_report_instances(
         project_id=project_id,
         is_visible=is_visible,
         report_type_ids=report_type_ids,

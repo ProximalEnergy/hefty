@@ -63,7 +63,6 @@ from scipy.stats import linregress
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-import core
 from core import models
 
 from .chart_utils import create_stacked_bar_chart, create_waterfall_chart
@@ -3113,9 +3112,9 @@ async def create_radar_chart(
         start=start,
         end=end,
         project_ids=included_projects_uuid,
-    ).get_async(output_type=core.db_query.OutputType.PANDAS)
+    ).get_async(output_type=OutputType.PANDAS)
     projects = await crud_get_projects(project_ids=included_projects_uuid).get_async(
-        output_type=core.db_query.OutputType.PANDAS
+        output_type=OutputType.PANDAS
     )
     project_lookup = projects.set_index("project_id")
 

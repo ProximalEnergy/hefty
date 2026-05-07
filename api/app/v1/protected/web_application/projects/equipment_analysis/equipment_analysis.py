@@ -11,7 +11,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, utils
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.domain.current_day_pages.bess import get_bess_data
@@ -22,7 +21,7 @@ from app.domain.current_day_pages.tracker import (
     get_tracker_by_pv_block_id_data,
     get_tracker_data,
 )
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/equipment-analysis",
@@ -197,7 +196,7 @@ async def get_heatmap(
         fillna_zero: Description for fillna_zero.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_query = core.crud.project.tags.get_project_tags_v2(
+    tags_query = crud.project.tags.get_project_tags_v2(
         sensor_type_name_shorts=[sensor_type_name_short],
         deep=False,
     )
@@ -207,7 +206,7 @@ async def get_heatmap(
     )
 
     if tags_df.is_empty():
-        fallback_query = core.crud.project.tags.get_project_tags_v2(
+        fallback_query = crud.project.tags.get_project_tags_v2(
             sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER],
             deep=False,
         )
@@ -241,7 +240,7 @@ async def get_heatmap(
     device_ids = [
         int(device_id) for device_id in tags_df["device_id"].drop_nulls().to_list()
     ]
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud.project.devices.get_project_devices(
         device_ids=device_ids,
     ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
@@ -293,7 +292,7 @@ async def get_sunburst_data(
         ignored_device_type_ids: Description for ignored_device_type_ids.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_query = core.crud.project.devices.get_project_devices()
+    devices_query = crud.project.devices.get_project_devices()
     devices_df = await devices_query.get_async(
         output_type=OutputType.PANDAS,
         schema=project_schema,
@@ -355,10 +354,8 @@ async def get_sunburst_data(
     if 0 in hierarchy.keys():
         hierarchy.pop(0)
 
-    device_types_df = (
-        await core.crud.operational.device_types.get_device_types().get_async(
-            output_type=OutputType.POLARS
-        )
+    device_types_df = await crud.operational.device_types.get_device_types().get_async(
+        output_type=OutputType.POLARS
     )
     device_type_id_to_name_long = (
         dict(

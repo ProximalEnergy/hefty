@@ -6,8 +6,8 @@ from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, utils
+from core import crud
 
 router = APIRouter(
     prefix="/ui/{project_id}",
@@ -47,7 +47,7 @@ async def get_block_dropdown(
 
     # Fetch block devices
     project_schema = utils.get_project_schema(project_db=project_db)
-    blocks_df = await core.crud.project.devices.get_project_devices(
+    blocks_df = await crud.project.devices.get_project_devices(
         device_type_ids=[BLOCK_DEVICE_TYPE_ID]
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     blocks_df = blocks_df.copy()

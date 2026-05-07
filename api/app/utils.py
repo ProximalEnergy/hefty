@@ -16,7 +16,6 @@ from pvlib import irradiance, location, tracking
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-import core
 from app import settings
 from app._crud.projects.data import get_project_data_latest
 from app._crud.projects.data_raw import (
@@ -25,7 +24,7 @@ from app._crud.projects.data_raw import (
 from app._crud.projects.data_timeseries import (
     get_project_data_timeseries_latest,
 )
-from core import models
+from core import crud, models
 
 # EEM nighttime expected-power: project PV inverter capacity_ac (MW) times this
 # factor (~0.18% nameplate) yields standby loss MW.
@@ -445,7 +444,7 @@ async def get_tag_id_to_device_name_long(
 
     # Get list of devices
     project_schema = get_project_schema(project_db=db)
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud.project.devices.get_project_devices(
         device_ids=device_ids,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 

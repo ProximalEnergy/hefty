@@ -24,6 +24,7 @@ ALL_RULES=(
     fastapi-project-id-requires-access
     fastapi-project-id-requires-access-prefix
     forbidden-with-async-db-usage
+    python-core-require-selective-imports
 )
 
 # Parse --rules flag

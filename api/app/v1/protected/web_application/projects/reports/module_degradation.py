@@ -9,10 +9,9 @@ from fastapi import Depends
 from pvlib import location
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, utils
 from app.v1.protected.web_application.projects.reports.reports import router
-from core import models
+from core import crud, models
 
 
 @router.get("/degradation-poa")
@@ -55,7 +54,7 @@ async def get_degradation_poa(
     )
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.MET_STATION_POA],
         deep=True,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -108,7 +107,7 @@ async def get_degradation_poa(
     df_filtered = df.loc[~bad_idx]
 
     device_ids = tags_df["device_id"].astype(int).tolist()
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud.project.devices.get_project_devices(
         device_ids=device_ids,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     device_id_to_name_long = dict(

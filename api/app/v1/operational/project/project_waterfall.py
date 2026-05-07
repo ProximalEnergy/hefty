@@ -17,11 +17,10 @@ from core.enumerations import (
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies
 from app._crud.projects import pv_budgeted as crud_pv_budgeted
 from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expected
-from core import models
+from core import crud, models
 
 DESCRIPTION_404 = "Tag not found"
 
@@ -110,7 +109,7 @@ async def get_project_waterfall(
         raise ValueError("start and end must not be None")
     match project.project_type_id:
         case ProjectTypeEnum.PV:
-            meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
+            meter_tags_df = await crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[SensorTypeEnum.METER_ACTIVE_POWER],
                 deep=True,
             ).get_async(
@@ -139,7 +138,7 @@ async def get_project_waterfall(
         case ProjectTypeEnum.BESS:
             return []
         case ProjectTypeEnum.PVS:
-            meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
+            meter_tags_df = await crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[
                     SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
                 ],
@@ -194,7 +193,7 @@ async def get_project_waterfall(
         index_col="time",
         time_zone=project.time_zone,
     )
-    events_query = core.crud.project.events.get_windowed_event_summaries(
+    events_query = crud.project.events.get_windowed_event_summaries(
         start=start,
         end=end,
     )

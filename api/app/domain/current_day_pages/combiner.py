@@ -9,9 +9,8 @@ from fastapi import Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, utils
-from core import models
+from core import crud, models
 
 
 async def get_equipment_analysis_combiner_data(
@@ -52,7 +51,7 @@ async def get_equipment_analysis_combiner_data(
 
     # Get combiner devices
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_combiner_df = await core.crud.project.devices.get_project_devices(
+    devices_combiner_df = await crud.project.devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_combiner_df = devices_combiner_df.copy()
@@ -60,7 +59,7 @@ async def get_equipment_analysis_combiner_data(
     devices_combiner_df["capacity_dc"] = devices_combiner_df["capacity_dc"].fillna(1)
 
     # Get combiner current tags
-    tags_combiner_current = await core.crud.project.tags.get_project_tags_v2(
+    tags_combiner_current = await crud.project.tags.get_project_tags_v2(
         in_tsdb=True,
         sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)

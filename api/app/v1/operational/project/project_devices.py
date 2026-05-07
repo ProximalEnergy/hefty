@@ -13,15 +13,16 @@ from shapely.wkb import loads as wkb_loads
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-import core
-from app import custom_types, interfaces, utils
+from app import interfaces, utils
 from app._utils.arrow import polars_to_arrow_response
+from app.custom_types import AnnotatedDeep
 from app.dependencies import (
     check_project_access_async,
     get_project_db,
     get_project_db_async,
 )
 from app.logger import logger
+from core import crud, models
 
 DESCRIPTION_404 = "Device not found"
 
@@ -63,7 +64,7 @@ class DeviceSerialNumberUpdate(BaseModel):
 )
 async def get_project_device_route(
     device_id: int,
-    deep: custom_types.AnnotatedDeep = False,
+    deep: AnnotatedDeep = False,
     project_db: AsyncSession = Depends(get_project_db_async),
 ):
     """Return a single project device with optional relationship data.
@@ -74,7 +75,7 @@ async def get_project_device_route(
         project_db: Database session for the current project.
     """
     project_schema = await utils.get_project_schema_async(project_db=project_db)
-    query_obj = core.crud.project.devices.get_project_device(
+    query_obj = crud.project.devices.get_project_device(
         device_id=device_id,
         deep=deep,
     )
@@ -104,7 +105,7 @@ async def patch_project_device_route(
         payload: Device fields to update.
         project_db: Database session for the current project.
     """
-    device = await project_db.get(core.models.Device, device_id)
+    device = await project_db.get(models.Device, device_id)
     if device is None:
         raise HTTPException(status_code=404, detail=DESCRIPTION_404)
     serial_number = payload.serial_number.strip() if payload.serial_number else None
@@ -182,7 +183,7 @@ async def get_project_devices_v2(
     # SQLAlchemy typically has a limit around 32K-65K parameters
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    query_obj = core.crud.project.devices.get_project_devices(
+    query_obj = crud.project.devices.get_project_devices(
         device_ids=filters.device_ids,
         device_type_ids=filters.device_type_ids,
         parent_device_ids=filters.parent_device_ids,

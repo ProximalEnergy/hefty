@@ -2,9 +2,6 @@ import datetime
 import typing
 from typing import Annotated
 
-import core.crud.project.data_expected
-import core.crud.project.data_timeseries_last
-import core.crud.project.devices
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
 from core.crud.project.data_timeseries_last import (
@@ -19,11 +16,10 @@ from sqlalchemy import Float, cast, func, select
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, utils
 from app.dependencies import get_project_db
 from app.logger import logger
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/real-time",
@@ -95,7 +91,7 @@ async def get_expected_power_by_device_type_id(
     """
     # Get all devices of this type
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud.project.devices.get_project_devices(
         device_type_ids=[device_type_id],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
@@ -125,7 +121,7 @@ async def get_expected_power_by_device_type_id(
     data_expected = None
     found_metric_id = None
     for expected_metric_id in expected_metric_ids_fallback:
-        data_expected = await core.crud.project.data_expected.get_project_data_expected(
+        data_expected = await crud.project.data_expected.get_project_data_expected(
             start=start_query,
             end=end_query,
             device_ids=expected_device_ids_for_query,
@@ -224,7 +220,7 @@ async def get_by_device_type_id(
     device_ids: list[int] = data_df["device_id"].unique().tolist()
 
     # ── device metadata (names) --------------------------------------------------
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud.project.devices.get_project_devices(
         device_ids=device_ids,
         device_type_ids=[device_type_id],
         deep=False,
@@ -392,7 +388,7 @@ async def get_device_type_power_summary(
     if 9 in used_device_type_ids:
         try:
             # Fetch combiner devices once
-            combiner_devices_df = await core.crud.project.devices.get_project_devices(
+            combiner_devices_df = await crud.project.devices.get_project_devices(
                 device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
             device_ids = combiner_devices_df["device_id"].astype(int).tolist()
@@ -426,7 +422,7 @@ async def _calculate_dc_combiner_power_sum(
 
     # Get device information
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud.project.devices.get_project_devices(
         device_ids=device_ids
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_df = devices_df.copy()
@@ -455,7 +451,7 @@ async def _calculate_dc_combiner_power_sum(
     parent_device_ids_query: list[int | None] = [
         parent_id for parent_id in parent_pcs_ids
     ]
-    all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
+    all_pcs_modules_df = await crud.project.devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
         parent_device_ids=parent_device_ids_query,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -481,7 +477,7 @@ async def _calculate_dc_combiner_power_sum(
             )
 
     # Fetch latest currents at combiner level from timeseries_last
-    df_current = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
+    df_current = await crud.project.data_timeseries_last.get_data_timeseries_last(
         device_ids=device_ids,
         sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT.value],
         deep=True,
@@ -495,7 +491,7 @@ async def _calculate_dc_combiner_power_sum(
     df_voltage_modules = pd.DataFrame()
     if module_ids:
         df_voltage_modules = (
-            await core.crud.project.data_timeseries_last.get_data_timeseries_last(
+            await crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=module_ids,
                 sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE.value],
                 deep=True,
@@ -507,7 +503,7 @@ async def _calculate_dc_combiner_power_sum(
     df_voltage_pcs = pd.DataFrame()
     if df_voltage_modules.empty:
         df_voltage_pcs = (
-            await core.crud.project.data_timeseries_last.get_data_timeseries_last(
+            await crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=[pid for pid in parent_pcs_ids if pid is not None],
                 sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE.value],
                 deep=True,

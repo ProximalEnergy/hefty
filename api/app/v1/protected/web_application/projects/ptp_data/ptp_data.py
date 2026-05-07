@@ -10,13 +10,12 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import core
 from app import dependencies, utils
 from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/ptp-data",
@@ -211,7 +210,7 @@ async def get_ptp_endpoints_route(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -224,7 +223,7 @@ async def get_ptp_endpoints_route(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -283,7 +282,7 @@ async def get_ptp_endpoints_availability(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -296,7 +295,7 @@ async def get_ptp_endpoints_availability(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -386,7 +385,7 @@ async def get_ptp_data(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -399,7 +398,7 @@ async def get_ptp_data(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )
@@ -891,7 +890,7 @@ async def get_active_outage_tickets(
     """
     # Get QSE integration
     qse_integration_query = (
-        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -904,7 +903,7 @@ async def get_active_outage_tickets(
 
     # Check permissions
     permissions_query = (
-        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
     )

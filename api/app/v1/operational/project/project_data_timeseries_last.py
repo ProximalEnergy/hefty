@@ -5,9 +5,9 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-import core
 from app import utils
 from app.dependencies import get_project_db
+from core import crud
 
 router = APIRouter(
     prefix="/data-timeseries-last",
@@ -35,7 +35,7 @@ async def get_data_timeseries_last_route(
         include_ghost_tags: Include tags without sensor_type_id when True.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    df = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
+    df = await crud.project.data_timeseries_last.get_data_timeseries_last(
         tag_ids=tag_ids,
         device_type_ids=device_type_ids,
         sensor_type_ids=sensor_type_ids,

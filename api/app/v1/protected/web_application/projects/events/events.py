@@ -1,7 +1,6 @@
 import datetime
 from typing import Annotated, Any, Literal
 
-import core.models as models
 import pandas as pd
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum
@@ -9,12 +8,12 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-import core
 from app import utils
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
+from core import crud, models
 
 router = APIRouter(
     prefix="/events",
@@ -125,9 +124,9 @@ async def get_meta_analysis(
     # -----------------------
     # Source data
     # -----------------------
-    event_data = core.crud.project.events.get_windowed_events(start=start, end=end)
+    event_data = crud.project.events.get_windowed_events(start=start, end=end)
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_query = core.crud.project.devices.get_project_devices()
+    devices_query = crud.project.devices.get_project_devices()
     devices = await devices_query.get_async(
         output_type=OutputType.PANDAS,
         schema=project_schema,
@@ -344,7 +343,7 @@ async def get_meta_analysis(
     # -----------------------
     # Device type names
     # -----------------------
-    device_types_df = await core.crud.operational.device_types.get_device_types(
+    device_types_df = await crud.operational.device_types.get_device_types(
         device_type_ids=agg_types["device_type_id"].unique().tolist(),
     ).get_async(
         output_type=OutputType.PANDAS,
@@ -412,5 +411,5 @@ def get_events_home_page_summary(
         project: Description for project.
         sort_by: Description for sort_by.
     """
-    data = core.crud.project.events.get_homepage_summary(project_db, sort_by=sort_by)
+    data = crud.project.events.get_homepage_summary(project_db, sort_by=sort_by)
     return data

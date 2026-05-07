@@ -17,10 +17,9 @@ from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import deprecated
 
-import core
 from app import interfaces, settings
 from app.integrations.token_manager import TokenManager, get_tps_token_manager
-from core import models
+from core import crud, models
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
@@ -51,7 +50,7 @@ async def get_project_api(*, project_id: UUID):
     Args:
         project_id: Project UUID to load from the operational database.
     """
-    project_query = core.crud.operational.projects.get_project(
+    project_query = crud.operational.projects.get_project(
         project_id=project_id,
     )
     project_model = await project_query.get_async(

@@ -27,7 +27,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
-import core
 from app import interfaces, utils
 from app._crud.operational.kpi_data import api_get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
@@ -48,7 +47,7 @@ from app.interfaces import UserAuthed
 from app.v1.operational.kpi_data import get_kpi_data_helper
 from app.v1.operational.kpi_instances import get_kpi_instances_helper
 from app.v1.operational.project.project_documents import generate_presigned_url
-from core import models
+from core import crud, models
 
 router = APIRouter(
     prefix="/kpi-data",
@@ -672,12 +671,12 @@ async def get_kpi_excel(
         )
         project_schema = utils.get_project_schema(project_db=project_db)
         device_ids = [int(device_id) for device_id in device_df.columns.to_list()]
-        devices_df = await core.crud.project.devices.get_project_devices(
+        devices_df = await crud.project.devices.get_project_devices(
             device_ids=device_ids,
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         devices_df = devices_df.copy()
         devices_df["name_long"] = devices_df["name_long"].fillna("")
-        device_types_df = await core.crud.operational.device_types.get_device_types(
+        device_types_df = await crud.operational.device_types.get_device_types(
             device_type_ids=np.unique(
                 devices_df["device_type_id"].astype(int),
             ).tolist(),

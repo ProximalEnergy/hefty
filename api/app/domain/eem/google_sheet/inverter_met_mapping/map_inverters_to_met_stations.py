@@ -15,7 +15,7 @@ from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
 from sqlalchemy.orm import Session
 
-import core
+from core import crud
 
 SHEET_NAME = "Input"
 INVERTER_COLUMN = "PCS Number"
@@ -85,7 +85,7 @@ async def _get_nearest_met_names_by_inverter_name(
     project_db: Session,
 ) -> dict[str, str]:
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices = await core.crud.project.devices.get_project_devices(
+    devices = await crud.project.devices.get_project_devices(
         device_type_ids=[
             DeviceTypeEnum.PV_INVERTER,
             DeviceTypeEnum.MET_STATION,

@@ -1,0 +1,8 @@
+id: python-core-require-selective-imports
+message: >-
+  Avoid `import core`. Use selective imports like
+  `from core import <module>` or `from core.<module> import <name>`.
+severity: error
+language: Python
+rule:
+  pattern: import core

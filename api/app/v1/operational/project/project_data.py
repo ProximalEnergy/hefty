@@ -11,13 +11,12 @@ from natsort import natsorted
 from sqlalchemy.orm import Session
 
 import app.utils as utils
-import core
 from app import interfaces
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
-from core import models
+from core import crud, enumerations, models
 
 router = APIRouter(
     prefix="",
@@ -50,7 +49,7 @@ async def get_llm_time_series(
         sensor_type_ids: Description for sensor_type_ids.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         tag_ids=tag_ids or [],
         sensor_type_ids=sensor_type_ids or [],
         name_scada="",
@@ -169,7 +168,7 @@ async def get_time_series(
     """
     if parent_device_id:
         project_schema = utils.get_project_schema(project_db=project_db)
-        devices_df = await core.crud.project.devices.get_project_devices(
+        devices_df = await crud.project.devices.get_project_devices(
             parent_device_ids=[parent_device_id]
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         device_ids_from_parent = devices_df["device_id"].astype(int).tolist()
@@ -180,7 +179,7 @@ async def get_time_series(
     device_ids = list(set(device_ids + device_ids_from_parent))
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         tag_ids=tag_ids,
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
@@ -359,13 +358,13 @@ async def get_timeseries_v3(
 
     project_schema = utils.get_project_schema(project_db=project_db)
     if tag_ids:
-        tags_df = await core.crud.project.tags.get_project_tags_v2(
+        tags_df = await crud.project.tags.get_project_tags_v2(
             tag_ids=tag_ids,
             deep=True,
             include_ghost_tags=True,
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
     else:
-        tags_df = await core.crud.project.tags.get_project_tags_v2(
+        tags_df = await crud.project.tags.get_project_tags_v2(
             sensor_type_ids=sensor_type_ids,
             deep=True,
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
@@ -479,7 +478,7 @@ async def get_timeseries_v3(
         # Get values and convert to list, handling None/NaN
         values = df[col].tolist()
         this_tag = [t for t in tags if t.tag_id == tag_id][0]
-        if this_tag.pg_data_type_id == core.enumerations.PGDataTypeEnum.TEXT:
+        if this_tag.pg_data_type_id == enumerations.PGDataTypeEnum.TEXT:
             y_values = [
                 cast(float | str | None, str(val) if pd.notna(val) else None)
                 for val in values

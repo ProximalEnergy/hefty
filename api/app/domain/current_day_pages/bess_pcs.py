@@ -5,9 +5,8 @@ from core.db_query import OutputType
 from core.enumerations import SensorTypeEnum, TimeOffset
 from sqlalchemy.orm import Session
 
-import core
 from app import utils
-from core import models
+from core import crud, models
 
 
 async def get_bess_pcs_data(
@@ -30,7 +29,7 @@ async def get_bess_pcs_data(
         A list of dictionaries containing BESS PCS data.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.BESS_PCS_AC_POWER],
         deep=True,
     ).get_async(output_type=OutputType.POLARS, schema=project_schema)
