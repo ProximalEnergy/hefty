@@ -1596,9 +1596,7 @@ function AdaptiveGisBESS({
           <Button.Group>
             <Tooltip
               label={
-                effectiveIsViewLocked
-                  ? 'Unlock View'
-                  : 'Lock Current View'
+                effectiveIsViewLocked ? 'Unlock View' : 'Lock Current View'
               }
               position="right"
             >
@@ -1627,18 +1625,18 @@ function AdaptiveGisBESS({
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Label>Lock to Layer</Menu.Label>
-                {(Object.keys(layerLockConfig) as LayerViewName[]).filter(
-                  (layerName) => layerAvailability[layerName],
-                ).map((layerName) => (
-                  <Menu.Item
-                    key={layerName}
-                    onClick={() =>
-                      handleAdaptiveGisBessLockToLayer(layerName)
-                    }
-                  >
-                    {layerName}
-                  </Menu.Item>
-                ))}
+                {(Object.keys(layerLockConfig) as LayerViewName[])
+                  .filter((layerName) => layerAvailability[layerName])
+                  .map((layerName) => (
+                    <Menu.Item
+                      key={layerName}
+                      onClick={() =>
+                        handleAdaptiveGisBessLockToLayer(layerName)
+                      }
+                    >
+                      {layerName}
+                    </Menu.Item>
+                  ))}
               </Menu.Dropdown>
             </Menu>
           </Button.Group>

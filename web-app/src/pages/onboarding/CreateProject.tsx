@@ -20,6 +20,7 @@ import { DateInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { IconArrowLeft } from '@tabler/icons-react'
+import dayjs from 'dayjs'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -36,8 +37,17 @@ interface CreateProjectForm {
   capacity_ac: number
   battery_capacity_dc: number
   battery_capacity_ac: number
-  commercial_operations_date: Date
+  /** @mantine/dates 8+ uses YYYY-MM-DD strings from DateInput onChange */
+  commercial_operations_date: Date | string
   ppa_rate: number
+}
+
+function dateValueToIsoDateOnly(value: Date | string): string {
+  const parsed = dayjs(value)
+  if (!parsed.isValid()) {
+    throw new TypeError('Invalid commercial operations date')
+  }
+  return parsed.format('YYYY-MM-DD')
 }
 
 function CreateProject() {
@@ -140,7 +150,7 @@ function CreateProject() {
       capacity_bess_power_ac: values.battery_capacity_ac || null,
       capacity_bess_energy_bol_dc: values.battery_capacity_dc || null,
       ppa: values.ppa_rate ? { rate: values.ppa_rate } : null,
-      cod: values.commercial_operations_date.toISOString().split('T')[0],
+      cod: dateValueToIsoDateOnly(values.commercial_operations_date),
       latitude: values.latitude,
       longitude: values.longitude,
     }
