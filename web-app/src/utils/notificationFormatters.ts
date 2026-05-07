@@ -63,6 +63,23 @@ const createdAtDetailFormatter = new Intl.DateTimeFormat('en-US', {
   minute: '2-digit',
 })
 
+function buildWeatherNotificationMapLink({
+  weatherType,
+  day,
+}: {
+  weatherType: string
+  day: string
+}): string {
+  const params = new URLSearchParams()
+  params.set('weatherType', weatherType)
+  if (day === 'day2') {
+    params.set('forecastDay', 'tomorrow')
+  } else if (day === 'day1') {
+    params.set('forecastDay', 'today')
+  }
+  return `/portfolio/map?${params.toString()}`
+}
+
 function formatAlertDate(day: string, createdAt: string | Date): string {
   const dayMatch = day.match(/day(\d+)/)
   const dayOffset = dayMatch ? parseInt(dayMatch[1], 10) : 0
@@ -81,7 +98,6 @@ function formatAlertDate(day: string, createdAt: string | Date): string {
 function formatHailAlert(
   data: NotificationData,
   createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const probability =
@@ -102,7 +118,10 @@ function formatHailAlert(
   return {
     title,
     body,
-    link: '/portfolio/map',
+    link: buildWeatherNotificationMapLink({
+      weatherType: 'hail',
+      day,
+    }),
   }
 }
 
@@ -113,7 +132,6 @@ function formatHailAlert(
 function formatFireAlert(
   data: NotificationData,
   createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const value = String(data.value || '')
@@ -126,7 +144,10 @@ function formatFireAlert(
   return {
     title,
     body,
-    link: '/portfolio/map',
+    link: buildWeatherNotificationMapLink({
+      weatherType: 'fire',
+      day,
+    }),
   }
 }
 
@@ -138,7 +159,6 @@ function formatFireAlert(
 function formatTornadoAlert(
   data: NotificationData,
   createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const probability =
@@ -156,7 +176,10 @@ function formatTornadoAlert(
   return {
     title,
     body,
-    link: '/portfolio/map',
+    link: buildWeatherNotificationMapLink({
+      weatherType: 'tornado',
+      day,
+    }),
   }
 }
 
@@ -168,7 +191,6 @@ function formatTornadoAlert(
 function formatEventChatMessage(
   data: NotificationData,
   _createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const senderName = String(data.sender_name ?? 'Someone')
   const eventId = String(data.event_id ?? '')
@@ -197,7 +219,6 @@ function formatEventChatMessage(
 function formatWindAlert(
   data: NotificationData,
   createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const probability =
@@ -215,7 +236,10 @@ function formatWindAlert(
   return {
     title,
     body,
-    link: '/portfolio/map',
+    link: buildWeatherNotificationMapLink({
+      weatherType: 'wind',
+      day,
+    }),
   }
 }
 
@@ -235,7 +259,6 @@ function formatWindAlert(
 function formatCalendarReminder(
   data: NotificationData,
   _createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const title = String(data.title || 'Calendar Event')
   const description = String(data.description || '')
@@ -317,7 +340,6 @@ function formatProjectCapacityReduction(
 function formatDataConnectionOutage(
   _data: NotificationData,
   _createdAt: string | Date,
-  _context?: FormatNotificationContext,
 ): FormattedNotification {
   return {
     title: 'Data Connection Outage',

@@ -65,7 +65,7 @@ import MapboxMap, {
   Marker,
   Source,
 } from 'react-map-gl/mapbox'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
 import styles from './PortfolioMap.module.css'
 
@@ -145,40 +145,27 @@ const FIRE_BASE = '#D32F2F'
 const THUNDERSTORM_BASE = '#FFB300'
 
 type ForecastDay = 'today' | 'tomorrow'
+type WeatherType = 'hail' | 'tornado' | 'wind' | 'fire'
 
-const FORECAST_DAY_STORAGE_KEY = 'forecast-day-v2'
-const FORECAST_DAY_LEGACY_STORAGE_KEY = 'forecast-day'
-
-/** Prefer v2 key; else one-time read of legacy `forecast-day` (old semantics). */
-const readForecastDayPreference = (): ForecastDay => {
-  if (typeof localStorage === 'undefined') return 'today'
-  const v2Raw = localStorage.getItem(FORECAST_DAY_STORAGE_KEY)
-  if (v2Raw != null) {
-    try {
-      const parsed = JSON.parse(v2Raw) as unknown
-      if (parsed === 'today' || parsed === 'tomorrow') return parsed
-    } catch {
-      /* invalid JSON */
-    }
-    return 'today'
-  }
-  const legacyRaw = localStorage.getItem(FORECAST_DAY_LEGACY_STORAGE_KEY)
-  if (legacyRaw != null) {
-    try {
-      const p = JSON.parse(legacyRaw) as unknown
-      if (p === 'day-after') return 'tomorrow'
-      // Legacy "Tomorrow" was SPC Day 1 → new "today"
-      if (p === 'tomorrow') return 'today'
-      if (p === 'today') return 'today'
-    } catch {
-      /* ignore */
-    }
-  }
-  return 'today'
-}
+const WEATHER_TYPES = ['hail', 'tornado', 'wind', 'fire'] as const
 
 const normalizeForecastDay = (v: ForecastDay | string): ForecastDay =>
   v === 'tomorrow' ? 'tomorrow' : 'today'
+
+const isWeatherType = (value: string): value is WeatherType =>
+  WEATHER_TYPES.includes(value as WeatherType)
+
+const getWeatherTypesFromSearchParams = (
+  searchParams: URLSearchParams,
+): Set<WeatherType> => {
+  const weatherTypes = new Set<WeatherType>()
+  for (const weatherType of searchParams.getAll('weatherType')) {
+    if (isWeatherType(weatherType)) {
+      weatherTypes.add(weatherType)
+    }
+  }
+  return weatherTypes
+}
 
 const LAYER_IDS: Record<
   ForecastDay,
@@ -385,6 +372,7 @@ const day2OutlookTooltip = (validRaw: string, expireRaw: string) => {
 }
 
 const PortfolioMap = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const computedColorScheme = useComputedColorScheme('dark')
   const theme = useMantineTheme()
   const context = useContext(GISContext)
@@ -444,49 +432,14 @@ const PortfolioMap = () => {
     key: 'show-precipitation',
     defaultValue: true,
   })
-  const [forecastDayRaw, setForecastDay] = useLocalStorage<ForecastDay>({
-    key: FORECAST_DAY_STORAGE_KEY,
-    defaultValue: readForecastDayPreference(),
-  })
-  const forecastDay = normalizeForecastDay(forecastDayRaw)
-
-  useEffect(() => {
-    if (forecastDayRaw !== forecastDay) {
-      setForecastDay(forecastDay)
-    }
-  }, [forecastDay, forecastDayRaw, setForecastDay])
-
-  // Drop legacy `forecast-day` once v2 is stored (mapping lives in
-  // readForecastDayPreference).
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(FORECAST_DAY_STORAGE_KEY) == null) {
-        return
-      }
-      if (localStorage.getItem(FORECAST_DAY_LEGACY_STORAGE_KEY) != null) {
-        localStorage.removeItem(FORECAST_DAY_LEGACY_STORAGE_KEY)
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [])
-
-  const [showHail, setShowHail] = useLocalStorage({
-    key: 'show-hail',
-    defaultValue: false,
-  })
-  const [showTornado, setShowTornado] = useLocalStorage({
-    key: 'show-tornado',
-    defaultValue: false,
-  })
-  const [showWind, setShowWind] = useLocalStorage({
-    key: 'show-wind',
-    defaultValue: false,
-  })
-  const [showFire, setShowFire] = useLocalStorage({
-    key: 'show-fire',
-    defaultValue: false,
-  })
+  const weatherTypes = getWeatherTypesFromSearchParams(searchParams)
+  const forecastDay = normalizeForecastDay(
+    searchParams.get('forecastDay') ?? 'today',
+  )
+  const showHail = weatherTypes.has('hail')
+  const showTornado = weatherTypes.has('tornado')
+  const showWind = weatherTypes.has('wind')
+  const showFire = weatherTypes.has('fire')
   const [showThunderstorm, setShowThunderstorm] = useLocalStorage({
     key: 'show-thunderstorm',
     defaultValue: false,
@@ -620,7 +573,7 @@ const PortfolioMap = () => {
       })
     })
 
-    // Add remaining random markers in continental USA interior (avoiding coasts and major water bodies)
+    // Add remaining random markers in continental USA interior.
     // Longitude: -110 to -85 (central to eastern USA, avoiding Pacific coast)
     // Latitude: 32 to 45 (avoiding Gulf coast and northern border)
     const minLng = -110
@@ -720,6 +673,43 @@ const PortfolioMap = () => {
     }
     setShowTemperature(checked)
   }
+
+  const setWeatherTypeFilter = (
+    weatherTypeValue: WeatherType,
+    checked: boolean,
+  ) => {
+    setSearchParams(
+      (previousSearchParams) => {
+        const nextSearchParams = new URLSearchParams(previousSearchParams)
+        const selectedWeatherTypes =
+          getWeatherTypesFromSearchParams(previousSearchParams)
+        if (checked) {
+          selectedWeatherTypes.add(weatherTypeValue)
+        } else {
+          selectedWeatherTypes.delete(weatherTypeValue)
+        }
+        nextSearchParams.delete('weatherType')
+        for (const selectedWeatherType of WEATHER_TYPES) {
+          if (selectedWeatherTypes.has(selectedWeatherType)) {
+            nextSearchParams.append('weatherType', selectedWeatherType)
+          }
+        }
+        return nextSearchParams
+      },
+      { replace: true },
+    )
+  }
+
+  const setForecastDayFilter = (nextForecastDay: ForecastDay) => {
+    setSearchParams(
+      (previousSearchParams) => {
+        const nextSearchParams = new URLSearchParams(previousSearchParams)
+        nextSearchParams.set('forecastDay', nextForecastDay)
+        return nextSearchParams
+      },
+      { replace: true },
+    )
+  }
   const [showFavorites, setShowFavorites] = useLocalStorage({
     key: 'show-favorites',
     defaultValue: false,
@@ -734,7 +724,6 @@ const PortfolioMap = () => {
       ProjectTypeEnum.PVS,
     ],
   })
-
   const { userId } = useAuth()
   const { data: userType } = useGetUserType({})
 
@@ -837,19 +826,19 @@ const PortfolioMap = () => {
 
   const { showSatellite } = context
 
-  const filteredProjects = data
-    .filter((project) => {
-      if (showFavorites) {
-        return userProjects?.some(
-          (up) =>
-            up.operational_project_id === project.project_id && up.is_favorited,
-        )
-      }
-      return true
-    })
-    .filter((project) => {
-      return selectedProjectTypes.includes(project.project_type_id)
-    })
+  const filteredProjects = data.filter((project) => {
+    if (
+      showFavorites &&
+      !userProjects?.some(
+        (up) =>
+          up.operational_project_id === project.project_id && up.is_favorited,
+      )
+    ) {
+      return false
+    }
+
+    return selectedProjectTypes.includes(project.project_type_id)
+  })
 
   const hasFavoritedProjects =
     userProjects?.some((up) => up.is_favorited) || false
@@ -1489,26 +1478,32 @@ const PortfolioMap = () => {
               <Stack gap="sm">
                 <Switch
                   checked={showHail}
-                  onChange={(event) => setShowHail(event.currentTarget.checked)}
+                  onChange={(event) =>
+                    setWeatherTypeFilter('hail', event.currentTarget.checked)
+                  }
                   label="Hail Forecast"
                 />
                 <Switch
                   checked={showTornado}
                   onChange={(event) =>
-                    setShowTornado(event.currentTarget.checked)
+                    setWeatherTypeFilter('tornado', event.currentTarget.checked)
                   }
                   onClick={(e) => e.stopPropagation()}
                   label="Tornado Outlook"
                 />
                 <Switch
                   checked={showWind}
-                  onChange={(event) => setShowWind(event.currentTarget.checked)}
+                  onChange={(event) =>
+                    setWeatherTypeFilter('wind', event.currentTarget.checked)
+                  }
                   onClick={(e) => e.stopPropagation()}
                   label="Wind Outlook"
                 />
                 <Switch
                   checked={showFire}
-                  onChange={(event) => setShowFire(event.currentTarget.checked)}
+                  onChange={(event) =>
+                    setWeatherTypeFilter('fire', event.currentTarget.checked)
+                  }
                   onClick={(e) => e.stopPropagation()}
                   label="Fire Outlook"
                 />
@@ -1528,7 +1523,7 @@ const PortfolioMap = () => {
         <Box onMouseDown={(e) => e.stopPropagation()} data-segmented-control>
           <SegmentedControl
             value={forecastDay}
-            onChange={(v) => setForecastDay(v as ForecastDay)}
+            onChange={(value) => setForecastDayFilter(value as ForecastDay)}
             data={[
               {
                 value: 'today',
@@ -1672,7 +1667,10 @@ const PortfolioMap = () => {
                               miles of any point during the forecast period.
                             </Text>
                             <Anchor
-                              href="https://www.spc.noaa.gov/products/outlook/day1otlk.html"
+                              href={
+                                'https://www.spc.noaa.gov/products/outlook/' +
+                                'day1otlk.html'
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               size="sm"
@@ -1729,7 +1727,10 @@ const PortfolioMap = () => {
                               period.
                             </Text>
                             <Anchor
-                              href="https://www.spc.noaa.gov/products/outlook/day1otlk.html"
+                              href={
+                                'https://www.spc.noaa.gov/products/outlook/' +
+                                'day1otlk.html'
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               size="sm"
