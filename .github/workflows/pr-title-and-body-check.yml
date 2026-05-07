@@ -327,7 +327,11 @@ jobs:
               pull_number: pullNumber,
             });
             const body = pullRequest.body ?? "";
-            const lines = body.split("\n");
+            // Split on both LF and CRLF — GitHub returns the PR body with
+            // CRLF line endings when it was edited via the web UI, and a
+            // trailing "\r" breaks the checklist regex below (in JS, "."
+            // does not match "\r" and "$" does not match before "\r").
+            const lines = body.split(/\r?\n/);
 
             const checklistHeadingRe = /^##\s+Checklist\s*$/;
             const anyHeadingRe = /^##\s+/;

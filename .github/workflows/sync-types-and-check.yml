@@ -58,7 +58,7 @@ jobs:
 
       - name: Set up mise
         if: steps.check-changes.outputs.changes_detected == 'true'
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v4
 
       - name: Install Node.js and pnpm
         if: steps.check-changes.outputs.changes_detected == 'true'
