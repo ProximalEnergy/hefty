@@ -12,6 +12,23 @@
   - Issue lifecycle is persisted to project DB tables.
   - Rotating logs are written beside orchestration scripts.
 
+## Run backfill manually
+Backfill is set up to run any arbitrary combination of (project_ids, start, end, issue_category_ids). `start` and `end` are required, while None for `project_ids` and `issue_category_ids` will run the backfill for all. Backfills run in 1-day intervals over the requested period.
+
+This is a dumb way to invoke this, but it will be improved later.
+```
+uv run --project issues python -c '
+from issues.lambda_handler import lambda_handler
+event = {
+  "project_ids": None,
+  "issue_category_ids": None,
+  "start": "2026-04-01",
+  "end": "2026-04-03"
+}
+print(lambda_handler(event, None))
+'
+```
+
 ## High-level functional overview
 - `issues/orchestrator/run_issues.py`
   - Discovers project scope and runs each project.

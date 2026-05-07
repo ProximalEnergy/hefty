@@ -5,11 +5,15 @@ import datetime
 import logging
 
 import polars as pl
-
-import core
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.database import with_db
 from core.enumerations import AggregationMethod, OutputType, TimeInterval, TimeOffset
+from geoalchemy2.elements import WKBElement, WKTElement
+from geoalchemy2.shape import to_shape
+from shapely import wkb, wkt
+from shapely.errors import ShapelyError
+
+import core
 from issues.models.detector_context import (
     DetectorContext,
     MetStationChannel,
@@ -28,8 +32,21 @@ def build_detector_context(
     sensor_type_ids: tuple[int, ...],
     telemetry_window_minutes: int,
     expected_interval_minutes_default: int,
+    project_coordinates: tuple[float | None, float | None] | None = None,
 ) -> DetectorContext:
-    """Build normalized detector context from read-only core queries."""
+    """Build normalized detector context from read-only core queries.
+
+    Args:
+        project_id: Project identifier forwarded to detectors.
+        project_name_short: Project schema used for TSDB/tag queries.
+        run_time: Query window anchor time.
+        device_type_ids: Device type filter for tags.
+        sensor_type_ids: Sensor type filter for tags.
+        telemetry_window_minutes: Lookback window length in minutes.
+        expected_interval_minutes_default: Expected sample cadence fallback.
+        project_coordinates: When set, skips DB lookup of project centroid;
+            use ``None`` tuple elements when coordinates are unavailable.
+    """
     LOGGER.info(
         "\t\tBuilding detector context for project_id=%s project_name_short=%s",
         project_id,
@@ -40,9 +57,17 @@ def build_detector_context(
         device_type_ids=device_type_ids,
         sensor_type_ids=sensor_type_ids,
     )
+    if project_coordinates is None:
+        project_latitude, project_longitude = load_project_coordinates(
+            project_name_short=project_name_short,
+        )
+    else:
+        project_latitude, project_longitude = project_coordinates
     channels = _build_channels_from_tags(
         tags=tags,
         default_interval=expected_interval_minutes_default,
+        project_latitude=project_latitude,
+        project_longitude=project_longitude,
     )
     telemetry = _load_telemetry(
         project_name_short=project_name_short,
@@ -51,7 +76,8 @@ def build_detector_context(
         window_minutes=telemetry_window_minutes,
     )
     LOGGER.info(
-        "\t\t\tDetector context built project_id=%s tags=%d channels=%d telemetry_keys=%d",
+        "\t\t\tDetector context built project_id=%s tags=%d channels=%d "
+        "telemetry_keys=%d",
         project_id,
         tags.height,
         len(channels),
@@ -60,6 +86,8 @@ def build_detector_context(
     return DetectorContext(
         project_id=project_id,
         run_time=run_time,
+        project_latitude=project_latitude,
+        project_longitude=project_longitude,
         met_station_channels=tuple(channels),
         telemetry_by_channel=telemetry,
     )
@@ -81,7 +109,7 @@ def _load_tags(
         device_type_ids=list(device_type_ids),
         sensor_type_ids=list(sensor_type_ids),
         include_ghost_tags=False,
-        deep=False,
+        deep=True,
     ).get(
         output_type=OutputType.POLARS,
         schema=project_name_short,
@@ -98,6 +126,8 @@ def _build_channels_from_tags(
     *,
     tags: pl.DataFrame,
     default_interval: int,
+    project_latitude: float | None,
+    project_longitude: float | None,
 ) -> list[MetStationChannel]:
     """Convert met-station tags into detector channel definitions."""
     if tags.is_empty():
@@ -105,21 +135,108 @@ def _build_channels_from_tags(
         return []
 
     channels: list[MetStationChannel] = []
-    unique_rows = tags.select(["device_id", "tag_id"]).unique()
+    unique_rows = tags.select(["device_id", "tag_id", "device_point"]).unique()
     for row in unique_rows.iter_rows(named=True):
         tag_id = row["tag_id"]
         device_id = row["device_id"]
         if tag_id is None or device_id is None:
             continue
+        device_latitude, device_longitude = _extract_coordinates(
+            raw=row["device_point"],
+        )
+        latitude = device_latitude if device_latitude is not None else project_latitude
+        longitude = (
+            device_longitude if device_longitude is not None else project_longitude
+        )
+        if device_latitude is None or device_longitude is None:
+            LOGGER.info(
+                "\t\t\tUsing project coordinate fallback for device_id=%s tag_id=%s",
+                device_id,
+                tag_id,
+            )
         channels.append(
             MetStationChannel(
                 device_id=int(device_id),
                 tag_id=int(tag_id),
                 expected_interval_minutes=default_interval,
+                latitude=latitude,
+                longitude=longitude,
             )
         )
     LOGGER.info("\t\t\tBuilt %d detector channels", len(channels))
     return channels
+
+
+def load_project_coordinates(
+    *,
+    project_name_short: str,
+) -> tuple[float | None, float | None]:
+    """Load project coordinates from operational projects metadata.
+
+    Args:
+        project_name_short: operational.projects name_short for the project.
+
+    Returns:
+        Latitude and longitude from project point, or (None, None) if missing.
+    """
+    projects = core.crud.operational.projects.get_projects(
+        name_short=project_name_short,
+    ).get(
+        output_type=OutputType.SQLALCHEMY,
+        schema="operational",
+    )
+    if not projects:
+        LOGGER.warning(
+            "\t\tProject metadata missing for project_name_short=%s",
+            project_name_short,
+        )
+        return None, None
+    point = projects[0].point
+    latitude, longitude = _extract_coordinates(raw=point)
+    if latitude is None or longitude is None:
+        LOGGER.warning(
+            "\t\tProject coordinates missing for project_name_short=%s",
+            project_name_short,
+        )
+    return latitude, longitude
+
+
+def _extract_coordinates(
+    *,
+    raw: object,
+) -> tuple[float | None, float | None]:
+    """Extract latitude and longitude from a geometry point payload."""
+    if raw is None:
+        return None, None
+    if isinstance(raw, dict):
+        coordinates = raw.get("coordinates")
+        if not isinstance(coordinates, list) or len(coordinates) != 2:
+            return None, None
+        try:
+            longitude = float(coordinates[0])
+            latitude = float(coordinates[1])
+        except (TypeError, ValueError):
+            return None, None
+        return latitude, longitude
+    if isinstance(raw, (bytes, bytearray, memoryview)):
+        try:
+            point_shape = wkb.loads(bytes(raw))
+        except (TypeError, ValueError, ShapelyError):
+            return None, None
+        return float(point_shape.y), float(point_shape.x)
+    if isinstance(raw, str):
+        try:
+            point_shape = wkt.loads(raw.strip())
+        except (TypeError, ValueError, ShapelyError):
+            return None, None
+        return float(point_shape.y), float(point_shape.x)
+    if not isinstance(raw, (WKBElement, WKTElement)):
+        return None, None
+    try:
+        point_shape = to_shape(raw)
+    except (TypeError, ValueError, ShapelyError):
+        return None, None
+    return float(point_shape.y), float(point_shape.x)
 
 
 def _load_telemetry(
@@ -137,8 +254,7 @@ def _load_telemetry(
     window_start = run_time - datetime.timedelta(minutes=window_minutes)
     query_end = run_time + datetime.timedelta(microseconds=1)
     LOGGER.info(
-        "\t\tLoading telemetry for project_name_short=%s window_start=%s "
-        "window_end=%s",
+        "\t\tLoading telemetry for project_name_short=%s window_start=%s window_end=%s",
         project_name_short,
         window_start.isoformat(),
         run_time.isoformat(),

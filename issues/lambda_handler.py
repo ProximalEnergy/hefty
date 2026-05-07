@@ -107,6 +107,17 @@ def lambda_handler(
     payload = event or {}
     run_time = parse_run_time(value=payload.get("run_time"))
     project_ids = parse_project_ids(value=payload.get("project_ids"))
+    issue_category_ids = parse_issue_category_ids(
+        value=payload.get("issue_category_ids")
+    )
+    start = parse_backfill_date(value=payload.get("start"), field_name="start")
+    end = parse_backfill_date(value=payload.get("end"), field_name="end")
+    validate_backfill_arguments(
+        project_ids=project_ids,
+        issue_category_ids=issue_category_ids,
+        start=start,
+        end=end,
+    )
 
     LOGGER.info("Starting issues Lambda pipeline")
     try:
@@ -116,9 +127,12 @@ def lambda_handler(
         )
 
         requested_project_ids = project_ids or discover_project_ids()
-        summaries = run_issues_for_projects(
+        summaries = cast(Any, run_issues_for_projects)(
             project_ids=requested_project_ids,
             run_time=run_time,
+            issue_category_ids=issue_category_ids,
+            start=start,
+            end=end,
         )
         response_body = build_response_body(
             requested_project_ids=requested_project_ids,
@@ -177,6 +191,86 @@ def parse_run_time(*, value: object) -> datetime.datetime | None:
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=datetime.UTC)
     return parsed.astimezone(datetime.UTC)
+
+
+def parse_issue_category_ids(*, value: object) -> list[int] | None:
+    """Parse optional issue category ids from a Lambda event payload.
+
+    Args:
+        value: Value from the event's `issue_category_ids` key.
+
+    Returns:
+        Issue category ids when supplied, otherwise None.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, list):
+        msg = "issue_category_ids must be a list of integers"
+        raise ValueError(msg)
+
+    issue_category_ids: list[int] = []
+    for raw_category_id in value:
+        if raw_category_id in (None, ""):
+            continue
+        try:
+            issue_category_ids.append(int(raw_category_id))
+        except (TypeError, ValueError) as exc:
+            msg = "issue_category_ids must contain only integers"
+            raise ValueError(msg) from exc
+    return issue_category_ids or None
+
+
+def parse_backfill_date(
+    *,
+    value: object,
+    field_name: str,
+) -> datetime.date | None:
+    """Parse an optional backfill boundary date from a Lambda event payload.
+
+    Args:
+        value: Value from the event's `start` or `end` key.
+        field_name: Name of the payload field for error messages.
+
+    Returns:
+        Parsed date when supplied, otherwise None.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        msg = f"{field_name} must be an ISO-8601 date string"
+        raise ValueError(msg)
+    try:
+        return datetime.date.fromisoformat(value)
+    except ValueError as exc:
+        msg = f"{field_name} must be an ISO-8601 date string"
+        raise ValueError(msg) from exc
+
+
+def validate_backfill_arguments(
+    *,
+    project_ids: list[str] | None,
+    issue_category_ids: list[int] | None,
+    start: datetime.date | None,
+    end: datetime.date | None,
+) -> None:
+    """Validate backfill argument combinations.
+
+    Args:
+        project_ids: Parsed project ids or None.
+        issue_category_ids: Parsed issue category ids or None.
+        start: Optional start date.
+        end: Optional end date.
+    """
+    backfill_scope_supplied = bool(project_ids or issue_category_ids)
+    if backfill_scope_supplied and (start is None or end is None):
+        msg = "start and end are required when passing backfill scope arguments"
+        raise ValueError(msg)
+    if (start is None) != (end is None):
+        msg = "start and end must be provided together"
+        raise ValueError(msg)
+    if start is not None and end is not None and start > end:
+        msg = "start must be less than or equal to end"
+        raise ValueError(msg)
 
 
 def build_response_body(

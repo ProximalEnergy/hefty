@@ -10,6 +10,7 @@ dependencies = [
     "core",
     "geoalchemy2>=0.18,<0.19",
     "psycopg2-binary>=2.9.11,<3",
+    "pvlib~=0.14",
     "sqlalchemy>=2.0.45,<3",
 ]
 

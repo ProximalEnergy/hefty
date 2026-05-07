@@ -3,11 +3,12 @@
 import datetime
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from uuid import UUID
 
 from core.dependencies import get_project_name_short
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
+
 from issues.config.issue_detectors import (
     IssueDetectorConfig,
     get_default_issue_detector_config,
@@ -55,6 +56,7 @@ class ConfiguredIssueDetector:
     """Detector instance paired with its required read inputs."""
 
     detector: IssueDetector
+    issue_category_id: int
     requirements: DetectorDataRequirements
 
 
@@ -63,12 +65,38 @@ def run_project_issues(
     project_id: str,
     run_time: datetime.datetime | None = None,
     config: IssueDetectorConfig | None = None,
+    issue_category_ids: list[int] | None = None,
+    evaluation_window_minutes_override: int | None = None,
+    project_coordinates: tuple[float | None, float | None] | None = None,
 ) -> ProjectIssueRunSummary:
-    """Run issue detectors, rectify candidates, and persist lifecycle changes."""
+    """Run issue detectors, rectify candidates, and persist lifecycle changes.
+
+    Args:
+        project_id: Operational or schema project identifier.
+        run_time: Anchor time for queries and persistence.
+        config: Optional detector config (defaults to repo defaults).
+        issue_category_ids: Optional filter for supported categories.
+        evaluation_window_minutes_override: When set, overrides met-station
+            evaluation and telemetry window minutes (e.g. 1440 for backfill).
+        project_coordinates: Pre-fetched project centroid; when omitted the
+            context builder loads coordinates from operational.projects.
+    """
     detector_config = config or get_default_issue_detector_config()
+    if evaluation_window_minutes_override is not None:
+        detector_config = replace(
+            detector_config,
+            met_station_non_communicating=replace(
+                detector_config.met_station_non_communicating,
+                evaluation_window_minutes=evaluation_window_minutes_override,
+            ),
+        )
+        logger.info(
+            "\tevaluation_window_minutes_override=%s",
+            evaluation_window_minutes_override,
+        )
     now = run_time or datetime.datetime.now(datetime.UTC)
     logger.info("\tStarting issues project run for project_id=%s", project_id)
-    project_name_short = _resolve_project_name_short(project_id=project_id)
+    project_name_short = resolve_project_name_short(project_id=project_id)
     repository = build_issue_repository(
         project_name_short=project_name_short,
     )
@@ -76,7 +104,23 @@ def run_project_issues(
     configured_detectors = _build_configured_detectors(
         detector_config=detector_config,
         repository=repository,
+        issue_category_ids=issue_category_ids,
     )
+    if not configured_detectors:
+        logger.warning(
+            "\tNo supported issue categories selected for project_id=%s; skipping run",
+            project_id,
+        )
+        return ProjectIssueRunSummary(
+            project_id=project_id,
+            run_time=now,
+            raw_candidate_count=0,
+            final_candidate_count=0,
+            opened_count=0,
+            matched_count=0,
+            resolved_count=0,
+            active_count=0,
+        )
     merged_requirements = _merge_detector_requirements(
         requirements=[item.requirements for item in configured_detectors]
     )
@@ -91,6 +135,7 @@ def run_project_issues(
         expected_interval_minutes_default=(
             merged_requirements.expected_interval_minutes_default
         ),
+        project_coordinates=project_coordinates,
     )
 
     raw_candidates = _run_detectors(
@@ -126,7 +171,7 @@ def run_project_issues(
     )
 
 
-def _resolve_project_name_short(*, project_id: str) -> str:
+def resolve_project_name_short(*, project_id: str) -> str:
     """Resolve a project schema name from project id or passthrough name_short."""
     try:
         project_uuid = UUID(project_id)
@@ -143,15 +188,29 @@ def _build_configured_detectors(
     *,
     detector_config: IssueDetectorConfig,
     repository: IssueRepository,
+    issue_category_ids: list[int] | None,
 ) -> list[ConfiguredIssueDetector]:
     """Build hard-coded detector registry for a project run."""
     logger.info("\t\tBuilding configured detectors")
-    return [
-        _build_met_station_non_communicating_detector(
-            detector_config=detector_config,
-            repository=repository,
-        )
-    ]
+    selected_ids = set(issue_category_ids or [])
+    configured: list[ConfiguredIssueDetector] = []
+    met_detector = _build_met_station_non_communicating_detector(
+        detector_config=detector_config,
+        repository=repository,
+    )
+    met_category_id = met_detector.issue_category_id
+    if not selected_ids or met_category_id in selected_ids:
+        configured.append(met_detector)
+
+    if selected_ids:
+        configured_ids = {item.issue_category_id for item in configured}
+        unsupported_ids = sorted(selected_ids - configured_ids)
+        if unsupported_ids:
+            logger.warning(
+                "\t\tSkipping unsupported issue_category_ids=%s",
+                unsupported_ids,
+            )
+    return configured
 
 
 def _build_met_station_non_communicating_detector(
@@ -193,6 +252,7 @@ def _build_met_station_non_communicating_detector(
     )
     return ConfiguredIssueDetector(
         detector=detector,
+        issue_category_id=category_id,
         requirements=requirements,
     )
 

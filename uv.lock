@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.12.8, <3.13"
 resolution-markers = [
     "sys_platform == 'win32'",
@@ -1365,6 +1365,7 @@ dependencies = [
     { name = "core" },
     { name = "geoalchemy2" },
     { name = "psycopg2-binary" },
+    { name = "pvlib" },
     { name = "sqlalchemy" },
 ]
 
@@ -1375,6 +1376,7 @@ requires-dist = [
     { name = "core", editable = "core" },
     { name = "geoalchemy2", specifier = ">=0.18,<0.19" },
     { name = "psycopg2-binary", specifier = ">=2.9.11,<3" },
+    { name = "pvlib", specifier = "~=0.14" },
     { name = "sqlalchemy", specifier = ">=2.0.45,<3" },
 ]
 

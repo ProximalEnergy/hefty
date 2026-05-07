@@ -13,6 +13,7 @@ class MetStationNonCommunicatingConfig:
     expected_interval_minutes_default: int = 5
     minimum_missing_samples_to_open: int = 3
     open_missing_ratio_threshold: float = 0.85
+    daylight_apparent_elevation_threshold_degrees: float = 10.0
 
 
 @dataclass(frozen=True)

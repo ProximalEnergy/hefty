@@ -11,6 +11,8 @@ class MetStationChannel:
     device_id: int
     tag_id: int | None
     expected_interval_minutes: int
+    latitude: float | None
+    longitude: float | None
 
 
 @dataclass(frozen=True)
@@ -29,6 +31,8 @@ class DetectorContext:
 
     project_id: str
     run_time: datetime.datetime
+    project_latitude: float | None
+    project_longitude: float | None
     met_station_channels: tuple[MetStationChannel, ...]
     telemetry_by_channel: dict[tuple[int, int | None], tuple[TelemetryPoint, ...]]
 
