@@ -73,7 +73,7 @@ jobs:
             web-app/node_modules
           key: >-
             pnpm-${{ runner.os }}-${{
-            hashFiles('.mise.toml', 'web-app/package.json',
+            hashFiles('.mise.toml', 'web-app/package.json') }}
           restore-keys: |
             pnpm-${{ runner.os }}-
 
@@ -85,9 +85,6 @@ jobs:
       - name: Install dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: PNPM_STORE_DIR=.pnpm-store mise run web:install
-
-      - name: Build custom Plotly bundle
-        if: steps.cache-deps.outputs.cache-hit != 'true'
 
       - name: TypeScript Check
         run: mise run web:typecheck
