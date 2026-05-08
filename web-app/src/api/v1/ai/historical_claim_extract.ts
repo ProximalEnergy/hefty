@@ -27,7 +27,7 @@ interface HistoricalClaimContext {
   device_types: HistoricalClaimDeviceTypeOption[]
 }
 
-export interface ExtractedClaimDevice {
+interface ExtractedClaimDevice {
   device_id: number | null
   device_type_id: number | null
   device_name_hint: string
@@ -37,7 +37,7 @@ export interface ExtractedClaimDevice {
   event_id: number | null
 }
 
-export interface ExtractedClaimUpdate {
+interface ExtractedClaimUpdate {
   update_type: string
   message: string
   occurred_at: string | null

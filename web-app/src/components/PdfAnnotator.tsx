@@ -33,7 +33,7 @@ interface Annotation {
   fontSize: number
 }
 
-export interface PdfAnnotationDraft {
+interface PdfAnnotationDraft {
   page: number
   x: number
   y: number
@@ -41,13 +41,13 @@ export interface PdfAnnotationDraft {
   fontSize?: number
 }
 
-export interface PdfPageImagePayload {
+interface PdfPageImagePayload {
   page_number: number
   image_base64: string
   media_type: string
 }
 
-export interface AcroFieldSpec {
+interface AcroFieldSpec {
   name: string
   type: string
   page: number
