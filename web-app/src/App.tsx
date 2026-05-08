@@ -247,6 +247,15 @@ const RequiresTwoFactor = ({ children }: { children: React.ReactNode }) => {
   return children
 }
 
+const QueryDevtoolsForNonDemoUsers = () => {
+  const { isLoaded, isSignedIn, user } = useUser()
+  const isDemoUser = user?.publicMetadata?.demo
+  if (!isLoaded || !isSignedIn || isDemoUser) return null
+  return (
+    <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+  )
+}
+
 const ClerkProviderWithRoutes = () => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: true,
@@ -260,6 +269,7 @@ const ClerkProviderWithRoutes = () => {
       }
       publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
     >
+      <QueryDevtoolsForNonDemoUsers />
       <Routes>
         {/* Public routes */}
         <Route path={URL_SIGN_IN} element={<SignIn />} />
@@ -733,10 +743,6 @@ export default function App() {
             </ProjectDropdownProvider>
           </ErrorBoundary>
         </MantineProvider>
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          buttonPosition="bottom-left"
-        />
       </QueryClientProvider>
     </BrowserRouter>
   )
