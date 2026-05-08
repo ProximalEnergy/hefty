@@ -65,8 +65,12 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
+import {
+  type Layout,
+  Responsive,
+  WidthProvider,
+} from 'react-grid-layout/legacy'
 // import { Layer, LngLatBoundsLike, Map, Source } from 'react-map-gl'
 import {
   Link as RouterLink,
@@ -1877,32 +1881,27 @@ const CustomDashPage = () => {
   // }
 
   // Grid layout change handler
-  const onLayoutChange = useCallback(
-    (
-      layout: Array<{ i: string; x: number; y: number; w: number; h: number }>,
-    ) => {
-      setDashboardComponents((prevComponents) => {
-        const updatedComponents = prevComponents.map((component) => {
-          const layoutItem = layout.find(
-            (l) => l.i === String(component.component_id),
-          )
-          if (layoutItem) {
-            const updated = {
-              ...component,
-              x: layoutItem.x,
-              y: layoutItem.y,
-              w: layoutItem.w,
-              h: layoutItem.h,
-            }
-            return updated
+  const onLayoutChange = useCallback((layout: Layout) => {
+    setDashboardComponents((prevComponents) => {
+      const updatedComponents = prevComponents.map((component) => {
+        const layoutItem = layout.find(
+          (l) => l.i === String(component.component_id),
+        )
+        if (layoutItem) {
+          const updated = {
+            ...component,
+            x: layoutItem.x,
+            y: layoutItem.y,
+            w: layoutItem.w,
+            h: layoutItem.h,
           }
-          return component
-        })
-        return updatedComponents
+          return updated
+        }
+        return component
       })
-    },
-    [],
-  )
+      return updatedComponents
+    })
+  }, [])
 
   // Remove component function
   const removeComponent = (id: string) => {
@@ -2589,7 +2588,6 @@ const CustomDashPage = () => {
           onLayoutChange={onLayoutChange}
           margin={[12.8, 12.8]}
           containerPadding={[0, 0]}
-          snapToGrid={true}
           preventCollision={false}
           compactType="vertical"
         >
