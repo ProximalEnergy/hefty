@@ -5,7 +5,6 @@
 - always use ripgrep instead of grep
 
 # Database
-- Do not create alembic migrations from feature/bugfix branches before PR review.
 - Use the `DbQuery` pattern for CRUD/database access.
 
 # Plans

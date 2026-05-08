@@ -1,0 +1,1 @@
+- Use the `DbQuery` pattern for CRUD/database access.
