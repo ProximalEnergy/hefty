@@ -33,7 +33,7 @@ const TicketDisplayPage = () => {
 
   const tickets = useGetCMMSTickets({
     pathParams: { project_id: projectId || '' },
-    queryParams: {},
+    queryParams: { include_json_raw: true },
     queryOptions: { enabled: !!projectId },
   })
   const cmmsTicketIds = useMemo(() => {

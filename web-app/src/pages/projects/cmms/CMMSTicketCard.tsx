@@ -25,7 +25,7 @@ import {
   IconUserSearch,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 const ICON_PROPS = {
@@ -37,6 +37,9 @@ const ICON_PROPS = {
 }
 
 const GAP = 'md'
+const DESCRIPTION_COLLAPSED_LINES = 1
+const TICKET_ACTIVITY_COLLAPSED_LINES = 3
+const DESCRIPTION_COLLAPSE_CHARACTER_LIMIT = 300
 
 const getCMMSTicketStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
@@ -82,6 +85,71 @@ const getStatusIcon = (status: string) => {
   }
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+type TicketActivityMessage = {
+  date?: string
+  text: string
+}
+
+const formatUnknownValue = (value: unknown) => {
+  if (typeof value === 'string') {
+    return value
+  }
+  return JSON.stringify(value, null, 2) ?? String(value)
+}
+
+const formatTicketActivityEntry = (entry: unknown): TicketActivityMessage => {
+  if (!isRecord(entry)) {
+    return { text: formatUnknownValue(entry) }
+  }
+
+  const date =
+    typeof entry.Date === 'string'
+      ? dayjs(entry.Date).format('YYYY-MM-DD')
+      : undefined
+  const material =
+    entry.Material == null
+      ? undefined
+      : `Material: ${formatUnknownValue(entry.Material)}`
+  const description =
+    entry.Description == null
+      ? undefined
+      : formatUnknownValue(entry.Description)
+
+  return {
+    date,
+    text: [material, description].filter(Boolean).join('\n'),
+  }
+}
+
+const formatTicketActivityMessages = (
+  activity: unknown,
+): TicketActivityMessage[] => {
+  if (Array.isArray(activity)) {
+    return [...activity]
+      .sort((firstEntry: unknown, secondEntry: unknown) => {
+        const firstDate =
+          isRecord(firstEntry) && typeof firstEntry.Date === 'string'
+            ? dayjs(firstEntry.Date).valueOf()
+            : 0
+        const secondDate =
+          isRecord(secondEntry) && typeof secondEntry.Date === 'string'
+            ? dayjs(secondEntry.Date).valueOf()
+            : 0
+
+        return secondDate - firstDate
+      })
+      .map(formatTicketActivityEntry)
+      .filter((entry: TicketActivityMessage) => entry.text)
+  }
+  if (activity == null) {
+    return []
+  }
+  return [{ text: formatUnknownValue(activity) }]
+}
+
 const CMMSTicketCard = ({
   ticket,
   project = undefined,
@@ -107,10 +175,44 @@ const CMMSTicketCard = ({
 }) => {
   const { projectId } = useParams()
   const [opened, setOpened] = useState(false)
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [ticketActivityExpanded, setTicketActivityExpanded] = useState(false)
   const provider = ticket.cmms_provider_name_long?.trim()
   const providerLabel = provider ? provider.toUpperCase() : 'UNKNOWN'
   const providerText = provider ?? 'Unknown'
   const providerColor = getProviderColor(provider)
+  const { summary, shouldCollapseDescription } = useMemo(() => {
+    const s = ticket.summary ?? ''
+    const lineCount = s.split('\n').length
+    return {
+      summary: s,
+      shouldCollapseDescription:
+        lineCount > DESCRIPTION_COLLAPSED_LINES ||
+        s.length > DESCRIPTION_COLLAPSE_CHARACTER_LIMIT,
+    }
+  }, [ticket.summary])
+  const { ticketActivityMessages, shouldCollapseTicketActivity } = useMemo(() => {
+    const activity = isRecord(ticket.json_raw)
+      ? ticket.json_raw.TicketActivity
+      : undefined
+    const messages =
+      provider?.toLowerCase() === 'qe solar'
+        ? formatTicketActivityMessages(activity)
+        : []
+    let shouldCollapse = messages.length > 1
+    if (!shouldCollapse && messages.length === 1) {
+      const text = [messages[0].date, messages[0].text].filter(Boolean).join('\n')
+      shouldCollapse =
+        text.split('\n').length > TICKET_ACTIVITY_COLLAPSED_LINES ||
+        text.length > DESCRIPTION_COLLAPSE_CHARACTER_LIMIT
+    }
+    return { ticketActivityMessages: messages, shouldCollapseTicketActivity: shouldCollapse }
+  }, [ticket.json_raw, provider])
+  const displayedTicketActivityMessages = useMemo(() => {
+    return shouldCollapseTicketActivity && !ticketActivityExpanded
+      ? ticketActivityMessages.slice(0, 1)
+      : ticketActivityMessages
+  }, [shouldCollapseTicketActivity, ticketActivityExpanded, ticketActivityMessages])
   const hasExternalLinkHandlers =
     typeof onLink === 'function' || typeof onUnlink === 'function'
   const actionLabel = isLinked ? 'Unlink Ticket' : 'Link Ticket'
@@ -173,9 +275,30 @@ const CMMSTicketCard = ({
                   <IconAlertTriangle {...ICON_PROPS} color="red" />
                 )}
               </Group>
-              <Text size="lg" style={{ whiteSpace: 'pre-wrap' }}>
-                {ticket.summary}
+              <Text
+                size="lg"
+                lineClamp={
+                  shouldCollapseDescription && !descriptionExpanded
+                    ? DESCRIPTION_COLLAPSED_LINES
+                    : undefined
+                }
+                style={{ whiteSpace: 'pre-wrap' }}
+              >
+                {summary}
               </Text>
+              {shouldCollapseDescription && (
+                <Button
+                  variant="subtle"
+                  size="compact-sm"
+                  w="fit-content"
+                  onClick={() =>
+                    setDescriptionExpanded((expanded) => !expanded)
+                  }
+                  type="button"
+                >
+                  {descriptionExpanded ? 'Show less' : 'Show more'}
+                </Button>
+              )}
               {ticket.summary_long && (
                 <Box size="md" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
                   <div
@@ -234,6 +357,54 @@ const CMMSTicketCard = ({
                 </Group>
               )}
             </Stack>
+            {ticketActivityMessages.length > 0 && (
+              <Stack h="100%" flex={1} miw={240} gap="xs">
+                <Text fw={600}>Ticket Activity</Text>
+                {displayedTicketActivityMessages.map((message, index) => (
+                  <Stack key={`${message.date ?? 'activity'}-${index}`} gap={4}>
+                    {message.date && (
+                      <Text size="xs" c="dimmed">
+                        {message.date}
+                      </Text>
+                    )}
+                    <Box
+                      p="xs"
+                      bg="gray.0"
+                      style={{
+                        border: '1px solid var(--mantine-color-gray-3)',
+                        borderRadius: 'var(--mantine-radius-sm)',
+                      }}
+                    >
+                      <Text
+                        size="sm"
+                        lineClamp={
+                          shouldCollapseTicketActivity &&
+                          !ticketActivityExpanded
+                            ? TICKET_ACTIVITY_COLLAPSED_LINES
+                            : undefined
+                        }
+                        style={{ whiteSpace: 'pre-wrap' }}
+                      >
+                        {message.text}
+                      </Text>
+                    </Box>
+                  </Stack>
+                ))}
+                {shouldCollapseTicketActivity && (
+                  <Button
+                    variant="subtle"
+                    size="compact-sm"
+                    w="fit-content"
+                    onClick={() =>
+                      setTicketActivityExpanded((expanded) => !expanded)
+                    }
+                    type="button"
+                  >
+                    {ticketActivityExpanded ? 'Show less' : 'Show more'}
+                  </Button>
+                )}
+              </Stack>
+            )}
             <Stack h="100%" align="flex-end" gap="xs">
               <Badge
                 color={getCMMSTicketStatusColor(ticket.status || '')}
