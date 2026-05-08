@@ -37,12 +37,29 @@ async def get_kpi_types_by_project(
         # Query to get all KPI types and their associated contract info
         query = (
             select(
-                KPIType,
-                ContractKPI,
-                Contract,
+                KPIType.kpi_type_id,
+                KPIType.device_type_id,
+                KPIType.name_short,
+                KPIType.name_long,
+                KPIType.name_metric,
+                KPIType.description,
+                KPIType.unit,
+                KPIType.aggregation_method,
+                KPIType.doc_url,
+                DeviceType.name_short.label("device_type_name_short"),
                 Company.name_long.label("provider_name"),
                 Company2.name_long.label("counter_name"),
                 DeviceType.name_long.label("device_type_name"),
+                DeviceType.description.label("device_type_description"),
+                ContractKPI.contract_id.label("contract_kpi_contract_id"),
+                ContractKPI.kpi_type_id.label("contract_kpi_type_id"),
+                ContractKPI.threshold,
+                ContractKPI.liquidated_damages,
+                ContractKPI.claim_howto,
+                ContractKPI.provider_responsible,
+                Contract.contract_id,
+                Contract.project_id.label("contract_project_id"),
+                Contract.execution_date,
                 KPIInstance.is_visible,
             )
             .select_from(KPIType)
@@ -67,66 +84,65 @@ async def get_kpi_types_by_project(
             .order_by(KPIType.kpi_type_id)
         )
 
-        results: list[Any] = await DbQuery(query=query).get_async(
+        results = await DbQuery(query=query).get_async(
             executor=db,
-            output_type=OutputType.SQLALCHEMY,
+            output_type=OutputType.POLARS,
         )
 
         # Group results by KPI type
-        kpi_types_dict = {}
-        for (
-            kpi_type,
-            contract_kpi,
-            contract,
-            provider_name,
-            counter_name,
-            device_type_name,
-            is_visible,
-        ) in results:
-            if kpi_type.kpi_type_id not in kpi_types_dict:
-                kpi_types_dict[kpi_type.kpi_type_id] = {
-                    "kpi_type_id": kpi_type.kpi_type_id,
-                    "device_type_id": kpi_type.device_type_id,
-                    "device_type_name": device_type_name,
-                    "name_short": kpi_type.name_short,
-                    "name_long": kpi_type.name_long,
-                    "name_metric": kpi_type.name_metric,
-                    "description": kpi_type.description,
-                    "unit": kpi_type.unit,
-                    "aggregation_method": kpi_type.aggregation_method,
-                    "device_type": kpi_type.device_type,
-                    "is_visible": is_visible if is_visible is not None else False,
+        kpi_types_dict: dict[int, dict[str, Any]] = {}
+        for row in results.iter_rows(named=True):
+            kpi_type_id = row["kpi_type_id"]
+            if kpi_type_id not in kpi_types_dict:
+                kpi_types_dict[kpi_type_id] = {
+                    "kpi_type_id": kpi_type_id,
+                    "device_type_id": row["device_type_id"],
+                    "device_type_name": row["device_type_name"],
+                    "name_short": row["name_short"],
+                    "name_long": row["name_long"],
+                    "name_metric": row["name_metric"],
+                    "description": row["description"],
+                    "unit": row["unit"],
+                    "aggregation_method": row["aggregation_method"],
+                    "device_type": {
+                        "device_type_id": row["device_type_id"],
+                        "name_short": row["device_type_name_short"],
+                        "name_long": row["device_type_name"],
+                        "description": row["device_type_description"],
+                    }
+                    if row["device_type_id"] is not None
+                    else None,
+                    "is_visible": (
+                        row["is_visible"] if row["is_visible"] is not None else False
+                    ),
                     "contract_kpis": [],
                     "contracts": [],
-                    "doc_url": kpi_type.doc_url,
+                    "doc_url": row["doc_url"],
                 }
 
-            if contract_kpi:
+            if row["contract_kpi_contract_id"] is not None:
                 contract_kpi_dict = {
-                    "contract_id": contract_kpi.contract_id,
-                    "kpi_type_id": contract_kpi.kpi_type_id,
-                    "threshold": contract_kpi.threshold,
-                    "liquidated_damages": contract_kpi.liquidated_damages,
-                    "claim_howto": contract_kpi.claim_howto,
-                    "provider_responsible": contract_kpi.provider_responsible,
+                    "contract_id": row["contract_kpi_contract_id"],
+                    "kpi_type_id": row["contract_kpi_type_id"],
+                    "threshold": row["threshold"],
+                    "liquidated_damages": row["liquidated_damages"],
+                    "claim_howto": row["claim_howto"],
+                    "provider_responsible": row["provider_responsible"],
                 }
-                kpi_types_dict[kpi_type.kpi_type_id]["contract_kpis"].append(
+                kpi_types_dict[kpi_type_id]["contract_kpis"].append(
                     contract_kpi_dict,
                 )
 
-            if contract:
+            if row["contract_id"] is not None:
                 contract_dict = {
-                    "contract_id": contract.contract_id,
-                    "project_id": contract.project_id,
-                    "execution_date": contract.execution_date,
-                    "provider_company": provider_name,
-                    "counter_company": counter_name,
+                    "contract_id": row["contract_id"],
+                    "project_id": row["contract_project_id"],
+                    "execution_date": row["execution_date"],
+                    "provider_company": row["provider_name"],
+                    "counter_company": row["counter_name"],
                 }
-                if (
-                    contract_dict
-                    not in kpi_types_dict[kpi_type.kpi_type_id]["contracts"]
-                ):
-                    kpi_types_dict[kpi_type.kpi_type_id]["contracts"].append(
+                if contract_dict not in kpi_types_dict[kpi_type_id]["contracts"]:
+                    kpi_types_dict[kpi_type_id]["contracts"].append(
                         contract_dict,
                     )
 
