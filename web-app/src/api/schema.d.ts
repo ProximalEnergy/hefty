@@ -2327,7 +2327,6 @@ export interface paths {
          *         project_ids: Description for project_ids.
          *         kpi_type_ids: Description for kpi_type_ids.
          *         include_device_data: Description for include_device_data.
-         *         db: Description for db.
          *         user_data: Description for user_data.
          *         include_all_dates: Description for include_all_dates.
          */
@@ -4357,7 +4356,6 @@ export interface paths {
          *         start: Description for start.
          *         end: Description for end.
          *         kpi_type_id: Description for kpi_type_id.
-         *         db: Description for db.
          */
         get: operations["get_llm_kpis_v1_operational_projects__project_id__kpi_data_llm_kpis_get"];
         put?: never;
@@ -17126,7 +17124,6 @@ export interface operations {
                 include_device_data?: boolean;
                 include_all_dates?: boolean;
                 start: string;
-                schema?: string | null;
             };
             header?: {
                 "x-api-key"?: string;
@@ -20191,7 +20188,6 @@ export interface operations {
                 start?: string | null;
                 end?: string | null;
                 kpi_type_id?: number | null;
-                schema?: string | null;
             };
             header?: {
                 "x-api-key"?: string;

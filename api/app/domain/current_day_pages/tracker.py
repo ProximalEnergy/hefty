@@ -59,8 +59,7 @@ async def get_tracker_data(
 
     # Get KPI data
     kpi_data_dict = utils.kpi_data_list_to_dict(
-        kpi_data=get_kpi_data_helper(
-            db=project_db,
+        kpi_data=await get_kpi_data_helper(
             start=start,
             end=end,
             kpi_type_ids=[

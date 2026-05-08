@@ -302,9 +302,15 @@ async def patch_claim_config(
         db: Async DB session.
         user: Authenticated user.
     """
-    existing = await crud_claims.get_claim_config(
-        db,
+    claim_config_query = crud.operational.claim_configs.query_claim_config(
         claim_config_id=claim_config_id,
+    )
+    existing = cast(
+        models.ClaimConfig | None,
+        await claim_config_query.get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        ),
     )
     if not existing or existing.project_id != project_id:
         raise HTTPException(status_code=404, detail="Claim config not found")
@@ -370,19 +376,28 @@ async def delete_claim_config_route(
         project_db: Project-scoped async DB session (for counting claims).
         user: Authenticated user.
     """
-    existing = await crud_claims.get_claim_config(
-        db,
+    claim_config_query = crud.operational.claim_configs.query_claim_config(
         claim_config_id=claim_config_id,
+    )
+    existing = cast(
+        models.ClaimConfig | None,
+        await claim_config_query.get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        ),
     )
     if not existing or existing.project_id != project_id:
         raise HTTPException(status_code=404, detail="Claim config not found")
     if existing.submitter_company_id != user.company_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    n_claims = await crud_claims.count_claims_for_config(
-        project_db,
+    claim_count = await crud.project.claims.query_count_claims_for_config(
         claim_config_id=claim_config_id,
+    ).get_async(
+        executor=project_db,
+        output_type=OutputType.SQLALCHEMY,
     )
+    n_claims = int(claim_count or 0)
     if n_claims > 0:
         raise HTTPException(
             status_code=409,
@@ -601,10 +616,16 @@ async def get_claim_route(
         claim_id: Claim primary key.
         db: Project-scoped async DB session.
     """
-    claim = await crud_claims.get_claim_by_id(
-        db,
+    claim_query = crud.project.claims.query_claim(
         claim_id=claim_id,
         project_id=project_id,
+    )
+    claim = cast(
+        models.Claim | None,
+        await claim_query.get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        ),
     )
     if not claim:
         raise HTTPException(
@@ -742,10 +763,16 @@ async def delete_claim_route(
         db: Project-scoped async DB session.
         user: Authenticated user.
     """
-    claim = await crud_claims.get_claim_by_id(
-        db,
+    claim_query = crud.project.claims.query_claim(
         claim_id=claim_id,
         project_id=project_id,
+    )
+    claim = cast(
+        models.Claim | None,
+        await claim_query.get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        ),
     )
     if not claim:
         raise HTTPException(
@@ -1065,7 +1092,14 @@ async def submit_claim(
         db: Async DB session.
         user: Authenticated user data.
     """
-    claim = await crud_claims.get_claim_by_id(db, claim_id=claim_id)
+    claim_query = crud.project.claims.query_claim(claim_id=claim_id)
+    claim = cast(
+        models.Claim | None,
+        await claim_query.get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        ),
+    )
     if not claim:
         raise HTTPException(
             status_code=404,

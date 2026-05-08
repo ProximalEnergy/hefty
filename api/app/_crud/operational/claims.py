@@ -105,29 +105,6 @@ async def get_project_claims(
     return _project_claim_records_from_dataframe(df=cast(pd.DataFrame, df))
 
 
-async def get_claim_by_id(
-    db: AsyncSession,
-    *,
-    claim_id: int,
-    project_id: UUID | None = None,
-) -> models.Claim | None:
-    """Get a single claim with devices and updates.
-
-    Args:
-        db: Async DB session.
-        claim_id: Claim primary key.
-        project_id: Optional project scope for the claim's config.
-    """
-    claim = await claim_queries.query_claim(
-        claim_id=claim_id,
-        project_id=project_id,
-    ).get_async(
-        executor=db,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    return cast(models.Claim | None, claim)
-
-
 async def create_claim(
     db: AsyncSession,
     *,
@@ -170,7 +147,11 @@ async def create_claim(
         output_type=OutputType.SQLALCHEMY,
     )
     await db.commit()
-    claim = await get_claim_by_id(db, claim_id=claim_id)
+    claim = await claim_queries.query_claim(claim_id=claim_id).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
+    )
+    claim = cast(models.Claim | None, claim)
     if claim is None:
         raise RuntimeError("Failed to load created claim")
     return claim
@@ -202,7 +183,11 @@ async def update_claim(
         values["status"] = status
 
     if not values:
-        return await get_claim_by_id(db, claim_id=claim_id)
+        claim = await claim_queries.query_claim(claim_id=claim_id).get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        )
+        return cast(models.Claim | None, claim)
 
     row = await claim_queries.query_update_claim(
         claim_id=claim_id,
@@ -215,7 +200,11 @@ async def update_claim(
     if updated_claim_id is None:
         return None
     await db.commit()
-    return await get_claim_by_id(db, claim_id=updated_claim_id)
+    claim = await claim_queries.query_claim(claim_id=updated_claim_id).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
+    )
+    return cast(models.Claim | None, claim)
 
 
 async def create_claim_device(
@@ -502,30 +491,16 @@ async def create_claim_config(
     if claim_config_id is None:
         raise RuntimeError("Failed to create claim config")
     await db.commit()
-    claim_config = await get_claim_config(db, claim_config_id=claim_config_id)
-    if claim_config is None:
-        raise RuntimeError("Failed to load created claim config")
-    return claim_config
-
-
-async def get_claim_config(
-    db: AsyncSession,
-    *,
-    claim_config_id: int,
-) -> models.ClaimConfig | None:
-    """Fetch a single claim config by id.
-
-    Args:
-        db: Async DB session.
-        claim_config_id: Config to load.
-    """
     claim_config = await claim_config_queries.query_claim_config(
         claim_config_id=claim_config_id,
     ).get_async(
         executor=db,
         output_type=OutputType.SQLALCHEMY,
     )
-    return cast(models.ClaimConfig | None, claim_config)
+    claim_config = cast(models.ClaimConfig | None, claim_config)
+    if claim_config is None:
+        raise RuntimeError("Failed to load created claim config")
+    return claim_config
 
 
 async def update_claim_config(
@@ -564,7 +539,13 @@ async def update_claim_config(
         values["portal_url"] = portal_url
 
     if not values:
-        return await get_claim_config(db, claim_config_id=claim_config_id)
+        claim_config = await claim_config_queries.query_claim_config(
+            claim_config_id=claim_config_id,
+        ).get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        )
+        return cast(models.ClaimConfig | None, claim_config)
 
     row = await claim_config_queries.query_update_claim_config(
         claim_config_id=claim_config_id,
@@ -577,27 +558,13 @@ async def update_claim_config(
     if updated_claim_config_id is None:
         return None
     await db.commit()
-    return await get_claim_config(db, claim_config_id=updated_claim_config_id)
-
-
-async def count_claims_for_config(
-    db: AsyncSession,
-    *,
-    claim_config_id: int,
-) -> int:
-    """Count claims linked to a claim config.
-
-    Args:
-        db: Async DB session.
-        claim_config_id: Config to inspect.
-    """
-    count = await claim_queries.query_count_claims_for_config(
-        claim_config_id=claim_config_id,
+    claim_config = await claim_config_queries.query_claim_config(
+        claim_config_id=updated_claim_config_id,
     ).get_async(
         executor=db,
         output_type=OutputType.SQLALCHEMY,
     )
-    return int(count or 0)
+    return cast(models.ClaimConfig | None, claim_config)
 
 
 async def delete_claim_config(

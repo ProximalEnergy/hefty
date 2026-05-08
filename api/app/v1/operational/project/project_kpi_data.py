@@ -8,6 +8,7 @@ import boto3
 import numpy as np
 import pandas as pd
 from core.crud.operational.kpi_data import (
+    core_get_kpi_data,
     get_project_kpi_data_agg,
     get_project_kpi_data_agg_freq,
 )
@@ -28,7 +29,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
 from app import interfaces, utils
-from app._crud.operational.kpi_data import api_get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
@@ -513,13 +513,12 @@ def get_project_contract_kpis_route(
 
 
 @router.get("/llm-kpis")
-def get_llm_kpis(
+async def get_llm_kpis(
     project_id: uuid.UUID,
     project: Annotated[interfaces.ProjectInterface, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     kpi_type_id: int | None = None,
-    db: Session = Depends(get_db),
 ):
     """This endpoint is for the chat application to fetch KPI data.
 
@@ -529,7 +528,6 @@ def get_llm_kpis(
         start: Description for start.
         end: Description for end.
         kpi_type_id: Description for kpi_type_id.
-        db: Description for db.
     """
     kpi_type_ids = [kpi_type_id] if kpi_type_id is not None else []
     if start is None or end is None:
@@ -539,13 +537,14 @@ def get_llm_kpis(
         start_date = start.date()
         end_date = end.date()
 
-    df = crud_get_kpi_data(
-        db=db,
+    df = await core_get_kpi_data(
         start=start_date,
         end=end_date,
         project_ids=[project_id],
         kpi_type_ids=kpi_type_ids,
         include_device_data=True,
+    ).get_async(
+        output_type=OutputType.PANDAS,
     )
 
     if df.empty:
@@ -651,8 +650,7 @@ async def get_kpi_excel(
         project_db: Project-specific database session.
         project: The project model.
     """
-    kpi_data = get_kpi_data_helper(
-        db=sync_db,
+    kpi_data = await get_kpi_data_helper(
         start=start,
         end=end,
         project_ids=[project_id],

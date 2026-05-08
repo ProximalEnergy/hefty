@@ -2,12 +2,13 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.operational.kpi_data import core_get_kpi_data
+from core.db_query import OutputType
 from core.enumerations import KPITypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
-from app._crud.operational.kpi_data import get_kpi_data_async as crud_get_kpi_data_async
 from app.dependencies import get_async_db, get_project_api
 from core import models
 
@@ -83,13 +84,15 @@ async def get_project_bess_waterfall(
         project_discharged_kpi,
     ]
 
-    kpi_data = await crud_get_kpi_data_async(
-        db=db,
+    kpi_data = await core_get_kpi_data(
         start=start,
         end=end,
         project_ids=[project.project_id],
         kpi_type_ids=all_kpis,
         include_device_data=False,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
 
     if kpi_data.empty:
@@ -181,13 +184,15 @@ async def get_project_bess_aux_energy_daily_avg(
         end: End date for KPI aggregation.
     """
     aux_energy_kpi = KPITypeEnum.BESS_MV_AUX_METER_ENERGY.value
-    kpi_data = await crud_get_kpi_data_async(
-        db=db,
+    kpi_data = await core_get_kpi_data(
         start=start,
         end=end,
         project_ids=[project.project_id],
         kpi_type_ids=[aux_energy_kpi],
         include_device_data=False,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
     if kpi_data.empty:
         raise HTTPException(status_code=404, detail="No aux KPI data found")

@@ -5,6 +5,7 @@ import pandas as pd
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.operational.kpi_data import get_project_kpi_data_agg
+from core.crud.project.data_expected import get_project_data_expected
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
@@ -19,7 +20,6 @@ from sqlalchemy.orm import Session
 
 from app import dependencies
 from app._crud.projects import pv_budgeted as crud_pv_budgeted
-from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expected
 from core import crud, models
 
 DESCRIPTION_404 = "Tag not found"
@@ -172,27 +172,26 @@ async def get_project_waterfall(
     # POI expected metrics: prefer warranted degradation, then fall back.
     # 6 = soiling + degradation, 5 = degradation only, 12/11 = no degradation.
     expected_metric_ids = [6, 5, 12, 11]
-    data_expected = []
+    data_expected = pd.DataFrame()
     for metric_id in expected_metric_ids:
-        data_expected = crud_get_pv_expected(
-            db=project_db,
+        data_expected = await get_project_data_expected(
             start=start_dt,
             end=end_dt,
             expected_metric_ids=[metric_id],
+        ).get_async(
+            schema=project.name_short,
+            output_type=OutputType.PANDAS,
         )
-        if data_expected:
+        if not data_expected.empty:
             break
-    if len(data_expected) == 0:
+    if data_expected.empty:
         return {
             "value": [],
             "measure": [],
             "name": [],
         }
-    df_expected = df_from_objects(
-        objects=data_expected,
-        index_col="time",
-        time_zone=project.time_zone,
-    )
+    df_expected = data_expected.set_index("time")
+    df_expected.index = pd.to_datetime(df_expected.index).tz_convert(project.time_zone)
     events_query = crud.project.events.get_windowed_event_summaries(
         start=start,
         end=end,

@@ -12,6 +12,7 @@ from core.crud.operational.calendar import (
     get_calendar_item_exceptions,
     get_calendar_items,
 )
+from core.crud.operational.kpi_data import core_get_kpi_data
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType, postprocess_pandas_df
 from core.enumerations import KPITypeEnum, ProjectTypeEnum, SensorTypeEnum
@@ -23,7 +24,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import dependencies, interfaces, utils
 from app._crud.operational import calendar as crud_calendar
 from app._crud.operational.data_timeseries import get_operational_data_timeseries
-from app._crud.operational.kpi_data import get_kpi_data_async
 from app._crud.operational.portfolio_bess_power_availability import (
     get_portfolio_bess_power_availability_metrics,
 )
@@ -575,10 +575,10 @@ async def get_portfolio_home_long_term(
 
     # KPI type IDs for long-term data
     kpi_type_ids = [
-        KPITypeEnum.BESS_STRING_CYCLE_COUNT,
-        KPITypeEnum.BESS_STRING_SOH,
-        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
-        KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
+        KPITypeEnum.BESS_STRING_CYCLE_COUNT.value,
+        KPITypeEnum.BESS_STRING_SOH.value,
+        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY.value,
+        KPITypeEnum.PROJECT_ENERGY_PRODUCTION.value,
     ]
 
     # end equal to current date in UTC
@@ -588,13 +588,15 @@ async def get_portfolio_home_long_term(
     start_date = (pd.Timestamp.now("UTC").floor("D") - pd.Timedelta(days=30)).date()
 
     # Query KPI data
-    kpi_df = await get_kpi_data_async(
-        db=db,
+    kpi_df = await core_get_kpi_data(
         start=start_date,
         end=end_date,
         project_ids=project_ids,
         kpi_type_ids=kpi_type_ids,
         include_device_data=False,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
 
     if kpi_df.empty:

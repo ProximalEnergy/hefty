@@ -1,15 +1,14 @@
 import datetime
 import uuid
-from typing import Annotated
+from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
-from core.database import get_db
+from core.crud.operational.kpi_data import core_get_kpi_data
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
 
 from app import interfaces
-from app._crud.operational.kpi_data import api_get_kpi_data as crud_get_kpi_data
 from app._dependencies.authentication import get_user
 from app._dependencies.filtering import (
     filter_start_date_to_projects_data_access_start_date,
@@ -23,7 +22,7 @@ router = APIRouter(prefix="/kpi-data", tags=["kpi_data"])
     operation_id="get_kpi_data",
     response_model=list[interfaces.OperationalKPIDataInterface],
 )
-def get_kpi_data_route(
+async def get_kpi_data_route(
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
     start: Annotated[
         datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)
@@ -32,7 +31,6 @@ def get_kpi_data_route(
     project_ids: Annotated[list[uuid.UUID], Query()] = [],
     kpi_type_ids: Annotated[list[int], Query()] = [],
     include_device_data: bool = True,
-    db: Session = Depends(get_db),
     include_all_dates: bool = True,
 ):
     # Ensure that user has access to all requested projects
@@ -44,7 +42,6 @@ def get_kpi_data_route(
         project_ids: Description for project_ids.
         kpi_type_ids: Description for kpi_type_ids.
         include_device_data: Description for include_device_data.
-        db: Description for db.
         user_data: Description for user_data.
         include_all_dates: Description for include_all_dates.
     """
@@ -52,8 +49,7 @@ def get_kpi_data_route(
 
     # NOTE: Logic was separated out into a helper function so that other endpoints can
     # use the same logic
-    return get_kpi_data_helper(
-        db=db,
+    return await get_kpi_data_helper(
         start=start,
         end=end,
         project_ids=project_ids,
@@ -63,9 +59,8 @@ def get_kpi_data_route(
     )
 
 
-def get_kpi_data_helper(
+async def get_kpi_data_helper(
     *,
-    db: Session,
     start: datetime.date,
     end: datetime.date,
     project_ids: list[uuid.UUID],
@@ -76,7 +71,6 @@ def get_kpi_data_helper(
     """todo
 
     Args:
-        db: Description for db.
         start: Description for start.
         end: Description for end.
         project_ids: Description for project_ids.
@@ -87,13 +81,14 @@ def get_kpi_data_helper(
     date_range = pd.date_range(start=start, end=end, freq="D", inclusive="left")
 
     # Query KPI data
-    kpi_data = crud_get_kpi_data(
-        db=db,
+    kpi_data = await core_get_kpi_data(
         start=start,
         end=end,
         kpi_type_ids=kpi_type_ids,
         project_ids=project_ids,
         include_device_data=include_device_data,
+    ).get_async(
+        output_type=OutputType.PANDAS,
     )
 
     kpi_data = kpi_data.sort_values(by=["project_id", "kpi_type_id", "date"])
@@ -101,7 +96,7 @@ def get_kpi_data_helper(
     # Identify unique project_id-kpi_type_id combinations
     uniques = kpi_data[["project_id", "kpi_type_id"]].drop_duplicates()
 
-    return_data = []
+    return_data: list[dict[str, Any]] = []
 
     # For each unique project_id-kpi_type_id combination
     for unique in uniques.itertuples():
@@ -115,15 +110,16 @@ def get_kpi_data_helper(
         if include_all_dates:
             unique_kpi_data = unique_kpi_data.reindex(date_range)
 
-        data = {
+        data_obj: dict[str, Any] = {
+            "dates": unique_kpi_data.index.tolist(),
+            "project_data": unique_kpi_data["project_data"].values.tolist(),
+            # TODO: Refactor database schema to include separate weights column
+            "weights": None,
+        }
+        data: dict[str, Any] = {
             "project_id": unique.project_id,
             "kpi_type_id": unique.kpi_type_id,
-            "data": {
-                "dates": unique_kpi_data.index.tolist(),
-                "project_data": unique_kpi_data["project_data"].values.tolist(),
-                # TODO: Refactor database schema to include separate weights column
-                "weights": None,
-            },
+            "data": data_obj,
         }
 
         # Only include device data if requested and device_data_json is not null
@@ -151,7 +147,7 @@ def get_kpi_data_helper(
             #     for key in device_values_list[0]
             # }
 
-            data["data"]["device_data_obj"] = {"device_values": device_values}
+            data_obj["device_data_obj"] = {"device_values": device_values}
 
             # Convert device_values to a DataFrame
             # with specified dtype, None's will be converted to NaN
@@ -194,14 +190,14 @@ def get_kpi_data_helper(
                 else:
                     device_agg_df["available_data"] = np.nan
 
-            data["data"]["device_aggregation_obj"] = device_agg_df.to_dict(
+            data_obj["device_aggregation_obj"] = device_agg_df.to_dict(
                 orient="list",
             )
 
         # If device data is not requested or not available, set device_data_obj to None
         else:
-            data["data"]["device_data_obj"] = None
-            data["data"]["device_aggregation_obj"] = None
+            data_obj["device_data_obj"] = None
+            data_obj["device_aggregation_obj"] = None
 
         return_data.append(data)
 

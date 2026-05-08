@@ -77,52 +77,6 @@ def _attachment_to_dict(
     return row
 
 
-async def _get_claim_attachment(
-    *,
-    db: AsyncSession,
-    claim_id: int,
-    filename: str,
-) -> models.ClaimAttachment | None:
-    """Fetch one attachment metadata row.
-
-    Args:
-        db: Project-scoped DB session.
-        claim_id: Parent claim id.
-        filename: Attachment filename.
-    """
-    attachment = await claim_attachment_queries.get_claim_attachment(
-        claim_id=claim_id,
-        filename=filename,
-    ).get_async(
-        executor=db,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    return cast(models.ClaimAttachment | None, attachment)
-
-
-async def _list_claim_attachment_models(
-    *,
-    db: AsyncSession,
-    claim_id: int,
-) -> list[models.ClaimAttachment]:
-    """Fetch claim attachment metadata rows.
-
-    Args:
-        db: Project-scoped DB session.
-        claim_id: Parent claim id.
-    """
-    attachments = await claim_attachment_queries.query_claim_attachments(
-        claim_id=claim_id,
-    ).get_async(
-        executor=db,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    return cast(
-        list[models.ClaimAttachment],
-        attachments,
-    )
-
-
 async def get_claim_attachments(
     *,
     db: AsyncSession,
@@ -134,12 +88,15 @@ async def get_claim_attachments(
         db: Project-scoped DB session.
         claim_id: Claim to filter by.
     """
+    attachments = await claim_attachment_queries.query_claim_attachments(
+        claim_id=claim_id,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
+    )
     return [
         _attachment_to_dict(attachment=attachment)
-        for attachment in await _list_claim_attachment_models(
-            db=db,
-            claim_id=claim_id,
-        )
+        for attachment in cast(list[models.ClaimAttachment], attachments)
     ]
 
 
@@ -156,11 +113,13 @@ async def get_claim_attachment_files(
     """
     s3 = boto3.client("s3", region_name=REGION_NAME)
     files = []
-    attachments = await _list_claim_attachment_models(
-        db=db,
+    attachments = await claim_attachment_queries.query_claim_attachments(
         claim_id=claim_id,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
     )
-    for attachment in attachments:
+    for attachment in cast(list[models.ClaimAttachment], attachments):
         resp = s3.get_object(Bucket=BUCKET_NAME, Key=attachment.s3_key)
         files.append(
             {
@@ -219,11 +178,14 @@ async def add_claim_attachment(
         executor=db,
     )
     await db.commit()
-    attachment = await _get_claim_attachment(
-        db=db,
+    attachment = await claim_attachment_queries.get_claim_attachment(
         claim_id=claim_id,
         filename=filename,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
     )
+    attachment = cast(models.ClaimAttachment | None, attachment)
     if attachment is None:
         raise RuntimeError("Failed to load claim attachment")
     return _attachment_to_dict(attachment=attachment)
@@ -242,11 +204,14 @@ async def delete_claim_attachment(
         claim_id: Claim id.
         filename: Filename to delete.
     """
-    attachment = await _get_claim_attachment(
-        db=db,
+    attachment = await claim_attachment_queries.get_claim_attachment(
         claim_id=claim_id,
         filename=filename,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
     )
+    attachment = cast(models.ClaimAttachment | None, attachment)
     if attachment is None:
         return False
 
