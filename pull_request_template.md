@@ -13,3 +13,9 @@
 ## Reason for Changes
 
 ## Screenshots and Videos
+
+## Notes for Reviewer
+- Comments should be marked by priority:
+  - Critical
+  - Optional
+  - FYI
