@@ -161,6 +161,19 @@ jobs:
       - name: Run ast-grep forbidden-with-async-db check
         run: ./_scripts/ast_grep_check.sh --rules forbidden-with-async-db-usage microservices
 
+  dbquery-dataframe-cast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run ast-grep DbQuery DataFrame cast check
+        run: >
+          ./_scripts/ast_grep_check.sh
+          --rules python-no-dbquery-dataframe-cast
+          microservices
+
   detect-microservice-changes:
     runs-on: ubuntu-latest
     outputs:

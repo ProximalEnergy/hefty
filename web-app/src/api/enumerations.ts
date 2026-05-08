@@ -328,6 +328,7 @@ export const ProjectIDEnum = {
   NORTH_STAR: "e69ddc19-e2c6-4537-a236-93849c4bc847",
   PALACIOS: "cba2690a-03cf-4878-bf0b-dd3801da6fb2",
   PALACIOS_INDIE: "ea902794-4670-4a95-b2bd-cf700a6ca460",
+  PINTAIL: "2378f9bb-6f3c-489a-87a0-8ec25fc29d95",
   POWERHOUSE_PLANT: "949897b9-7709-40fb-84d9-52b24419793e",
   PROJECT_DEFAULT: "e8434ff5-b6da-46fc-b057-f9f84b13b61b",
   ROSAMOND_SOUTH_1: "838e5fe1-7d20-47e2-a438-d34e8e081a19",
@@ -342,6 +343,7 @@ export const ProjectIDEnum = {
   SUN_STREAMS_4: "3e3a98c1-3172-407e-b730-827f389c294d",
   TILDEN: "2d9cb07b-bb1c-4e05-bc52-2bbd416ebf0b",
   UTOPIA: "755836fa-c3ec-4ec9-8362-648709df30f7",
+  WHITE_CREEK: "b36cb3c2-2d78-4d14-b89d-126bd5d0455e",
 } as const;
 
 export const ProjectStatusTypeEnum = {
@@ -354,6 +356,7 @@ export const ProjectTypeEnum = {
   PV: 1,
   BESS: 2,
   PVS: 3,
+  WIND: 4,
   SIMPLE_CYCLE_GT: 5,
 } as const;
 

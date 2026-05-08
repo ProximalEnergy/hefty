@@ -256,6 +256,11 @@ description = "Run ast-grep check: python-core-require-selective-imports"
 dir = "."
 run = "./_scripts/ast_grep_check.sh --rules python-core-require-selective-imports"
 
+[tasks."root:no_dbquery_dataframe_cast"]
+description = "Run ast-grep check: python-no-dbquery-dataframe-cast"
+dir = "."
+run = "./_scripts/ast_grep_check.sh --rules python-no-dbquery-dataframe-cast"
+
 
 [tasks."api:project_id_path"]
 description = "Run ast-grep check: api-no-project-id-path-param-outside-project"

@@ -1,0 +1,14 @@
+id: python-no-dbquery-dataframe-cast
+message: >-
+  DbQuery.get_async(..., output_type=OutputType.POLARS/PANDAS) is already
+  typed by core/db_query.pyi; remove the redundant DataFrame cast.
+severity: error
+language: Python
+rule:
+  any:
+    - all:
+        - pattern: cast(pl.DataFrame, await $QUERY.get_async($$$ARGS))
+        - regex: "output_type\\s*=\\s*OutputType\\.POLARS"
+    - all:
+        - pattern: cast(pd.DataFrame, await $QUERY.get_async($$$ARGS))
+        - regex: "output_type\\s*=\\s*OutputType\\.PANDAS"

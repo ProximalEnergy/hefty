@@ -306,10 +306,7 @@ async def get_portfolio_home_short_term(
         return []
 
     projects_query = get_projects(project_ids=project_ids)
-    projects_df = cast(
-        pd.DataFrame,
-        await projects_query.get_async(output_type=OutputType.PANDAS),
-    )
+    projects_df = await projects_query.get_async(output_type=OutputType.PANDAS)
     projects_df = postprocess_pandas_df(df=projects_df, index="project_id")
 
     real_time_project_ids = projects_df[
@@ -712,10 +709,7 @@ async def get_portfolio_bess_power_availability_route(
         return []
 
     projects_query = get_projects(project_ids=allowed)
-    projects_df = cast(
-        pd.DataFrame,
-        await projects_query.get_async(output_type=OutputType.PANDAS),
-    )
+    projects_df = await projects_query.get_async(output_type=OutputType.PANDAS)
 
     poi_by_project: dict[UUID, float | None] = {pid: None for pid in allowed}
     schema_by_project: dict[UUID, str] = {}
@@ -862,10 +856,7 @@ async def post_portfolio_bess_revenue_summary(
         return []
 
     projects_query = get_projects(project_ids=list(project_to_identifier.keys()))
-    projects_df = cast(
-        pd.DataFrame,
-        await projects_query.get_async(output_type=OutputType.PANDAS),
-    )
+    projects_df = await projects_query.get_async(output_type=OutputType.PANDAS)
     projects_df = postprocess_pandas_df(df=projects_df, index="project_id")
     tz_map = cast(dict[UUID, Any], projects_df["time_zone"].to_dict())
     tz_by_project: dict[UUID, str] = {
@@ -1052,9 +1043,8 @@ async def get_portfolio_calendar_events(
         project_ids=accessible_project_ids,
         include_related=False,
     )
-    calendar_items_df = cast(
-        pd.DataFrame,
-        await calendar_items_query.get_async(output_type=OutputType.PANDAS),
+    calendar_items_df = await calendar_items_query.get_async(
+        output_type=OutputType.PANDAS
     )
 
     if calendar_items_df.empty:
@@ -1063,10 +1053,7 @@ async def get_portfolio_calendar_events(
     calendar_item_ids = list(calendar_items_df["calendar_item_id"])
 
     exceptions_query = get_calendar_item_exceptions(calendar_item_ids=calendar_item_ids)
-    exceptions_df = cast(
-        pd.DataFrame,
-        await exceptions_query.get_async(output_type=OutputType.PANDAS),
-    )
+    exceptions_df = await exceptions_query.get_async(output_type=OutputType.PANDAS)
     exdates_by_item: dict[Any, list[str]] = {}
     for exception in exceptions_df.itertuples(index=False):
         if not exception.is_cancelled:
@@ -1080,10 +1067,7 @@ async def get_portfolio_calendar_events(
     assignments_query = get_calendar_item_assignments(
         calendar_item_ids=calendar_item_ids
     )
-    assignments_df = cast(
-        pd.DataFrame,
-        await assignments_query.get_async(output_type=OutputType.PANDAS),
-    )
+    assignments_df = await assignments_query.get_async(output_type=OutputType.PANDAS)
     assignees_by_item: dict[Any, dict[str, list[Any]]] = {}
     for assignment in assignments_df.itertuples(index=False):
         _append_calendar_assignment(

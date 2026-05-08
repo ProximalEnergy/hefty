@@ -1337,6 +1337,8 @@ if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = 
     add_check "project-id-access" "mise run root:project_id_access"
     add_check "project-id-prefix" "mise run root:project_id_prefix"
     add_check "async-db-usage" "mise run root:async_db_usage"
+    add_check "dbquery-dataframe-cast" \
+        "mise run root:no_dbquery_dataframe_cast"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
     add_check "Global: Ruff Linting" "mise run root:ruff"
 fi
