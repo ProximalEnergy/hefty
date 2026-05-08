@@ -26,3 +26,10 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 
 ## PR's
 - git switch -c Feature/pro-####-short-name (prefix branches with linear task id)
+
+## Software Development Life Cycle
+- `/plan`
+- `/execute`:  
+  - `/execute-frontend`
+  - `/execute-backend`
+- /review:  mise run check
