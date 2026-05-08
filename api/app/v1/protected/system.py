@@ -13,7 +13,7 @@ from core.crud.project.data_timeseries import (
 )
 from core.crud.project.tags import get_project_tags_v2
 from core.db_query import OutputType
-from core.enumerations import SensorTypeEnum, TimeOffset
+from core.enumerations import ExpectedMetricIdEnum, SensorTypeEnum, TimeOffset
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -71,14 +71,16 @@ async def get_meter_power_and_expected_power_v3(
 
     if include_soiling:
         if include_degradation:
-            expected_metric_ids = [6]
+            expected_metric_ids = [
+                ExpectedMetricIdEnum.PV_POI_POWER_SOILING_DEGRADATION
+            ]
         else:
-            expected_metric_ids = [12]
+            expected_metric_ids = [ExpectedMetricIdEnum.PV_POI_POWER_SOILING]
     else:
         if include_degradation:
-            expected_metric_ids = [5]
+            expected_metric_ids = [ExpectedMetricIdEnum.PV_POI_POWER_DEGRADATION]
         else:
-            expected_metric_ids = [11]
+            expected_metric_ids = [ExpectedMetricIdEnum.PV_POI_POWER_BASE]
 
     # If start and end are not provided, get today's data
     if not start:

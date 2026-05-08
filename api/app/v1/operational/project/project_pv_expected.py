@@ -4,6 +4,7 @@ from typing import Annotated
 import numpy as np
 import pandas as pd
 from core.db_query import OutputType
+from core.enumerations import ExpectedMetricIdEnum
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -95,7 +96,26 @@ async def get_expected_power(
 
     start_query = pd.Timestamp(start).tz_convert(project.time_zone)
     end_query = pd.Timestamp(end).tz_convert(project.time_zone)
-    eem_priority_expected_metric_ids = [[12, 11, 5, 6], [10, 9, 3, 4], [8, 7, 1, 2]]
+    eem_priority_expected_metric_ids = [
+        [
+            ExpectedMetricIdEnum.PV_POI_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_POI_POWER_BASE,
+            ExpectedMetricIdEnum.PV_POI_POWER_DEGRADATION,
+            ExpectedMetricIdEnum.PV_POI_POWER_SOILING_DEGRADATION,
+        ],
+        [
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_PCS_POWER_BASE,
+            ExpectedMetricIdEnum.PV_PCS_POWER_DEGRADATION,
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING_DEGRADATION,
+        ],
+        [
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_BASE,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_DEGRADATION,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING_DEGRADATION,
+        ],
+    ]
     data = await crud.project.data_expected.get_project_data_expected(
         start=start_query,
         end=end_query,

@@ -8,7 +8,7 @@ from core.crud.project.data_timeseries_last import (
     get_data_timeseries_latest_by_device_type,
 )
 from core.db_query import OutputType
-from core.enumerations import DeviceTypeEnum, SensorTypeEnum
+from core.enumerations import DeviceTypeEnum, ExpectedMetricIdEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, Query
 from natsort import natsorted
 from pydantic import BaseModel
@@ -102,10 +102,20 @@ async def get_expected_power_by_device_type_id(
 
     # Determine expected_metric_ids based on device type (same as utility_expected)
     if device_type_id == DeviceTypeEnum.PV_INVERTER:
-        expected_metric_ids_fallback = [10, 9, 4, 3]  # With soiling first, then without
+        expected_metric_ids_fallback = [
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_PCS_POWER_BASE,
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING_DEGRADATION,
+            ExpectedMetricIdEnum.PV_PCS_POWER_DEGRADATION,
+        ]  # With soiling first, then without
         expected_device_ids_for_query = device_ids
     elif device_type_id == DeviceTypeEnum.PV_DC_COMBINER:
-        expected_metric_ids_fallback = [8, 7, 2, 1]
+        expected_metric_ids_fallback = [
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_BASE,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING_DEGRADATION,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_DEGRADATION,
+        ]
         expected_device_ids_for_query = device_ids
     else:
         # Unsupported device type

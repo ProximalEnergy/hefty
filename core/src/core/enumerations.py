@@ -541,6 +541,24 @@ class SensorTypeEnum(BaseDatabaseEnum[int], IntEnum):
     TRACKER_ZONE_WIND_SPEED = 220
 
 
+class ExpectedMetricIdEnum(BaseDatabaseEnum[int], IntEnum):
+    """Expected metric IDs used by EEM expected power outputs."""
+
+    PV_DC_COMBINER_POWER_DEGRADATION = 1
+    PV_DC_COMBINER_POWER_SOILING_DEGRADATION = 2
+    PV_PCS_POWER_DEGRADATION = 3
+    PV_PCS_POWER_SOILING_DEGRADATION = 4
+    PV_POI_POWER_DEGRADATION = 5
+    PV_POI_POWER_SOILING_DEGRADATION = 6
+    PV_DC_COMBINER_POWER_BASE = 7
+    PV_DC_COMBINER_POWER_SOILING = 8
+    PV_PCS_POWER_BASE = 9
+    PV_PCS_POWER_SOILING = 10
+    PV_POI_POWER_BASE = 11
+    PV_POI_POWER_SOILING = 12
+    PV_DC_COMBINER_POAI_BASE = 13
+
+
 class KPITypeEnum(BaseDatabaseEnum[int], IntEnum):
     _db_table = nonmember("operational.kpi_types")  # type: ignore[misc]
     _db_id_column = nonmember("kpi_type_id")  # type: ignore[misc]

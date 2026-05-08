@@ -11,6 +11,7 @@ from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
 from core.enumerations import (
     EventLossTypeEnum,
+    ExpectedMetricIdEnum,
     KPITypeEnum,
     ProjectTypeEnum,
     SensorTypeEnum,
@@ -171,7 +172,12 @@ async def get_project_waterfall(
     ## TODO: integrate this into a table instead
     # POI expected metrics: prefer warranted degradation, then fall back.
     # 6 = soiling + degradation, 5 = degradation only, 12/11 = no degradation.
-    expected_metric_ids = [6, 5, 12, 11]
+    expected_metric_ids = [
+        ExpectedMetricIdEnum.PV_POI_POWER_SOILING_DEGRADATION,
+        ExpectedMetricIdEnum.PV_POI_POWER_DEGRADATION,
+        ExpectedMetricIdEnum.PV_POI_POWER_SOILING,
+        ExpectedMetricIdEnum.PV_POI_POWER_BASE,
+    ]
     data_expected = pd.DataFrame()
     for metric_id in expected_metric_ids:
         data_expected = await get_project_data_expected(

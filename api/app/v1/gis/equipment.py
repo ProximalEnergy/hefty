@@ -1,5 +1,6 @@
 import datetime
 import typing
+from collections.abc import Sequence
 from typing import Annotated
 
 import pandas as pd
@@ -8,6 +9,7 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import (
     DeviceTypeEnum,
+    ExpectedMetricIdEnum,
     KPITypeEnum,
     ProjectStatusType,
     SensorTypeEnum,
@@ -277,7 +279,7 @@ async def _get_latest_expected_power_by_device(
     start: datetime.datetime,
     end: datetime.datetime,
     device_ids: list[int],
-    expected_metric_ids_fallback: list[int],
+    expected_metric_ids_fallback: Sequence[int],
     project: models.Project,
     project_schema: str,
 ) -> tuple[dict[int, tuple[str | None, float | None]], dict[int, list[str]]]:
@@ -820,14 +822,24 @@ async def utility_expected(
         # Add fallback expected metric IDs for PCS (expected_metric_type_id 2)
         # Try with soiling first (10), then without soiling (9), then with
         # degradation (3), then without degradation (4)
-        expected_metric_ids_fallback = [10, 9, 4, 3]
+        expected_metric_ids_fallback = [
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_PCS_POWER_BASE,
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING_DEGRADATION,
+            ExpectedMetricIdEnum.PV_PCS_POWER_DEGRADATION,
+        ]
         multiplier = 1_000.0  # Raw data presumed in kW?
         expected_device_ids_for_query = device_ids
     elif first_device_type_id == DeviceTypeEnum.PV_DC_COMBINER:
         # Add fallback expected metric IDs for Combiner (expected_metric_type_id 1)
         # Try with soiling first (8), then without soiling (7), then with
         # degradation (1), then without degradation (2)
-        expected_metric_ids_fallback = [8, 7, 2, 1]
+        expected_metric_ids_fallback = [
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_BASE,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING_DEGRADATION,
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_DEGRADATION,
+        ]
         multiplier = 1 / 1_000  # V * A = W -> kW
         expected_device_ids_for_query = device_ids
         pv_dc_combiner_case = True

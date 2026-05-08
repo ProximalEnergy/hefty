@@ -1,10 +1,10 @@
 import logging
 import random
 import string
-from enum import Enum
 
 import pandas as pd
 import sqlalchemy
+from core.enumerations import ExpectedMetricIdEnum
 from p01_get_data.s00_get_simulation_config import SimulationConfig
 from p02_simulation.p3_epoai.s05_soiling import ModelSoiling
 from p02_simulation.p4_dc_iv.s04_iv_2_warranted_degradation import ModelDegradation
@@ -16,35 +16,6 @@ from sqlalchemy.dialects.postgresql import insert
 def _generate_temp_table_name() -> str:
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=16))
     return f"temp_data_expected_{suffix}"
-
-
-class ExpectedMetricId(Enum):
-    """Enum representing all possible states of expected metrics based on:
-    - expected_metric_type_id
-    - includes_soiling
-    - includes_warranted_degradation
-    """
-
-    # PV DC Combiner Power (type_id=1) combinations
-    PV_DC_COMBINER_POWER_DEGRADATION = 1  # [ ] [v]
-    PV_DC_COMBINER_POWER_SOILING_DEGRADATION = 2  # [v] [v]
-    PV_DC_COMBINER_POWER_BASE = 7  # [ ] [ ]
-    PV_DC_COMBINER_POWER_SOILING = 8  # [v] [ ]
-
-    # PV Inverter Power (type_id=2) combinations
-    PV_PCS_POWER_DEGRADATION = 3  # [ ] [v]
-    PV_PCS_POWER_SOILING_DEGRADATION = 4  # [v] [v]
-    PV_PCS_POWER_BASE = 9  # [ ] [ ]
-    PV_PCS_POWER_SOILING = 10  # [v] [ ]
-
-    # PV POI Power (type_id=3) combinations
-    PV_POI_POWER_DEGRADATION = 5  # [ ] [v]
-    PV_POI_POWER_SOILING_DEGRADATION = 6  # [v] [v]
-    PV_POI_POWER_BASE = 11  # [ ] [ ]
-    PV_POI_POWER_SOILING = 12  # [v] [ ]
-
-    # PV DC Combiner Plane 0 (type_id=4) combinations
-    PV_DC_COMBINER_POAI_BASE = 13  # [ ] [v]
 
 
 def upload_to_proximal_db(
@@ -65,51 +36,57 @@ def upload_to_proximal_db(
         # PV DC Combiner Power (COMBINER)
         case (SimulationLevel.COMBINER, False, False):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_DC_COMBINER_POWER_BASE.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_BASE.value
         case (SimulationLevel.COMBINER, True, False):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_DC_COMBINER_POWER_SOILING.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING.value
         case (SimulationLevel.COMBINER, False, True):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_DC_COMBINER_POWER_DEGRADATION.value
+            expected_metric_id = (
+                ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_DEGRADATION.value
+            )
         case (SimulationLevel.COMBINER, True, True):
             value_column_name = "p_mp"
             expected_metric_id = (
-                ExpectedMetricId.PV_DC_COMBINER_POWER_SOILING_DEGRADATION.value
+                ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING_DEGRADATION.value
             )
 
         # PV Inverter Power (INVERTER)
         case (SimulationLevel.INVERTER, False, False):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_PCS_POWER_BASE.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_PCS_POWER_BASE.value
         case (SimulationLevel.INVERTER, True, False):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_PCS_POWER_SOILING.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_PCS_POWER_SOILING.value
         case (SimulationLevel.INVERTER, False, True):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_PCS_POWER_DEGRADATION.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_PCS_POWER_DEGRADATION.value
         case (SimulationLevel.INVERTER, True, True):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_PCS_POWER_SOILING_DEGRADATION.value
+            expected_metric_id = (
+                ExpectedMetricIdEnum.PV_PCS_POWER_SOILING_DEGRADATION.value
+            )
 
         # PV POI Power (INTERCONNECTION)
         case (SimulationLevel.INTERCONNECTION, False, False):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_POI_POWER_BASE.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_POI_POWER_BASE.value
         case (SimulationLevel.INTERCONNECTION, True, False):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_POI_POWER_SOILING.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_POI_POWER_SOILING.value
         case (SimulationLevel.INTERCONNECTION, False, True):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_POI_POWER_DEGRADATION.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_POI_POWER_DEGRADATION.value
         case (SimulationLevel.INTERCONNECTION, True, True):
             value_column_name = "p_mp"
-            expected_metric_id = ExpectedMetricId.PV_POI_POWER_SOILING_DEGRADATION.value
+            expected_metric_id = (
+                ExpectedMetricIdEnum.PV_POI_POWER_SOILING_DEGRADATION.value
+            )
 
         # PV DC Combiner (PLANE_OF_ARRAY_IRRADIANCE)
         case (SimulationLevel.PLANE_OF_ARRAY_IRRADIANCE, _, _):
             value_column_name = "gpoai"
-            expected_metric_id = ExpectedMetricId.PV_DC_COMBINER_POAI_BASE.value
+            expected_metric_id = ExpectedMetricIdEnum.PV_DC_COMBINER_POAI_BASE.value
 
         case _:
             raise ValueError(

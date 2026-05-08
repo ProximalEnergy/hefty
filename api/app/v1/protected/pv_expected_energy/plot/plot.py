@@ -7,7 +7,7 @@ from app._utils.recursive_parents import get_recursive_parents
 from core.crud.operational.device_types import get_device_types
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceTypeEnum, SensorTypeEnum
+from core.enumerations import DeviceTypeEnum, ExpectedMetricIdEnum, SensorTypeEnum
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
@@ -106,24 +106,48 @@ async def utility_expected_route(
     # Meter
     if device["device_type_id"] == DeviceTypeEnum.METER:
         sensor_type_ids = [SensorTypeEnum.METER_ACTIVE_POWER]
-        expected_metric_id_clean = 11 if not warranted_degradation else 5
-        expected_metric_id_soiled = 12 if not warranted_degradation else 6
+        expected_metric_id_clean = (
+            ExpectedMetricIdEnum.PV_POI_POWER_BASE
+            if not warranted_degradation
+            else ExpectedMetricIdEnum.PV_POI_POWER_DEGRADATION
+        )
+        expected_metric_id_soiled = (
+            ExpectedMetricIdEnum.PV_POI_POWER_SOILING
+            if not warranted_degradation
+            else ExpectedMetricIdEnum.PV_POI_POWER_SOILING_DEGRADATION
+        )
         multiplier = 1_000.0
         expected_device_ids = [1]
         pv_dc_combiner = False
     # PV Inverter
     elif device["device_type_id"] == DeviceTypeEnum.PV_INVERTER:
         sensor_type_ids = [SensorTypeEnum.PV_INVERTER_AC_POWER]
-        expected_metric_id_clean = 9 if not warranted_degradation else 3
-        expected_metric_id_soiled = 10 if not warranted_degradation else 4
+        expected_metric_id_clean = (
+            ExpectedMetricIdEnum.PV_PCS_POWER_BASE
+            if not warranted_degradation
+            else ExpectedMetricIdEnum.PV_PCS_POWER_DEGRADATION
+        )
+        expected_metric_id_soiled = (
+            ExpectedMetricIdEnum.PV_PCS_POWER_SOILING
+            if not warranted_degradation
+            else ExpectedMetricIdEnum.PV_PCS_POWER_SOILING_DEGRADATION
+        )
         multiplier = 1_000.0
         expected_device_ids = [device_id]
         pv_dc_combiner = False
     # PV DC Combiner
     elif device["device_type_id"] == DeviceTypeEnum.PV_DC_COMBINER:
         sensor_type_ids = [SensorTypeEnum.PV_DC_COMBINER_CURRENT]
-        expected_metric_id_clean = 7 if not warranted_degradation else 1
-        expected_metric_id_soiled = 8 if not warranted_degradation else 2
+        expected_metric_id_clean = (
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_BASE
+            if not warranted_degradation
+            else ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_DEGRADATION
+        )
+        expected_metric_id_soiled = (
+            ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING
+            if not warranted_degradation
+            else ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING_DEGRADATION
+        )
         multiplier = 1 / 1_000
         expected_device_ids = [device_id]
         pv_dc_combiner = True
