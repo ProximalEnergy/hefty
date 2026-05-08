@@ -8,6 +8,7 @@
   - `uv run --project issues python -m issues.orchestrator.run_issues`
 - Output behavior:
   - The runner discovers active projects from `operational.projects` (read-only).
+  - Normal scheduled runs evaluate a two-hour lookback window.
   - Detector context is read from project schemas via `core`.
   - Issue lifecycle is persisted to project DB tables.
   - Rotating logs are written beside orchestration scripts.

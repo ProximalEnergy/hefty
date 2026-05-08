@@ -20,6 +20,7 @@ def test_build_configured_detectors_defaults_to_all() -> None:
     )
     assert len(configured) == 1
     assert configured[0].issue_category_id == 101
+    assert configured[0].requirements.telemetry_window_minutes == 120
 
 
 def test_build_configured_detectors_filters_supported_subset() -> None:

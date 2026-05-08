@@ -9,7 +9,7 @@ class MetStationNonCommunicatingConfig:
 
     detector_name: str = "met_station_non_communicating"
     issue_category_name: str = "Met Station Non-Communicating"
-    evaluation_window_minutes: int = 60
+    evaluation_window_minutes: int = 120
     expected_interval_minutes_default: int = 5
     minimum_missing_samples_to_open: int = 3
     open_missing_ratio_threshold: float = 0.85

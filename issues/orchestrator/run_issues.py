@@ -33,6 +33,19 @@ LOGGER = logging.getLogger(__name__)
 _BACKFILL_DAY_WINDOW_MINUTES = 24 * 60
 
 
+def _floor_to_five_minute_boundary(
+    *,
+    value: datetime.datetime,
+) -> datetime.datetime:
+    """Floor a timezone-aware datetime to its prior 5-minute boundary."""
+    floored_minute = value.minute - (value.minute % 5)
+    return value.replace(
+        minute=floored_minute,
+        second=0,
+        microsecond=0,
+    )
+
+
 def get_core_package_version() -> str:
     """Read the installed core package version for runtime diagnostics."""
     try:
@@ -76,11 +89,17 @@ def run_issues_for_projects(
             end=end,
         )
 
-    now = run_time or datetime.datetime.now(datetime.UTC)
+    if run_time is None:
+        raw_now = datetime.datetime.now(datetime.UTC)
+        now = _floor_to_five_minute_boundary(value=raw_now)
+    else:
+        raw_now = run_time
+        now = run_time
     LOGGER.info(
         "Resolved project scope for issues run",
         extra={
             "project_count": len(projects),
+            "raw_run_time": raw_now.isoformat(),
             "run_time": now.isoformat(),
             "issue_category_ids": issue_category_ids,
         },

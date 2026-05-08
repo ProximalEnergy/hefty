@@ -1,6 +1,10 @@
 import datetime
 
-from issues.orchestrator.run_issues import run_issues_backfill_for_projects
+from issues.orchestrator.run_issues import (
+    _floor_to_five_minute_boundary,
+    run_issues_backfill_for_projects,
+    run_issues_for_projects,
+)
 from issues.orchestrator.run_project import ProjectIssueRunSummary
 
 
@@ -80,3 +84,102 @@ def test_backfill_iterates_inclusive_days_with_project_local_boundaries(
     assert overrides == [24 * 60, 24 * 60]
     assert coordinate_query_count == 1
     assert passed_coordinates == [fixed_coords, fixed_coords]
+
+
+def test_floor_to_five_minute_boundary_rounds_down() -> None:
+    value = datetime.datetime(2026, 5, 8, 13, 42, 39, 1200, tzinfo=datetime.UTC)
+
+    assert _floor_to_five_minute_boundary(value=value) == datetime.datetime(
+        2026,
+        5,
+        8,
+        13,
+        40,
+        tzinfo=datetime.UTC,
+    )
+
+
+def test_run_issues_for_projects_floors_default_run_time(*, monkeypatch) -> None:
+    passed_run_times: list[datetime.datetime] = []
+    floored_run_time = datetime.datetime(2026, 5, 8, 13, 40, tzinfo=datetime.UTC)
+
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues.discover_project_ids",
+        lambda: ["project-a"],
+    )
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues._floor_to_five_minute_boundary",
+        lambda *, value: floored_run_time,
+    )
+
+    def fake_run_projects_once(
+        *,
+        project_ids: list[str],
+        run_time: datetime.datetime,
+        issue_category_ids: list[int] | None,
+        evaluation_window_minutes_override: int | None = None,
+        project_coordinates: tuple[float | None, float | None] | None = None,
+    ) -> list[ProjectIssueRunSummary]:
+        assert project_ids == ["project-a"]
+        assert issue_category_ids is None
+        assert evaluation_window_minutes_override is None
+        assert project_coordinates is None
+        passed_run_times.append(run_time)
+        return []
+
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues._run_projects_once",
+        fake_run_projects_once,
+    )
+
+    run_issues_for_projects()
+
+    assert passed_run_times == [floored_run_time]
+
+
+def test_run_issues_for_projects_keeps_explicit_run_time(*, monkeypatch) -> None:
+    passed_run_times: list[datetime.datetime] = []
+    explicit_run_time = datetime.datetime(
+        2026,
+        5,
+        8,
+        13,
+        42,
+        39,
+        tzinfo=datetime.UTC,
+    )
+
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues.discover_project_ids",
+        lambda: ["project-a"],
+    )
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues._floor_to_five_minute_boundary",
+        lambda *, value: (_ for _ in ()).throw(
+            AssertionError("Should not floor explicit run_time")
+        ),
+    )
+
+    def fake_run_projects_once(
+        *,
+        project_ids: list[str],
+        run_time: datetime.datetime,
+        issue_category_ids: list[int] | None,
+        evaluation_window_minutes_override: int | None = None,
+        project_coordinates: tuple[float | None, float | None] | None = None,
+    ) -> list[ProjectIssueRunSummary]:
+        assert project_ids == ["project-a"]
+        assert issue_category_ids is None
+        assert evaluation_window_minutes_override is None
+        assert project_coordinates is None
+        passed_run_times.append(run_time)
+        return []
+
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues._run_projects_once",
+        fake_run_projects_once,
+    )
+
+    run_issues_for_projects(run_time=explicit_run_time)
+
+    assert passed_run_times == [explicit_run_time]

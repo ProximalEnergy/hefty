@@ -39,7 +39,7 @@ def test_detector_daylight_window_keeps_current_behavior(*, monkeypatch) -> None
             time=run_time - datetime.timedelta(minutes=offset * 5),
             value=None,
         )
-        for offset in range(12)
+        for offset in range(24)
     )
     context = _build_context(points=points)
     monkeypatch.setattr(
@@ -51,7 +51,7 @@ def test_detector_daylight_window_keeps_current_behavior(*, monkeypatch) -> None
     candidates = detector.detect(context=context)
 
     assert len(candidates) == 1
-    assert candidates[0].detector_metadata["expected_samples"] == 12
+    assert candidates[0].detector_metadata["expected_samples"] == 24
     assert candidates[0].detector_metadata["present_samples"] == 0
 
 
@@ -68,7 +68,7 @@ def test_detector_nighttime_window_emits_no_candidate(*, monkeypatch) -> None:
             time=run_time - datetime.timedelta(minutes=offset * 5),
             value=None,
         )
-        for offset in range(12)
+        for offset in range(24)
     )
     context = _build_context(points=points)
     monkeypatch.setattr(
@@ -93,20 +93,20 @@ def test_detector_mixed_window_uses_daylight_only(*, monkeypatch) -> None:
             time=run_time - datetime.timedelta(minutes=offset * 5),
             value=None,
         )
-        for offset in range(12)
+        for offset in range(24)
     )
     context = _build_context(points=points)
 
     def mixed_daytime(*, timestamps, latitude, longitude):
-        return tuple(index < 6 for index, _ in enumerate(timestamps))
+        return tuple(index < 12 for index, _ in enumerate(timestamps))
 
     monkeypatch.setattr(detector, "_is_daytime_timestamps", mixed_daytime)
 
     candidates = detector.detect(context=context)
 
     assert len(candidates) == 1
-    assert candidates[0].detector_metadata["expected_samples"] == 6
-    assert candidates[0].detector_metadata["missing_samples"] == 6
+    assert candidates[0].detector_metadata["expected_samples"] == 12
+    assert candidates[0].detector_metadata["missing_samples"] == 12
 
 
 def test_daytime_helper_normalizes_naive_timestamps_to_aware() -> None:
