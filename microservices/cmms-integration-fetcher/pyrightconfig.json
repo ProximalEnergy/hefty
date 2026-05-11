@@ -1,0 +1,8 @@
+{
+    "venvPath": "../..",
+    "venv": ".venv",
+    "extraPaths": [
+        "../../core/src"
+    ],
+    "typeCheckingMode": "off"
+}
