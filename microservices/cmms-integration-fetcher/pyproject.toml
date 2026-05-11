@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmms-integration-fetcher"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3",
+    "core",
+    "sentry-sdk~=2.58",
+]
+
+[tool.uv.sources]
+core = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["."]

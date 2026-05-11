@@ -19,15 +19,14 @@ COPY uv.lock pyproject.toml ./
 # files for core
 COPY core/pyproject.toml core/README.md ./core/
 COPY core/src/ ./core/src/
-# files for microservices/cmms-ticket-download
-COPY microservices/cmms-ticket-download/pyproject.toml microservices/cmms-ticket-download/lambda_function.py ./microservices/cmms-ticket-download/
-COPY microservices/cmms-ticket-download/_scripts/install_lambda_dependencies.sh ./microservices/cmms-ticket-download/_scripts/
-COPY microservices/cmms-ticket-download/src/ ./microservices/cmms-ticket-download/src/
-
+COPY microservices/cmms-integration-fetcher/pyproject.toml ./microservices/cmms-integration-fetcher/
+COPY microservices/cmms-integration-fetcher/_scripts/install_lambda_dependencies.sh ./microservices/cmms-integration-fetcher/_scripts/
+COPY microservices/cmms-integration-fetcher/lambda_function.py ./microservices/cmms-integration-fetcher/
 
 RUN --mount=from=uv,source=/uv,target=/bin/uv \
-  --mount=type=cache,target=/root/.cache/uv \
-  sh ./microservices/cmms-ticket-download/_scripts/install_lambda_dependencies.sh
+    --mount=type=cache,target=/root/.cache/uv \
+    sh ./microservices/cmms-integration-fetcher/_scripts/install_lambda_dependencies.sh
+
 
 # -----------------
 # Stage 2: Runtime
@@ -39,6 +38,6 @@ FROM public.ecr.aws/lambda/python:3.12-arm64
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 
 # Copy the lambda function code
-COPY microservices/cmms-ticket-download/lambda_function.py ${LAMBDA_TASK_ROOT}
+COPY microservices/cmms-integration-fetcher/lambda_function.py ${LAMBDA_TASK_ROOT}
 
 CMD ["lambda_function.lambda_handler"]

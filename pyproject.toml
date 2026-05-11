@@ -51,6 +51,7 @@ members = [
     "pv-eem",
     "issues",
     "microservices/cmms-ticket-download",
+    "microservices/cmms-integration-fetcher",
 ]
 
 [[tool.uv.index]]
