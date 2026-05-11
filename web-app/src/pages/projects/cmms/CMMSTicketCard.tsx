@@ -191,28 +191,38 @@ const CMMSTicketCard = ({
         s.length > DESCRIPTION_COLLAPSE_CHARACTER_LIMIT,
     }
   }, [ticket.summary])
-  const { ticketActivityMessages, shouldCollapseTicketActivity } = useMemo(() => {
-    const activity = isRecord(ticket.json_raw)
-      ? ticket.json_raw.TicketActivity
-      : undefined
-    const messages =
-      provider?.toLowerCase() === 'qe solar'
-        ? formatTicketActivityMessages(activity)
-        : []
-    let shouldCollapse = messages.length > 1
-    if (!shouldCollapse && messages.length === 1) {
-      const text = [messages[0].date, messages[0].text].filter(Boolean).join('\n')
-      shouldCollapse =
-        text.split('\n').length > TICKET_ACTIVITY_COLLAPSED_LINES ||
-        text.length > DESCRIPTION_COLLAPSE_CHARACTER_LIMIT
-    }
-    return { ticketActivityMessages: messages, shouldCollapseTicketActivity: shouldCollapse }
-  }, [ticket.json_raw, provider])
+  const { ticketActivityMessages, shouldCollapseTicketActivity } =
+    useMemo(() => {
+      const activity = isRecord(ticket.json_raw)
+        ? ticket.json_raw.TicketActivity
+        : undefined
+      const messages =
+        provider?.toLowerCase() === 'qe solar'
+          ? formatTicketActivityMessages(activity)
+          : []
+      let shouldCollapse = messages.length > 1
+      if (!shouldCollapse && messages.length === 1) {
+        const text = [messages[0].date, messages[0].text]
+          .filter(Boolean)
+          .join('\n')
+        shouldCollapse =
+          text.split('\n').length > TICKET_ACTIVITY_COLLAPSED_LINES ||
+          text.length > DESCRIPTION_COLLAPSE_CHARACTER_LIMIT
+      }
+      return {
+        ticketActivityMessages: messages,
+        shouldCollapseTicketActivity: shouldCollapse,
+      }
+    }, [ticket.json_raw, provider])
   const displayedTicketActivityMessages = useMemo(() => {
     return shouldCollapseTicketActivity && !ticketActivityExpanded
       ? ticketActivityMessages.slice(0, 1)
       : ticketActivityMessages
-  }, [shouldCollapseTicketActivity, ticketActivityExpanded, ticketActivityMessages])
+  }, [
+    shouldCollapseTicketActivity,
+    ticketActivityExpanded,
+    ticketActivityMessages,
+  ])
   const hasExternalLinkHandlers =
     typeof onLink === 'function' || typeof onUnlink === 'function'
   const actionLabel = isLinked ? 'Unlink Ticket' : 'Link Ticket'
