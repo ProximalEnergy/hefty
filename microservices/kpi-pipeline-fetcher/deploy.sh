@@ -6,7 +6,6 @@ MONO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Deployment configuration
 ECR_URI="016997484973.dkr.ecr.us-east-2.amazonaws.com/kpi-pipeline-fetcher-ecr:latest"
 LAMBDA_FUNCTION="kpi-pipeline-fetcher-lambda"
-IMAGE_NAME="kpi-pipeline-fetcher-image:latest"
 
 # Load AWS/CodeArtifact auth vars
 . "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
@@ -32,18 +31,17 @@ ${UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME}"
 INDEX_PASSWORD_ARG="UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=\
 ${UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD}"
 
+aws ecr get-login-password --region us-east-2 | docker login \
+  --username AWS \
+  --password-stdin 016997484973.dkr.ecr.us-east-2.amazonaws.com
 docker buildx build \
   --platform linux/arm64 \
   --provenance=false \
   --build-arg "${INDEX_USER_ARG}" \
   --build-arg "${INDEX_PASSWORD_ARG}" \
-  -t "$IMAGE_NAME" \
+  -t "$ECR_URI" \
+  --push \
   .
-aws ecr get-login-password --region us-east-2 | docker login \
-  --username AWS \
-  --password-stdin 016997484973.dkr.ecr.us-east-2.amazonaws.com
-docker tag "$IMAGE_NAME" "$ECR_URI"
-docker push "$ECR_URI"
 
 # Update Lambda to latest pushed image
 aws lambda update-function-code \
