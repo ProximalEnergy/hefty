@@ -244,6 +244,13 @@ exclude = [
     # --- API ---
     "*protected/deletions/delete_project*.py",
 ]
+ignore_decorators = [
+    # API route functions
+    "@router.delete",
+    "@router.get",
+    "@router.post",
+    "@router.put",
+]
 
 [tool.basedpyright]
 typeCheckingMode = "off"
