@@ -320,7 +320,16 @@ export const CalendarItemModal = ({
   const categoryOptionsForSelect = useMemo(() => {
     // If we have categories, use them even if still loading (refetch scenario)
     if (fetchedCategories && fetchedCategories.length > 0) {
-      return fetchedCategories.map((cat: CalendarEventCategory) => ({
+      const categoriesWithOtherLast = [...fetchedCategories].sort((a, b) => {
+        const aIsOther = a.long_name.toLowerCase() === 'other'
+        const bIsOther = b.long_name.toLowerCase() === 'other'
+
+        if (aIsOther && !bIsOther) return 1
+        if (!aIsOther && bIsOther) return -1
+        return a.long_name.localeCompare(b.long_name)
+      })
+
+      return categoriesWithOtherLast.map((cat: CalendarEventCategory) => ({
         label: cat.long_name,
         value: cat.category_id,
         color_code: cat.color_code,
@@ -842,6 +851,9 @@ export const CalendarItemModal = ({
               </Button>
             )}
           </Group>
+          <Text size="sm" c="dimmed">
+            Note: Add project milestone dates from the project settings page.
+          </Text>
 
           {!item && projects && (
             <Select

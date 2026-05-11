@@ -144,7 +144,16 @@ export const DetachAndEditOccurrenceModal = ({
         },
       ]
     }
-    return fetchedCategories.map((cat: CalendarEventCategory) => ({
+    const categoriesWithOtherLast = [...fetchedCategories].sort((a, b) => {
+      const aIsOther = a.long_name.toLowerCase() === 'other'
+      const bIsOther = b.long_name.toLowerCase() === 'other'
+
+      if (aIsOther && !bIsOther) return 1
+      if (!aIsOther && bIsOther) return -1
+      return a.long_name.localeCompare(b.long_name)
+    })
+
+    return categoriesWithOtherLast.map((cat: CalendarEventCategory) => ({
       label: cat.long_name,
       value: cat.category_id,
       color_code: cat.color_code,
