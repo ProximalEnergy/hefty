@@ -379,9 +379,14 @@ const CMMSTicketCard = ({
                     )}
                     <Box
                       p="xs"
-                      bg="gray.0"
                       style={{
-                        border: '1px solid var(--mantine-color-gray-3)',
+                        backgroundColor:
+                          'light-dark(var(--mantine-color-gray-0), ' +
+                          'var(--mantine-color-dark-5))',
+                        border:
+                          '1px solid light-dark(' +
+                          'var(--mantine-color-gray-3), ' +
+                          'var(--mantine-color-dark-4))',
                         borderRadius: 'var(--mantine-radius-sm)',
                       }}
                     >
