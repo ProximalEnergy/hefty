@@ -7,7 +7,7 @@ from app import interfaces
 from app._crud.operational.project_data_last_updated import (
     get_project_data_last_updated,
 )
-from app.dependencies import check_project_access_from_query_async
+from app._dependencies.authorization import require_user_project
 
 router = APIRouter(
     prefix="/data-last-updated",
@@ -18,7 +18,7 @@ router = APIRouter(
 @router.get("", response_model=interfaces.ProjectDataLastUpdatedInterface)
 async def get_project_data_last_updated_endpoint(
     project_id: UUID,
-    _auth: None = Depends(check_project_access_from_query_async),
+    _auth: None = Depends(require_user_project),
 ):
     """todo
 

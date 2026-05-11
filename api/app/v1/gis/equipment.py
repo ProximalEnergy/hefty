@@ -19,13 +19,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import dependencies, interfaces, logger, utils
+from app._dependencies import authorization
 from app.v1.operational.kpi_data import get_kpi_data_helper
 from core import crud, models
 
 router = APIRouter(
     prefix="/{project_id}",
     tags=["gis"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     include_in_schema=utils.get_include_in_schema(),
 )
 

@@ -7,7 +7,8 @@ from core.crud.admin.company_projects import (
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 
-from app import dependencies, interfaces
+from app import interfaces
+from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 
 router = APIRouter(prefix="/company-projects", tags=["company-projects"])
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/company-projects", tags=["company-projects"])
 
 @router.get(
     "/projects/{project_id}",
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     response_model=list[interfaces.CompanyProjectInterface],
 )
 async def get_company_projects_route(
@@ -40,7 +41,7 @@ async def get_company_projects_route(
 
 @router.get(
     "/projects/{project_id}/all-companies",
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     response_model=list[interfaces.CompanyProjectInterface],
 )
 async def get_all_company_projects_for_project(

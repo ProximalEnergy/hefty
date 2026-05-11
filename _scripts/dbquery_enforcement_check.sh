@@ -121,11 +121,31 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
+import re
 import sys
 from collections import Counter, defaultdict
 
 results_path = pathlib.Path(sys.argv[1])
 baseline_path = pathlib.Path(sys.argv[2])
+FASTAPI_ROUTE_DECORATOR = re.compile(
+    r"^[a-zA-Z_][a-zA-Z0-9_]*\."
+    r"(api_route|delete|get|head|options|patch|post|put|trace|websocket)\("
+)
+
+
+def is_fastapi_route_decorator(
+    *, file_path: str, line_num: int, normalized_text: str
+) -> bool:
+    """Return whether the match is a FastAPI route decorator false positive."""
+    if not FASTAPI_ROUTE_DECORATOR.match(normalized_text):
+        return False
+
+    try:
+        line = pathlib.Path(file_path).read_text().splitlines()[line_num - 1]
+    except (IndexError, OSError):
+        return False
+
+    return line.lstrip().startswith("@")
 
 current: Counter[str] = Counter()
 violation_lines: dict[str, list[int]] = defaultdict(list)
@@ -141,9 +161,16 @@ for line in results_path.read_text().splitlines():
         rule_id = "sqlalchemy-db-crud-outside-dbquery"
 
     match_text = data.get("text", "")
+    line_num = data.get("range", {}).get("start", {}).get("line", 0) + 1
     if rule_id == "sqlalchemy-db-crud-outside-dbquery":
         normalized_text = " ".join(match_text.split())
         if normalized_text.startswith("google_request.execute("):
+            continue
+        if is_fastapi_route_decorator(
+            file_path=file_path,
+            line_num=line_num,
+            normalized_text=normalized_text,
+        ):
             continue
 
     text_hash = hashlib.sha256(match_text.encode("utf-8")).hexdigest()[:8]
@@ -152,7 +179,6 @@ for line in results_path.read_text().splitlines():
     key = f"{file_path}:{rule_id}:{text_hash}:{snippet}"
     current[key] += 1
 
-    line_num = data.get("range", {}).get("start", {}).get("line", 0) + 1
     violation_lines[key].append(line_num)
 
 baseline: Counter[str] = Counter()

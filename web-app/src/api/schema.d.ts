@@ -13590,7 +13590,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -13622,7 +13621,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -13656,7 +13654,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -13695,7 +13692,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -13734,7 +13730,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -13768,7 +13763,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -13833,7 +13827,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -13867,7 +13860,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -14040,7 +14032,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -14074,7 +14065,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -14177,7 +14167,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14211,7 +14200,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14243,7 +14231,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14343,7 +14330,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14375,7 +14361,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 team_id: string;
@@ -14411,7 +14396,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 team_id: string;
@@ -14444,7 +14428,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 team_id: string;
@@ -14476,7 +14459,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 team_id: string;
@@ -14612,7 +14594,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14679,7 +14660,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14715,7 +14695,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -14819,7 +14798,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 user_id: string;
@@ -15457,7 +15435,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -16010,7 +15987,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -16044,7 +16020,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -16081,7 +16056,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 block_id: number;
@@ -16116,7 +16090,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -16153,7 +16126,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -16628,7 +16600,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -16664,7 +16635,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 drone_integration_id: number;
@@ -16702,7 +16672,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 drone_integration_id: number;
@@ -16771,7 +16740,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -16838,7 +16806,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -16874,7 +16841,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 drone_integration_id: number;
@@ -16913,7 +16879,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 drone_integration_id: number;
@@ -16979,7 +16944,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -17015,7 +16979,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 drone_provider_id: number;
@@ -17053,7 +17016,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 drone_provider_id: number;
@@ -17163,7 +17125,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -17300,7 +17261,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17334,7 +17294,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17368,7 +17327,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17406,7 +17364,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17445,7 +17402,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17478,7 +17434,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17518,7 +17473,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17552,7 +17506,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17590,7 +17543,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17623,7 +17575,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17662,7 +17613,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17696,7 +17646,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17736,7 +17685,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17768,7 +17716,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17803,7 +17750,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -17836,7 +17782,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -17875,7 +17820,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -17914,7 +17858,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -17948,7 +17891,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -17988,7 +17930,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -18027,7 +17968,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -18062,7 +18002,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18101,7 +18040,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 claim_id: number;
@@ -18135,7 +18073,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18174,7 +18111,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18211,7 +18147,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18255,7 +18190,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18289,7 +18223,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18323,7 +18256,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18361,7 +18293,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 contract_id: number;
@@ -18396,7 +18327,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 document_id: string;
@@ -18431,7 +18361,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18472,7 +18401,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18516,7 +18444,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18558,7 +18485,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18592,7 +18518,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18632,7 +18557,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18669,7 +18593,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 device_id: number;
@@ -18711,7 +18634,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 device_id: number;
@@ -18757,7 +18679,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18795,7 +18716,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18829,7 +18749,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18870,7 +18789,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 document_id: string;
@@ -18905,7 +18823,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 document_id: string;
@@ -18940,7 +18857,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -18974,7 +18890,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19008,7 +18923,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 inspection_uuid: string;
@@ -19043,7 +18957,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19083,7 +18996,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19117,7 +19029,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19157,7 +19068,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19191,7 +19101,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19229,7 +19138,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_message_id: number;
@@ -19268,7 +19176,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_message_id: number;
@@ -19303,7 +19210,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_id: number;
@@ -19340,7 +19246,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_id: number;
@@ -19377,7 +19282,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_id: number;
@@ -19419,7 +19323,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_id: number;
@@ -19457,7 +19360,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_id: number;
@@ -19502,7 +19404,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19546,7 +19447,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19580,7 +19480,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_id: number;
@@ -19619,7 +19518,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19661,7 +19559,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19698,7 +19595,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19734,7 +19630,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19771,7 +19666,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19805,7 +19699,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19843,7 +19736,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 /** @description Event ID to get anomalies for */
@@ -19881,7 +19773,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19923,7 +19814,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19962,7 +19852,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -19996,7 +19885,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 block_device_id: number;
@@ -20037,7 +19925,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20076,7 +19963,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20117,7 +20003,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20153,7 +20038,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20191,7 +20075,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20229,7 +20112,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20267,7 +20149,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20306,7 +20187,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20342,7 +20222,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20376,7 +20255,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20410,7 +20288,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20450,7 +20327,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20491,7 +20367,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20526,7 +20401,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20560,7 +20434,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20602,7 +20475,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20636,7 +20508,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 pv_budgeted_series_id: number;
@@ -20671,7 +20542,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20717,7 +20587,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20755,7 +20624,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20791,7 +20659,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20829,7 +20696,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20870,7 +20736,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20913,7 +20778,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20949,7 +20813,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -20986,7 +20849,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21027,7 +20889,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21071,7 +20932,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21109,7 +20969,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21158,7 +21017,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21197,7 +21055,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21231,7 +21088,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21269,7 +21125,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21450,7 +21305,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -21491,7 +21345,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -22383,7 +22236,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -23013,7 +22865,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23052,7 +22903,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23089,7 +22939,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23126,7 +22975,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23165,7 +23013,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23204,7 +23051,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23246,7 +23092,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23285,7 +23130,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23319,7 +23163,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23353,7 +23196,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23387,7 +23229,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23425,7 +23266,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 dashboard_id: string;
@@ -23464,7 +23304,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23502,7 +23341,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 dashboard_id: string;
@@ -23537,7 +23375,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 dashboard_id: string;
@@ -23572,7 +23409,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 dashboard_id: string;
@@ -23607,7 +23443,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 dashboard_id: string;
@@ -23646,7 +23481,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 dashboard_id: string;
@@ -23688,7 +23522,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23725,7 +23558,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23762,7 +23594,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 device_id: number;
@@ -23797,7 +23628,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 device_id: number;
@@ -23836,7 +23666,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23873,7 +23702,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23910,7 +23738,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23947,7 +23774,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -23984,7 +23810,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24021,7 +23846,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24058,7 +23882,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24095,7 +23918,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 pv_block_id: number;
@@ -24133,7 +23955,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24170,7 +23991,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 sensor_type_name_short: string;
@@ -24207,7 +24027,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24252,7 +24071,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24286,7 +24104,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24324,7 +24141,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24362,7 +24178,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 event_cmms_ticket_id: number;
@@ -24402,7 +24217,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24439,7 +24253,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24476,7 +24289,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24512,7 +24324,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24546,7 +24357,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24584,7 +24394,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24622,7 +24431,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24659,7 +24467,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 tag_pattern: string;
@@ -24694,7 +24501,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 tag_pattern: string;
@@ -24729,7 +24535,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 device_type_id: number;
@@ -24766,7 +24571,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 device_type_id: number;
@@ -24801,7 +24605,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24839,7 +24642,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24876,7 +24678,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24910,7 +24711,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24944,7 +24744,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -24982,7 +24781,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25021,7 +24819,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25058,7 +24855,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25092,7 +24888,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25126,7 +24921,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25160,7 +24954,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25197,7 +24990,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25243,7 +25035,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25280,7 +25071,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25314,7 +25104,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25357,7 +25146,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25396,7 +25184,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25439,7 +25226,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25473,7 +25259,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25510,7 +25295,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;
@@ -25546,7 +25330,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -25586,7 +25369,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -25622,7 +25404,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -25662,7 +25443,6 @@ export interface operations {
             };
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path?: never;
             cookie?: never;
@@ -25694,7 +25474,6 @@ export interface operations {
             query?: never;
             header?: {
                 "x-api-key"?: string;
-                authorization?: string;
             };
             path: {
                 project_id: string;

@@ -1075,8 +1075,8 @@ async def submit_claim(
         Depends(dependencies.get_project_db_async),
     ],
     user: Annotated[
-        interfaces.UserData,
-        Depends(dependencies.get_user_data_async),
+        interfaces.UserAuthed,
+        Depends(authentication.get_user),
     ],
     payload: Annotated[
         interfaces.ClaimSubmit | None,

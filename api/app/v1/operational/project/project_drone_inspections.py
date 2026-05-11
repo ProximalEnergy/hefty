@@ -19,12 +19,11 @@ from app._crud.projects.drone_inspections import (
     create_drone_inspection,
     get_drone_inspections,
 )
-from app._dependencies.authorization import require_jwt_or_api_superadmin
-from app.dependencies import (
-    check_project_access_async,
-    get_project_db_async,
-    get_project_name_short_async,
+from app._dependencies.authorization import (
+    require_jwt_or_api_superadmin,
+    require_user_project,
 )
+from app.dependencies import get_project_db_async, get_project_name_short_async
 from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
     DroneAnomalyCreate,
@@ -76,7 +75,7 @@ async def get_db_inspections(
 async def get_zeitview_inspections(
     project_id: uuid.UUID,
     project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
-    _access: Annotated[None, Depends(check_project_access_async)],
+    _access: Annotated[None, Depends(require_user_project)],
 ):
     """Get a list of historical inspections from Zeitview for a given project.
 
@@ -184,7 +183,7 @@ async def sync_zeitview_anomalies(
     project_id: uuid.UUID,
     inspection_uuid: uuid.UUID,
     project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
-    _access: Annotated[None, Depends(check_project_access_async)],
+    _access: Annotated[None, Depends(require_user_project)],
 ):
     """Fetch anomalies from Zeitview and store them in the database
     incrementally. Can resume from where it left off if interrupted.

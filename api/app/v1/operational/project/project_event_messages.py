@@ -46,6 +46,7 @@ from app._crud.projects import (
 from app._crud.projects import (
     event_messages as crud_event_messages,
 )
+from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from app.dependencies import (
     get_project_name_short_async,
@@ -1093,7 +1094,7 @@ async def toggle_event_chat_mute_route(
 async def get_event_chat_mute_status_route(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
-    _: Annotated[None, Depends(dependencies.check_project_access_async)],
+    _: Annotated[None, Depends(authorization.require_user_project)],
     event_id: int,
     user_data: Annotated[UserAuthed, Depends(get_user)],
 ) -> dict:

@@ -10,6 +10,7 @@ from app._crud.admin.user_projects import update_user_project_favorite
 from app._crud.admin.user_projects import (
     update_user_projects as update_user_projects_crud,
 )
+from app._dependencies import authorization
 from core import models
 
 router = APIRouter(prefix="/user-projects", tags=["user-projects"])
@@ -58,7 +59,7 @@ async def get_user_projects(
 # TODO:  Make this route more secure
 @router.patch(
     "/{user_id}/projects/{project_id}/favorite",
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 async def update_project_favorite(
     *,

@@ -7,12 +7,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app import dependencies, utils
+from app._dependencies import authorization
 from core import crud
 
 router = APIRouter(
     prefix="/ui/{project_id}",
     tags=["ui"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     # Do not include these endpoints in the Swagger UI because API users will
     # never access
     # them directly

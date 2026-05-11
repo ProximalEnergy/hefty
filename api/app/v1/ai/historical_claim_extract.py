@@ -11,7 +11,7 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from app import dependencies
+from app._dependencies import authorization
 from app.dependencies import get_project_name_short_async
 from app.logger import logger
 from app.v1.ai._openai_helpers import (
@@ -426,7 +426,7 @@ def _system_prompt(*, context: HistoricalClaimContext) -> str:
 @router.post(
     "/projects/{project_id}/historical-claim-extract",
     response_model=HistoricalClaimExtractResponse,
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 async def historical_claim_extract(
     project_id: UUID,

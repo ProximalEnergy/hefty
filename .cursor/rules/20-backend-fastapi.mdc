@@ -33,7 +33,7 @@ async def get_projects(
 - `get_user` - Get authenticated user from JWT or API key
 - `get_project_db_async` - Get project-scoped async DB session
 - `get_async_db` - Get async DB session for operational schema
-- `check_project_access_async` - Verify user has access to project
+- `require_user_project` - Verify user has access to project
 - `requires_admin_async` / `requires_superadmin_async` - Role checks
 
 # Database Access

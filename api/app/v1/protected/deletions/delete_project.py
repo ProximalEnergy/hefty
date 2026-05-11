@@ -7,11 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
 from app._crud.admin.user_projects import deep_delete_project
-from app.dependencies import (
-    check_project_access_async,
-    get_async_db,
-    requires_superadmin_async,
-)
+from app._dependencies import authorization
+from app.dependencies import get_async_db, requires_superadmin_async
 from app.logger import logger
 
 router = APIRouter()
@@ -26,7 +23,7 @@ router = APIRouter()
 @router.delete(
     "/{project_id}",
     dependencies=[
-        Depends(check_project_access_async),
+        Depends(authorization.require_user_project),
         Depends(requires_superadmin_async),
     ],
 )

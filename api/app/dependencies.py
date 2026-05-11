@@ -1,5 +1,7 @@
 import asyncio
+import importlib
 from collections.abc import AsyncGenerator
+from typing import cast
 from uuid import UUID
 
 import httpx
@@ -15,7 +17,6 @@ from core.dependencies import (
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing_extensions import deprecated
 
 from app import interfaces, settings
 from app.integrations.token_manager import TokenManager, get_tps_token_manager
@@ -291,106 +292,46 @@ async def get_api_user_data_async(
     return user_data
 
 
-@deprecated("Use app._dependencies.authentication.get_user instead.")
-async def get_user_data_async(
-    db: AsyncSession = Depends(get_async_db),
+async def _get_user_for_role_dependencies(
     *,
-    api_prod: bool = Depends(is_prod_api),
-    origin_prod: bool = Depends(is_prod_origin),
-    authorization: str = Header(None),
+    request: Request,
     x_api_key: str = Header(None),
-) -> interfaces.UserData:
-    """Get user data by trying API key auth then JWT auth.
+    db: AsyncSession = Depends(get_async_db),
+) -> interfaces.UserAuthed:
+    """Resolve the authenticated user without a module-level circular import.
 
     Args:
-        db: Database session used to find the user.
-        api_prod: Whether the API host is production.
-        origin_prod: Whether the request origin is production.
-        authorization: Authorization header containing the bearer token.
-        x_api_key: API key provided in the request headers.
+        request: Incoming HTTP request.
+        x_api_key: API key from the x-api-key header, if provided.
+        db: Database session used to look up the user.
     """
-
-    user_data = await get_user_data_from_api_key_async(
-        db=db,
-        x_api_key=x_api_key,
-        api_prod=api_prod,
+    get_user = getattr(
+        importlib.import_module("app._dependencies.authentication"),
+        "get_user",
     )
-    if not user_data:
-        try:
-            user_data = await get_user_data_from_jwt_async(
-                db=db,
-                authorization=authorization,
-                origin_prod=origin_prod,
-            )
-        except Exception:
-            user_data = await get_user_data_from_jwt_async(
-                db=db,
-                authorization=authorization,
-                origin_prod=(not origin_prod),
-            )
-
-    if not user_data:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    return user_data
-
-
-@deprecated("Use _dependencies.authentication.require_user_project instead.")
-def check_project_access_async(
-    *,
-    user_data: interfaces.UserData = Depends(get_user_data_async),
-    project_id: UUID = Path(...),
-):
-    """Handle check project access async.
-
-    Args:
-        user_data: Authenticated user data including project access.
-        project_id: Project UUID requested by the caller.
-    """
-    if project_id not in user_data.operational_project_ids:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
-
-@deprecated("Use app._dependencies.authentication.require_user_project instead.")
-def check_project_access_from_query_async(
-    *,
-    user_data: interfaces.UserData = Depends(get_user_data_async),
-    project_id: UUID,
-):
-    """Handle check project access async from query param.
-
-    Args:
-        user_data: Authenticated user data including project access.
-        project_id: Project UUID requested by the caller.
-    """
-    if project_id not in user_data.operational_project_ids:
-        raise HTTPException(status_code=403, detail="Forbidden")
+    return cast(
+        interfaces.UserAuthed,
+        await get_user(request=request, x_api_key=x_api_key, db=db),
+    )
 
 
 def get_is_admin_async(
-    *, user_data: interfaces.UserData = Depends(get_user_data_async)
+    *,
+    user: interfaces.UserAuthed = Depends(_get_user_for_role_dependencies),
 ) -> bool:
-    """Check if the user is an admin (or superadmin) in the database.
+    """Check if the user is an admin or superadmin.
 
     Args:
-        user_data (interfaces.UserData, optional): UserData object.
-        Defaults to Depends(get_user_data_async).
-
-    Returns:
-        bool: True if the user is an admin, False otherwise
+        user: Authenticated user payload.
     """
-    return user_data.user_type_id in [UserTypeEnum.SUPERADMIN, UserTypeEnum.ADMIN]
+    return user.user_type_id in [UserTypeEnum.SUPERADMIN, UserTypeEnum.ADMIN]
 
 
 def requires_admin_async(*, is_admin: bool = Depends(get_is_admin_async)) -> None:
-    """Raise a 403 error if the user is not an admin (or superadmin).
+    """Raise a 403 error if the user is not an admin or superadmin.
 
     Args:
-        is_admin (bool, optional): Whether the user is an admin.
-        Defaults to Depends(get_is_admin_async).
-
-    Raises:
-        HTTPException: 403 error if the user is not an admin (or superadmin)
+        is_admin: Whether the user is an admin.
     """
     if not is_admin:
         raise HTTPException(status_code=403, detail="Forbidden")
@@ -398,31 +339,24 @@ def requires_admin_async(*, is_admin: bool = Depends(get_is_admin_async)) -> Non
 
 def get_is_superadmin_async(
     *,
-    user_data: interfaces.UserData = Depends(get_user_data_async),
+    user: interfaces.UserAuthed = Depends(_get_user_for_role_dependencies),
 ) -> bool:
-    """Check if the user is a superadmin in the database.
+    """Check if the user is a superadmin.
 
     Args:
-        user_data (interfaces.UserData, optional): UserData object.
-        Defaults to Depends(get_user_data_async).
-
-    Returns:
-        bool: True if the user is a superadmin, False otherwise
+        user: Authenticated user payload.
     """
-    return user_data.user_type_id == UserTypeEnum.SUPERADMIN
+    return bool(user.user_type_id == UserTypeEnum.SUPERADMIN)
 
 
 def requires_superadmin_async(
-    *, is_superadmin: bool = Depends(get_is_superadmin_async)
+    *,
+    is_superadmin: bool = Depends(get_is_superadmin_async),
 ) -> None:
     """Raise a 403 error if the user is not a superadmin.
 
     Args:
-        is_superadmin (bool, optional): Whether the user is a superadmin.
-        Defaults to Depends(get_is_superadmin_async).
-
-    Raises:
-        HTTPException: 403 error if the user is not a superadmin
+        is_superadmin: Whether the user is a superadmin.
     """
     if not is_superadmin:
         raise HTTPException(status_code=403, detail="Forbidden")

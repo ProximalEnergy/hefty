@@ -570,7 +570,7 @@ api/app/v1/operational/projects.py:sqlalchemy-db-crud-outside-dbquery:312292c7:d
 api/app/v1/operational/projects.py:sqlalchemy-db-crud-outside-dbquery:6faed9ea:db.commit()
 api/app/v1/operational/projects.py:sqlalchemy-db-crud-outside-dbquery:81c138ff:db.add(existing_project)
 api/app/v1/operational/user_project_labels.py:sqlalchemy-db-crud-outside-dbquery:6409c6df:router.delete("/{user_project_label_id}", status_code=204)
-api/app/v1/protected/deletions/delete_project.py:sqlalchemy-db-crud-outside-dbquery:00c8e0b6:router.delete( "/{project_id}", dependencies=[ Depends(check_project_access_async), Depends(requires
+api/app/v1/protected/deletions/delete_project.py:sqlalchemy-db-crud-outside-dbquery:00c8e0b6:router.delete( "/{project_id}", dependencies=[ Depends(authorization.require_user_project), Depends(requires
 api/app/v1/protected/deletions/delete_project.py:sqlalchemy-db-crud-outside-dbquery:722a920c:db.scalars( select(DBProject).where(DBProject.project_id == project_id) )
 api/app/v1/protected/web_application/portfolio/portfolio.py:sqlalchemy-db-crud-outside-dbquery:2763b732:result.scalars()
 api/app/v1/protected/web_application/portfolio/portfolio.py:sqlalchemy-db-crud-outside-dbquery:63b223ca:db.execute(stmt)

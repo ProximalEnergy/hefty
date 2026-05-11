@@ -5,13 +5,14 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from shapely.wkb import loads
 
-from app import dependencies, settings
+from app import settings
+from app._dependencies import authorization
 from core import crud, models
 
 router = APIRouter(
     prefix="/{project_id}",
     tags=["gis"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 
 

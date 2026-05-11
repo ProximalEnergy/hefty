@@ -14,13 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from app import interfaces, utils
+from app._dependencies import authorization
 from app._utils.arrow import polars_to_arrow_response
 from app.custom_types import AnnotatedDeep
-from app.dependencies import (
-    check_project_access_async,
-    get_project_db,
-    get_project_db_async,
-)
+from app.dependencies import get_project_db, get_project_db_async
 from app.logger import logger
 from core import crud, models
 
@@ -29,7 +26,7 @@ DESCRIPTION_404 = "Device not found"
 router = APIRouter(
     prefix="/devices",
     tags=["project_devices"],
-    dependencies=[Depends(check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 
 

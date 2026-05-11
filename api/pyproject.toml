@@ -45,7 +45,6 @@ dependencies = [
     "sqlalchemy>=2.0.44,<3",
     "starlette~=0.51",
     "timezonefinder~=8.2",
-    "typing-extensions>=4.12.2,<5",
     "uvicorn~=0.40",
     "xlsxwriter~=3.2.9",
 ]

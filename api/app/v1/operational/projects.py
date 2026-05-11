@@ -21,6 +21,7 @@ from app._crud.operational.projects import (
 from app._crud.operational.report_instances import (
     get_report_instances as crud_get_report_instances,
 )
+from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
 from app.logger import logger
@@ -174,7 +175,7 @@ async def get_projects_route(
 @router.get(
     "/{project_id}",
     response_model=interfaces.ProjectInterface,
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_project_by_id",
 )
@@ -238,7 +239,7 @@ async def create_project_route(
     "/{project_id}",
     response_model=interfaces.ProjectInterface,
     dependencies=[
-        Depends(dependencies.check_project_access_async),
+        Depends(authorization.require_user_project),
         Depends(dependencies.requires_admin_async),
     ],
     responses={404: {"description": DESCRIPTION_404}},

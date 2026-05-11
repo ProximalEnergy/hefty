@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app import utils
-from app.dependencies import check_project_access_async
+from app._dependencies import authorization
 from app.v1.protected.web_application.projects import (
     bess_waterfall,
     project_kpi_summary_table,
@@ -33,7 +33,7 @@ router = APIRouter(
     prefix="/projects/{project_id}",
     tags=["projects"],
     include_in_schema=utils.get_include_in_schema(),
-    dependencies=[Depends(check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 
 router.include_router(bess_waterfall.router)

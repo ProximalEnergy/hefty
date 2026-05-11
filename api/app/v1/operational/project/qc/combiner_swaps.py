@@ -3,6 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 from app import dependencies, logger
+from app._dependencies import authorization
 from app.utils import get_include_in_schema
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
@@ -26,7 +27,7 @@ async def validate_combiner_data(
     device_ids: Annotated[list[int] | None, Query()] = None,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
-    _access: None = Depends(dependencies.check_project_access_async),
+    _access: None = Depends(authorization.require_user_project),
 ):
     """This function is used in combiner swaps functionality to figure out
         if there is enough good combiner data.

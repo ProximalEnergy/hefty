@@ -10,9 +10,7 @@ from app import dependencies, interfaces
 from app._crud.admin.company_permissions import (
     get_company_permissions as crud_get_company_permissions,
 )
-from app._crud.admin.permissions import (
-    get_permissions as crud_get_permissions,
-)
+from app._crud.admin.permissions import get_permissions as crud_get_permissions
 from app._crud.admin.user_permissions import (
     create_user_permission as crud_create_user_permission,
 )
@@ -25,6 +23,7 @@ from app._crud.admin.user_permissions import (
 from app._crud.admin.user_projects import (
     get_users_with_project_access as crud_get_users_with_project_access,
 )
+from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from core import models
 
@@ -52,7 +51,7 @@ async def get_all_permissions():
 @router.get(
     "/projects/{project_id}/user",
     response_model=list[interfaces.PermissionInterface],
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     summary="Get user permissions by project",
 )
 async def get_user_permissions_route(
@@ -96,7 +95,7 @@ class UserPermissionRequest(BaseModel):
     "/projects/{project_id}/users/{user_id}",
     response_model=interfaces.UserPermissionInterface,
     dependencies=[
-        Depends(dependencies.check_project_access_async),
+        Depends(authorization.require_user_project),
         Depends(dependencies.requires_admin_async),
     ],
 )
@@ -134,7 +133,7 @@ async def add_user_permission(
     response_model=interfaces.UserPermissionInterface,
     operation_id="delete_user_permission",
     dependencies=[
-        Depends(dependencies.check_project_access_async),
+        Depends(authorization.require_user_project),
         Depends(dependencies.requires_admin_async),
     ],
 )
@@ -170,7 +169,7 @@ async def delete_user_permission_route(
 @router.get(
     "/projects/{project_id}/company",
     response_model=list[interfaces.PermissionInterface],
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
     summary="Get company permissions by project",
 )
 async def get_company_permissions_route(
@@ -211,7 +210,7 @@ async def get_company_permissions_route(
     "/projects/{project_id}/company-users",
     response_model=list[interfaces.UserWithPermissions],
     dependencies=[
-        Depends(dependencies.check_project_access_async),
+        Depends(authorization.require_user_project),
         Depends(dependencies.requires_admin_async),
     ],
     summary="Get company users with permissions by project",

@@ -16,6 +16,7 @@ from app._crud.admin.user_subscriptions import (
 from app._crud.admin.user_subscriptions import (
     update_user_report_subscription as crud_update_user_report_subscription,
 )
+from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from core import models
 
@@ -91,7 +92,7 @@ async def get_requesting_user_subscriptions(
 @router.get(
     "/reports/{project_id}",
     dependencies=[
-        Depends(dependencies.check_project_access_async),
+        Depends(authorization.require_user_project),
         Depends(dependencies.requires_superadmin_async),
     ],
     response_model=list[str],
@@ -134,7 +135,7 @@ async def get_report_emails(
 @router.put(
     "/reports/{project_id}",
     response_model=interfaces.UserSubscriptionInterface,
-    dependencies=[Depends(dependencies.check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 async def update_report_subscription(
     project_id: UUID,

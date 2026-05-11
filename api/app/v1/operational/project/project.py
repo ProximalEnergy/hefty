@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.dependencies import check_project_access_async
+from app._dependencies import authorization
 from app.v1.operational.project import (
     project_calendar,
     project_claims,
@@ -34,7 +34,7 @@ from app.v1.operational.project import (
 
 router = APIRouter(
     prefix="/projects/{project_id}",
-    dependencies=[Depends(check_project_access_async)],
+    dependencies=[Depends(authorization.require_user_project)],
 )
 router.include_router(project_calendar.router)
 router.include_router(project_claims.router)

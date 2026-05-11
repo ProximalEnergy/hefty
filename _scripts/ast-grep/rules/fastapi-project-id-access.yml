@@ -1,7 +1,7 @@
 id: fastapi-project-id-requires-access
 message: >-
   Routes with {project_id} in the path must include
-  require_user_project or check_project_access_async in the decorator.
+  require_user_project in the decorator.
 severity: error
 language: Python
 rule:
@@ -29,7 +29,7 @@ rule:
     # Not already guarded in the decorator or function signature
     - not:
         has:
-          regex: "require_user_project|check_project_access_async"
+          regex: "require_user_project"
     # Not in a file whose module-level APIRouter already applies the guard
     # (uses regex in `follows` because pattern doesn't traverse sibling
     # statements reliably at this level)
@@ -38,12 +38,12 @@ rule:
           stopBy: end
           all:
             - regex: "APIRouter"
-            - regex: "require_user_project|check_project_access_async"
+            - regex: "require_user_project"
 ---
 id: fastapi-project-id-requires-access-prefix
 message: >-
   APIRouter instances with {project_id} in the prefix must include
-  Depends(require_user_project) or Depends(check_project_access_async).
+  Depends(require_user_project).
 severity: error
 language: Python
 rule:
@@ -53,4 +53,4 @@ rule:
         regex: "\\{project_id\\}"
     - not:
         has:
-          regex: "require_user_project|check_project_access_async"
+          regex: "require_user_project"
