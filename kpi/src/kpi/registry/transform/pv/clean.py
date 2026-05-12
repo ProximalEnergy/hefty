@@ -63,8 +63,12 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
     )
 
     # Capacity validations
-    project_dc_capacity_kw = calc_field(verify_positive)(
-        Required(Project.project_dc_capacity_raw_kw),
+    project_ac_power_capacity_kw = calc_field(verify_positive)(
+        Required(Project.project_ac_power_capacity_raw_kw),
+    )
+
+    project_dc_power_capacity_kw = calc_field(verify_positive)(
+        Required(Project.project_dc_power_capacity_raw_kw),
     )
 
     # =======================================================
@@ -93,7 +97,7 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
 
     pv_project_power_kw_5m = calc_field(filter_capacity)(
         value=Required(Sensor.project_power_raw_kw_5m),
-        capacity=Required(project_dc_capacity_kw),
+        capacity=Required(project_dc_power_capacity_kw),
     )
 
     @method_calc(
@@ -138,7 +142,7 @@ class TransformPvClean(FieldRegistry[CalcProtocol]):
 
     project_power_setpoint_kw_5m = calc_field(filter_capacity)(
         value=Required(Sensor.project_power_setpoint_raw_kw_5m),
-        capacity=Required(project_dc_capacity_kw),
+        capacity=Required(project_dc_power_capacity_kw),
     )
 
     # tracker validation

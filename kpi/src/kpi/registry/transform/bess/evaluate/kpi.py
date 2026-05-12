@@ -4,19 +4,20 @@ from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import mean_across_devices, sum_across_devices
-from kpi.domain.agg.resample import resample_sum
+from kpi.domain.agg.resample import resample_diff, resample_sum
 from kpi.domain.bess import (
     c_rate,
     c_rate_while_charging,
     c_rate_while_discharging,
-    energy_5m_from_accumulator,
     is_charging,
     is_discharging,
     is_idling,
     resting_soc,
 )
+from kpi.domain.general import filter_energy_5m
 from kpi.domain.util import (
     available_from_event,
+    diff,
     fill_accumulator,
     time_grouper,
     where,
@@ -106,20 +107,32 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
 
     # Project level
 
-    project_energy_charged_kwh_5m = calc_field(energy_5m_from_accumulator)(
-        accumulator=Required(project_total_energy_charged_filled_kwh_5m),
+    project_energy_charged_unfiltered_kwh_5m = calc_field(diff)(
+        Required(project_total_energy_charged_filled_kwh_5m),
+    )
+
+    project_energy_charged_kwh_5m = calc_field(filter_energy_5m)(
+        energy_unfiltered_5m=Required(project_energy_charged_unfiltered_kwh_5m),
         power_capacity=Required(Clean.project_power_capacity_kw),
     )
 
-    project_energy_discharged_kwh_5m = calc_field(energy_5m_from_accumulator)(
-        accumulator=Required(project_total_energy_discharged_filled_kwh_5m),
+    project_energy_discharged_unfiltered_kwh_5m = calc_field(diff)(
+        Required(project_total_energy_discharged_filled_kwh_5m),
+    )
+
+    project_energy_discharged_kwh_5m = calc_field(filter_energy_5m)(
+        energy_unfiltered_5m=Required(project_energy_discharged_unfiltered_kwh_5m),
         power_capacity=Required(Clean.project_power_capacity_kw),
     )
 
     # PCS level
 
-    pcs_energy_charged_kwh_5m = calc_field(energy_5m_from_accumulator)(
-        accumulator=Required(pcs_total_energy_charged_filled_kwh_5m),
+    pcs_energy_charged_unfiltered_kwh_5m = calc_field(diff)(
+        Required(pcs_total_energy_charged_filled_kwh_5m),
+    )
+
+    pcs_energy_charged_kwh_5m = calc_field(filter_energy_5m)(
+        energy_unfiltered_5m=Required(pcs_energy_charged_unfiltered_kwh_5m),
         power_capacity=Required(Clean.pcs_power_capacity_kw),
     )
 
@@ -128,14 +141,89 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
         device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
 
-    pcs_energy_discharged_kwh_5m = calc_field(energy_5m_from_accumulator)(
-        accumulator=Required(pcs_total_energy_discharged_filled_kwh_5m),
+    pcs_energy_discharged_unfiltered_kwh_5m = calc_field(diff)(
+        Required(pcs_total_energy_discharged_filled_kwh_5m),
+    )
+
+    pcs_energy_discharged_kwh_5m = calc_field(filter_energy_5m)(
+        energy_unfiltered_5m=Required(pcs_energy_discharged_unfiltered_kwh_5m),
         power_capacity=Required(Clean.pcs_power_capacity_kw),
     )
 
     project_pcs_energy_discharged_kwh_5m = calc_field(sum_across_devices)(
         Required(pcs_energy_discharged_kwh_5m),
         device_type=Constant(DeviceTypeEnum.BESS_PCS),
+    )
+
+    # =======================================================
+    # Estimate daily energy
+    # =======================================================
+
+    # project
+
+    project_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(project_total_energy_charged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    project_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(project_total_energy_discharged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    # aux
+
+    project_aux_energy_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(project_total_aux_energy_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    # circuit
+
+    circuit_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(circuit_total_energy_charged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    circuit_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(circuit_total_energy_discharged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    # pcs
+
+    pcs_energy_charged_dc_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(pcs_total_energy_charged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    pcs_energy_discharged_dc_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(pcs_total_energy_discharged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    # pcs module
+
+    pcs_module_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(pcs_module_total_energy_charged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    pcs_module_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(pcs_module_total_energy_discharged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    # string
+
+    string_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(string_total_energy_charged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    string_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(string_total_energy_discharged_filled_kwh_5m),
+        grouper=Required(date_local_5m),
     )
 
     # =======================================================

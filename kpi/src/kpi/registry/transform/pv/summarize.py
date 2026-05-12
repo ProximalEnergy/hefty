@@ -12,9 +12,9 @@ from kpi.domain.agg.other import (
 )
 from kpi.domain.agg.resample import resample_mean, resample_sum
 from kpi.domain.module_state_of_health import pv_dc_combiner_module_excess_degradation
+from kpi.domain.pv import pv_filter_daily_energy
 from kpi.domain.solv_contract import solv_lost_period, solv_period_produced
 from kpi.domain.util import (
-    diff,
     filter_mask,
     rename,
 )
@@ -34,25 +34,18 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # PROJECT_ENERGY_PRODUCTION (6)
-    @method_calc(
-        energy_total=Required(
-            Clean.project_total_energy_exported_to_grid_filled_kwh_5m
-        ),
-        date_local_5m=Required(date_local_5m),
+
+    project_energy_production_kwh_d = calc_field(pv_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.project_energy_production_unfiltered_kwh_d),
+        power_capacity=Required(Clean.project_ac_power_capacity_kw),
     )
-    def project_energy_production_kwh_d(
-        energy_total: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        energy_total_d = energy_total.groupby(rename(date_local_5m)).first()
-        return diff(energy_total_d, time_dim=TimeCoord.DATE_LOCAL)
 
     # SMA_INVERTER_AVAILABILITY_UPTIME_PROJECT (23) deprecated
 
     # SPECIFIC_YIELD (33)
     @method_calc(
         energy=Required(project_energy_production_kwh_d),
-        power_capacity=Required(Clean.project_dc_capacity_kw),
+        power_capacity=Required(Clean.project_dc_power_capacity_kw),
     )
     def specific_yield_d(
         energy: xr.DataArray,
@@ -63,7 +56,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # PERFORMANCE_RATIO (34)
     @method_calc(
         energy=Required(project_energy_production_kwh_d),
-        power_capacity=Required(Clean.project_dc_capacity_kw),
+        power_capacity=Required(Clean.project_dc_power_capacity_kw),
         insolation=Required(Eval.project_insolation_d),
     )
     def performance_ratio_d(
@@ -169,16 +162,10 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     )
 
     # PV_INVERTER_ENERGY_PRODUCTION (2)
-    @method_calc(
-        energy=Required(Clean.inverter_total_energy_production_filled_kwh_5m),
-        date_local_5m=Required(date_local_5m),
+    inverter_energy_production_kwh_d = calc_field(pv_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.inverter_energy_production_unfiltered_kwh_d),
+        power_capacity=Required(Clean.inverter_dc_capacity_kw),
     )
-    def inverter_energy_production_kwh_d(
-        energy: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        energy_total_d = energy.groupby(rename(date_local_5m)).first()
-        return diff(energy_total_d, time_dim=TimeCoord.DATE_LOCAL)
 
     project_pcs_energy_production_kwh_d = calc_field(sum_across_devices)(
         Required(inverter_energy_production_kwh_d),
@@ -208,7 +195,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     @method_calc(
         source=Required(project_inverter_module_energy_kwh_d),
         sink=Required(project_energy_production_kwh_d),
-        power_capacity=Required(Clean.project_dc_capacity_kw),
+        power_capacity=Required(Clean.project_dc_power_capacity_kw),
     )
     def project_inverter_module_to_meter_efficiency_d(
         source: xr.DataArray,

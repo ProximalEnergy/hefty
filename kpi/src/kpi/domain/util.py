@@ -256,3 +256,14 @@ def time_grouper(
             NEW_NAME: to_time_coord.value,
         },
     )
+
+
+def mod(x: xr.DataArray, modulus: float) -> xr.DataArray:
+    epsilon = 1e-6
+    return ((x + epsilon) % modulus) - epsilon
+
+
+def diff_mod(
+    x: xr.DataArray, *, modulus: float, time_dim: TimeCoord = TimeCoord.TIME_5MIN_UTC
+) -> xr.DataArray:
+    return mod(diff(x, time_dim=time_dim), modulus=modulus)

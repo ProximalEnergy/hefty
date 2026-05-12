@@ -4,15 +4,14 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
-from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import sum_across_devices
 from kpi.domain.bess import (
-    daily_energy,
+    bess_filter_daily_energy,
     energy_efficiency,
     maximum_continuous_discharged_energy,
 )
-from kpi.domain.util import diff, filter_mask, rename
+from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, Optional, Required
 from kpi.op.transform.method import calc_field, method_calc
@@ -26,10 +25,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_STRING_ENERGY_CHARGED (37)
-    string_energy_charged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.string_total_energy_charged_filled_kwh_5m),
+    string_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.string_energy_charged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.string_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_string_energy_charged_kwh_d = calc_field(sum_across_devices)(
@@ -39,10 +37,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_STRING_ENERGY_DISCHARGED (41)
 
-    string_energy_discharged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.string_total_energy_discharged_filled_kwh_5m),
+    string_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.string_energy_discharged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.string_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_string_energy_discharged_kwh_d = calc_field(sum_across_devices)(
@@ -56,10 +53,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_PCS_MODULE_ENERGY_CHARGED (113)
 
-    pcs_module_energy_charged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.pcs_module_total_energy_charged_filled_kwh_5m),
+    pcs_module_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.pcs_module_energy_charged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.pcs_module_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_pcs_module_energy_charged_kwh_d = calc_field(sum_across_devices)(
@@ -69,10 +65,11 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_PCS_MODULE_ENERGY_DISCHARGED (114)
 
-    pcs_module_energy_discharged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.pcs_module_total_energy_discharged_filled_kwh_5m),
+    pcs_module_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(
+            Eval.pcs_module_energy_discharged_unfiltered_kwh_d
+        ),
         energy_capacity=Required(Clean.pcs_module_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_pcs_module_energy_discharged_kwh_d = calc_field(sum_across_devices)(
@@ -85,10 +82,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_PCS_ENERGY_CHARGED_DC (87)
-    pcs_energy_charged_dc_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.pcs_total_energy_charged_filled_kwh_5m),
+    pcs_energy_charged_dc_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.pcs_energy_charged_dc_unfiltered_kwh_d),
         energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_pcs_energy_charged_dc_kwh_d = calc_field(sum_across_devices)(
@@ -97,10 +93,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     )
 
     # BESS_PCS_ENERGY_DISCHARGED_DC (88)
-    pcs_energy_discharged_dc_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.pcs_total_energy_discharged_filled_kwh_5m),
+    pcs_energy_discharged_dc_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.pcs_energy_discharged_dc_unfiltered_kwh_d),
         energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_pcs_energy_discharged_dc_kwh_d = calc_field(sum_across_devices)(
@@ -131,10 +126,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_CIRCUIT_ENERGY_CHARGED (111)
-    circuit_energy_charged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.circuit_total_energy_charged_filled_kwh_5m),
+    circuit_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.circuit_energy_charged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.circuit_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_circuit_energy_charged_kwh_d = calc_field(sum_across_devices)(
@@ -143,10 +137,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     )
 
     # BESS_CIRCUIT_ENERGY_DISCHARGED (112)
-    circuit_energy_discharged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.circuit_total_energy_discharged_filled_kwh_5m),
+    circuit_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.circuit_energy_discharged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.circuit_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     project_circuit_energy_discharged_kwh_d = calc_field(sum_across_devices)(
@@ -159,47 +152,39 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     # BESS_PROJECT_ENERGY_CHARGED (35)
-    project_energy_charged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.project_total_energy_charged_filled_kwh_5m),
+    project_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.project_energy_charged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.project_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     # PROJECT_ENERGY_DISCHARGED (39)
-    project_energy_discharged_kwh_d = calc_field(daily_energy)(
-        total_energy_5m=Required(Eval.project_total_energy_discharged_filled_kwh_5m),
+    project_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
+        energy_unfiltered_d=Required(Eval.project_energy_discharged_unfiltered_kwh_d),
         energy_capacity=Required(Clean.project_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
     )
 
     # BESS_MV_AUX_METER_ENERGY (93)
     @method_calc(
-        total_energy_5m=Required(Eval.project_total_aux_energy_filled_kwh_5m),
+        energy_unfiltered_d=Required(Eval.project_aux_energy_unfiltered_kwh_d),
         power_capacity=Required(Clean.project_power_capacity_kw),
-        date_local_5m=Required(Eval.date_local_5m),
     )
     def project_aux_energy_kwh_d(
-        total_energy_5m: xr.DataArray,
+        energy_unfiltered_d: xr.DataArray,
         power_capacity: xr.DataArray,
-        date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
         """
         Project Auxiliary Energy Per Day
-        Takes the accumulator differences between midnight and midnight the next day
-        and filters out any negatives values or days where the aux energy is greater
+        Filters out any negative values or days where the aux energy is greater
         than the equivalent of 24 hours of 10% of the project's power capacity.
         """
-        total_energy_d = total_energy_5m.groupby(rename(date_local_5m)).first()
-        difference = diff(total_energy_d, time_dim=TimeCoord.DATE_LOCAL)
         epsilon = 1e-6
-        difference = difference.where(
+        return energy_unfiltered_d.where(
             filter_mask(
-                filter_by=difference / power_capacity,
+                filter_by=energy_unfiltered_d / power_capacity,
                 min_value=-epsilon,
                 max_value=24 * 0.1,
-            )
+            ),
         )
-        return difference
 
     # BESS_PROJECT_ENERGY_CHARGED_NO_AUX (115)
     @method_calc(

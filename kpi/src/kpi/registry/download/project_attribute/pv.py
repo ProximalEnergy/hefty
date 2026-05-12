@@ -11,8 +11,13 @@ from core import models
 
 
 class DownloadProjectAttributePv(FieldRegistry[ProjectAttributeProtocol]):
-    project_dc_capacity_raw_kw = project_attribute_field(
+    project_dc_power_capacity_raw_kw = project_attribute_field(
         source_field_name=models.Project.capacity_dc.name,
+        scale=1000,
+    )
+
+    project_ac_power_capacity_raw_kw = project_attribute_field(
+        source_field_name=models.Project.capacity_ac.name,
         scale=1000,
     )
 

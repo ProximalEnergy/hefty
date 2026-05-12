@@ -1,6 +1,6 @@
 import xarray as xr
 from kpi.base.enumeration import TimeCoord
-from kpi.domain.agg.resample import resample_first, resample_sum
+from kpi.domain.agg.resample import resample_sum
 from kpi.domain.util import cumsum, diff, filter_mask, rename
 
 
@@ -32,25 +32,6 @@ def clean_power(
             filter_by=power / capacity,
             min_value=-1 - epsilon,
             max_value=1 + epsilon,
-        )
-    )
-
-
-def energy_5m_from_accumulator(
-    *,
-    accumulator: xr.DataArray,
-    power_capacity: xr.DataArray,
-) -> xr.DataArray:
-    """
-    Compute the incremental 5-minute difference from an energy accumulator.
-    """
-    difference = diff(accumulator)
-    epsilon = 1e-6
-    return difference.where(
-        filter_mask(
-            filter_by=difference / power_capacity,
-            min_value=-epsilon,
-            max_value=1 / 12 + epsilon,
         )
     )
 
@@ -122,40 +103,23 @@ def maximum_continuous_discharged_energy(
     return result.groupby(rename(date_local_5m)).max()
 
 
-def daily_energy(
+def bess_filter_daily_energy(
     *,
-    total_energy_5m: xr.DataArray,
-    date_local_5m: xr.DataArray,
+    energy_unfiltered_d: xr.DataArray,
     energy_capacity: xr.DataArray,
     max_cycles: float = 3,
-    modulus: float | None = None,
 ) -> xr.DataArray:
     """
-    Compute daily energy from an 5-minute increasing energy accumulator.
-    Each day's energy is the difference in the accumulator's value from midnight to
-    midnight the next day. This ensures that even if there are telemetry gaps
-    in the middle of the day or strange jumps that resolve themselves, the daily
-    total is not affected.
-    However, if the total energy is negative or greater than 3 times the energy capacity
-    of that device, it is considered invalid and thrown out since this
-    would indicate 3 full cycles in a single day which is very unlikely.
-    If the accumulator has a wrap-around value, it is provided and the energy total
-    is considered as the mod difference to correctly account for days that start
-    at the high end of the accumulator's range and reset during the middle of the day.
+    Reject daily energy totals that are negative or exceed the maximum number of cycles.
     """
-    total_energy_d = resample_first(total_energy_5m, grouper=date_local_5m)
-    difference = diff(total_energy_d, time_dim=TimeCoord.DATE_LOCAL)
     epsilon = 1e-6
-    if modulus is not None:
-        difference = ((difference + epsilon) % modulus) - epsilon
-    difference = difference.where(
+    return energy_unfiltered_d.where(
         filter_mask(
-            filter_by=difference / energy_capacity,
+            filter_by=energy_unfiltered_d / energy_capacity,
             min_value=-epsilon,
             max_value=max_cycles,
         )
     )
-    return difference
 
 
 def c_rate(

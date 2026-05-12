@@ -1,5 +1,6 @@
 import xarray as xr
-from kpi.domain.util import rename
+from kpi.base.enumeration import NEW_NAME, TimeCoord
+from kpi.domain.util import diff, mod, rename
 from xarray.core.groupby import DataArrayGroupBy
 
 
@@ -9,6 +10,18 @@ def groupby(x: xr.DataArray, *, grouper: xr.DataArray) -> DataArrayGroupBy:
 
 def resample_first(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
     return groupby(x, grouper=grouper).first()
+
+
+def resample_diff(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
+    return diff(
+        resample_first(x, grouper=grouper), time_dim=TimeCoord(grouper.attrs[NEW_NAME])
+    )
+
+
+def resample_diff_mod(
+    x: xr.DataArray, *, grouper: xr.DataArray, modulus: float
+) -> xr.DataArray:
+    return mod(resample_diff(x, grouper=grouper), modulus=modulus)
 
 
 def resample_sum(

@@ -6,11 +6,11 @@ from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.agg.across_devices import mean_across_devices
-from kpi.domain.agg.resample import resample_sum
+from kpi.domain.agg.resample import resample_diff, resample_sum
+from kpi.domain.general import filter_energy_5m
 from kpi.domain.util import (
     diff,
     fill_na_with_arrays,
-    filter_mask,
 )
 from kpi.infra.pvlib_integration import theoretical_poa_irradiance
 from kpi.op.field_registry import FieldRegistry
@@ -47,18 +47,26 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
             coords={TimeCoord.TIME_5MIN_UTC.value: time_5m_utc},
         )
 
-    @method_calc(
-        total=Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
-        power_capacity=Required(Clean.project_dc_capacity_kw),
+    project_energy_exported_to_grid_unfiltered_kwh_5m = calc_field(diff)(
+        Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
     )
-    def project_energy_exported_to_grid_kwh_5m(
-        total: xr.DataArray,
-        power_capacity: xr.DataArray,
-    ) -> xr.DataArray:
-        energy = diff(total)
-        return energy.where(
-            filter_mask(filter_by=energy / power_capacity, min_value=0, max_value=1)
-        )
+
+    project_energy_exported_to_grid_kwh_5m = calc_field(filter_energy_5m)(
+        energy_unfiltered_5m=Required(
+            project_energy_exported_to_grid_unfiltered_kwh_5m
+        ),
+        power_capacity=Required(Clean.project_ac_power_capacity_kw),
+    )
+
+    project_energy_production_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
+
+    inverter_energy_production_unfiltered_kwh_d = calc_field(resample_diff)(
+        Required(Clean.inverter_total_energy_production_filled_kwh_5m),
+        grouper=Required(date_local_5m),
+    )
 
     project_expected_energy_best_kwh_5m = calc_field(fill_na_with_arrays)(
         Optional(Expected.project_expected_energy_degraded_soiled_kwh_5m),
