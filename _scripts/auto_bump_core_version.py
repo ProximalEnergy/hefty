@@ -12,7 +12,9 @@ from pathlib import Path
 
 def parse_bump_core_version_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Bump core patch version if it is behind a base revision.",
+        description=(
+            "Bump core patch version if it is not ahead of a base revision."
+        ),
     )
     parser.add_argument(
         "--base-revision",
@@ -92,7 +94,7 @@ def auto_bump_core_version() -> int:
     bumped = "false"
     new_version = current_version
 
-    if current_release < base_release:
+    if current_release <= base_release:
         major, minor, patch = base_release
         new_version = f"{major}.{minor}.{patch + 1}"
         write_bumped_version(
@@ -101,13 +103,13 @@ def auto_bump_core_version() -> int:
         )
         bumped = "true"
         print(
-            "PR version is lower than dev. "
+            "PR version is not ahead of dev. "
             f"Bumping patch version to {new_version}.",
             file=sys.stderr,
         )
     else:
         print(
-            "PR version is not lower than dev. No change needed.",
+            "PR version is ahead of dev. No change needed.",
             file=sys.stderr,
         )
 

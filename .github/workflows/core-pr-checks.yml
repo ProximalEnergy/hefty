@@ -317,7 +317,7 @@ jobs:
         if: |
           steps.release_inputs.outputs.changed == 'true' &&
           steps.version_check.outputs.bumped != 'true'
-        run: echo "Version already >= dev, skipping patch bump."
+        run: echo "Version already ahead of dev, skipping patch bump."
 
       - name: Version status for skipped changes
         if: steps.release_inputs.outputs.changed != 'true'

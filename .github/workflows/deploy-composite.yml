@@ -165,13 +165,13 @@ jobs:
   publish-core:
     needs: detect-changes
     runs-on: ubuntu-latest
-    # Only run if core files changed
+    # Publish stable core only when core changes land on dev.
     if: |
       needs.detect-changes.outputs.core == 'true' &&
-      (github.ref_name == 'dev' || github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'demo')
+      github.event_name == 'push' &&
+      github.ref_name == 'dev'
     outputs:
       version: ${{ steps.version.outputs.version }}
-      prerelease: ${{ steps.version.outputs.prerelease }}
       release_name: ${{ steps.version.outputs.release_name }}
 
     steps:
@@ -179,71 +179,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine release type and version
+      - name: Determine stable version
         id: version
         run: |
           BRANCH="${{ github.ref_name }}"
           echo "Branch: $BRANCH"
 
-          BASE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])")
-          echo "Current version: $BASE_VERSION"
+          VERSION="$(
+            python3 - <<'PY'
+          import tomllib
 
-          BASE_VERSION=$(echo $BASE_VERSION | sed -E 's/(a|b|rc)[0-9]+$//')
-          echo "Base version: $BASE_VERSION"
+          with open("core/pyproject.toml", "rb") as file_handle:
+              pyproject = tomllib.load(file_handle)
 
-          if [ "$BRANCH" = "dev" ]; then
-            RELEASE_TYPE="beta"
-            VERSION_SUFFIX="b"
-            PRERELEASE="true"
+          print(pyproject["project"]["version"])
+          PY
+          )"
 
-            EXISTING_BETAS=$(git tag -l "core-v${BASE_VERSION}b*" | sed -E "s/.*b([0-9]+)$/\1/" | sort -n | tail -1)
-            if [ -z "$EXISTING_BETAS" ]; then
-              BETA_NUM=1
-            else
-              BETA_NUM=$((EXISTING_BETAS + 1))
-            fi
-            VERSION="${BASE_VERSION}b${BETA_NUM}"
-
-          elif [ "$BRANCH" = "staging" ]; then
-            RELEASE_TYPE="rc"
-            VERSION_SUFFIX="rc"
-            PRERELEASE="true"
-
-            EXISTING_RCS=$(git tag -l "core-v${BASE_VERSION}rc*" | sed -E "s/.*rc([0-9]+)$/\1/" | sort -n | tail -1)
-            if [ -z "$EXISTING_RCS" ]; then
-              RC_NUM=1
-            else
-              RC_NUM=$((EXISTING_RCS + 1))
-            fi
-            VERSION="${BASE_VERSION}rc${RC_NUM}"
-
-          elif [ "$BRANCH" = "demo" ]; then
-            RELEASE_TYPE="alpha"
-            VERSION_SUFFIX="a"
-            PRERELEASE="true"
-
-            EXISTING_ALPHAS=$(git tag -l "core-v${BASE_VERSION}a*" | sed -E "s/.*a([0-9]+)$/\1/" | sort -n | tail -1)
-            if [ -z "$EXISTING_ALPHAS" ]; then
-              ALPHA_NUM=1
-            else
-              ALPHA_NUM=$((EXISTING_ALPHAS + 1))
-            fi
-            VERSION="${BASE_VERSION}a${ALPHA_NUM}"
-
-          elif [ "$BRANCH" = "main" ]; then
-            RELEASE_TYPE="stable"
-            VERSION_SUFFIX="stable"
-            PRERELEASE="false"
-            VERSION="$BASE_VERSION"
-
-          else
-            echo "Unknown branch: $BRANCH"
-            exit 1
-          fi
-
-          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
           echo "release_name=Core v${VERSION}" >> $GITHUB_OUTPUT
           echo "Final version: $VERSION"
 
@@ -262,7 +215,7 @@ jobs:
 
           echo "build_dir=$BUILD_DIR" >> $GITHUB_OUTPUT
           echo "Prepared temp publish artifact in $BUILD_DIR"
-          grep "version =" "$BUILD_DIR/pyproject.toml"
+          grep "^version =" "$BUILD_DIR/pyproject.toml"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -331,13 +284,10 @@ jobs:
         run: |
           VERSION="${{ needs.publish-core.outputs.version }}"
           RELEASE_NAME="${{ needs.publish-core.outputs.release_name }}"
-          PRERELEASE="${{ needs.publish-core.outputs.prerelease }}"
 
-          if [ "$PRERELEASE" = "true" ]; then
-            gh release create core-v${VERSION} --generate-notes --title "$RELEASE_NAME" --prerelease
-          else
-            gh release create core-v${VERSION} --generate-notes --title "$RELEASE_NAME"
-          fi
+          gh release create core-v${VERSION} \
+            --generate-notes \
+            --title "$RELEASE_NAME"
 
   # Job 3: Deploy API (bundles workspace core)
   deploy-api:
