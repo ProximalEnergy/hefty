@@ -224,7 +224,7 @@ def run_local_midnight_backfill_for_projects(
     for project_id in projects:
         time_zone = _resolve_project_time_zone(project_id=project_id)
         local_now = now.astimezone(ZoneInfo(time_zone))
-        if local_now.hour != 0 or local_now.minute != 0:
+        if local_now.hour != 0:
             LOGGER.info(
                 "\tSkipping project_id=%s because local time is %s",
                 project_id,
@@ -267,9 +267,7 @@ def _run_projects_once(
                 project_id=project_id,
                 run_time=run_time,
                 issue_category_ids=issue_category_ids,
-                evaluation_window_minutes_override=(
-                    evaluation_window_minutes_override
-                ),
+                evaluation_window_minutes_override=(evaluation_window_minutes_override),
                 project_coordinates=project_coordinates,
             )
             results.append(project_summary)
