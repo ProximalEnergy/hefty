@@ -52,6 +52,7 @@ members = [
     "issues",
     "microservices/cmms-ticket-download",
     "microservices/cmms-integration-fetcher",
+    "microservices/kpi-pipeline-fetcher",
 ]
 
 [[tool.uv.index]]

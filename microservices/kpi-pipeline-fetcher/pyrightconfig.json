@@ -1,9 +1,8 @@
 {
-    "venvPath": ".",
+    "venvPath": "../..",
     "venv": ".venv",
     "extraPaths": [
-        "../../core/src",
-        "../../kpi/src"
+        "../../core/src"
     ],
     "typeCheckingMode": "off"
 }

@@ -43,7 +43,7 @@ def _load_kpi_pipeline_fetcher_secret_into_env() -> None:
 _load_kpi_pipeline_fetcher_secret_into_env()
 
 import core.models as models  # noqa: PLC0415
-from core.dependencies import with_db  # noqa: PLC0415
+from core.database import with_db  # noqa: PLC0415
 
 
 class FetcherLambdaEvent(BaseModel):
@@ -66,7 +66,7 @@ class ResponseItem(BaseModel):
     kpi_type_ids: list[int]
 
 
-def lambda_handler(event: dict[str, Any], _context) -> list[str]:
+def lambda_handler(event: dict[str, Any], _context) -> list[dict[str, Any]]:
     """Lambda handler for the kpi pipeline fetcher.
 
     Args:
@@ -131,6 +131,6 @@ def lambda_handler(event: dict[str, Any], _context) -> list[str]:
                     ),
                     project_name_short=project_names_by_id[project_id],
                     kpi_type_ids=list(kpi_type_ids),
-                ).model_dump_json()
+                ).model_dump(mode="json")
             )
     return responses
