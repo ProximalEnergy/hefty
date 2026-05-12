@@ -23,7 +23,7 @@ import json
 import os
 import warnings
 
-import boto3  # type: ignore[import-untyped]
+import boto3
 from asyncpg.exceptions import ProtocolViolationError  # type: ignore[import-untyped]
 from pydantic import BaseModel
 from sqlalchemy.exc import DBAPIError, OperationalError

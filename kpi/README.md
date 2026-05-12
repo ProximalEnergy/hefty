@@ -65,7 +65,17 @@ The entire name should be snake case.
 
 Test it locally
 
+```bash
+ docker buildx build --platform linux/arm64 --provenance=false --load -f kpi/Dockerfile -t docker-image:test .
 ```
-docker run --platform linux/arm64 -p 9000:8080 kpi-pipeline-image:latest
+
+```bash
+docker run --rm --platform linux/arm64 -p 9000:8080 \
+    -e AWS_REGION=us-east-2 \
+    -v "$HOME/.aws:/root/.aws:ro" \
+    docker-image:test
+```
+
+```bash
 curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"start_date": "2026-04-10", "end_date": "2026-04-15", "project_name_short": "palacios_indie", "kpi_type_ids": [123, 124]}'
 ```

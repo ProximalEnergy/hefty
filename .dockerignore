@@ -112,8 +112,10 @@ microservices/microservice_1/**/*
 !issues/pyproject.toml
 !issues/README.md
 !kpi/pyproject.toml
+!kpi/README.md
+!kpi/_scripts/
+!kpi/_scripts/**
 !kpi/lambda_function.py
-!kpi/.env
 !kpi/src/
 !kpi/src/**
 

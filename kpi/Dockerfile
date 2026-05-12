@@ -1,33 +1,44 @@
-# Build stage
-FROM public.ecr.aws/lambda/python:3.12 AS builder
+# https://docs.astral.sh/uv/guides/integration/aws-lambda/
+FROM ghcr.io/astral-sh/uv:0.10.0 AS uv
 
-# Install uv
-RUN pip install uv
+# -----------------
+# Stage 1: Builder
+# -----------------
 
-# Copy local package sources from the monorepo root context.
+# --- Bundle dependencies in the task root ---
+FROM public.ecr.aws/lambda/python:3.12-arm64 AS builder
+
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_NO_INSTALLER_METADATA=1
+ENV UV_LINK_MODE=copy
+
 WORKDIR /build
-COPY core/pyproject.toml ./core/pyproject.toml
-COPY core/README.md ./core/README.md
+
+# root level files
+COPY uv.lock pyproject.toml ./
+# files for core
+COPY core/pyproject.toml core/README.md ./core/
 COPY core/src/ ./core/src/
-COPY kpi/pyproject.toml ./kpi/pyproject.toml
+# files for kpi
+COPY kpi/pyproject.toml kpi/README.md ./kpi/
+COPY kpi/_scripts/install_lambda_dependencies.sh ./kpi/_scripts/
+COPY kpi/lambda_function.py ./kpi/lambda_function.py
 COPY kpi/src/ ./kpi/src/
 
-# Install dependencies from pyproject.toml into the target directory
-WORKDIR /build/kpi
-RUN uv pip install . --target /tmp/deps
+RUN --mount=from=uv,source=/uv,target=/bin/uv \
+  --mount=type=cache,target=/root/.cache/uv \
+  sh ./kpi/_scripts/install_lambda_dependencies.sh
 
-# Runtime stage
-FROM public.ecr.aws/lambda/python:3.12
+# -----------------
+# Stage 2: Runtime
+# -----------------
 
-# Copy dependencies from builder stage
-COPY --from=builder /tmp/deps ${LAMBDA_TASK_ROOT}
-COPY --from=builder /build/core/src/core ${LAMBDA_TASK_ROOT}/core
+FROM public.ecr.aws/lambda/python:3.12-arm64
 
-# copy .env file into the container
-COPY kpi/.env ${LAMBDA_TASK_ROOT}
+# --- Python ---
+COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 
 # Copy the lambda function code
 COPY kpi/lambda_function.py ${LAMBDA_TASK_ROOT}
 
-# Set the correct handler for the function
 CMD ["lambda_function.lambda_handler"]
