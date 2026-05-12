@@ -654,6 +654,7 @@ core/src/core/crud/project/issues.py:sqlalchemy-db-crud-outside-dbquery:5bf71862
 core/src/core/crud/project/issues.py:sqlalchemy-db-crud-outside-dbquery:5bf71862:db.add(row)
 core/src/core/crud/project/issues.py:sqlalchemy-db-crud-outside-dbquery:63b223ca:db.execute(stmt)
 core/src/core/crud/project/issues.py:sqlalchemy-db-crud-outside-dbquery:63b223ca:db.execute(stmt)
+core/src/core/crud/project/issues.py:sqlalchemy-db-crud-outside-dbquery:8f16ef1b:sa.delete(models.Issue)
 core/src/core/crud/project/issues.py:sqlalchemy-db-crud-outside-dbquery:850c8d4e:db.scalar(sa.select(sa.func.max(models.Issue.issue_id)))
 core/src/core/crud/project/query_metadata_cache.py:sqlalchemy-db-crud-outside-dbquery:043a0e9a:operational_db.execute(stmt)
 core/src/core/crud/project/tags.py:sqlalchemy-db-crud-outside-dbquery:2763b732:result.scalars()

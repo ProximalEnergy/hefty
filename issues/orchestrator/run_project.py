@@ -150,6 +150,7 @@ def run_project_issues(
         project_id=project_id,
         run_time=now,
         candidates=final_candidates,
+        reconciliation_window_minutes=evaluation_window_minutes_override,
     )
     logger.info(
         "\t\tPersistence result opened=%d matched=%d resolved=%d active=%d",

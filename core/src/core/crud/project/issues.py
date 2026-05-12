@@ -93,73 +93,86 @@ def get_issues_open_in_window(
     return DbQuery(query=stmt)
 
 
-def create_issue(*, db: Session, issue: dict[str, Any]) -> models.Issue:
-    """Insert a new issue row and return the created ORM object.
+def create_issue(*, issue: dict[str, Any]) -> DbQuery[Any, Literal[True]]:
+    """Build an insert for a new issue row.
 
     Args:
-        db: SQLAlchemy session for the project schema.
         issue: Mapping of issue column values.
     """
     payload = dict(issue)
-    row = models.Issue(**payload)
-    db.add(row)
-    db.flush()
-    db.refresh(row)
-    return row
+    stmt = sa.insert(models.Issue).values(payload).returning(models.Issue.issue_id)
+    return DbQuery(query=stmt, is_scalar=True)
 
 
-def update_issue(*, db: Session, issue_id: int, values: dict[str, Any]) -> bool:
-    """Update an issue row and return whether a row was updated.
+def update_issue(
+    *,
+    issue_id: int,
+    values: dict[str, Any],
+) -> DbQuery[Any, Literal[True]]:
+    """Build an update for an issue row.
 
     Args:
-        db: SQLAlchemy session for the project schema.
         issue_id: Issue id to update.
         values: Column values to update.
     """
     if not values:
-        return False
+        msg = "values must not be empty"
+        raise ValueError(msg)
     stmt = (
         sa.update(models.Issue)
         .where(models.Issue.issue_id == issue_id)
         .values(**values)
+        .returning(models.Issue.issue_id)
         .execution_options(synchronize_session=False)
     )
-    result = db.execute(stmt)
-    rowcount = getattr(result, "rowcount", None)
-    return int(rowcount or 0) > 0
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 def close_issue(
     *,
-    db: Session,
     issue_id: int,
     time_end: datetime.datetime,
-) -> bool:
-    """Set an issue's time_end and return whether a row was updated.
+) -> DbQuery[Any, Literal[True]]:
+    """Build an update that sets an issue's time_end.
 
     Args:
-        db: SQLAlchemy session for the project schema.
         issue_id: Issue id to close.
         time_end: Resolution timestamp.
     """
-    return update_issue(db=db, issue_id=issue_id, values={"time_end": time_end})
+    return update_issue(issue_id=issue_id, values={"time_end": time_end})
+
+
+def query_delete_issue(*, issue_id: int) -> DbQuery[Any, Literal[True]]:
+    """Build a delete for an issue row.
+
+    Args:
+        issue_id: Issue id to delete.
+    """
+    stmt = (
+        sa.delete(models.Issue)  # nosemgrep: sqlalchemy-db-crud-outside-dbquery
+        .where(models.Issue.issue_id == issue_id)
+        .returning(models.Issue.issue_id)
+        .execution_options(synchronize_session=False)
+    )
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 def create_issue_update(
-    *, db: Session, issue_update: dict[str, Any]
-) -> models.IssueUpdate:
-    """Insert an issue update row and return the created ORM object.
+    *,
+    issue_update: dict[str, Any],
+) -> DbQuery[Any, Literal[True]]:
+    """Build an insert for an issue update row.
 
     Args:
-        db: SQLAlchemy session for the project schema.
         issue_update: Mapping of issue update column values.
     """
     payload = dict(issue_update)
-    row = models.IssueUpdate(**payload)
-    db.add(row)
-    db.flush()
-    db.refresh(row)
-    return row
+    stmt = (
+        sa.insert(models.IssueUpdate)
+        .values(payload)
+        .returning(models.IssueUpdate.issue_update_id)
+    )
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 def create_issue_updates(

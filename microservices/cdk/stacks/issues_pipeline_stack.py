@@ -74,9 +74,9 @@ class IssuesPipelineStack(Stack):
         schedule_rule = Rule(
             self,
             "IssuesPipelineSchedule",
-            description="Trigger the issues pipeline every hour",
+            description="Trigger the issues pipeline every hour at minute zero",
             enabled=self._schedule_enabled(),
-            schedule=Schedule.rate(Duration.hours(1)),
+            schedule=Schedule.cron(minute="0"),
         )
         schedule_rule.add_target(LambdaFunction(lambda_function))
 

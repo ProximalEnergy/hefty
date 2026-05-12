@@ -33,5 +33,6 @@ class IssueRepository(Protocol):
         project_id: str,
         run_time: datetime.datetime,
         candidates: list[IssueCandidate],
+        reconciliation_window_minutes: int | None = None,
     ) -> IssuePersistenceResult:
         """Create, match, and resolve issue episodes for this run."""

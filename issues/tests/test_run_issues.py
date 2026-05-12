@@ -2,6 +2,7 @@ import datetime
 
 from issues.orchestrator.run_issues import (
     _floor_to_five_minute_boundary,
+    run_local_midnight_backfill_for_projects,
     run_issues_backfill_for_projects,
     run_issues_for_projects,
 )
@@ -183,3 +184,57 @@ def test_run_issues_for_projects_keeps_explicit_run_time(*, monkeypatch) -> None
     run_issues_for_projects(run_time=explicit_run_time)
 
     assert passed_run_times == [explicit_run_time]
+
+
+def test_local_midnight_backfill_runs_previous_day_for_midnight_projects(
+    *,
+    monkeypatch,
+) -> None:
+    calls: list[tuple[list[str], list[int] | None, datetime.date, datetime.date]] = []
+
+    def fake_run_issues_backfill_for_projects(
+        *,
+        project_ids: list[str],
+        issue_category_ids: list[int] | None,
+        start: datetime.date,
+        end: datetime.date,
+    ) -> list[ProjectIssueRunSummary]:
+        calls.append((project_ids, issue_category_ids, start, end))
+        return [
+            ProjectIssueRunSummary(
+                project_id=project_ids[0],
+                run_time=datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC),
+                raw_candidate_count=0,
+                final_candidate_count=0,
+                opened_count=0,
+                matched_count=0,
+                resolved_count=0,
+                active_count=0,
+            )
+        ]
+
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues._resolve_project_time_zone",
+        lambda *, project_id: (
+            "America/Chicago" if project_id == "project-a" else "America/New_York"
+        ),
+    )
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues.run_issues_backfill_for_projects",
+        fake_run_issues_backfill_for_projects,
+    )
+
+    summaries = run_local_midnight_backfill_for_projects(
+        project_ids=["project-a", "project-b"],
+        run_time=datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC),
+    )
+
+    assert [summary.project_id for summary in summaries] == ["project-a"]
+    assert calls == [
+        (
+            ["project-a"],
+            None,
+            datetime.date(2026, 1, 1),
+            datetime.date(2026, 1, 1),
+        )
+    ]

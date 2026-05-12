@@ -196,6 +196,60 @@ def run_issues_backfill_for_projects(
     return results
 
 
+def run_local_midnight_backfill_for_projects(
+    *,
+    project_ids: list[str] | None = None,
+    run_time: datetime.datetime | None = None,
+) -> list[ProjectIssueRunSummary]:
+    """Run yesterday's 24-hour backfill for projects at local midnight.
+
+    Args:
+        project_ids: Optional project scope. Defaults to all discovered projects.
+        run_time: UTC anchor time. Defaults to the current UTC time.
+    """
+    projects = project_ids or discover_project_ids()
+    now = run_time or datetime.datetime.now(datetime.UTC)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=datetime.UTC)
+    now = now.astimezone(datetime.UTC)
+
+    results: list[ProjectIssueRunSummary] = []
+    LOGGER.info(
+        "Starting local-midnight issues backfill scan",
+        extra={
+            "project_count": len(projects),
+            "run_time": now.isoformat(),
+        },
+    )
+    for project_id in projects:
+        time_zone = _resolve_project_time_zone(project_id=project_id)
+        local_now = now.astimezone(ZoneInfo(time_zone))
+        if local_now.hour != 0 or local_now.minute != 0:
+            LOGGER.info(
+                "\tSkipping project_id=%s because local time is %s",
+                project_id,
+                local_now.isoformat(),
+            )
+            continue
+
+        local_day = local_now.date() - datetime.timedelta(days=1)
+        LOGGER.info(
+            "\tRunning local-midnight backfill project_id=%s local_day=%s",
+            project_id,
+            local_day.isoformat(),
+        )
+        results.extend(
+            run_issues_backfill_for_projects(
+                project_ids=[project_id],
+                issue_category_ids=None,
+                start=local_day,
+                end=local_day,
+            )
+        )
+    LOGGER.info("Completed local-midnight issues backfill scan")
+    return results
+
+
 def _run_projects_once(
     *,
     project_ids: list[str],

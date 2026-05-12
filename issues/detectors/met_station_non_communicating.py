@@ -3,6 +3,7 @@
 import datetime
 import logging
 import math
+from decimal import Decimal, InvalidOperation
 
 import pandas as pd
 from pvlib import solarposition
@@ -165,7 +166,7 @@ class MetStationNonCommunicatingDetector:
                 continue
             if latest_point is None or point.time > latest_point:
                 latest_point = point.time
-            if point.value is None or point.value == "":
+            if _is_non_communicating_value(value=point.value):
                 continue
             present_count += 1
         return present_count, latest_point
@@ -213,3 +214,17 @@ class MetStationNonCommunicatingDetector:
         )
         threshold = self._config.daylight_apparent_elevation_threshold_degrees
         return tuple(solar["apparent_elevation"] > threshold)
+
+
+def _is_non_communicating_value(*, value: str | None) -> bool:
+    """Return whether a telemetry value should count as absent."""
+    if value is None:
+        return True
+    stripped = value.strip()
+    if stripped == "":
+        return True
+    try:
+        parsed = Decimal(stripped)
+    except InvalidOperation:
+        return False
+    return parsed.is_finite() and parsed == 0

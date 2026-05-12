@@ -2,16 +2,18 @@
 
 import datetime
 import logging
+from typing import Any, Literal
 from uuid import UUID
 
 from core.database import with_db
-from core.db_query import OutputType
+from core.db_query import DbQuery, OutputType
 from core.dependencies import get_project_name_short
+from sqlalchemy.orm import Session
 
 from core import crud
 from issues.models.issue_candidate import IssueCandidate, IssueIdentity
 from issues.models.persistence_models import IssueRecord
-from issues.persistence.matcher import candidate_identity, index_active_issues
+from issues.persistence.matcher import candidate_identity, issue_identity
 from issues.persistence.repository import IssuePersistenceResult
 
 LOGGER = logging.getLogger(__name__)
@@ -49,6 +51,7 @@ class DbIssueRepository:
         project_id: str,
         run_time: datetime.datetime,
         candidates: list[IssueCandidate],
+        reconciliation_window_minutes: int | None = None,
     ) -> IssuePersistenceResult:
         """Create, match, and resolve issue episodes for one project run."""
         project_schema = _resolve_project_schema_from_id(project_id=project_id)
@@ -60,100 +63,163 @@ class DbIssueRepository:
             run_time.isoformat(),
             len(candidates),
         )
-        active = self._load_active_issues(project_schema=project_schema)
+        is_reconciliation_run = reconciliation_window_minutes is not None
+        scoped_issues = self._load_scoped_issues(
+            project_schema=project_schema,
+            run_time=run_time,
+            reconciliation_window_minutes=reconciliation_window_minutes,
+        )
+        issues_by_identity = _group_issues_by_identity(issues=scoped_issues)
         open_state_id = self._get_state_id(state_name="Open")
         resolved_state_id = self._get_state_id(state_name="Resolved")
         opened_count = 0
         matched_count = 0
         resolved_count = 0
-        seen_identities = set()
+        deleted_count = 0
 
         with with_db(schema=project_schema) as db:
             for candidate in candidates:
                 identity = candidate_identity(candidate=candidate)
-                seen_identities.add(identity)
-                existing = active.get(identity)
-                if existing is not None:
+                existing_issues = issues_by_identity.pop(identity, [])
+                if existing_issues:
+                    existing = _select_issue_to_keep(issues=existing_issues)
+                    earliest_time_start = min(
+                        candidate.time_start,
+                        *(issue.time_start for issue in existing_issues),
+                    )
                     LOGGER.info(
                         "\t\t\tMatched existing issue_id=%s for identity=%s",
                         existing.issue_id,
                         _identity_to_log(identity=identity),
                     )
                     matched_count += 1
-                    crud.project.issues.update_issue(
+                    _execute_scalar_write(
+                        query=crud.project.issues.update_issue(
+                            issue_id=existing.issue_id,
+                            values={
+                                "time_start": earliest_time_start,
+                                "time_end": None,
+                                "detector_metadata": dict(candidate.detector_metadata),
+                            },
+                        ),
                         db=db,
-                        issue_id=existing.issue_id,
-                        values={
-                            "detector_metadata": dict(candidate.detector_metadata),
-                        },
                     )
+                    if existing.time_end is not None:
+                        _execute_scalar_write(
+                            query=crud.project.issues.create_issue_update(
+                                issue_update={
+                                    "issue_id": existing.issue_id,
+                                    "issue_state_id": open_state_id,
+                                    "state_time_start": run_time,
+                                    "state_changed_source": candidate.detector_name,
+                                },
+                            ),
+                            db=db,
+                        )
+                    for duplicate in existing_issues:
+                        if duplicate.issue_id == existing.issue_id:
+                            continue
+                        deleted_count += int(
+                            _execute_scalar_write(
+                                query=crud.project.issues.query_delete_issue(
+                                    issue_id=duplicate.issue_id,
+                                ),
+                                db=db,
+                            )
+                        )
                     continue
 
                 opened_count += 1
-                created = crud.project.issues.create_issue(
+                created = _execute_scalar_returning(
+                    query=crud.project.issues.create_issue(
+                        issue={
+                            "device_id": identity.device_id,
+                            "tag_id": identity.tag_id,
+                            "issue_category_id": identity.issue_category_id,
+                            "time_start": candidate.time_start,
+                            "time_end": None,
+                            "detector_metadata": dict(candidate.detector_metadata),
+                        },
+                    ),
                     db=db,
-                    issue={
-                        "device_id": identity.device_id,
-                        "tag_id": identity.tag_id,
-                        "issue_category_id": identity.issue_category_id,
-                        "time_start": candidate.time_start,
-                        "time_end": None,
-                        "detector_metadata": dict(candidate.detector_metadata),
-                    },
                 )
+                created_issue_id = int(created["issue_id"])
                 LOGGER.info(
                     "\t\tOpened new issue_id=%s for identity=%s",
-                    created.issue_id,
+                    created_issue_id,
                     _identity_to_log(identity=identity),
                 )
-                crud.project.issues.create_issue_update(
+                _execute_scalar_write(
+                    query=crud.project.issues.create_issue_update(
+                        issue_update={
+                            "issue_id": created_issue_id,
+                            "issue_state_id": open_state_id,
+                            "state_time_start": run_time,
+                            "state_changed_source": candidate.detector_name,
+                        },
+                    ),
                     db=db,
-                    issue_update={
-                        "issue_id": created.issue_id,
-                        "issue_state_id": open_state_id,
-                        "state_time_start": run_time,
-                        "state_changed_source": candidate.detector_name,
-                    },
                 )
 
-            for identity, active_issue in active.items():
-                if identity in seen_identities:
+            for identity, remaining_issues in issues_by_identity.items():
+                if is_reconciliation_run:
+                    for issue in remaining_issues:
+                        LOGGER.info(
+                            "\t\tDeleting erroneous issue_id=%s for identity=%s",
+                            issue.issue_id,
+                            _identity_to_log(identity=identity),
+                        )
+                        deleted_count += int(
+                            _execute_scalar_write(
+                                query=crud.project.issues.query_delete_issue(
+                                    issue_id=issue.issue_id,
+                                ),
+                                db=db,
+                            )
+                        )
                     continue
-                resolved_count += 1
-                LOGGER.info(
-                    "\t\tResolving issue_id=%s for identity=%s",
-                    active_issue.issue_id,
-                    _identity_to_log(identity=identity),
-                )
-                crud.project.issues.close_issue(
-                    db=db,
-                    issue_id=active_issue.issue_id,
-                    time_end=run_time,
-                )
-                source = str(
-                    active_issue.detector_metadata.get(
-                        "detector_name",
-                        "issues_orchestrator",
+
+                for active_issue in remaining_issues:
+                    resolved_count += 1
+                    LOGGER.info(
+                        "\t\tResolving issue_id=%s for identity=%s",
+                        active_issue.issue_id,
+                        _identity_to_log(identity=identity),
                     )
-                )
-                crud.project.issues.create_issue_update(
-                    db=db,
-                    issue_update={
-                        "issue_id": active_issue.issue_id,
-                        "issue_state_id": resolved_state_id,
-                        "state_time_start": run_time,
-                        "state_changed_source": source,
-                    },
-                )
+                    _execute_scalar_write(
+                        query=crud.project.issues.close_issue(
+                            issue_id=active_issue.issue_id,
+                            time_end=run_time,
+                        ),
+                        db=db,
+                    )
+                    source = str(
+                        active_issue.detector_metadata.get(
+                            "detector_name",
+                            "issues_orchestrator",
+                        )
+                    )
+                    _execute_scalar_write(
+                        query=crud.project.issues.create_issue_update(
+                            issue_update={
+                                "issue_id": active_issue.issue_id,
+                                "issue_state_id": resolved_state_id,
+                                "state_time_start": run_time,
+                                "state_changed_source": source,
+                            },
+                        ),
+                        db=db,
+                    )
 
             db.commit()
             LOGGER.info(
                 "\t\tCommitted lifecycle updates for project_id=%s opened=%s matched=%s "
-                "resolved=%s",
+                "resolved=%s deleted=%s",
                 project_id,
                 opened_count,
                 matched_count,
                 resolved_count,
+                deleted_count,
             )
 
         active_count = self._count_active_issues(project_schema=project_schema)
@@ -201,44 +267,103 @@ class DbIssueRepository:
         )
         return count
 
-    def _load_active_issues(self, *, project_schema: str) -> dict:
-        rows = crud.project.issues.get_issues(open_only=True).get(
-            output_type=OutputType.POLARS,
-            schema=project_schema,
-        )
-        if rows.is_empty():
-            LOGGER.info("\t\tNo active issues found for schema=%s", project_schema)
-            return {}
-
-        issues: list[IssueRecord] = []
-        for row in rows.iter_rows(named=True):
-            detector_metadata = row.get("detector_metadata")
-            issues.append(
-                IssueRecord(
-                    issue_id=int(row["issue_id"]),
-                    device_id=int(row["device_id"]),
-                    tag_id=_coerce_optional_int(raw=row["tag_id"]),
-                    issue_category_id=int(row["issue_category_id"]),
-                    time_start=row["time_start"],
-                    time_end=row["time_end"],
-                    detector_metadata=(
-                        detector_metadata if isinstance(detector_metadata, dict) else {}
-                    ),
-                )
+    def _load_scoped_issues(
+        self,
+        *,
+        project_schema: str,
+        run_time: datetime.datetime,
+        reconciliation_window_minutes: int | None,
+    ) -> list[IssueRecord]:
+        if reconciliation_window_minutes is None:
+            rows = crud.project.issues.get_issues(open_only=True).get(
+                output_type=OutputType.POLARS,
+                schema=project_schema,
             )
-        indexed = index_active_issues(issues=issues)
+        else:
+            window_start = run_time - datetime.timedelta(
+                minutes=reconciliation_window_minutes
+            )
+            rows = crud.project.issues.get_issues_open_in_window(
+                time_start=window_start,
+                time_end=run_time,
+            ).get(
+                output_type=OutputType.POLARS,
+                schema=project_schema,
+            )
+
+        if rows.is_empty():
+            LOGGER.info("\t\tNo scoped issues found for schema=%s", project_schema)
+            return []
+
+        issues = [_issue_record_from_row(row=row) for row in rows.iter_rows(named=True)]
         LOGGER.info(
-            "\t\tLoaded active issues for schema=%s count=%s",
+            "\t\tLoaded scoped issues for schema=%s count=%s",
             project_schema,
-            len(indexed),
+            len(issues),
         )
-        return indexed
+        return issues
+
+
+def _issue_record_from_row(*, row: dict) -> IssueRecord:
+    detector_metadata = row.get("detector_metadata")
+    return IssueRecord(
+        issue_id=int(row["issue_id"]),
+        device_id=int(row["device_id"]),
+        tag_id=_coerce_optional_int(raw=row["tag_id"]),
+        issue_category_id=int(row["issue_category_id"]),
+        time_start=row["time_start"],
+        time_end=row["time_end"],
+        detector_metadata=(
+            detector_metadata if isinstance(detector_metadata, dict) else {}
+        ),
+    )
+
+
+def _execute_scalar_write(*, query: DbQuery[Any, Literal[True]], db: Session) -> bool:
+    result = query.get(executor=db, output_type=OutputType.SQLALCHEMY)
+    return result is not None
+
+
+def _execute_scalar_returning(
+    *,
+    query: DbQuery[Any, Literal[True]],
+    db: Session,
+) -> Any:
+    result = query.get(executor=db, output_type=OutputType.SQLALCHEMY)
+    if result is None:
+        msg = "Expected write query to return a row"
+        raise ValueError(msg)
+    return result
+
+
+def _group_issues_by_identity(
+    *,
+    issues: list[IssueRecord],
+) -> dict[IssueIdentity, list[IssueRecord]]:
+    grouped: dict[IssueIdentity, list[IssueRecord]] = {}
+    for issue in issues:
+        grouped.setdefault(issue_identity(issue=issue), []).append(issue)
+    return grouped
+
+
+def _select_issue_to_keep(*, issues: list[IssueRecord]) -> IssueRecord:
+    return sorted(
+        issues,
+        key=lambda issue: (
+            issue.time_start,
+            issue.issue_id,
+        ),
+    )[0]
 
 
 def _coerce_optional_int(*, raw: object) -> int | None:
     if raw is None:
         return None
-    return int(raw)
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, float | str):
+        return int(raw)
+    return int(str(raw))
 
 
 def _resolve_project_schema_from_id(*, project_id: str) -> str:

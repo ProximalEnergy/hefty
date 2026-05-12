@@ -1,12 +1,16 @@
 import datetime
+import json
 
 import pytest
 
 from issues.lambda_handler import (
+    is_eventbridge_scheduled_event,
+    lambda_handler,
     parse_backfill_date,
     parse_issue_category_ids,
     validate_backfill_arguments,
 )
+from issues.orchestrator.run_project import ProjectIssueRunSummary
 
 
 def test_parse_issue_category_ids_accepts_none() -> None:
@@ -44,3 +48,61 @@ def test_validate_backfill_rejects_start_after_end() -> None:
             start=datetime.date(2026, 1, 3),
             end=datetime.date(2026, 1, 1),
         )
+
+
+def test_is_eventbridge_scheduled_event() -> None:
+    assert is_eventbridge_scheduled_event(
+        payload={"source": "aws.events", "detail-type": "Scheduled Event"}
+    )
+
+
+def test_lambda_handler_routes_scheduled_event_to_midnight_backfill(
+    *,
+    monkeypatch,
+) -> None:
+    run_times: list[datetime.datetime | None] = []
+
+    def fake_run_local_midnight_backfill_for_projects(
+        *,
+        project_ids: list[str] | None = None,
+        run_time: datetime.datetime | None = None,
+    ) -> list[ProjectIssueRunSummary]:
+        assert project_ids is None
+        run_times.append(run_time)
+        assert run_time is not None
+        return [
+            ProjectIssueRunSummary(
+                project_id="project-a",
+                run_time=run_time,
+                raw_candidate_count=0,
+                final_candidate_count=0,
+                opened_count=0,
+                matched_count=0,
+                resolved_count=0,
+                active_count=0,
+            )
+        ]
+
+    monkeypatch.setattr(
+        "issues.lambda_handler.configure_lambda_logging",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues.run_local_midnight_backfill_for_projects",
+        fake_run_local_midnight_backfill_for_projects,
+    )
+
+    response = lambda_handler(
+        {
+            "source": "aws.events",
+            "detail-type": "Scheduled Event",
+            "time": "2026-01-02T06:00:00Z",
+        },
+        None,
+    )
+
+    body = json.loads(response["body"])
+    assert response["statusCode"] == 200
+    assert body["project_count"] == 1
+    assert body["failure_count"] == 0
+    assert run_times == [datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC)]
