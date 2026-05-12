@@ -2044,9 +2044,7 @@ async def get_tps_data(
             -df_daily[["DAESAMT", "DAEPAMT"]].sum(axis=1) / 4
         )
         df_actuals["Real-Time Energy"] = -df_daily[["RTEIAMT"]].sum(axis=1)
-        df_actuals["Misc Charges"] = -df_daily[["BPDAMT", "SPDAMT", "RTRDASIAMT"]].sum(
-            axis=1
-        )
+        df_actuals["Misc Charges"] = -df_daily[["BPDAMT", "SPDAMT"]].sum(axis=1)
         df_actuals["Virtual Trades"] = virtual_series
         df_actuals["Ancillary Services"] = ancillary_series
         df_actuals["Net Profit"] = df_actuals.sum(axis=1)
