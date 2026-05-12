@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import random
 import time
 from collections.abc import Awaitable, Callable
@@ -9,6 +10,14 @@ from functools import lru_cache
 from typing import TypedDict
 
 import app.integrations.providers.tenaska as tenaska
+import httpx
+from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
+
+_AUTH_SERVICE_UNAVAILABLE_DETAIL = (
+    "TPS authentication service is temporarily unavailable"
+)
 
 
 class TokenResponse(TypedDict):
@@ -66,7 +75,26 @@ class TokenManager:
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
-        resp = await self._fetch_token_cb()
+        try:
+            resp = await self._fetch_token_cb()
+        except httpx.HTTPStatusError as exc:
+            upstream_status_code = exc.response.status_code
+            if 500 <= upstream_status_code < 600:
+                logger.warning(
+                    "Token request failed with upstream status %s",
+                    upstream_status_code,
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail=_AUTH_SERVICE_UNAVAILABLE_DETAIL,
+                ) from exc
+            raise
+        except httpx.RequestError as exc:
+            logger.warning("Token request failed due to network error")
+            raise HTTPException(
+                status_code=503,
+                detail=_AUTH_SERVICE_UNAVAILABLE_DETAIL,
+            ) from exc
         self._token = resp["access_token"]
         self._expiry = self._now() + int(resp.get("expires_in", 86400))
         return self._token

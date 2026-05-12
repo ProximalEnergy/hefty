@@ -28,6 +28,8 @@ async def get_ptp_markets(
         token = await tps_token.get_token()
         result = await ptp_explorer.get_markets(token=token)
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch markets: {exc}"
@@ -52,6 +54,8 @@ async def get_ptp_endpoints(
         token = await tps_token.get_token()
         result = await ptp_explorer.get_endpoints(token=token, market=market)
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch endpoints: {exc}"
@@ -80,6 +84,8 @@ async def get_ptp_endpoint_schema(
             token=token, market=market, endpoint=endpoint
         )
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch schema: {exc}"
@@ -110,6 +116,8 @@ async def get_ptp_endpoint_elements(
             token=token, market=market, endpoint=endpoint, viewport=viewport
         )
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch elements: {exc}"
@@ -154,6 +162,8 @@ async def get_ptp_endpoint_data(
             environment=environment,
         )
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch data: {exc}"
@@ -175,6 +185,8 @@ async def explore_ptp_api_dev_route(
     try:
         result = await ptp_explorer.explore_ptp_api_route(token_manager=tps_token)
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to explore API: {exc}"

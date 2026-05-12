@@ -341,6 +341,8 @@ async def get_ptp_endpoints_availability(
             endpoint_availability[endpoint] = has_data
 
         return endpoint_availability
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to check availability: {exc}"
@@ -686,6 +688,8 @@ async def get_ptp_data(
                             dp["values"] = filtered_values
 
         return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch PTP data: {exc}"
@@ -1009,6 +1013,8 @@ async def get_active_outage_tickets(
             )
 
         return {"active_tickets": active_count, "tickets": all_tickets}
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502, detail=f"Failed to fetch active outage tickets: {exc}"
