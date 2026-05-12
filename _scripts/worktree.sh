@@ -27,6 +27,8 @@ CURRENT_DIR="$(pwd)"
 PARENT_DIR="$(dirname "$CURRENT_DIR")"
 NEW_WORKTREE="$PARENT_DIR/$FOLDER_NAME"
 OVERLAY_DIR="$HOME/.devconfig/mono"
+CURRENT_WORKSPACE_FILE="$(basename "$CURRENT_DIR").code-workspace"
+NEW_WORKSPACE_FILE="$(basename "$FOLDER_NAME").code-workspace"
 
 # =============================================================================
 # FILES TO COPY (edit this list as needed)
@@ -85,13 +87,12 @@ else
     echo "Devconfig overlay not found, skipping: $OVERLAY_DIR"
 fi
 
-# Copy the root Cursor workspace using the new worktree title
-if [[ -f "$CURRENT_DIR/mono.code-workspace" ]]; then
-    WORKSPACE_FILE="$(basename "$FOLDER_NAME").code-workspace"
-    cp "$CURRENT_DIR/mono.code-workspace" "$NEW_WORKTREE/$WORKSPACE_FILE"
-    echo "Copied workspace file: $WORKSPACE_FILE"
+# Copy the matching root Cursor workspace using the new worktree title
+if [[ -f "$CURRENT_DIR/$CURRENT_WORKSPACE_FILE" ]]; then
+    cp "$CURRENT_DIR/$CURRENT_WORKSPACE_FILE" "$NEW_WORKTREE/$NEW_WORKSPACE_FILE"
+    echo "Copied workspace file: $NEW_WORKSPACE_FILE"
 else
-    echo "Workspace file not found, skipping: mono.code-workspace"
+    echo "Workspace file not found, skipping: $CURRENT_WORKSPACE_FILE"
 fi
 
 # Trust mise config files in new worktree
