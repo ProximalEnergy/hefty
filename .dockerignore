@@ -123,6 +123,7 @@ microservices/microservice_1/**/*
 # - core/src/core/** (needed)
 # - microservices/weather_alerts_lambda/** (needed)
 # - microservices/calendar_notifications_lambda/** (needed)
+# - microservices/data_connection_outage_notifications_lambda/** (needed)
 
 
 # Exclude exceptions for pv-eem Lambda

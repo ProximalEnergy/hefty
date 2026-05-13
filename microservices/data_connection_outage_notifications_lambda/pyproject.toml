@@ -18,4 +18,4 @@ build-backend = "setuptools.build_meta"
 py-modules = ["data_connection_outage_notifications_lambda"]
 
 [tool.uv.sources]
-core = { path = "../../core", editable = true }
+core = { workspace = true }

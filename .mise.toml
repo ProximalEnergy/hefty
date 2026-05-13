@@ -658,6 +658,11 @@ description = "Check docstring Args sections in microservices"
 dir = "."
 run = "./_scripts/ast_grep_check.sh microservices"
 
+[tasks."micro:deploy-data-connection-outage-notifications-lambda"]
+description = "Deploy data connection outage notifications lambda"
+dir = "microservices/cdk"
+run = "uv run cdk deploy DataConnectionOutageNotificationsLambdaStack"
+
 # =============================================================================
 # API TASKS (runs in ./api directory)
 # =============================================================================

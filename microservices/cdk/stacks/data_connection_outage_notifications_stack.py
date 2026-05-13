@@ -34,24 +34,6 @@ class DataConnectionOutageNotificationsStack(Stack):
 
         repo_root = Path(__file__).parent.parent.parent.parent
 
-        core_version = os.getenv("CORE_VERSION")
-        codeartifact_token = os.getenv("CODEARTIFACT_TOKEN")
-        aws_region = self.region or "us-east-2"
-
-        build_args = {}
-        if core_version:
-            if not codeartifact_token:
-                msg = (
-                    "CODEARTIFACT_TOKEN environment variable is required when "
-                    "CORE_VERSION is set"
-                )
-                raise ValueError(msg)
-            build_args = {
-                "CORE_VERSION": core_version,
-                "CODEARTIFACT_TOKEN": codeartifact_token,
-                "AWS_REGION": aws_region,
-            }
-
         secret_name = os.getenv(
             "DATA_CONNECTION_OUTAGE_SECRET_NAME",
             _DEFAULT_SM_SECRET_ID,
@@ -69,7 +51,6 @@ class DataConnectionOutageNotificationsStack(Stack):
                     "Dockerfile"
                 ),
                 platform=Platform.LINUX_ARM64,
-                build_args=build_args or None,
             ),
             architecture=Architecture.ARM_64,
             timeout=Duration.minutes(5),
