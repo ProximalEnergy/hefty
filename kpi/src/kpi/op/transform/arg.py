@@ -4,7 +4,7 @@ from typing import Any
 import pandas as pd
 import xarray as xr
 from kpi.base.context import get_context
-from kpi.base.enumeration import TIME_DESCRIPTOR, TimeCoord
+from kpi.base.enumeration import NEW_NAME, TIME_DESCRIPTOR, TimeCoord
 from kpi.base.exception import DatasetAccessError
 from kpi.base.protocol import arg_protocol
 from kpi.op.field import Field
@@ -75,3 +75,13 @@ class Constant[T](ArgType):
     def extract(self, dataset: xr.Dataset) -> T:
         _ = dataset
         return self.value
+
+
+@arg_protocol
+class Grouper(_DataArrayArgType, ArgType):
+    def extract(self, dataset: xr.Dataset) -> xr.DataArray:
+        try:
+            x = dataset[self.input_name]
+            return x.rename(x.attrs[NEW_NAME])
+        except KeyError as e:
+            raise DatasetAccessError(str(e)) from e

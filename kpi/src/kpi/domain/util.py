@@ -161,12 +161,6 @@ def fill_accumulator(
     )
 
 
-def rename(
-    x: xr.DataArray,
-):
-    return x.rename(x.attrs[NEW_NAME])
-
-
 def fill_missing_zero(
     x: xr.DataArray,
 ) -> xr.DataArray:

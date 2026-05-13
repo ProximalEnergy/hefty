@@ -16,6 +16,7 @@ from kpi.infra.pvlib_integration import theoretical_poa_irradiance
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import (
     Constant,
+    Grouper,
     Optional,
     Required,
     TimeCoordArg,
@@ -60,12 +61,12 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
 
     project_energy_production_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     inverter_energy_production_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(Clean.inverter_total_energy_production_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_expected_energy_best_kwh_5m = calc_field(fill_na_with_arrays)(
@@ -89,7 +90,7 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
 
     @method_calc(
         irradiance=Required(project_poa_irradiance_w_m2_5m),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
     def project_insolation_d(
         irradiance: xr.DataArray,

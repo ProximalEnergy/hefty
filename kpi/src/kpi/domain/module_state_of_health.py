@@ -2,7 +2,7 @@ import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoord
 from kpi.base.util import coord
-from kpi.domain.util import diff, rename
+from kpi.domain.util import diff
 
 
 def pv_dc_combiner_module_excess_degradation(
@@ -44,7 +44,7 @@ def pv_dc_combiner_module_excess_degradation(
     # Define helper functions
     #
 
-    date = rename(date_local_5m)
+    date = date_local_5m
 
     def _met_station_clean_poa_5m() -> xr.DataArray:
         # Filter values > min_poa

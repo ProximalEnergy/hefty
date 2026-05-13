@@ -13,7 +13,7 @@ from kpi.domain.bess import (
 )
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, Optional, Required
+from kpi.op.transform.arg import Constant, Grouper, Optional, Required
 from kpi.op.transform.method import calc_field, method_calc
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
@@ -109,7 +109,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         discharge_energy=Required(Eval.pcs_energy_discharged_kwh_5m),
         charge_energy=Required(Eval.pcs_energy_charged_kwh_5m),
         energy_capacity=Optional(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+        date_local_5m=Grouper(Eval.date_local_5m),
     )
 
     project_pcs_maximum_continuous_discharged_energy_kwh_d = calc_field(
@@ -118,7 +118,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         discharge_energy=Required(Eval.project_pcs_energy_discharged_kwh_5m),
         charge_energy=Required(Eval.project_pcs_energy_charged_kwh_5m),
         energy_capacity=Optional(Clean.project_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+        date_local_5m=Grouper(Eval.date_local_5m),
     )
 
     # =======================================================
@@ -216,5 +216,5 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
         discharge_energy=Required(Eval.project_energy_discharged_kwh_5m),
         charge_energy=Required(Eval.project_energy_charged_kwh_5m),
         energy_capacity=Optional(Clean.project_energy_capacity_kwh),
-        date_local_5m=Required(Eval.date_local_5m),
+        date_local_5m=Grouper(Eval.date_local_5m),
     )

@@ -1,15 +1,10 @@
 import xarray as xr
 from kpi.base.enumeration import NEW_NAME, TimeCoord
-from kpi.domain.util import diff, mod, rename
-from xarray.core.groupby import DataArrayGroupBy
-
-
-def groupby(x: xr.DataArray, *, grouper: xr.DataArray) -> DataArrayGroupBy:
-    return x.groupby(rename(grouper))
+from kpi.domain.util import diff, mod
 
 
 def resample_first(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
-    return groupby(x, grouper=grouper).first()
+    return x.groupby(grouper).first()
 
 
 def resample_diff(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
@@ -27,16 +22,16 @@ def resample_diff_mod(
 def resample_sum(
     x: xr.DataArray, *, grouper: xr.DataArray, min_count: int = 1
 ) -> xr.DataArray:
-    return groupby(x, grouper=grouper).sum(min_count=min_count)
+    return x.groupby(grouper).sum(min_count=min_count)
 
 
 def resample_min(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
-    return groupby(x, grouper=grouper).min()
+    return x.groupby(grouper).min()
 
 
 def resample_mean(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
-    return groupby(x, grouper=grouper).mean()
+    return x.groupby(grouper).mean()
 
 
 def resample_max(x: xr.DataArray, *, grouper: xr.DataArray) -> xr.DataArray:
-    return groupby(x, grouper=grouper).max()
+    return x.groupby(grouper).max()

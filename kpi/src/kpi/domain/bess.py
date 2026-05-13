@@ -1,7 +1,7 @@
 import xarray as xr
 from kpi.base.enumeration import TimeCoord
 from kpi.domain.agg.resample import resample_sum
-from kpi.domain.util import cumsum, diff, filter_mask, rename
+from kpi.domain.util import cumsum, diff, filter_mask
 
 
 def clean_soc(soc: xr.DataArray) -> xr.DataArray:
@@ -100,7 +100,7 @@ def maximum_continuous_discharged_energy(
             )
         )
 
-    return result.groupby(rename(date_local_5m)).max()
+    return result.groupby(date_local_5m).max()
 
 
 def bess_filter_daily_energy(

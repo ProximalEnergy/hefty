@@ -16,10 +16,9 @@ from kpi.domain.pv import pv_filter_daily_energy
 from kpi.domain.solv_contract import solv_lost_period, solv_period_produced
 from kpi.domain.util import (
     filter_mask,
-    rename,
 )
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, Optional, Required
+from kpi.op.transform.arg import Constant, Grouper, Optional, Required
 from kpi.op.transform.method import calc_field, method_calc
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.sensor.pv import DownloadSensorPv
@@ -73,7 +72,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     project_solv_period_produced_kwh_d = calc_field(solv_period_produced)(
         irradiance=Required(Eval.project_poa_irradiance_w_m2_5m),
         power=Required(Clean.pv_project_power_kw_5m),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # PV_PROJECT_SOLV_PERIOD_MWH_LOST (99)
@@ -85,7 +84,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         unit_ac_capacity=Required(Clean.inverter_ac_capacity_kw),
         unit_dc_capacity=Required(Clean.inverter_dc_capacity_kw),
         expected_energy=Required(Eval.project_expected_energy_best_kwh_5m),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # PV_PROJECT_SOLV_CONTRACTUAL_AVAILABILITY (97)
@@ -102,7 +101,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # PV_PROJECT_EXPECTED_ENERGY_DELIVERED (102)
     project_expected_energy_delivered_kwh_d = calc_field(resample_sum)(
         Required(Eval.project_expected_energy_best_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # PV_PROJECT_PERFORMANCE_INDEX (100)
@@ -123,7 +122,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         power_setpoint=Required(Clean.project_power_setpoint_kw_5m),
         expected_energy=Required(Eval.project_expected_energy_best_kwh_5m),
         actual_energy=Required(Eval.project_energy_exported_to_grid_kwh_5m),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
     def project_curtailed_energy_kwh_d(
         power_setpoint: xr.DataArray,
@@ -141,7 +140,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         curtailed_energy[curtailed_energy < 0] = 0
         curtailed_energy[not_during_curtailment] = 0
 
-        return curtailed_energy.groupby(rename(date_local_5m)).sum()
+        return curtailed_energy.groupby(date_local_5m).sum()
 
     # =======================================================
     # PV Inverter KPIs
@@ -152,13 +151,13 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # PROJECT_PV_INVERTER_MECHANICAL_AVAILABILITY (5)
     inverter_mechanical_availability_d = calc_field(resample_mean)(
         x=Required(Eval.inverter_mechanical_availability_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_inverter_mechanical_availability_d = calc_field(daily_mean_across_devices)(
         value=Required(Eval.inverter_mechanical_availability_5m),
         device_type=Constant(DeviceTypeEnum.PV_INVERTER),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # PV_INVERTER_ENERGY_PRODUCTION (2)
@@ -179,13 +178,13 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # PV_INVERTER_MODULE_ENERGY_PRODUCTION (7)
     @method_calc(
         power=Required(Clean.inverter_module_ac_power_kw_5m),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
     def inverter_module_energy_kwh_d(
         power: xr.DataArray,
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
-        return power.groupby(rename(date_local_5m)).sum() / 12
+        return power.groupby(date_local_5m).sum() / 12
 
     project_inverter_module_energy_kwh_d = calc_field(sum_across_devices)(
         Required(inverter_module_energy_kwh_d),
@@ -225,20 +224,20 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     tracker_row_availability_d = calc_field(resample_mean)(
         x=Required(Eval.tracker_row_is_available_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_tracker_row_availability_d = calc_field(daily_mean_across_devices)(
         value=Required(Eval.tracker_row_is_available_5m),
         device_type=Constant(DeviceTypeEnum.TRACKER_ROW),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW (21)
 
     tracker_row_deviation_from_setpoint_deg_d = calc_field(resample_mean)(
         x=Required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_tracker_row_deviation_from_setpoint_deg_d = calc_field(
@@ -246,13 +245,13 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     )(
         value=Required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
         device_type=Constant(DeviceTypeEnum.TRACKER_ROW),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
     tracker_row_setpoint_deviating_from_median_deg_d = calc_field(resample_mean)(
         x=Required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_tracker_row_setpoint_deviating_from_median_deg_d = calc_field(
@@ -260,7 +259,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     )(
         value=Required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
         device_type=Constant(DeviceTypeEnum.TRACKER_ROW),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # =======================================================
@@ -272,7 +271,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         value=Required(Eval.tracker_row_is_available_5m),
         device_mapping=Required(DownloadDevicePvHierarchy.tracker_row_to_block),
         device_type=Constant(DeviceTypeEnum.PV_BLOCK),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # see above for project level availability
@@ -284,7 +283,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         value=Required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
         device_mapping=Required(DownloadDevicePvHierarchy.tracker_row_to_block),
         device_type=Constant(DeviceTypeEnum.PV_BLOCK),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # see above for project level deviation from setpoint
@@ -296,7 +295,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         value=Required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
         device_mapping=Required(DownloadDevicePvHierarchy.tracker_row_to_block),
         device_type=Constant(DeviceTypeEnum.PV_BLOCK),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
 
     # see above for project level setpoint deviating from median
@@ -310,7 +309,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         combiner_current=Required(DownloadSensorPv.combiner_current_raw_amps_5m),
         combiner_power_capacity=Required(Clean.combiner_dc_capacity_kw),
         time_local_5m=Required(Eval.time_local_5m),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )
     def combiner_field_health_d(
         combiner_current: xr.DataArray,
@@ -343,7 +342,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
             0.99, dim=coord(DeviceTypeEnum.PV_DC_COMBINER)
         ).drop_vars("quantile")
         second_normalization = first_normalization / percentile_99
-        result = second_normalization.groupby(rename(date_local_5m)).mean()
+        result = second_normalization.groupby(date_local_5m).mean()
         return result.where(
             filter_mask(filter_by=result, min_value=-0.1, max_value=1.2)
         )
@@ -390,7 +389,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         pv_dc_combiner_expected_energy_kwh_5m=Required(
             Eval.combiner_expected_energy_best_kwh_5m
         ),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
         combiner_to_inverter=Required(DownloadDevicePvHierarchy.combiner_to_inverter),
         combiner_to_block=Required(DownloadDevicePvHierarchy.combiner_to_block),
         inverter_module_to_inverter=Required(
@@ -410,11 +409,11 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # PV_DC_COMBINER_MECHANICAL_AVAILABILITY (101)
     combiner_mechanical_availability_d = calc_field(resample_mean)(
         x=Required(Eval.combiner_mechanical_availability_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_combiner_mechanical_availability_d = calc_field(daily_mean_across_devices)(
         value=Required(Eval.combiner_mechanical_availability_5m),
         device_type=Constant(DeviceTypeEnum.PV_DC_COMBINER),
-        date_local_5m=Required(date_local_5m),
+        date_local_5m=Grouper(date_local_5m),
     )

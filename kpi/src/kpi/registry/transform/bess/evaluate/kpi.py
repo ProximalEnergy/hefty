@@ -23,7 +23,7 @@ from kpi.domain.util import (
     where,
 )
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, Required, TimeCoordArg, TimeZone
+from kpi.op.transform.arg import Constant, Grouper, Required, TimeCoordArg, TimeZone
 from kpi.op.transform.method import calc_field, method_calc
 from kpi.registry.download.sensor.bess import DownloadSensorBess
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
@@ -163,67 +163,67 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
 
     project_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(project_total_energy_charged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     project_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(project_total_energy_discharged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # aux
 
     project_aux_energy_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(project_total_aux_energy_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # circuit
 
     circuit_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(circuit_total_energy_charged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     circuit_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(circuit_total_energy_discharged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # pcs
 
     pcs_energy_charged_dc_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(pcs_total_energy_charged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     pcs_energy_discharged_dc_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(pcs_total_energy_discharged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # pcs module
 
     pcs_module_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(pcs_module_total_energy_charged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     pcs_module_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(pcs_module_total_energy_discharged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # string
 
     string_energy_charged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(string_total_energy_charged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     string_energy_discharged_unfiltered_kwh_d = calc_field(resample_diff)(
         Required(string_total_energy_discharged_filled_kwh_5m),
-        grouper=Required(date_local_5m),
+        grouper=Grouper(date_local_5m),
     )
 
     # =======================================================
@@ -391,7 +391,7 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
 
     @method_calc(
         availability_5m=Required(project_system_availability_5m),
-        hour_utc_5m=Required(hour_utc_5m),
+        hour_utc_5m=Grouper(hour_utc_5m),
     )
     def project_ner_availability_h(
         availability_5m: xr.DataArray,
