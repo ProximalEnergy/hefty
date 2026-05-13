@@ -763,8 +763,10 @@ def model_input_formatter(init_date, run_length, lead_time_to_start=0,
         init_date = pd.to_datetime(init_date)
         # scda goes away/went away 2026-05-12
         # see https://confluence.ecmwf.int/display/FCST/Implementation+of+IFS+Cycle+50r1
-        if (init_date < pd.to_datetime('2026-05-12 06:00') and
-            (init_date.hour == 6 or init_date.hour == 18)):
+        if (init_date.tz_localize(None) <
+            pd.to_datetime('2026-05-12 06:00') and
+            (init_date.hour == 6 or
+             init_date.hour == 18)):
             product = 'scda'
         else:
             product = 'oper'

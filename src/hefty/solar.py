@@ -1249,6 +1249,11 @@ def get_solar_forecast_ensemble_subset(
 
     # get deterministic temp_air
     search_str = ':2t:sfc:g:0001:od:cf:enfo'
+    product = 'enfo'
+    # account for IFS changes starting 2026-05-12 06z
+    if (init_date.tz_localize(None) > pd.to_datetime('2026-05-12')):
+        product = 'oper'
+        search_str = '2t:sfc'
 
     # try n times based loosely on
     # https://thingspython.wordpress.com/2021/12/05/how-to-try-something-n-times-in-python/
@@ -1259,7 +1264,7 @@ def get_solar_forecast_ensemble_subset(
                 # try downloading
                 ds = FastHerbie(DATES=[init_date],
                                 model=model_herbie,
-                                product='enfo',
+                                product=product,
                                 fxx=fxx_range,
                                 priority=priority).xarray(search_str)
             else:
@@ -1267,7 +1272,7 @@ def get_solar_forecast_ensemble_subset(
                 # partial files
                 ds = FastHerbie(DATES=[init_date],
                                 model=model_herbie,
-                                product='enfo',
+                                product=product,
                                 fxx=fxx_range,
                                 priority=priority).xarray(search_str,
                                                           overwrite=True)
@@ -1687,10 +1692,16 @@ def get_solar_forecast_ensemble(latitude, longitude, init_date, run_length,
             # get deterministic temp_air using ifs control member
             search_str = ':2t:sfc:g:0001:od:cf:enfo'
             get_control = None
+            product = 'enfo'
+            # account for IFS changes starting 2026-05-12 06z
+            if (init_date.tz_localize(None) > pd.to_datetime('2026-05-12')):
+                product = 'oper'
+                search_str = '2t:sfc'
         elif model == 'aifs_ens':
             search_str = ':2t:sfc:'
             # Herbie kwarg to get control member, https://herbie.readthedocs.io/en/stable/gallery/ecmwf_models/ecmwf.html#AIFS-Ensembles
             get_control = True
+            product = 'enfo'
 
         # try n times based loosely on
         # https://thingspython.wordpress.com/2021/12/05/how-to-try-something-n-times-in-python/
@@ -1701,7 +1712,7 @@ def get_solar_forecast_ensemble(latitude, longitude, init_date, run_length,
                     # try downloading
                     FH = FastHerbie(DATES=[init_date],
                                     model=model_herbie,
-                                    product='enfo',
+                                    product=product,
                                     fxx=fxx_range,
                                     priority=priority,
                                     get_control=get_control,
@@ -1713,7 +1724,7 @@ def get_solar_forecast_ensemble(latitude, longitude, init_date, run_length,
                     # partial files
                     FH = FastHerbie(DATES=[init_date],
                                     model=model_herbie,
-                                    product='enfo',
+                                    product=product,
                                     fxx=fxx_range,
                                     priority=priority,
                                     get_control=get_control,
