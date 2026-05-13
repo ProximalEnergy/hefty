@@ -843,7 +843,7 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.3.154"
+version = "0.3.155"
 source = { editable = "core" }
 dependencies = [
     { name = "async-lru" },
