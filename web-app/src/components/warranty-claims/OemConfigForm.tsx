@@ -21,6 +21,18 @@ interface Props {
   autoFocus?: boolean
 }
 
+export function getDefaultContactEmailError(contact: string): string | null {
+  const value = contact.trim()
+  if (!value) return null
+
+  const addresses = value.split(/[\s,;]+/).filter(Boolean)
+  if (addresses.length > 1) {
+    return 'Enter one email address only. Add extras as Cc when submitting.'
+  }
+
+  return null
+}
+
 /**
  * Form fields for an OEM (claim_config): counterparty, submission channel,
  * default contact, and (for portal/hybrid channels) portal URL.
@@ -33,6 +45,7 @@ export default function OemConfigForm({
 }: Props) {
   const set = (patch: Partial<OemConfigFormValues>) =>
     onChange({ ...values, ...patch })
+  const contactError = getDefaultContactEmailError(values.contact)
 
   return (
     <Stack gap="sm">
@@ -70,6 +83,7 @@ export default function OemConfigForm({
       <TextInput
         label="Default Contact Email"
         description="The OEM contact who will receive claim submissions"
+        error={contactError}
         value={values.contact}
         onChange={(e) => set({ contact: e.currentTarget.value })}
       />

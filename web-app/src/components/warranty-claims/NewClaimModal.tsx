@@ -26,12 +26,20 @@ import { useGetProjectEvents } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import PdfAnnotator, {
   type PdfAnnotatorHandle,
+  type PdfAnnotatorState,
 } from '@/components/PdfAnnotator'
 import { ProjectDocumentUploadButton } from '@/components/ProjectDocumentUploadButton'
 import { extractPdfAcroFormFilledFieldsForAssist } from '@/components/pdfAssist'
 import DeviceEventSelect from '@/components/warranty-claims/DeviceEventSelect'
-import OemConfigForm from '@/components/warranty-claims/OemConfigForm'
+import OemConfigForm, {
+  getDefaultContactEmailError,
+} from '@/components/warranty-claims/OemConfigForm'
+import { expandOemDeviceIdsForEventMatching } from '@/components/warranty-claims/constants'
 import ClaimEmailFieldRow from '@/components/warranty-claims/new-claim/ClaimEmailFieldRow'
+import ClaimGisMapPdf, {
+  type ClaimGisMapPdfHandle,
+  isWarrantyClaimGisMapFilename,
+} from '@/components/warranty-claims/new-claim/ClaimGisMapPdf'
 import {
   type DeviceEntry,
   deviceNameForWarrantyAssist,
@@ -49,6 +57,7 @@ import {
   getDeviceModelImagePublicUrl,
   getDeviceModelImageUrl,
 } from '@/utils/cdn'
+import { triggerDownloadFromLocalFile } from '@/utils/triggerDownload'
 import { useAuth, useUser } from '@clerk/react'
 import {
   ActionIcon,
@@ -81,6 +90,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import {
   IconCheck,
+  IconDownload,
   IconEdit,
   IconExternalLink,
   IconFile,
@@ -99,7 +109,9 @@ interface Props {
   draftClaimId?: number | null
 }
 
-const FILLED_CLAIM_PDF_FILENAME = 'warranty-claim-form-filled.pdf'
+const LEGACY_FILLED_CLAIM_PDF_FILENAME = 'warranty-claim-form-filled.pdf'
+const FILLED_CLAIM_PDF_FILENAME_PATTERN =
+  /^warranty-claim-(?:\d+|pending)-\d{4}-\d{2}-\d{2}-form-filled\.pdf$/
 const PREVIOUS_CLAIM_EXAMPLE_MAX_CHARS = 2000
 const AI_ASSIST_STEPS = [
   'Checking provided inputs',
@@ -118,11 +130,31 @@ const CLAIM_EMAIL_SUBJECT_HINT =
   '(pending) until the claim is saved.'
 const CLAIM_EMAIL_BODY_TOOLTIP =
   'Plain-text body sent to the OEM; edit to match your process.'
+const GIS_MAP_PDF_READY_RETRY_COUNT = 10
+const GIS_MAP_PDF_READY_RETRY_MS = 250
+
+function buildFilledClaimPdfFilename(claimId: number | null): string {
+  const claimPart = claimId == null ? 'pending' : String(claimId)
+  const datePart = new Date().toISOString().slice(0, 10)
+  return `warranty-claim-${claimPart}-${datePart}-form-filled.pdf`
+}
+
+function isFilledClaimPdfFilename(filename: string): boolean {
+  return (
+    filename === LEGACY_FILLED_CLAIM_PDF_FILENAME ||
+    FILLED_CLAIM_PDF_FILENAME_PATTERN.test(filename)
+  )
+}
 
 type EventCsvStatus =
   | { status: 'pending' }
   | { status: 'complete'; filename: string }
   | { status: 'error'; message: string }
+
+type ClaimPdfDraft = {
+  fileUrl: string
+  state: PdfAnnotatorState
+}
 
 function userHasProjectPermission(
   permissions: ReturnType<typeof useGetUserPermissions>['data'],
@@ -134,6 +166,20 @@ function userHasProjectPermission(
 function formatIssueDateForAssist(value: string): string {
   if (!value.trim()) return ''
   return value.slice(0, 10)
+}
+
+function getAncestorDeviceIds(device: {
+  device_id: number
+  device_id_path?: string | null
+  parent_device_id?: number | null
+}): number[] {
+  const pathIds = device.device_id_path
+    ?.split('.')
+    .map((id) => Number(id))
+    .filter((id) => Number.isFinite(id) && id !== device.device_id)
+
+  if (pathIds?.length) return pathIds
+  return device.parent_device_id != null ? [device.parent_device_id] : []
 }
 
 export default function NewClaimModal({
@@ -157,11 +203,13 @@ export default function NewClaimModal({
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [, setEventCsvStatuses] = useState<Record<number, EventCsvStatus>>({})
   const [ccEmails, setCcEmails] = useState('')
+  const [toEmails, setToEmails] = useState('')
   const [bccEmails, setBccEmails] = useState('')
   const [reviewEmailSubject, setReviewEmailSubject] = useState('')
   const [reviewEmailBody, setReviewEmailBody] = useState('')
   const [savingDraft, setSavingDraft] = useState(false)
   const [submittingClaim, setSubmittingClaim] = useState(false)
+  const [generatingGisMapPdf, setGeneratingGisMapPdf] = useState(false)
   const submittedDeviceIdsRef = useRef<Set<number>>(new Set())
   const eventCsvControllersRef = useRef<Map<number, AbortController>>(new Map())
   const eventCsvFileNamesRef = useRef<Map<number, string>>(new Map())
@@ -190,6 +238,8 @@ export default function NewClaimModal({
   const { user } = useUser()
   const { getToken } = useAuth()
   const pdfAnnotatorRef = useRef<PdfAnnotatorHandle>(null)
+  const gisMapPdfRef = useRef<ClaimGisMapPdfHandle>(null)
+  const [claimPdfDraft, setClaimPdfDraft] = useState<ClaimPdfDraft | null>(null)
   const [aiAssistLoading, setAiAssistLoading] = useState(false)
   const [aiAssistStepIndex, setAiAssistStepIndex] = useState(0)
   const [overlayAssistReplaceOpen, setOverlayAssistReplaceOpen] =
@@ -233,6 +283,7 @@ export default function NewClaimModal({
     ClaimSubmissionChannelEnum.EMAIL,
   )
   const [newConfigContact, setNewConfigContact] = useState('')
+  const newConfigContactError = getDefaultContactEmailError(newConfigContact)
   const [newConfigPortal, setNewConfigPortal] = useState('')
   const [newConfigCounterpartyId, setNewConfigCounterpartyId] = useState<
     string | null
@@ -265,6 +316,7 @@ export default function NewClaimModal({
 
   useEffect(() => {
     setSelectedEventIds([])
+    setToEmails('')
     eventsAutoPopulatedRef.current = null
   }, [selectedConfigId])
 
@@ -357,7 +409,10 @@ export default function NewClaimModal({
     [projectTypeId],
   )
 
-  const { data: allProjectDevicesForOemDefault } = useGetDevicesV2({
+  const {
+    data: allProjectDevicesForOemDefault,
+    isLoading: allProjectDevicesForOemDefaultLoading,
+  } = useGetDevicesV2({
     pathParams: { projectId },
     filters: { device_type_ids: allBaseDeviceTypeIds },
     queryOptions: { enabled: opened && !!selectedConfigId },
@@ -374,7 +429,10 @@ export default function NewClaimModal({
     )
   }, [allProjectDevicesForOemDefault])
 
-  const { data: allProjectDeviceModels } = useGetDeviceModels({
+  const {
+    data: allProjectDeviceModels,
+    isLoading: allProjectDeviceModelsLoading,
+  } = useGetDeviceModels({
     queryParams: { device_model_ids: allProjectDeviceModelIds },
     queryOptions: {
       enabled: opened && allProjectDeviceModelIds.length > 0,
@@ -461,6 +519,29 @@ export default function NewClaimModal({
     [devicesDeepForAssist],
   )
 
+  const selectedDeviceAncestorIdsForAssist = useMemo(() => {
+    const ids = new Set<number>()
+    for (const selectedDevice of selectedDevices) {
+      const device = deviceDetailByIdForAssist.get(selectedDevice.device_id)
+      if (!device) continue
+      getAncestorDeviceIds(device).forEach((id) => ids.add(id))
+    }
+    return Array.from(ids)
+  }, [deviceDetailByIdForAssist, selectedDevices])
+
+  const {
+    data: selectedDeviceAncestorDetails,
+    isFetching: loadingDeviceAncestorsForAssist,
+  } = useGetDevicesV2({
+    pathParams: { projectId },
+    filters: {
+      device_ids: selectedDeviceAncestorIdsForAssist,
+    },
+    queryOptions: {
+      enabled: opened && selectedDeviceAncestorIdsForAssist.length > 0,
+    },
+  })
+
   useEffect(() => {
     if (!devicesDeepForAssist?.length) return
     setSelectedDevices((prev) => {
@@ -546,7 +627,7 @@ export default function NewClaimModal({
     const filledPdfAttachments = (lastFiledClaimDetail?.attachments ?? [])
       .filter(
         (attachment) =>
-          attachment.filename === FILLED_CLAIM_PDF_FILENAME && !!attachment.url,
+          isFilledClaimPdfFilename(attachment.filename) && !!attachment.url,
       )
       .sort((a, b) => {
         const aTime = a.uploaded_at ?? ''
@@ -691,17 +772,14 @@ export default function NewClaimModal({
     )
   }, [selectedConfig, allProjectDeviceModels])
 
-  // Project device_ids whose device_model belongs to the selected OEM. Source
-  // for the "Events" step query.
+  // Device IDs for the "Events" step: OEM-owned devices plus related BESS
+  // equipment when the OEM supplies PCS or DC enclosure (see constants).
   const oemDeviceIds = useMemo(() => {
     if (!allProjectDevicesForOemDefault || !oemDeviceModelIdSet) return []
-    return allProjectDevicesForOemDefault
-      .filter(
-        (d) =>
-          d.device_model_id != null &&
-          oemDeviceModelIdSet.has(d.device_model_id),
-      )
-      .map((d) => d.device_id)
+    return expandOemDeviceIdsForEventMatching(
+      oemDeviceModelIdSet,
+      allProjectDevicesForOemDefault,
+    )
   }, [allProjectDevicesForOemDefault, oemDeviceModelIdSet])
 
   const recentlyClosedSinceIso = useMemo(() => {
@@ -728,6 +806,30 @@ export default function NewClaimModal({
     () => new Map((oemEvents ?? []).map((e) => [e.event_id, e])),
     [oemEvents],
   )
+  const oemDeviceLookupLoading =
+    selectedConfig != null &&
+    (allProjectDevicesForOemDefaultLoading ||
+      allProjectDevicesForOemDefault == null ||
+      (allProjectDeviceModelIds.length > 0 &&
+        (allProjectDeviceModelsLoading || allProjectDeviceModels == null)))
+  const eventsForDeviceSelectByDeviceId = useMemo(() => {
+    const byDeviceId = new Map<number, NonNullable<typeof oemEvents>>()
+    const seenEventIds = new Set<number>()
+
+    for (const event of [
+      ...(oemEvents ?? []),
+      ...(selectedDeviceEventsForAssist ?? []),
+    ]) {
+      if (seenEventIds.has(event.event_id)) continue
+      seenEventIds.add(event.event_id)
+      byDeviceId.set(event.device_id, [
+        ...(byDeviceId.get(event.device_id) ?? []),
+        event,
+      ])
+    }
+
+    return byDeviceId
+  }, [oemEvents, selectedDeviceEventsForAssist])
 
   const eventByIdForAssist = useMemo(
     () =>
@@ -1017,13 +1119,15 @@ export default function NewClaimModal({
 
   const handleCreateConfig = async () => {
     if (!newConfigCounterpartyId) return
+    if (newConfigContactError) return
+    const contact = newConfigContact.trim()
     try {
       const res = await createClaimConfig.mutateAsync({
         projectId,
         data: {
           counterparty_company_id: newConfigCounterpartyId,
           default_submission_channel: newConfigChannel,
-          default_contact: newConfigContact || undefined,
+          default_contact: contact || undefined,
           portal_url: newConfigPortal || undefined,
         },
       })
@@ -1039,41 +1143,87 @@ export default function NewClaimModal({
     }
   }
 
-  const createFilledPdfFile = useCallback(async () => {
-    const annot = pdfAnnotatorRef.current
-    if (!matchedContract?.document_url || !annot?.isReady()) {
-      return null
-    }
+  const createFilledPdfFile = useCallback(
+    async (claimId: number | null) => {
+      const annot = pdfAnnotatorRef.current
+      if (!matchedContract?.document_url || !annot?.isReady()) {
+        return null
+      }
 
-    const bytes = await annot.exportFilledPdf()
-    const arrayBuffer = bytes.buffer.slice(
-      bytes.byteOffset,
-      bytes.byteOffset + bytes.byteLength,
-    ) as ArrayBuffer
-    return new File([arrayBuffer], FILLED_CLAIM_PDF_FILENAME, {
-      type: 'application/pdf',
-    })
-  }, [matchedContract?.document_url])
+      const bytes = await annot.exportFilledPdf()
+      const arrayBuffer = bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      ) as ArrayBuffer
+      return new File([arrayBuffer], buildFilledClaimPdfFilename(claimId), {
+        type: 'application/pdf',
+      })
+    },
+    [matchedContract?.document_url],
+  )
 
   const addFilledPdfToAttachments = useCallback(async () => {
-    const pdfFile = await createFilledPdfFile()
+    const pdfFile = await createFilledPdfFile(createdClaimId ?? draftClaimId)
     if (!pdfFile) return
     setUploadedFiles((prev) => [
-      ...prev.filter((file) => file.name !== FILLED_CLAIM_PDF_FILENAME),
+      ...prev.filter((file) => !isFilledClaimPdfFilename(file.name)),
       pdfFile,
     ])
-  }, [createFilledPdfFile])
+  }, [createFilledPdfFile, createdClaimId, draftClaimId])
 
-  const filesWithAutoSavedPdf = async () => {
-    const pdfFile = await createFilledPdfFile()
+  const filesWithAutoSavedPdf = async (claimId: number | null) => {
+    const pdfFile = await createFilledPdfFile(claimId)
     if (!pdfFile) return uploadedFiles
     return [
-      ...uploadedFiles.filter(
-        (file) => file.name !== FILLED_CLAIM_PDF_FILENAME,
-      ),
+      ...uploadedFiles.filter((file) => !isFilledClaimPdfFilename(file.name)),
       pdfFile,
     ]
   }
+
+  const createGisMapPdfFile = useCallback(
+    async (claimId?: number | null) => {
+      if (selectedDevices.length === 0) return null
+
+      for (
+        let attempt = 0;
+        attempt < GIS_MAP_PDF_READY_RETRY_COUNT;
+        attempt += 1
+      ) {
+        await new Promise((resolve) => window.requestAnimationFrame(resolve))
+        const file =
+          (await gisMapPdfRef.current?.createPdfFile(claimId)) ?? null
+        if (file) return file
+
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, GIS_MAP_PDF_READY_RETRY_MS),
+        )
+      }
+
+      return null
+    },
+    [selectedDevices.length],
+  )
+
+  const addGisMapPdfToAttachments = useCallback(async () => {
+    setGeneratingGisMapPdf(true)
+    try {
+      const mapPdfFile = await createGisMapPdfFile()
+      if (!mapPdfFile) {
+        notifications.show({
+          title: 'GIS map not ready',
+          message: 'Try returning to this step or saving the claim again.',
+          color: 'yellow',
+        })
+        return
+      }
+      setUploadedFiles((prev) => [
+        ...prev.filter((file) => !isWarrantyClaimGisMapFilename(file.name)),
+        mapPdfFile,
+      ])
+    } finally {
+      setGeneratingGisMapPdf(false)
+    }
+  }, [createGisMapPdfFile])
 
   const persistMissingDeviceSerialNumbers = async () => {
     const updatedDeviceIds: number[] = []
@@ -1100,12 +1250,15 @@ export default function NewClaimModal({
     )
   }
 
-  const handleSaveDraft = async (): Promise<number | null> => {
+  const handleSaveDraft = async ({
+    includeGisMapPdf = false,
+  }: {
+    includeGisMapPdf?: boolean
+  } = {}): Promise<number | null> => {
     if (!selectedConfigId) return null
     setSavingDraft(true)
     try {
-      const filesForUpload = await filesWithAutoSavedPdf()
-      setUploadedFiles(filesForUpload)
+      let filesForUpload = uploadedFiles
       await persistMissingDeviceSerialNumbers()
       let claimId = createdClaimId
       if (!claimId) {
@@ -1119,6 +1272,9 @@ export default function NewClaimModal({
         claimId = res.data.claim_id
         setCreatedClaimId(claimId)
       }
+
+      filesForUpload = await filesWithAutoSavedPdf(claimId)
+      setUploadedFiles(filesForUpload)
 
       // Combine server-side devices (from refetched draft) with the in-memory
       // set of devices we've POSTed during this session to avoid duplicate
@@ -1142,6 +1298,22 @@ export default function NewClaimModal({
           },
         })
         submittedDeviceIdsRef.current.add(dev.device_id)
+      }
+
+      if (
+        includeGisMapPdf ||
+        filesForUpload.some((file) => isWarrantyClaimGisMapFilename(file.name))
+      ) {
+        const mapPdfFile = await createGisMapPdfFile(claimId)
+        if (mapPdfFile) {
+          filesForUpload = [
+            ...filesForUpload.filter(
+              (file) => !isWarrantyClaimGisMapFilename(file.name),
+            ),
+            mapPdfFile,
+          ]
+          setUploadedFiles(filesForUpload)
+        }
       }
 
       for (const file of filesForUpload) {
@@ -1171,7 +1343,7 @@ export default function NewClaimModal({
   }
 
   const handleSubmitClaim = async () => {
-    const claimId = await handleSaveDraft()
+    const claimId = await handleSaveDraft({ includeGisMapPdf: true })
     if (!claimId) return
     setSubmittingClaim(true)
     try {
@@ -1181,6 +1353,7 @@ export default function NewClaimModal({
         data: {
           email_subject: reviewEmailSubject.trim() || undefined,
           email_body: reviewEmailBody.trim() || undefined,
+          to_emails: parseEmailAddressList(toEmails),
           cc_emails: parseEmailAddressList(ccEmails),
           bcc_emails: parseEmailAddressList(bccEmails),
         },
@@ -1221,10 +1394,13 @@ export default function NewClaimModal({
     setEventCsvStatuses({})
     setUploadedFiles([])
     setCcEmails('')
+    setToEmails('')
     reviewCcDefaultAppliedRef.current = false
     setBccEmails('')
     setReviewEmailSubject('')
     setReviewEmailBody('')
+    setClaimPdfDraft(null)
+    setGeneratingGisMapPdf(false)
     setShowNewConfig(false)
     setEditingConfigId(null)
     setConfigJustCreated(null)
@@ -1260,6 +1436,8 @@ export default function NewClaimModal({
         counterpartyName: oemName,
         senderCompany: companyDisplayName,
         attachmentNames: uploadedFiles.map((file) => file.name),
+        toAddressesDisplay:
+          toEmails.trim() || selectedConfig?.default_contact?.trim() || null,
       }),
     [
       companyDisplayName,
@@ -1267,6 +1445,8 @@ export default function NewClaimModal({
       oemName,
       projectName,
       reviewEmailBody,
+      selectedConfig?.default_contact,
+      toEmails,
       uploadedFiles,
     ],
   )
@@ -1515,6 +1695,12 @@ export default function NewClaimModal({
     void executeClaimPdfAiAssist()
   }, [executeClaimPdfAiAssist])
 
+  const persistClaimPdfDraft = useCallback(() => {
+    const state = pdfAnnotatorRef.current?.getState()
+    if (!state || !matchedContract?.document_url) return
+    setClaimPdfDraft({ fileUrl: matchedContract.document_url, state })
+  }, [matchedContract?.document_url])
+
   const confirmOverlayAssistReplace = useCallback(() => {
     setOverlayAssistReplaceOpen(false)
     pdfAnnotatorRef.current?.clearOverlayAnnotations()
@@ -1590,6 +1776,7 @@ export default function NewClaimModal({
         companyDisplayName,
       ),
     )
+    setToEmails(selectedConfig?.default_contact?.trim() ?? '')
     if (!reviewCcDefaultAppliedRef.current && userEmail.trim()) {
       setCcEmails((prev) => {
         const existingEmails = parseEmailAddressList(prev)
@@ -1611,18 +1798,47 @@ export default function NewClaimModal({
     userEmail,
     userFullName,
     companyDisplayName,
+    selectedConfig?.default_contact,
   ])
 
   const goToStep = useCallback(
     (next: number) => {
+      if (step === 3 && next !== 3) {
+        persistClaimPdfDraft()
+      }
       if (step === 3 && next > 3) {
         void addFilledPdfToAttachments()
       }
-      if (next === 5 && step !== 5) populateReviewEmailDefaults()
+      if (next === 5 && step !== 5) {
+        populateReviewEmailDefaults()
+      }
       setStep(next)
     },
-    [step, populateReviewEmailDefaults, addFilledPdfToAttachments],
+    [
+      step,
+      persistClaimPdfDraft,
+      populateReviewEmailDefaults,
+      addFilledPdfToAttachments,
+    ],
   )
+
+  useEffect(() => {
+    if (step !== 4) return
+    if (
+      loadingDeepForAssist ||
+      loadingEventsForAssist ||
+      loadingDeviceAncestorsForAssist
+    ) {
+      return
+    }
+    void addGisMapPdfToAttachments()
+  }, [
+    step,
+    loadingDeepForAssist,
+    loadingEventsForAssist,
+    loadingDeviceAncestorsForAssist,
+    addGisMapPdfToAttachments,
+  ])
 
   useEffect(() => {
     const id = createdClaimId ?? draftClaimId
@@ -1649,6 +1865,20 @@ export default function NewClaimModal({
 
   return (
     <>
+      <ClaimGisMapPdf
+        ref={gisMapPdfRef}
+        enabled={opened && selectedDevices.length > 0}
+        projectName={projectName}
+        claimId={effectiveClaimId}
+        oemName={oemName}
+        summary={summary}
+        selectedDevices={selectedDevices}
+        selectedDeviceDetails={devicesDeepForAssist ?? []}
+        selectedDeviceAncestorDetails={selectedDeviceAncestorDetails ?? []}
+        selectedEvents={selectedDeviceEventsForAssist ?? []}
+        siteDevices={allProjectDevicesForOemDefault ?? []}
+        projectPolygon={project.data?.polygon ?? null}
+      />
       <Modal
         opened={opened}
         onClose={resetAndClose}
@@ -1799,6 +2029,7 @@ export default function NewClaimModal({
                       size="xs"
                       onClick={handleCreateConfig}
                       loading={createClaimConfig.isPending}
+                      disabled={Boolean(newConfigContactError)}
                     >
                       Save Config
                     </Button>
@@ -1851,7 +2082,14 @@ export default function NewClaimModal({
                 )}
               </Group>
 
-              {oemDeviceIds.length === 0 ? (
+              {oemDeviceLookupLoading ? (
+                <Group gap="sm">
+                  <Loader size="xs" />
+                  <Text size="sm" c="dimmed">
+                    Loading Events for {oemName}…
+                  </Text>
+                </Group>
+              ) : oemDeviceIds.length === 0 ? (
                 <Alert variant="light" color="gray">
                   No devices on this project are linked to {oemName}. Continue
                   to add devices manually.
@@ -2069,6 +2307,11 @@ export default function NewClaimModal({
                             projectId={projectId}
                             deviceId={d.device_id}
                             value={d.event_id}
+                            initialEvents={
+                              eventsForDeviceSelectByDeviceId.get(
+                                d.device_id,
+                              ) ?? []
+                            }
                             onChange={(eventId) =>
                               setSelectedDevices((prev) =>
                                 prev.map((row) =>
@@ -2328,6 +2571,12 @@ export default function NewClaimModal({
                       <PdfAnnotator
                         ref={pdfAnnotatorRef}
                         fileUrl={matchedContract.document_url}
+                        initialState={
+                          claimPdfDraft?.fileUrl ===
+                          matchedContract.document_url
+                            ? claimPdfDraft.state
+                            : null
+                        }
                       />
                     </Stack>
                   ) : (
@@ -2390,23 +2639,43 @@ export default function NewClaimModal({
                 </Group>
               </Dropzone>
 
+              {generatingGisMapPdf && (
+                <Group gap="xs">
+                  <Loader size="xs" />
+                  <Text size="sm" c="dimmed">
+                    Generating GIS map PDF...
+                  </Text>
+                </Group>
+              )}
+
               {uploadedFiles.length > 0 && (
                 <Stack gap="xs">
                   {uploadedFiles.map((f, i) => (
                     <Group key={`${f.name}-${i}`} justify="space-between">
                       <Text size="sm">{f.name}</Text>
-                      <ActionIcon
-                        color="red"
-                        variant="subtle"
-                        size="sm"
-                        onClick={() =>
-                          setUploadedFiles((prev) =>
-                            prev.filter((_, idx) => idx !== i),
-                          )
-                        }
-                      >
-                        <IconTrash size={14} />
-                      </ActionIcon>
+                      <Group gap={4} wrap="nowrap">
+                        <ActionIcon
+                          variant="subtle"
+                          size="sm"
+                          aria-label={`Download ${f.name}`}
+                          onClick={() => triggerDownloadFromLocalFile(f)}
+                        >
+                          <IconDownload size={14} />
+                        </ActionIcon>
+                        <ActionIcon
+                          color="red"
+                          variant="subtle"
+                          size="sm"
+                          aria-label={`Remove ${f.name}`}
+                          onClick={() =>
+                            setUploadedFiles((prev) =>
+                              prev.filter((_, idx) => idx !== i),
+                            )
+                          }
+                        >
+                          <IconTrash size={14} />
+                        </ActionIcon>
+                      </Group>
                     </Group>
                   ))}
                 </Stack>
@@ -2418,7 +2687,7 @@ export default function NewClaimModal({
                 size="sm"
               >
                 <Group component="span" gap={4} wrap="nowrap">
-                  <span>Attach addditional timeseries data</span>
+                  <span>Attach additional timeseries data</span>
                   <IconExternalLink size={14} />
                 </Group>
               </Anchor>
@@ -2445,14 +2714,18 @@ export default function NewClaimModal({
                       <ClaimEmailFieldRow
                         label="To"
                         fieldId="claim-email-to"
-                        hint="OEM contact from the selected claim configuration."
+                        hint={
+                          'Primary OEM address(es); add more separated by comma, ' +
+                          'space, or semicolon. If empty, the OEM default from the ' +
+                          'claim configuration is used when sending.'
+                        }
                       >
                         <TextInput
-                          readOnly
-                          disabled
-                          value={
+                          value={toEmails}
+                          onChange={(e) => setToEmails(e.currentTarget.value)}
+                          placeholder={
                             selectedConfig?.default_contact?.trim() ||
-                            '(no contact set)'
+                            'OEM email address(es)'
                           }
                         />
                       </ClaimEmailFieldRow>
@@ -2593,12 +2866,44 @@ export default function NewClaimModal({
                   </Table>
                 </Stack>
               )}
+              {(uploadedFiles.length > 0 || generatingGisMapPdf) && (
+                <Stack gap="xs" mt="md">
+                  <Text fw={600} size="sm">
+                    Attachments ({uploadedFiles.length}
+                    {generatingGisMapPdf ? ', generating GIS map...' : ''})
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Download copies here before submit if you want to review
+                    them locally.
+                  </Text>
+                  {uploadedFiles.map((f, i) => (
+                    <Group
+                      key={`review-attach-${f.name}-${i}`}
+                      justify="space-between"
+                    >
+                      <Text size="sm">{f.name}</Text>
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        aria-label={`Download ${f.name}`}
+                        onClick={() => triggerDownloadFromLocalFile(f)}
+                      >
+                        <IconDownload size={14} />
+                      </ActionIcon>
+                    </Group>
+                  ))}
+                </Stack>
+              )}
             </Stack>
           </Stepper.Step>
 
           <Stepper.Completed>
-            <Stack align="center" mt="xl">
+            <Stack align="center" mt="xl" gap="sm">
               <Text>Claim submitted successfully!</Text>
+              <Text size="sm" c="dimmed" ta="center" maw={420}>
+                Open this claim from the warranty list to download attachments
+                anytime.
+              </Text>
             </Stack>
           </Stepper.Completed>
         </Stepper>
@@ -2617,7 +2922,7 @@ export default function NewClaimModal({
                 <>
                   <Button
                     variant="light"
-                    onClick={handleSaveDraft}
+                    onClick={() => void handleSaveDraft()}
                     loading={savingDraft}
                     disabled={submittingClaim}
                   >
@@ -2633,7 +2938,12 @@ export default function NewClaimModal({
                 </>
               )}
               {step < 5 && (
-                <Button onClick={handleNextClick} disabled={!canProceed(step)}>
+                <Button
+                  onClick={handleNextClick}
+                  disabled={
+                    !canProceed(step) || (step === 4 && generatingGisMapPdf)
+                  }
+                >
                   Next
                 </Button>
               )}

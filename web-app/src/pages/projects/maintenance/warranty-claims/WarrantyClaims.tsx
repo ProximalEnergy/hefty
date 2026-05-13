@@ -1,4 +1,7 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
+import { useGetCompanies } from '@/api/v1/admin/companies'
+import { useGetAllCompanyProjectsForProject } from '@/api/v1/admin/company_projects'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   ClaimConfig,
   ClaimListItem,
@@ -21,6 +24,7 @@ import {
 import { formatDate } from '@/components/warranty-claims/formatDate'
 import {
   ActionIcon,
+  Alert,
   Badge,
   Button,
   Card,
@@ -46,6 +50,7 @@ import {
   IconEdit,
   IconFileText,
   IconHistory,
+  IconInfoCircle,
   IconMessage,
   IconPlus,
   IconSearch,
@@ -69,6 +74,10 @@ import {
   PV_PLACEHOLDERS,
   getFakeUpdates,
 } from './placeholders'
+
+function isProximalCompanyName(value: string | null | undefined) {
+  return value?.trim().toLowerCase().startsWith('proximal') ?? false
+}
 
 export default function WarrantyClaims() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -103,6 +112,53 @@ export default function WarrantyClaims() {
     pathParams: { projectId: projectId! },
     queryOptions: { enabled: !!projectId },
   })
+  const userSelf = useGetUserSelf({
+    queryOptions: { enabled: !!projectId },
+  })
+  const { data: projectCompanyProjects, isLoading: companyProjectsLoading } =
+    useGetAllCompanyProjectsForProject({
+      pathParams: { project_id: projectId! },
+      queryOptions: { enabled: !!projectId },
+    })
+
+  const projectCompanyIds = useMemo(() => {
+    const ids = (projectCompanyProjects ?? []).map((item) => item.company_id)
+    return Array.from(new Set(ids))
+  }, [projectCompanyProjects])
+
+  const otherProjectCompanyIds = useMemo(() => {
+    if (!userSelf.data?.company_id) return []
+    return projectCompanyIds.filter(
+      (companyId) => companyId !== userSelf.data.company_id,
+    )
+  }, [projectCompanyIds, userSelf.data?.company_id])
+
+  const { data: projectCompanies, isLoading: companiesLoading } =
+    useGetCompanies({
+      queryParams: {
+        company_ids:
+          otherProjectCompanyIds.length > 0
+            ? otherProjectCompanyIds
+            : undefined,
+      },
+      queryOptions: { enabled: otherProjectCompanyIds.length > 0 },
+    })
+
+  const projectCompanyNames = useMemo(() => {
+    const companiesById = new Map(
+      (projectCompanies ?? []).map((company) => [company.company_id, company]),
+    )
+    return otherProjectCompanyIds
+      .flatMap((companyId) => {
+        const company = companiesById.get(companyId)
+        const isProximal =
+          isProximalCompanyName(company?.name_short) ||
+          isProximalCompanyName(company?.name_long)
+        if (isProximal) return []
+        return [company?.name_long || company?.name_short || companyId]
+      })
+      .sort((a, b) => a.localeCompare(b))
+  }, [projectCompanies, otherProjectCompanyIds])
 
   const claims = data && data.length > 0 ? data : null
   const placeholders =
@@ -297,6 +353,25 @@ export default function WarrantyClaims() {
           Claim" to get started.
         </Text>
       )}
+
+      <Alert
+        icon={<IconInfoCircle size={16} />}
+        color="blue"
+        variant="light"
+        w="50%"
+      >
+        <Text size="sm">
+          Warranty claims are visible to any company with access to this
+          project.
+          {companyProjectsLoading || userSelf.isLoading || companiesLoading
+            ? ' Loading companies...'
+            : projectCompanyNames.length > 0
+              ? ` Other companies with access: ${projectCompanyNames.join(
+                  ', ',
+                )}.`
+              : ' No other companies are currently listed.'}
+        </Text>
+      </Alert>
 
       <Stack gap="xs">
         <Text size="sm" fw={500} c="dimmed">

@@ -582,6 +582,7 @@ export const useSubmitClaim = () => {
       data?: {
         email_subject?: string | null
         email_body?: string | null
+        to_emails?: string[] | null
         cc_emails?: string[] | null
         bcc_emails?: string[] | null
       }

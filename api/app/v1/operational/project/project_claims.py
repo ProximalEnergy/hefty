@@ -49,6 +49,31 @@ EVENT_DATA_WINDOW = datetime.timedelta(minutes=30)
 EVENT_DATA_INTERVAL = enumerations.TimeInterval.ONE_MINUTE
 
 
+def _resolve_claim_submit_to_emails(
+    *,
+    config: models.ClaimConfig | None,
+    submit_opts: interfaces.ClaimSubmit,
+) -> list[str]:
+    """Resolve To recipients: explicit submit list or claim config default contact.
+
+    Args:
+        config: Claim configuration (OEM default contact).
+        submit_opts: Submit payload with optional ``to_emails`` override.
+
+    Returns:
+        Non-empty list of recipient addresses, or empty when none apply.
+    """
+    to_out: list[str] = []
+    raw = submit_opts.to_emails
+    if raw is not None:
+        to_out = [str(x).strip() for x in raw if x and str(x).strip()]
+    if not to_out and config is not None and config.default_contact:
+        one = str(config.default_contact).strip()
+        if one:
+            to_out = [one]
+    return to_out
+
+
 def _filename_part(*, value: object, fallback: str) -> str:
     """Build a readable filename segment from metadata.
 
@@ -1134,8 +1159,11 @@ async def submit_claim(
 
     opts = payload or interfaces.ClaimSubmit()
 
-    to_email = config.default_contact if config else None
-    if to_email and opts.email_body and opts.email_body.strip():
+    to_emails_resolved = _resolve_claim_submit_to_emails(
+        config=config,
+        submit_opts=opts,
+    )
+    if to_emails_resolved and opts.email_body and opts.email_body.strip():
         try:
             project_result = await db.execute(
                 sa.select(models.Project.name_long).where(
@@ -1190,7 +1218,7 @@ async def submit_claim(
             )
 
             await send_claim_submission_email(
-                to_email=to_email,
+                to_emails=to_emails_resolved,
                 cc_emails=cc_list,
                 bcc_emails=bcc_list,
                 subject=subject,
@@ -1203,7 +1231,7 @@ async def submit_claim(
             logger.exception(
                 "Failed to send claim email for claim %s to %s",
                 claim_id,
-                to_email,
+                ", ".join(to_emails_resolved),
             )
 
     return {"status": "submitted", "claim_id": claim_id}

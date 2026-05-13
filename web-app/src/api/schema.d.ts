@@ -3863,7 +3863,7 @@ export interface paths {
         };
         /**
          * Get Events
-         * @description Retrieve a list of events for a project with optional filters.
+         * @description Retrieve a list of events for a project with optional query filters.
          *
          *     Args:
          *         project_id: UUID of the project to retrieve events for.
@@ -3877,6 +3877,30 @@ export interface paths {
         get: operations["get_events_v1_operational_projects__project_id__events_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/events/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Events
+         * @description Retrieve events for a project with filters in the request body.
+         *
+         *     Args:
+         *         project_id: UUID of the project to retrieve events for.
+         *         filters: Event filters sent in the JSON request body.
+         */
+        post: operations["search_project_events"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9430,6 +9454,8 @@ export interface components {
             email_subject?: string | null;
             /** Email Body */
             email_body?: string | null;
+            /** To Emails */
+            to_emails?: string[] | null;
             /** Cc Emails */
             cc_emails?: string[] | null;
             /** Bcc Emails */
@@ -10543,6 +10569,27 @@ export interface components {
             revenue_loss: number;
             /** Status */
             status: string;
+        };
+        /**
+         * EventFilterRequest
+         * @description Filters for searching project events.
+         */
+        EventFilterRequest: {
+            /** Device Ids */
+            device_ids?: number[] | null;
+            /** Time End Gte */
+            time_end_gte?: string | null;
+            /** Time End Lt */
+            time_end_lt?: string | null;
+            /**
+             * Open
+             * @default true
+             */
+            open: boolean;
+            /** Event Ids */
+            event_ids?: number[] | null;
+            /** Open At */
+            open_at?: string | null;
         };
         /**
          * EventInterface
@@ -19411,6 +19458,43 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventInterface"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_project_events: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventFilterRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

@@ -8,7 +8,10 @@ import { Button, Group, Modal, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useEffect, useState } from 'react'
 
-import OemConfigForm, { type OemConfigFormValues } from './OemConfigForm'
+import OemConfigForm, {
+  type OemConfigFormValues,
+  getDefaultContactEmailError,
+} from './OemConfigForm'
 import { channelUsesPortalUrl } from './constants'
 
 type CreateProps = {
@@ -55,6 +58,7 @@ export default function OemConfigModal(props: Props) {
   const create = useCreateClaimConfig()
   const update = useUpdateClaimConfig()
   const pending = create.isPending || update.isPending
+  const contactError = getDefaultContactEmailError(values.contact)
 
   useEffect(() => {
     if (!opened) return
@@ -63,6 +67,8 @@ export default function OemConfigModal(props: Props) {
 
   const handleSave = async () => {
     if (mode === 'create' && !values.counterpartyId) return
+    if (contactError) return
+    const contact = values.contact.trim()
     const portal = channelUsesPortalUrl(values.channel)
       ? values.portal || undefined
       : undefined
@@ -73,7 +79,7 @@ export default function OemConfigModal(props: Props) {
           data: {
             counterparty_company_id: values.counterpartyId!,
             default_submission_channel: values.channel,
-            default_contact: values.contact || undefined,
+            default_contact: contact || undefined,
             portal_url: portal,
           },
         })
@@ -89,7 +95,7 @@ export default function OemConfigModal(props: Props) {
           claimConfigId: props.existing.claim_config_id,
           data: {
             default_submission_channel: values.channel,
-            default_contact: values.contact || null,
+            default_contact: contact || null,
             portal_url: channelUsesPortalUrl(values.channel)
               ? values.portal || null
               : null,
@@ -153,7 +159,10 @@ export default function OemConfigModal(props: Props) {
           <Button
             onClick={handleSave}
             loading={pending}
-            disabled={mode === 'create' && !values.counterpartyId}
+            disabled={
+              Boolean(contactError) ||
+              (mode === 'create' && !values.counterpartyId)
+            }
           >
             {mode === 'create' ? 'Add OEM' : 'Save Changes'}
           </Button>

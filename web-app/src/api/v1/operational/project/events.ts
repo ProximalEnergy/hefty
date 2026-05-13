@@ -8,6 +8,7 @@ import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
 import axios from 'axios'
@@ -44,6 +45,15 @@ export type DroneAnomaly = components['schemas']['DroneAnomalyInterface']
 type EventSummary = components['schemas']['EventSummary']
 type ProjectEvent = components['schemas']['EventInterface']
 
+type EventFilterRequest = {
+  device_ids?: number[] | null
+  time_end_gte?: string | null
+  time_end_lt?: string | null
+  open?: boolean
+  event_ids?: number[] | null
+  open_at?: string | null
+}
+
 export const useGetEventsForDevice = ({
   pathParams,
   queryParams,
@@ -74,23 +84,29 @@ export const useGetProjectEvents = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string }
-  queryParams?: {
-    device_ids?: number[]
-    open?: boolean
-    time_end_gte?: string
-    time_end_lt?: string
-  }
-  queryOptions?: Partial<UseQueryOptions>
+  queryParams?: EventFilterRequest
+  queryOptions?: Partial<UseQueryOptions<ProjectEvent[]>>
 }) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events`,
-  }
-  return useCustomQuery<ProjectEvent[]>({
-    axiosConfig,
-    queryName: 'getProjectEvents',
-    pathParams,
-    queryParams,
-    queryOptions,
+  const { getToken } = useAuth()
+  const filters: EventFilterRequest = { open: true, ...queryParams }
+
+  return useQuery({
+    queryKey: ['getProjectEvents', pathParams, filters],
+    queryFn: async () => {
+      const token = await getToken({ template: 'default' })
+      const response = await axios.post<ProjectEvent[]>(
+        `${baseURL}/v1/operational/projects/${pathParams.projectId}/events/search`,
+        filters,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      return response.data
+    },
+    ...queryOptions,
   })
 }
 

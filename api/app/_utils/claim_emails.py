@@ -169,7 +169,7 @@ def build_claim_submission_email_html(
 
 async def send_claim_submission_email(
     *,
-    to_email: str,
+    to_emails: list[str],
     cc_emails: list[str],
     bcc_emails: list[str],
     subject: str,
@@ -181,7 +181,7 @@ async def send_claim_submission_email(
     """Send claim submission notification via SES.
 
     Args:
-        to_email: OEM / counterparty contact.
+        to_emails: OEM / counterparty To recipients (one or more addresses).
         cc_emails: CC recipients.
         bcc_emails: BCC recipients.
         subject: Email subject line.
@@ -198,7 +198,7 @@ async def send_claim_submission_email(
     if attachments:
         await send_mime_email(
             from_address=FROM_ADDRESS,
-            to=[to_email],
+            to=to_emails,
             subject=subject,
             html_body=html_body,
             attachments=attachments,
@@ -209,7 +209,7 @@ async def send_claim_submission_email(
     else:
         await send_simple_email(
             from_address=FROM_ADDRESS,
-            to=[to_email],
+            to=to_emails,
             subject=subject,
             html_body=html_body,
             cc=cc_emails or None,
@@ -217,4 +217,4 @@ async def send_claim_submission_email(
             display_name=display_name,
         )
 
-    logger.info("Claim submission email sent to %s", to_email)
+    logger.info("Claim submission email sent to %s", ", ".join(to_emails))

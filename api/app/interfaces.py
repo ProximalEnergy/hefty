@@ -270,7 +270,7 @@ def convert(*, WKBElement: Any) -> dict[str, Any] | None:
     if isinstance(WKBElement, dict):
         return cast(dict[str, Any], WKBElement)
     # Raw WKB/EWKB from drivers (Polars/Arrow often use memoryview/bytearray)
-    if isinstance(WKBElement, (bytes, bytearray, memoryview)):
+    if isinstance(WKBElement, bytes | bytearray | memoryview):
         return cast(dict[str, Any], mapping(wkb.loads(bytes(WKBElement))))
     if isinstance(WKBElement, str):
         s = WKBElement.strip()
@@ -969,6 +969,17 @@ class EventInterface(BaseModel):
 
     device_name_full: str | None = None
     version: str | None = None
+
+
+class EventFilterRequest(BaseModel):
+    """Filters for searching project events."""
+
+    device_ids: list[int] | None = None
+    time_end_gte: datetime.datetime | None = None
+    time_end_lt: datetime.datetime | None = None
+    open: bool = True
+    event_ids: list[int] | None = None
+    open_at: datetime.datetime | None = None
 
 
 class PaginatedEvent(BaseModel):
@@ -2127,6 +2138,7 @@ class ClaimSubmit(BaseModel):
 
     email_subject: str | None = None
     email_body: str | None = None
+    to_emails: list[str] | None = None
     cc_emails: list[str] | None = None
     bcc_emails: list[str] | None = None
 

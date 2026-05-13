@@ -239,41 +239,31 @@ async def _expand_device_map_with_parents_for_missing_geometry(
             break
 
 
-@router.get("", response_model=list[interfaces.EventInterface])
-async def get_events(
+async def _get_events_for_project(
+    *,
     project_id: uuid.UUID,
-    device_ids: Annotated[list[int] | None, Query()] = None,
-    time_end_gte: datetime.datetime | None = None,
-    time_end_lt: datetime.datetime | None = None,
-    open: bool = True,
-    event_ids: Annotated[list[int] | None, Query()] = None,
-    open_at: datetime.datetime | None = None,
-) -> list[interfaces.EventInterface] | None:
-    """Retrieve a list of events for a project with optional filters.
+    filters: interfaces.EventFilterRequest,
+) -> list[interfaces.EventInterface]:
+    """Retrieve events for a project with optional filters.
 
     Args:
         project_id: UUID of the project to retrieve events for.
-        device_ids: Filter events by device IDs.
-        time_end_gte: Filter events ending at or after this datetime.
-        time_end_lt: Filter events ending before this datetime.
-        open: Include only open events (default True).
-        event_ids: Filter to specific event IDs.
-        open_at: Filter events that were open at this datetime.
+        filters: Event filter request.
     """
-    if device_ids is not None and -1 in device_ids:
-        return None
+    if filters.device_ids is not None and -1 in filters.device_ids:
+        return []
 
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
     events_query = core_events.get_events_with_device_info(
-        device_ids=device_ids,
-        time_end_gte=time_end_gte,
-        time_end_lt=time_end_lt,
-        open=open,
-        event_ids=event_ids,
-        open_at=open_at,
+        device_ids=filters.device_ids,
+        time_end_gte=filters.time_end_gte,
+        time_end_lt=filters.time_end_lt,
+        open=filters.open,
+        event_ids=filters.event_ids,
+        open_at=filters.open_at,
     )
     events_df = await events_query.get_async(
         schema=project_name_short,
@@ -389,6 +379,58 @@ async def get_events(
         result.append(interfaces.EventInterface(**event_dict))
 
     return result
+
+
+@router.get("", response_model=list[interfaces.EventInterface])
+async def get_events(
+    project_id: uuid.UUID,
+    device_ids: Annotated[list[int] | None, Query()] = None,
+    time_end_gte: datetime.datetime | None = None,
+    time_end_lt: datetime.datetime | None = None,
+    open: bool = True,
+    event_ids: Annotated[list[int] | None, Query()] = None,
+    open_at: datetime.datetime | None = None,
+) -> list[interfaces.EventInterface]:
+    """Retrieve a list of events for a project with optional query filters.
+
+    Args:
+        project_id: UUID of the project to retrieve events for.
+        device_ids: Filter events by device IDs.
+        time_end_gte: Filter events ending at or after this datetime.
+        time_end_lt: Filter events ending before this datetime.
+        open: Include only open events (default True).
+        event_ids: Filter to specific event IDs.
+        open_at: Filter events that were open at this datetime.
+    """
+    return await _get_events_for_project(
+        project_id=project_id,
+        filters=interfaces.EventFilterRequest(
+            device_ids=device_ids,
+            time_end_gte=time_end_gte,
+            time_end_lt=time_end_lt,
+            open=open,
+            event_ids=event_ids,
+            open_at=open_at,
+        ),
+    )
+
+
+@router.post(
+    "/search",
+    response_model=list[interfaces.EventInterface],
+    operation_id="search_project_events",
+)
+async def search_events(
+    project_id: uuid.UUID,
+    filters: interfaces.EventFilterRequest,
+) -> list[interfaces.EventInterface]:
+    """Retrieve events for a project with filters in the request body.
+
+    Args:
+        project_id: UUID of the project to retrieve events for.
+        filters: Event filters sent in the JSON request body.
+    """
+    return await _get_events_for_project(project_id=project_id, filters=filters)
 
 
 @router.get("/paginated-events", response_model=list[interfaces.PaginatedEvent])

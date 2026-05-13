@@ -24,7 +24,7 @@ import 'react-pdf/dist/Page/TextLayer.css'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
-interface Annotation {
+export interface PdfAnnotation {
   id: string
   page: number
   x: number
@@ -69,6 +69,7 @@ export interface PdfAnnotatorHandle {
   isReady: () => boolean
   hasAcroForm: () => boolean
   getAcroFieldSpecs: () => AcroFieldSpec[]
+  getState: () => PdfAnnotatorState
   mergeAcroValues: (values: Record<string, string>) => void
   exportFilledPdf: () => Promise<Uint8Array>
   addAnnotations: (items: PdfAnnotationDraft[]) => void
@@ -81,6 +82,14 @@ export interface PdfAnnotatorHandle {
 
 interface PdfAnnotatorProps {
   fileUrl: string
+  initialState?: PdfAnnotatorState | null
+}
+
+export interface PdfAnnotatorState {
+  annotations: PdfAnnotation[]
+  acroValues: Record<string, string>
+  signatureFontByName: Record<string, SignatureFontValue>
+  signaturePlacementByName: Record<string, { x: number; y: number }>
 }
 
 const PDF_RENDER_WIDTH = 612
@@ -106,7 +115,8 @@ const SIGNATURE_FONT_OPTIONS = [
   },
 ] as const
 
-type SignatureFontValue = (typeof SIGNATURE_FONT_OPTIONS)[number]['value']
+export type SignatureFontValue =
+  (typeof SIGNATURE_FONT_OPTIONS)[number]['value']
 
 interface PdfTextItem {
   text: string
@@ -346,13 +356,14 @@ async function extractAcroFieldSpecs(
 }
 
 const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
-  function PdfAnnotator({ fileUrl }, ref) {
+  function PdfAnnotator({ fileUrl, initialState }, ref) {
     const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null)
     const [ready, setReady] = useState(false)
     const [numPages, setNumPages] = useState(0)
+    const [pageRenderVersion, setPageRenderVersion] = useState(0)
     const [hasAcroForm, setHasAcroForm] = useState(false)
     const [formFields, setFormFields] = useState<AcroFieldSpec[]>([])
-    const [annotations, setAnnotations] = useState<Annotation[]>([])
+    const [annotations, setAnnotations] = useState<PdfAnnotation[]>([])
     const [signatureFontByName, setSignatureFontByName] = useState<
       Record<string, SignatureFontValue>
     >({})
@@ -392,7 +403,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
     const signatureNativeRectByNameRef = useRef(signatureNativeRectByName)
     const hasAcroFormRef = useRef(hasAcroForm)
     const readyRef = useRef(ready)
-    const annotationsRef = useRef<Annotation[]>([])
+    const annotationsRef = useRef<PdfAnnotation[]>([])
     const formFieldValueKey = useMemo(
       () => formFields.map((f) => `${f.name}:${f.value}`).join('|'),
       [formFields],
@@ -429,7 +440,14 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
       const signatureFieldNames = new Set(
         formFields.filter(isSignatureField).map((field) => field.name),
       )
-      window.requestAnimationFrame(() => {
+      let cancelled = false
+      let attempts = 0
+      let timeoutId: number | null = null
+
+      const syncPreviewControls = () => {
+        if (cancelled) return
+        attempts += 1
+        let matchedControls = 0
         for (const pageEl of pageRefs.current.values()) {
           const inputs = pageEl.querySelectorAll('input, textarea, select')
           inputs.forEach((input) => {
@@ -448,14 +466,30 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
               el.style.pointerEvents = ''
             }
             if (!valueByName.has(name)) return
+            matchedControls += 1
             const nextValue = valueByName.get(name) ?? ''
             if (el.value !== nextValue) {
               el.value = nextValue
             }
           })
         }
-      })
-    }, [hasAcroForm, formFields, formFieldValueKey])
+        if (matchedControls < valueByName.size && attempts < 20) {
+          timeoutId = window.setTimeout(syncPreviewControls, 100)
+        }
+      }
+
+      window.requestAnimationFrame(syncPreviewControls)
+      return () => {
+        cancelled = true
+        if (timeoutId != null) window.clearTimeout(timeoutId)
+      }
+    }, [
+      hasAcroForm,
+      formFields,
+      formFieldValueKey,
+      numPages,
+      pageRenderVersion,
+    ])
 
     useEffect(() => {
       if (!hasAcroForm) return
@@ -610,6 +644,16 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
 
       return values
     }, [])
+
+    const getState = useCallback((): PdfAnnotatorState => {
+      const acroValues = Object.fromEntries(getPreviewAcroValues())
+      return {
+        annotations: annotationsRef.current,
+        acroValues,
+        signatureFontByName: signatureFontByNameRef.current,
+        signaturePlacementByName: signaturePlacementByNameRef.current,
+      }
+    }, [getPreviewAcroValues])
 
     const renderPageImagesForAssist = useCallback(
       async (maxPages: number): Promise<PdfPageImagePayload[]> => {
@@ -789,6 +833,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
         isReady: () => readyRef.current,
         hasAcroForm: () => hasAcroFormRef.current,
         getAcroFieldSpecs: () => formFieldsRef.current,
+        getState,
         mergeAcroValues,
         exportFilledPdf,
         addAnnotations,
@@ -797,6 +842,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
         renderPageImagesForAssist,
       }),
       [
+        getState,
         mergeAcroValues,
         exportFilledPdf,
         addAnnotations,
@@ -818,10 +864,13 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
       let cancelled = false
       const load = async () => {
         try {
-          setAnnotations([])
-          setSignatureFontByName({})
-          setSignaturePlacementByName({})
+          setAnnotations(initialState?.annotations ?? [])
+          setSignatureFontByName(initialState?.signatureFontByName ?? {})
+          setSignaturePlacementByName(
+            initialState?.signaturePlacementByName ?? {},
+          )
           setSignatureNativeRectByName({})
+          setPageRenderVersion(0)
           setReady(false)
           setError(null)
           const resp = await fetch(fileUrl)
@@ -851,24 +900,29 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
             }
             const acroFields = await extractAcroFieldSpecs(bytes, valueByName)
             if (cancelled) return
+            const restoredValues = initialState?.acroValues ?? {}
+            const fallbackFields = fields.map((f, index) => ({
+              name: f.getName(),
+              type: '',
+              page: 1,
+              x: 0,
+              y: index * 20,
+              width: 0,
+              height: 0,
+              rect: [],
+              pdfPageX: 0,
+              pdfPageY: 0,
+              pdfPageWidth: PDF_RENDER_WIDTH,
+              pdfPageHeight: PDF_RENDER_WIDTH,
+              value: valueByName.get(f.getName()) ?? '',
+            }))
             setFormFields(
-              acroFields.length > 0
-                ? acroFields
-                : fields.map((f, index) => ({
-                    name: f.getName(),
-                    type: '',
-                    page: 1,
-                    x: 0,
-                    y: index * 20,
-                    width: 0,
-                    height: 0,
-                    rect: [],
-                    pdfPageX: 0,
-                    pdfPageY: 0,
-                    pdfPageWidth: PDF_RENDER_WIDTH,
-                    pdfPageHeight: PDF_RENDER_WIDTH,
-                    value: valueByName.get(f.getName()) ?? '',
-                  })),
+              (acroFields.length > 0 ? acroFields : fallbackFields).map(
+                (field) => ({
+                  ...field,
+                  value: restoredValues[field.name] ?? field.value,
+                }),
+              ),
             )
           } else {
             setHasAcroForm(false)
@@ -883,7 +937,7 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
       return () => {
         cancelled = true
       }
-    }, [fileUrl])
+    }, [fileUrl, initialState])
 
     useEffect(() => {
       activeAnnotationRef.current = activeAnnotation
@@ -1122,6 +1176,9 @@ const PdfAnnotator = forwardRef<PdfAnnotatorHandle, PdfAnnotatorProps>(
                     renderTextLayer={false}
                     renderAnnotationLayer={hasAcroForm}
                     renderForms={hasAcroForm}
+                    onRenderSuccess={() =>
+                      setPageRenderVersion((prev) => prev + 1)
+                    }
                   />
                   {pageSignatureFields.map((field) => {
                     const container = pageRefs.current.get(pageNum)

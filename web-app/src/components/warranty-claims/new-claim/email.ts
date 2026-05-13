@@ -121,6 +121,7 @@ export function buildClaimSubmissionEmailHtml({
   counterpartyName,
   senderCompany,
   attachmentNames,
+  toAddressesDisplay,
 }: {
   text: string
   projectName: string
@@ -128,12 +129,26 @@ export function buildClaimSubmissionEmailHtml({
   counterpartyName: string
   senderCompany: string
   attachmentNames: string[]
+  /** Shown in preview when set (comma-separated To line). */
+  toAddressesDisplay?: string | null
 }): string {
   const bodyHtml = plainTextEmailToHtml(text)
   const safeProjectName = escapeHtml(projectName)
   const safeCounterpartyName = escapeHtml(counterpartyName)
   const safeSenderCompany = escapeHtml(senderCompany || 'Your Company')
   const safeClaimId = escapeHtml(claimId != null ? String(claimId) : 'pending')
+  const toRowHtml =
+    toAddressesDisplay != null && toAddressesDisplay.trim() !== ''
+      ? `<tr>
+                    <td style="width:120px;color:#868e96;font-size:13px;">
+                      To
+                    </td>
+                    <td style="font-size:14px;font-weight:700;color:#1a1b1e;">
+                      ${escapeHtml(toAddressesDisplay.trim())}
+                    </td>
+                  </tr>`
+      : ''
+
   const attachmentsHtml =
     attachmentNames.length > 0
       ? `<tr>
@@ -196,6 +211,7 @@ export function buildClaimSubmissionEmailHtml({
                       ${safeProjectName}
                     </td>
                   </tr>
+                  ${toRowHtml}
                   <tr>
                     <td style="width:120px;color:#868e96;font-size:13px;">
                       Recipient

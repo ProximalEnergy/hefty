@@ -1,6 +1,7 @@
 import {
   ClaimSubmissionChannelEnum,
   ClaimUpdateTypeEnum,
+  DeviceTypeEnum,
 } from '@/api/enumerations'
 import {
   IconClock,
@@ -71,4 +72,56 @@ export function channelUsesPortalUrl(channel: string): boolean {
     channel === ClaimSubmissionChannelEnum.PORTAL ||
     channel === ClaimSubmissionChannelEnum.HYBRID
   )
+}
+
+/** Minimal device row for expanding OEM event matching device IDs. */
+type WarrantyEventDeviceRow = {
+  device_id: number
+  device_type_id: number
+  device_model_id: number | null
+}
+
+/**
+ * Device IDs used to load candidate events for the warranty Events step.
+ *
+ * When the OEM supplies BESS PCS equipment, also include MVT, PCS module
+ * group, and PCS module devices on the project. When the OEM supplies a
+ * BESS DC enclosure, also include BESS string devices.
+ */
+export function expandOemDeviceIdsForEventMatching(
+  oemDeviceModelIdSet: Set<number>,
+  allProjectDevices: WarrantyEventDeviceRow[],
+): number[] {
+  const oemOwned = allProjectDevices.filter(
+    (d) =>
+      d.device_model_id != null && oemDeviceModelIdSet.has(d.device_model_id),
+  )
+  const ids = new Set(oemOwned.map((d) => d.device_id))
+
+  const hasPcsOemDevice = oemOwned.some(
+    (d) => d.device_type_id === DeviceTypeEnum.BESS_PCS,
+  )
+  const hasEnclosureOemDevice = oemOwned.some(
+    (d) => d.device_type_id === DeviceTypeEnum.BESS_ENCLOSURE,
+  )
+
+  if (hasPcsOemDevice) {
+    const pcsRelatedTypes = new Set<number>([
+      DeviceTypeEnum.BESS_MVT,
+      DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
+      DeviceTypeEnum.BESS_PCS_MODULE,
+    ])
+    for (const d of allProjectDevices) {
+      if (pcsRelatedTypes.has(d.device_type_id)) ids.add(d.device_id)
+    }
+  }
+  if (hasEnclosureOemDevice) {
+    for (const d of allProjectDevices) {
+      if (d.device_type_id === DeviceTypeEnum.BESS_STRING) {
+        ids.add(d.device_id)
+      }
+    }
+  }
+
+  return Array.from(ids)
 }

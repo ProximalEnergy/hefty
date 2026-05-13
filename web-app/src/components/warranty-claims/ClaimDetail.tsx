@@ -24,6 +24,7 @@ import {
 } from '@/components/warranty-claims/constants'
 import { formatDateTime } from '@/components/warranty-claims/formatDate'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { downloadRemoteFileBestEffort } from '@/utils/triggerDownload'
 import {
   ActionIcon,
   Anchor,
@@ -53,6 +54,7 @@ import {
   IconCheck,
   IconClock,
   IconDotsVertical,
+  IconDownload,
   IconEdit,
   IconFile,
   IconFileText,
@@ -661,12 +663,27 @@ export default function ClaimDetail() {
               {claim.attachments.length > 0 ? (
                 <Stack gap="xs">
                   {claim.attachments.map((a) => (
-                    <Group key={a.s3_key} gap="sm">
+                    <Group key={a.s3_key} gap="sm" wrap="nowrap">
                       <IconFileText size={16} />
                       {a.url ? (
-                        <Anchor href={a.url} target="_blank" size="sm">
-                          {a.filename}
-                        </Anchor>
+                        <>
+                          <Anchor href={a.url} target="_blank" size="sm">
+                            {a.filename}
+                          </Anchor>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            aria-label={`Download ${a.filename}`}
+                            onClick={() =>
+                              void downloadRemoteFileBestEffort(
+                                a.url!,
+                                a.filename,
+                              )
+                            }
+                          >
+                            <IconDownload size={14} />
+                          </ActionIcon>
+                        </>
                       ) : (
                         <Text size="sm">{a.filename}</Text>
                       )}
@@ -678,6 +695,7 @@ export default function ClaimDetail() {
                           color="red"
                           variant="subtle"
                           size="sm"
+                          aria-label={`Delete ${a.filename}`}
                           onClick={() =>
                             deleteAttachment.mutate({
                               projectId: projectId!,
@@ -740,9 +758,24 @@ export default function ClaimDetail() {
                         <Group key={a.s3_key} gap={4} wrap="nowrap">
                           <IconFileText size={12} />
                           {a.url ? (
-                            <Anchor href={a.url} target="_blank" size="xs">
-                              {a.filename}
-                            </Anchor>
+                            <>
+                              <Anchor href={a.url} target="_blank" size="xs">
+                                {a.filename}
+                              </Anchor>
+                              <ActionIcon
+                                variant="subtle"
+                                size="xs"
+                                aria-label={`Download ${a.filename}`}
+                                onClick={() =>
+                                  void downloadRemoteFileBestEffort(
+                                    a.url!,
+                                    a.filename,
+                                  )
+                                }
+                              >
+                                <IconDownload size={12} />
+                              </ActionIcon>
+                            </>
                           ) : (
                             <Text size="xs">{a.filename}</Text>
                           )}

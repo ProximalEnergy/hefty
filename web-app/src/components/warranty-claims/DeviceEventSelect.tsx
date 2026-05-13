@@ -1,6 +1,9 @@
+import type { components } from '@/api/schema'
 import { useGetEventsForDevice } from '@/api/v1/operational/project/events'
 import { Select } from '@mantine/core'
 import { useMemo } from 'react'
+
+type ProjectEvent = components['schemas']['EventInterface']
 
 function formatEventRange(
   startIso: string,
@@ -27,6 +30,7 @@ interface Props {
   value: number | null
   onChange: (eventId: number | null) => void
   disabled?: boolean
+  initialEvents?: ProjectEvent[]
   size?: string
 }
 
@@ -36,6 +40,7 @@ export default function DeviceEventSelect({
   value,
   onChange,
   disabled,
+  initialEvents = [],
   size = 'xs',
 }: Props) {
   const { data: events, isLoading } = useGetEventsForDevice({
@@ -44,7 +49,11 @@ export default function DeviceEventSelect({
   })
 
   const options = useMemo(() => {
-    return (events ?? [])
+    const eventById = new Map<number, ProjectEvent>()
+    for (const event of initialEvents) eventById.set(event.event_id, event)
+    for (const event of events ?? []) eventById.set(event.event_id, event)
+
+    return Array.from(eventById.values())
       .slice()
       .sort((a, b) =>
         a.time_start < b.time_start ? 1 : a.time_start > b.time_start ? -1 : 0,
@@ -59,7 +68,7 @@ export default function DeviceEventSelect({
           label: `#${e.event_id} · ${range}${fm}`,
         }
       })
-  }, [events])
+  }, [events, initialEvents])
 
   return (
     <Select
@@ -76,7 +85,8 @@ export default function DeviceEventSelect({
       onChange={(v) => onChange(v ? Number(v) : null)}
       clearable
       searchable
-      disabled={disabled || isLoading || options.length === 0}
+      disabled={disabled || options.length === 0}
+      loading={isLoading}
       nothingFoundMessage="No matching events"
     />
   )
