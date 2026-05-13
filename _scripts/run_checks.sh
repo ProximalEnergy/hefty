@@ -117,6 +117,8 @@ declare -a CHECKS_SKIP_REASON=()
 declare -a CHECKS_UI_LINES_UP=()
 declare -a CHECKS_BATCH_GROUP=()
 declare -a CHECKS_BATCH_RULE_ID=()
+CHECKS_UI_MODE="in_place"
+CHECKS_UI_RENDER_LINE_COUNT=0
 
 # Function to add a check to the list
 add_check() {
@@ -254,6 +256,26 @@ cleanup_run_all_checks() {
     if [ -n "${RUN_CHECKS_LOG_DIR:-}" ] && [ -d "${RUN_CHECKS_LOG_DIR}" ]; then
         rm -rf "${RUN_CHECKS_LOG_DIR}"
     fi
+}
+
+with_check_ui_lock() {
+    local lock_dir
+    local status
+
+    if [ -z "${RUN_CHECKS_LOG_DIR:-}" ]; then
+        "$@"
+        return $?
+    fi
+
+    lock_dir="${RUN_CHECKS_LOG_DIR}/check_ui.lock"
+    while ! mkdir "$lock_dir" 2>/dev/null; do
+        sleep 0.02
+    done
+
+    "$@"
+    status=$?
+    rmdir "$lock_dir" 2>/dev/null || true
+    return "$status"
 }
 
 is_check_skipped() {
@@ -529,6 +551,31 @@ get_ui_terminal_columns() {
     echo "$cols"
 }
 
+get_ui_terminal_lines() {
+    local lines=24
+
+    if [ -t 1 ]; then
+        lines=$(tput lines 2>/dev/null || echo 24)
+    fi
+
+    if ! [[ "$lines" =~ ^[0-9]+$ ]] || [ "$lines" -lt 8 ]; then
+        lines=24
+    fi
+
+    echo "$lines"
+}
+
+select_check_ui_mode() {
+    local total_lines="$1"
+
+    CHECKS_UI_MODE="stream"
+    if [ -t 1 ]; then
+        CHECKS_UI_MODE="in_place"
+    fi
+
+    : "$total_lines"
+}
+
 truncate_ui_label() {
     local label="$1"
     local max_len="$2"
@@ -567,11 +614,16 @@ render_check_ui_line() {
     fi
 
     rendered_label=$(truncate_ui_label "$label" "$max_label_len")
-    printf "\r\033[2K%b%s%b %s\n" \
-        "$color" \
-        "$symbol" \
-        "$NC" \
-        "$rendered_label"
+    if [ -t 1 ]; then
+        printf "\r\033[2K%b%s%b %s\n" \
+            "$color" \
+            "$symbol" \
+            "$NC" \
+            "$rendered_label"
+        return
+    fi
+
+    printf "%b%s%b %s\n" "$color" "$symbol" "$NC" "$rendered_label"
 }
 
 get_finished_check_ui_label() {
@@ -595,6 +647,12 @@ get_finished_check_ui_label() {
     elapsed_label=$(format_elapsed_seconds "$elapsed_seconds")
     echo "$(get_compact_check_ui_label "$check_index") (${error_count}${count_suffix}, \
 ${elapsed_label})"
+}
+
+get_running_check_ui_label() {
+    local check_index="$1"
+
+    echo "$(get_compact_check_ui_label "$check_index") (running)"
 }
 
 format_elapsed_seconds() {
@@ -624,11 +682,46 @@ format_elapsed_seconds() {
 }
 
 init_check_ui_lines_up() {
+    with_check_ui_lock init_check_ui_lines_up_unlocked
+}
+
+emit_initial_check_ui_text_line() {
+    local action="$1"
+    local text="${2:-}"
+
+    if [ "$action" = "render" ]; then
+        if [ -n "$text" ]; then
+            echo -e "$text"
+        else
+            echo ""
+        fi
+    fi
+
+    CHECKS_UI_RENDER_LINE_COUNT=$((CHECKS_UI_RENDER_LINE_COUNT + 1))
+}
+
+emit_initial_check_ui_check_line() {
+    local action="$1"
+    local color="$2"
+    local symbol="$3"
+    local label="$4"
+
+    if [ "$action" = "render" ]; then
+        render_check_ui_line "$color" "$symbol" "$label"
+    fi
+
+    CHECKS_UI_RENDER_LINE_COUNT=$((CHECKS_UI_RENDER_LINE_COUNT + 1))
+}
+
+render_initial_check_ui_layout() {
+    local action="$1"
+    local ui_mode="$2"
     local -a error_indices=()
     local -a warning_indices=()
     local i
-    local line_no=0
     local total_lines
+
+    CHECKS_UI_RENDER_LINE_COUNT=0
 
     for i in "${!CHECKS_NAME[@]}"; do
         if [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
@@ -639,36 +732,49 @@ init_check_ui_lines_up() {
     done
 
     if [ "${#error_indices[@]}" -gt 0 ]; then
-        echo -e "${BOLD}${RED}Error-level Checks:${NC}"
-        line_no=$((line_no + 1))
+        emit_initial_check_ui_text_line \
+            "$action" \
+            "${BOLD}${RED}Error-level Checks:${NC}"
         for i in "${error_indices[@]}"; do
-            render_check_ui_line \
+            emit_initial_check_ui_check_line \
+                "$action" \
                 "${YELLOW}" \
                 "●" \
                 "$(get_compact_check_ui_label "$i")"
-            line_no=$((line_no + 1))
-            CHECKS_UI_LINES_UP[$i]="$line_no"
+            if [ "$action" = "render" ] && [ "$ui_mode" = "in_place" ]; then
+                CHECKS_UI_LINES_UP[$i]="$CHECKS_UI_RENDER_LINE_COUNT"
+            fi
         done
     fi
 
     if [ "${#warning_indices[@]}" -gt 0 ]; then
-        if [ "$line_no" -gt 0 ]; then
-            echo ""
-            line_no=$((line_no + 1))
+        if [ "$CHECKS_UI_RENDER_LINE_COUNT" -gt 0 ]; then
+            emit_initial_check_ui_text_line "$action"
         fi
-        echo -e "${BOLD}${PURPLE}Warning-level Checks:${NC}"
-        line_no=$((line_no + 1))
+        emit_initial_check_ui_text_line \
+            "$action" \
+            "${BOLD}${PURPLE}Warning-level Checks:${NC}"
         for i in "${warning_indices[@]}"; do
-            render_check_ui_line \
+            emit_initial_check_ui_check_line \
+                "$action" \
                 "${YELLOW}" \
                 "●" \
                 "$(get_compact_check_ui_label "$i")"
-            line_no=$((line_no + 1))
-            CHECKS_UI_LINES_UP[$i]="$line_no"
+            if [ "$action" = "render" ] && [ "$ui_mode" = "in_place" ]; then
+                CHECKS_UI_LINES_UP[$i]="$CHECKS_UI_RENDER_LINE_COUNT"
+            fi
         done
     fi
 
-    total_lines="$line_no"
+    if [ "$ui_mode" != "in_place" ]; then
+        return
+    fi
+
+    if [ "$action" != "render" ]; then
+        return
+    fi
+
+    total_lines="$CHECKS_UI_RENDER_LINE_COUNT"
     for i in "${!CHECKS_NAME[@]}"; do
         if [ -n "${CHECKS_UI_LINES_UP[$i]:-}" ]; then
             CHECKS_UI_LINES_UP[$i]=$((total_lines - CHECKS_UI_LINES_UP[$i] + 1))
@@ -676,7 +782,46 @@ init_check_ui_lines_up() {
     done
 }
 
+init_check_ui_lines_up_unlocked() {
+    render_initial_check_ui_layout "count" "in_place"
+    select_check_ui_mode "$CHECKS_UI_RENDER_LINE_COUNT"
+    render_initial_check_ui_layout "render" "$CHECKS_UI_MODE"
+}
+
+update_check_ui_running() {
+    with_check_ui_lock update_check_ui_running_unlocked "$@"
+}
+
+update_check_ui_running_unlocked() {
+    local check_index="$1"
+    local lines_up="${CHECKS_UI_LINES_UP[$check_index]:-0}"
+    local lines_down=$((lines_up - 1))
+    local check_label
+
+    check_label=$(get_running_check_ui_label "$check_index")
+
+    if [ "$CHECKS_UI_MODE" != "in_place" ]; then
+        render_check_ui_line "$BLUE" ">" "$check_label"
+        return
+    fi
+
+    if [ "$lines_up" -le 0 ]; then
+        render_check_ui_line "$BLUE" ">" "$check_label"
+        return
+    fi
+
+    printf "\033[%sA" "$lines_up"
+    render_check_ui_line "$BLUE" ">" "$check_label"
+    if [ "$lines_down" -gt 0 ]; then
+        printf "\033[%sB" "$lines_down"
+    fi
+}
+
 update_check_ui_status() {
+    with_check_ui_lock update_check_ui_status_unlocked "$@"
+}
+
+update_check_ui_status_unlocked() {
     local check_index="$1"
     local exit_code="$2"
     local error_count="$3"
@@ -707,6 +852,11 @@ update_check_ui_status() {
             color="$RED"
             symbol="x"
         fi
+    fi
+
+    if [ "$CHECKS_UI_MODE" != "in_place" ]; then
+        render_check_ui_line "$color" "$symbol" "$check_label"
+        return
     fi
 
     if [ "$lines_up" -le 0 ]; then
@@ -1045,6 +1195,7 @@ run_all_checks() {
             continue
         fi
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "initial" ]; then
+            update_check_ui_running "$i"
             run_sync_check "$i"
         fi
     done
@@ -1064,6 +1215,7 @@ run_all_checks() {
             status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
             parallel_indices+=("$i")
             check_start_seconds_by_index[$i]="$SECONDS"
+            update_check_ui_running "$i"
             (
                 execute_check_to_log "$i" "$log_file" "$status_file"
             ) &
@@ -1071,6 +1223,9 @@ run_all_checks() {
     done
 
     if [ "${#root_ast_grep_indices[@]}" -gt 0 ]; then
+        for i in "${root_ast_grep_indices[@]}"; do
+            update_check_ui_running "$i"
+        done
         root_ast_grep_status_file="${RUN_CHECKS_LOG_DIR}/root_ast_grep_batch.status"
         (
             execute_root_ast_grep_batch_to_logs "$root_ast_grep_status_file"
@@ -1148,6 +1303,7 @@ run_all_checks() {
             continue
         fi
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
+            update_check_ui_running "$i"
             run_sync_check "$i"
         fi
     done
