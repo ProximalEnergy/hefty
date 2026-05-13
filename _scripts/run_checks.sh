@@ -115,6 +115,8 @@ declare -a CHECKS_IS_PARALLEL=()
 declare -a CHECKS_SEVERITY=()
 declare -a CHECKS_SKIP_REASON=()
 declare -a CHECKS_UI_LINES_UP=()
+declare -a CHECKS_BATCH_GROUP=()
+declare -a CHECKS_BATCH_RULE_ID=()
 
 # Function to add a check to the list
 add_check() {
@@ -124,7 +126,9 @@ add_check() {
     local is_parallel="${4:-true}"
 
     # Ruff checks and Formatting should run sequentially at the end
-    if [[ "$name" == *"Ruff"* ]] || [[ "$name" == *"Formatting"* ]] || [[ "$name" == *"Format"* ]]; then
+    if [[ "$name" == *"Ruff"* ]] \
+        || [[ "$name" == *"Formatting"* ]] \
+        || [[ "$name" == *"Format"* ]]; then
         is_parallel="false"
     fi
 
@@ -132,6 +136,20 @@ add_check() {
     CHECKS_CMD+=("$cmd")
     CHECKS_IS_PARALLEL+=("$is_parallel")
     CHECKS_SEVERITY+=("$severity")
+    CHECKS_BATCH_GROUP+=("")
+    CHECKS_BATCH_RULE_ID+=("")
+}
+
+add_batched_ast_grep_check() {
+    local name="$1"
+    local cmd="$2"
+    local rule_id="$3"
+    local check_index
+
+    add_check "$name" "$cmd"
+    check_index=$((${#CHECKS_NAME[@]} - 1))
+    CHECKS_BATCH_GROUP[$check_index]="root_ast_grep"
+    CHECKS_BATCH_RULE_ID[$check_index]="$rule_id"
 }
 
 add_warning_check() {
@@ -794,6 +812,180 @@ run_sync_check() {
         "$CHECK_EXECUTION_ELAPSED_SECONDS"
 }
 
+is_root_ast_grep_batch_check() {
+    local check_index="$1"
+
+    [ "${CHECKS_BATCH_GROUP[$check_index]:-}" = "root_ast_grep" ]
+}
+
+count_root_ast_grep_findings() {
+    local raw_log="$1"
+
+    python3 - "$raw_log" <<'PY'
+from __future__ import annotations
+
+import json
+import pathlib
+import sys
+
+count = 0
+for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
+    try:
+        data = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+    if data.get("ruleId"):
+        count += 1
+
+print(count)
+PY
+}
+
+write_root_ast_grep_rule_log() {
+    local check_index="$1"
+    local raw_log="$2"
+    local batch_status="$3"
+    local total_findings="$4"
+    local rule_id="${CHECKS_BATCH_RULE_ID[$check_index]}"
+    local log_file="${RUN_CHECKS_LOG_DIR}/check_${check_index}.log"
+
+    python3 - \
+        "$raw_log" \
+        "$log_file" \
+        "$rule_id" \
+        "$batch_status" \
+        "$total_findings" <<'PY'
+from __future__ import annotations
+
+import json
+import pathlib
+import sys
+
+raw_log = pathlib.Path(sys.argv[1])
+log_file = pathlib.Path(sys.argv[2])
+rule_id = sys.argv[3]
+batch_status = int(sys.argv[4])
+total_findings = int(sys.argv[5])
+
+findings: list[str] = []
+raw_lines = raw_log.read_text().splitlines()
+for line in raw_lines:
+    try:
+        data = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+    if data.get("ruleId") != rule_id:
+        continue
+
+    file_path = data.get("file", "<unknown>")
+    start = data.get("range", {}).get("start", {})
+    line_number = int(start.get("line", -1)) + 1
+    text = " ".join(data.get("text", "").split())
+    findings.append(f"{file_path}:{line_number}:{rule_id}: {text}")
+
+with log_file.open("w") as file:
+    if findings:
+        print(f"Found {len(findings)} findings for {rule_id}.", file=file)
+        for finding in findings:
+            print(finding, file=file)
+    elif batch_status != 0 and total_findings == 0:
+        print(f"ast-grep batch failed before reporting {rule_id}.", file=file)
+        for line in raw_lines:
+            print(line, file=file)
+    else:
+        print(f"{rule_id} passed.", file=file)
+
+print(len(findings))
+PY
+}
+
+execute_root_ast_grep_batch_to_logs() {
+    local status_file="$1"
+    local raw_log="${RUN_CHECKS_LOG_DIR}/root_ast_grep_batch.jsonl"
+    local rules
+    local check_started_at="$SECONDS"
+    local status
+    local elapsed_seconds
+    local total_findings
+    local rule_findings
+    local i
+
+    rules="python-enforce-keyword-only-args"
+    rules="${rules},python-missing-args-in-docstring"
+    rules="${rules},python-disallow-sqlalchemy-query-filter"
+    rules="${rules},python-disallow-sqlalchemy-array-agg"
+    rules="${rules},fastapi-project-id-requires-access"
+    rules="${rules},fastapi-project-id-requires-access-prefix"
+    rules="${rules},forbidden-with-async-db-usage"
+    rules="${rules},python-no-dbquery-dataframe-cast"
+
+    if ./_scripts/ast_grep_check.sh \
+        --json-stream \
+        --rules "$rules" \
+        >"$raw_log" 2>&1; then
+        status=0
+    else
+        status=$?
+    fi
+
+    total_findings=$(count_root_ast_grep_findings "$raw_log")
+    for i in "${!CHECKS_NAME[@]}"; do
+        if ! is_root_ast_grep_batch_check "$i"; then
+            continue
+        fi
+
+        rule_findings=$(
+            write_root_ast_grep_rule_log \
+                "$i" \
+                "$raw_log" \
+                "$status" \
+                "$total_findings"
+        )
+        printf "%s\n" "$rule_findings" \
+            >"${RUN_CHECKS_LOG_DIR}/check_${i}.count"
+    done
+
+    elapsed_seconds=$((SECONDS - check_started_at))
+    printf "%s:%s:%s\n" \
+        "$status" \
+        "$elapsed_seconds" \
+        "$total_findings" \
+        >"$status_file"
+}
+
+record_root_ast_grep_batch_results() {
+    local batch_status="$1"
+    local elapsed_seconds="$2"
+    local total_findings="$3"
+    local rule_findings
+    local status
+    local count_file
+    local i
+
+    shift 3
+
+    for i in "$@"; do
+        count_file="${RUN_CHECKS_LOG_DIR}/check_${i}.count"
+        rule_findings=0
+        if [ -f "$count_file" ]; then
+            rule_findings=$(cat "$count_file")
+        fi
+
+        if ! [[ "$rule_findings" =~ ^[0-9]+$ ]]; then
+            rule_findings=0
+        fi
+
+        status=0
+        if [ "$batch_status" -ne 0 ] && [ "$total_findings" -eq 0 ]; then
+            status="$batch_status"
+        elif [ "$rule_findings" -gt 0 ]; then
+            status=1
+        fi
+
+        record_check_result "$i" "$status" "$elapsed_seconds"
+    done
+}
+
 # Function to run all registered checks
 run_all_checks() {
     local total_checks="${#CHECKS_NAME[@]}"
@@ -801,15 +993,19 @@ run_all_checks() {
     local -a failed_error_indices=()
     local -a failed_warning_indices=()
     local -a parallel_done_by_index=()
+    local -a root_ast_grep_indices=()
     local -a check_start_seconds_by_index=()
     local parallel_done=0
     local parallel_total=0
+    local root_ast_grep_done=0
+    local root_ast_grep_status_file=""
     local i
     local log_file
     local status_file
     local status_payload
     local status
     local elapsed_seconds
+    local total_findings
     local check_started_at
     local show_logs_mode="none"
     local post_log_codex_action="none"
@@ -859,6 +1055,11 @@ run_all_checks() {
             continue
         fi
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "true" ]; then
+            if is_root_ast_grep_batch_check "$i"; then
+                root_ast_grep_indices+=("$i")
+                continue
+            fi
+
             log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
             status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
             parallel_indices+=("$i")
@@ -869,8 +1070,17 @@ run_all_checks() {
         fi
     done
 
+    if [ "${#root_ast_grep_indices[@]}" -gt 0 ]; then
+        root_ast_grep_status_file="${RUN_CHECKS_LOG_DIR}/root_ast_grep_batch.status"
+        (
+            execute_root_ast_grep_batch_to_logs "$root_ast_grep_status_file"
+        ) &
+    fi
+
     # Poll status files and update each completed parallel check in-place.
-    parallel_total="${#parallel_indices[@]}"
+    parallel_total=$(( \
+        ${#parallel_indices[@]} + ${#root_ast_grep_indices[@]} \
+    ))
     while [ "$parallel_done" -lt "$parallel_total" ]; do
         for i in "${parallel_indices[@]}"; do
             if [ "${parallel_done_by_index[$i]:-0}" -eq 1 ]; then
@@ -898,6 +1108,34 @@ run_all_checks() {
                 record_check_result "$i" "$status" "$elapsed_seconds"
             fi
         done
+
+        if [ "${#root_ast_grep_indices[@]}" -gt 0 ] \
+            && [ "$root_ast_grep_done" -eq 0 ] \
+            && [ -f "$root_ast_grep_status_file" ]; then
+            status_payload=$(cat "$root_ast_grep_status_file")
+            status="${status_payload%%:*}"
+            status_payload="${status_payload#*:}"
+            elapsed_seconds="${status_payload%%:*}"
+            total_findings="${status_payload#*:}"
+
+            if ! [[ "$status" =~ ^[0-9]+$ ]]; then
+                status=1
+            fi
+            if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+                elapsed_seconds=0
+            fi
+            if ! [[ "$total_findings" =~ ^[0-9]+$ ]]; then
+                total_findings=0
+            fi
+
+            root_ast_grep_done=1
+            parallel_done=$((parallel_done + ${#root_ast_grep_indices[@]}))
+            record_root_ast_grep_batch_results \
+                "$status" \
+                "$elapsed_seconds" \
+                "$total_findings" \
+                "${root_ast_grep_indices[@]}"
+        fi
 
         if [ "$parallel_done" -lt "$parallel_total" ]; then
             sleep 0.1
@@ -1145,7 +1383,7 @@ fi
 
 diff_has() {
     local pattern="$1"
-    echo "${DIFF_FILES}" | grep -E -q "${pattern}"
+    printf "%s\n" "${DIFF_FILES}" | rg -q "${pattern}"
 }
 
 RUN_CORE=false
@@ -1195,7 +1433,8 @@ if [ "${RUN_ALL}" = "false" ]; then
         ROOT_PYPROJECT_CHANGED=true
         RUN_API=true
     fi
-    if diff_has '^_scripts/|^_tools/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
+    if diff_has \
+        '^_scripts/|^_tools/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
         RUN_ALL=true
     fi
 fi
@@ -1307,13 +1546,17 @@ if [ "${RUN_ROOT}" = "true" ]; then
     add_check "Root: Static Type ID Check" \
         "mise run root:static_type_id"
     add_check "Root: Static Name Shorts Check" \
-        "mise run root:static_name_shorts"
+        "mise run root:static_name_shorts" \
+        "error" \
+        "false"
     add_check "Root: Pyproject Dependency Check" \
         "mise run root:pyproject_dependencies"
     add_check "Root: DbQuery Enforcement" \
         "mise run root:dbquery_enforcement"
     add_db_check "Root: Codegen" "mise run root:codegen"
-    if [ "${RUN_ALL}" = "true" ] || [ "${ROOT_PYPROJECT_CHANGED}" = "true" ] || [ "${PACKAGE_JSON_CHANGED}" = "true" ]; then
+    if [ "${RUN_ALL}" = "true" ] \
+        || [ "${ROOT_PYPROJECT_CHANGED}" = "true" ] \
+        || [ "${PACKAGE_JSON_CHANGED}" = "true" ]; then
         add_check "Root: pnpm Version Sync" "mise run root:pnpm_version_sync"
     fi
 
@@ -1329,16 +1572,43 @@ if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
         "mise run root:duplicate_classes"
 fi
 
-if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
-    add_check "kw-only-args" "mise run root:kw_only_args"
-    add_check "docstring-args" "mise run root:docstring_args"
-    add_check "sa-query-filter" "mise run root:sa_query_filter"
-    add_check "sa-array-agg" "mise run root:sa_array_agg"
-    add_check "project-id-access" "mise run root:project_id_access"
-    add_check "project-id-prefix" "mise run root:project_id_prefix"
-    add_check "async-db-usage" "mise run root:async_db_usage"
-    add_check "dbquery-dataframe-cast" \
-        "mise run root:no_dbquery_dataframe_cast"
+if [ "${RUN_ROOT}" = "true" ] \
+    || [ "${RUN_CORE}" = "true" ] \
+    || [ "${RUN_API}" = "true" ] \
+    || [ "${RUN_MICRO}" = "true" ] \
+    || [ "${RUN_WEB}" = "true" ]; then
+    add_batched_ast_grep_check \
+        "kw-only-args" \
+        "mise run root:kw_only_args" \
+        "python-enforce-keyword-only-args"
+    add_batched_ast_grep_check \
+        "docstring-args" \
+        "mise run root:docstring_args" \
+        "python-missing-args-in-docstring"
+    add_batched_ast_grep_check \
+        "sa-query-filter" \
+        "mise run root:sa_query_filter" \
+        "python-disallow-sqlalchemy-query-filter"
+    add_batched_ast_grep_check \
+        "sa-array-agg" \
+        "mise run root:sa_array_agg" \
+        "python-disallow-sqlalchemy-array-agg"
+    add_batched_ast_grep_check \
+        "project-id-access" \
+        "mise run root:project_id_access" \
+        "fastapi-project-id-requires-access"
+    add_batched_ast_grep_check \
+        "project-id-prefix" \
+        "mise run root:project_id_prefix" \
+        "fastapi-project-id-requires-access-prefix"
+    add_batched_ast_grep_check \
+        "async-db-usage" \
+        "mise run root:async_db_usage" \
+        "forbidden-with-async-db-usage"
+    add_batched_ast_grep_check \
+        "dbquery-dataframe-cast" \
+        "mise run root:no_dbquery_dataframe_cast" \
+        "python-no-dbquery-dataframe-cast"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
     add_check "Global: Ruff Linting" "mise run root:ruff"
 fi

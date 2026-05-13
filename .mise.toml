@@ -207,9 +207,9 @@ dir = "."
 run = "./_scripts/hardcoded_type_id_check.sh"
 
 [tasks."root:static_name_shorts"]
-description = "Run static name shorts check on entire monorepo"
+description = "Run ast-grep static name shorts check on entire monorepo"
 dir = "."
-run = "./_scripts/hardcoded_name_shorts_check.sh"
+run = "./_scripts/name_shorts_ast_grep_check.sh"
 
 [tasks."root:kw_only_args"]
 description = "Run ast-grep check: python-enforce-keyword-only-args"
