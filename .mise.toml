@@ -50,15 +50,13 @@ run = "mise install node@latest pnpm@latest"
 [tasks.sync-deps]
 description = "Install and sync all dependencies across the monorepo"
 run = """
-uv sync && \
+uv sync --package mono --package core --package api && \
 mise install && \
-uv sync --directory core && \
-uv sync --directory api && \
-uv sync --directory kpi && \
 (
   mise run web:install || \
   mise run web:install --non-strict
-)
+) && \
+./_scripts/web_deps_hash.sh write
 """
 
 [tasks.sync-deps-if-needed]
@@ -71,32 +69,29 @@ NEEDS_SYNC=false
 UV_CHANGE_PATTERN='^Would (create|download|install|remove|uninstall|update)'
 
 uv_sync_dry_run_shows_changes() {
-  local project_dir="$1"
   local output
 
   if output="$(
-    env -u VIRTUAL_ENV uv sync --directory "${project_dir}" --dry-run 2>&1
+    env -u VIRTUAL_ENV uv sync --dry-run --inexact \
+      --package mono --package core --package api 2>&1
   )"; then
     if echo "${output}" | rg -q "${UV_CHANGE_PATTERN}"; then
-      echo "Stale uv environment: ${project_dir}"
+      echo "Stale uv environment: dev workspace packages"
       return 0
     fi
     return 1
   fi
 
-  echo "uv sync --dry-run failed for ${project_dir}; syncing dependencies."
+  echo "uv sync --dry-run failed for dev workspace packages; syncing dependencies."
   echo "${output}"
   return 0
 }
 
-for project_dir in . core api kpi; do
-  if uv_sync_dry_run_shows_changes "${project_dir}"; then
-    NEEDS_SYNC=true
-  fi
-done
+if uv_sync_dry_run_shows_changes; then
+  NEEDS_SYNC=true
+fi
 
-if ! (cd web-app && pnpm install --frozen-lockfile --dry-run >/dev/null); then
-  echo "Stale pnpm environment: web-app"
+if ! ./_scripts/web_deps_hash.sh check; then
   NEEDS_SYNC=true
 fi
 
