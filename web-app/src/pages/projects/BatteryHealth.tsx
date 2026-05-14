@@ -1,3 +1,4 @@
+import { KPITypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
   useGetOperationalKPIData,
@@ -23,6 +24,7 @@ import {
   Text,
   Title,
   Tooltip,
+  useMantineTheme,
 } from '@mantine/core'
 import {
   IconActivity,
@@ -34,8 +36,9 @@ import {
   IconTemperature,
   IconThermometer,
 } from '@tabler/icons-react'
+import dayjs from 'dayjs'
 import { Shape } from 'plotly.js'
-import { useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 // Battery Health KPI Type IDs
@@ -88,6 +91,8 @@ const BATTERY_KPI_IDS = {
   BESS_STRING_ENERGY_CHARGED: 37,
   BESS_STRING_ENERGY_DISCHARGED: 41,
   BESS_STRING_RTE: 45,
+  PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY:
+    KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
 } as const
 
 // Temperature conversion utility
@@ -124,6 +129,9 @@ const adaptiveDateTickSettings = {
 const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const theme = useMantineTheme()
+  const continuousDischargedEnergyColor = theme.colors.green[7]
+  const continuousDischargedEnergyLineColor = theme.colors.green[9]
   const [selectedTimeRange, setSelectedTimeRange] = useState('all')
   const [activeTab, setActiveTab] = useState<string>('soh')
   const [showSOH, setShowSOH] = useState(true)
@@ -292,6 +300,7 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
           25,
           16,
           15, // SOC KPIs: string, project, block average SOC
+          BATTERY_KPI_IDS.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
         ],
         start: '2020-01-01', // Default start date, will be updated after data loads
         end: new Date().toISOString().split('T')[0], // Default end date
@@ -416,6 +425,38 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
     return kpiData?.find((kpi) => kpi.kpi_type_id === kpiTypeId)
   }
 
+  /** Same point as BESS home battery health chart (trailing 12 mo high). */
+  const trailingTwelveMonthPeakContinuousDischarge = useMemo(() => {
+    const energyKpi = kpiData?.find(
+      (kpi) =>
+        kpi.kpi_type_id ===
+        BATTERY_KPI_IDS.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
+    )
+    if (!energyKpi?.data?.dates || !energyKpi.data.project_data) return null
+
+    const trailingStart = dayjs().subtract(12, 'months')
+    const points = energyKpi.data.dates
+      .map((date, index) => ({
+        x: dayjs(date).format('YYYY-MM-DD'),
+        date: dayjs(date),
+        y: energyKpi.data.project_data[index],
+      }))
+      .filter(
+        (point): point is { x: string; date: dayjs.Dayjs; y: number } =>
+          point.y !== null && !point.date.isBefore(trailingStart),
+      )
+
+    if (points.length === 0) return null
+
+    return points.reduce((highestPoint, point) => {
+      if (point.y > highestPoint.y) return point
+      if (point.y === highestPoint.y && point.date.isAfter(highestPoint.date)) {
+        return point
+      }
+      return highestPoint
+    })
+  }, [kpiData])
+
   // Calculate key metrics
   const calculateKeyMetrics = () => {
     const sohData = getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_SOH)
@@ -454,6 +495,9 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
     const tempData =
       getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_CELL_TEMP) ||
       getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_TEMP)
+    const continuousDischargedEnergyData = getKpiDataByType(
+      BATTERY_KPI_IDS.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
+    )
 
     // Get project capacity for DC Energy calculations
     const nameplateCapacity = projectData?.capacity_bess_energy_bol_dc || 0
@@ -525,6 +569,26 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
     const cycleTimeSeries = createTimeSeriesData(cycleData)
     const restSocTimeSeries = createTimeSeriesData(restSocData)
     const tempTimeSeries = createTimeSeriesData(tempData)
+    const continuousDischargedEnergyTimeSeries = createTimeSeriesData(
+      continuousDischargedEnergyData,
+    )
+    const minContinuousDischargedEnergy = Math.min(
+      ...continuousDischargedEnergyTimeSeries.y,
+    )
+    const maxContinuousDischargedEnergy = Math.max(
+      ...continuousDischargedEnergyTimeSeries.y,
+    )
+    const continuousDischargedEnergyRange =
+      maxContinuousDischargedEnergy - minContinuousDischargedEnergy
+    const getContinuousDischargedEnergyOpacity = (value: number) => {
+      if (continuousDischargedEnergyRange === 0) return 1
+      return (
+        0.15 +
+        ((value - minContinuousDischargedEnergy) /
+          continuousDischargedEnergyRange) *
+          0.85
+      )
+    }
 
     const graphs = [
       {
@@ -551,6 +615,42 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
             line: { color: '#1f77b4', width: 2 },
             marker: { size: 4 },
           },
+          ...(showSOH && continuousDischargedEnergyTimeSeries.y.length > 0
+            ? [
+                {
+                  x: continuousDischargedEnergyTimeSeries.x,
+                  y: continuousDischargedEnergyTimeSeries.y,
+                  type: 'scatter' as const,
+                  mode: 'markers' as const,
+                  name: 'Continuous Discharged Energy',
+                  yaxis: 'y5' as const,
+                  hovertemplate: '%{y:.2f} MWh<extra></extra>',
+                  marker: {
+                    color: continuousDischargedEnergyTimeSeries.y.map(
+                      () => continuousDischargedEnergyColor,
+                    ),
+                    size: continuousDischargedEnergyTimeSeries.y.map((value) =>
+                      value === maxContinuousDischargedEnergy ? 11 : 6,
+                    ),
+                    opacity: continuousDischargedEnergyTimeSeries.y.map(
+                      getContinuousDischargedEnergyOpacity,
+                    ),
+                    line: {
+                      color: continuousDischargedEnergyTimeSeries.y.map(
+                        (value) =>
+                          value === maxContinuousDischargedEnergy
+                            ? continuousDischargedEnergyLineColor
+                            : continuousDischargedEnergyColor,
+                      ),
+                      width: continuousDischargedEnergyTimeSeries.y.map(
+                        (value) =>
+                          value === maxContinuousDischargedEnergy ? 2 : 1,
+                      ),
+                    },
+                  },
+                },
+              ]
+            : []),
           ...(codLine ? [codLine] : []),
           ...(codLabel ? [codLabel] : []),
         ],
@@ -901,13 +1001,56 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
   const keyMetrics = calculateKeyMetrics()
   const stackedGraphs = createStackedGraphs()
 
+  const peakContinuousDischargeMwh =
+    trailingTwelveMonthPeakContinuousDischarge?.y ?? null
+  const peakContinuousDischargeTooltip: ReactNode = (
+    <Stack gap={6} maw={220}>
+      <Text size="xs">
+        12-month high from the project continuous-discharge daily KPI (green
+        markers on the chart). Ties use the latest day, like BESS home.
+      </Text>
+      {peakContinuousDischargeMwh !== null &&
+      trailingTwelveMonthPeakContinuousDischarge ? (
+        <Text size="xs" c="dimmed">
+          {peakContinuousDischargeMwh.toFixed(2)} MWh on{' '}
+          {trailingTwelveMonthPeakContinuousDischarge.date.format(
+            'MMM D, YYYY',
+          )}
+          .
+        </Text>
+      ) : (
+        <Text size="xs" c="dimmed">
+          No samples in the last 12 months.
+        </Text>
+      )}
+    </Stack>
+  )
+
   // Create stats cards in StatsGrid format
-  const statsCards = [
+  type StatCardIcon =
+    | typeof IconBolt
+    | typeof IconHeart
+    | typeof IconBatteryCharging
+    | typeof IconGauge
+    | typeof IconTemperature
+
+  const statsCards: {
+    title: string
+    value: string
+    icon: StatCardIcon
+    description?: string
+    tooltipLabel?: ReactNode
+    showNote?: boolean
+    note?: string
+  }[] = [
     {
-      title: 'Overall SOH',
-      value: `${keyMetrics.overallSOH.toFixed(2)}%`,
-      icon: IconHeart,
-      description: 'State of Health percentage',
+      title: 'Energy Capacity @ POI',
+      value:
+        peakContinuousDischargeMwh !== null
+          ? `${peakContinuousDischargeMwh.toFixed(2)} MWh`
+          : '—',
+      icon: IconBolt,
+      tooltipLabel: peakContinuousDischargeTooltip,
     },
     {
       title: 'Dischargeable DC',
@@ -955,7 +1098,20 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
         {statsCards.map((stat, index) => {
           const Icon = stat.icon
           return (
-            <Tooltip key={index} label={stat.description} withArrow>
+            <Tooltip
+              key={index}
+              label={stat.tooltipLabel ?? stat.description}
+              withArrow
+              styles={
+                stat.tooltipLabel
+                  ? {
+                      tooltip: {
+                        maxWidth: 'min(14rem, 85vw)',
+                      },
+                    }
+                  : undefined
+              }
+            >
               <Card withBorder p="md" radius="md">
                 <Group justify="space-between">
                   <Text size="sm" c="dimmed">
@@ -1714,6 +1870,19 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
                         gridcolor: '#e0e0e0',
                         gridwidth: 1,
                       },
+                      yaxis5: {
+                        title: {
+                          text: 'Continuous Discharged Energy (MWh)',
+                          font: { color: continuousDischargedEnergyColor },
+                        },
+                        overlaying: 'y' as const,
+                        anchor: 'x' as const,
+                        side: 'right' as const,
+                        showgrid: false,
+                        zeroline: false,
+                        rangemode: 'tozero' as const,
+                        tickfont: { color: continuousDischargedEnergyColor },
+                      },
                       // Handle annotations separately
                       annotations: [
                         {
@@ -1765,8 +1934,8 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
                           yanchor: 'bottom' as const,
                         },
                       ],
-                      margin: { l: 80, r: 20, t: 80, b: 40 },
-                      showlegend: false,
+                      margin: { l: 80, r: 64, t: 80, b: 40 },
+                      showlegend: true,
                       plot_bgcolor: 'transparent',
                       paper_bgcolor: 'transparent',
                     }
@@ -1774,11 +1943,19 @@ const BatteryHealthPage = ({ showTitle = true }: { showTitle?: boolean }) => {
                     return (
                       <PlotlyPlot
                         data={stackedGraphs.flatMap((graph, index) =>
-                          graph.data.map((trace) => ({
-                            ...trace,
-                            xaxis: `x${index === 0 ? '' : index + 1}`,
-                            yaxis: `y${index === 0 ? '' : index + 1}`,
-                          })),
+                          graph.data.map((trace) => {
+                            const traceWithAxes = trace as typeof trace & {
+                              xaxis?: string
+                              yaxis?: string
+                            }
+                            const axisSuffix = index === 0 ? '' : index + 1
+
+                            return {
+                              ...traceWithAxes,
+                              xaxis: traceWithAxes.xaxis || `x${axisSuffix}`,
+                              yaxis: traceWithAxes.yaxis || `y${axisSuffix}`,
+                            }
+                          }),
                         )}
                         layout={plotLayout}
                       />

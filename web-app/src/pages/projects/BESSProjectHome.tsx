@@ -31,17 +31,16 @@ import { QUERY_TIME } from '@/utils/queryTiming'
 import { getContractKPIStatusColor } from '@/utils/statusColors'
 import {
   ActionIcon,
-  Badge,
   Box,
   Button,
   Card,
   Center,
-  Grid,
   Group,
   List,
   LoadingOverlay,
   Menu,
   Modal,
+  Popover,
   ScrollArea,
   SegmentedControl,
   Skeleton,
@@ -54,16 +53,20 @@ import {
 } from '@mantine/core'
 import { useElementSize } from '@mantine/hooks'
 import {
-  IconActivity,
   IconArrowLeft,
   IconArrowRight,
+  IconBattery3,
+  IconBolt,
   IconCaretDown,
+  IconChartLine,
   IconChevronDown,
   IconChevronUp,
+  IconCircleDot,
   IconCursorText,
   IconInfoCircle,
   IconLock,
   IconMouse,
+  IconRepeat,
   IconSatellite,
   IconZoomIn,
 } from '@tabler/icons-react'
@@ -478,9 +481,17 @@ const BatteryHealthBESSProjectHome = () => {
   const { projectId } = useParams()
   const theme = useMantineTheme()
   const navigate = useNavigate()
+  const projectDischargedEnergyColor = theme.colors.green[7]
+  const projectDischargedEnergyLineColor = theme.colors.green[9]
+  const socColor = theme.colors.blue[7]
+  const restSocColor = theme.colors.blue[4]
   const [showCycleData, setShowCycleData] = useState(false)
   const [showSocData, setShowSocData] = useState(false)
   const [showRestSocData, setShowRestSocData] = useState(false)
+  const [activeMetricPopover, setActiveMetricPopover] = useState<
+    'project' | 'cycles' | 'soc' | null
+  >(null)
+  const [isProjectPointExpanded, setIsProjectPointExpanded] = useState(false)
 
   // Get project data to access COD
   const project = useSelectProject(projectId!)
@@ -492,7 +503,7 @@ const BatteryHealthBESSProjectHome = () => {
     KPITypeEnum.BESS_STRING_CYCLE_COUNT,
     KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT,
     KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
-    KPITypeEnum.BESS_STRING_DEPTH_OF_DISCHARGE,
+    KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
   ]
 
   const kpiData = useGetKPISummaryCards({
@@ -577,6 +588,25 @@ const BatteryHealthBESSProjectHome = () => {
     },
   })
 
+  // Fetch continuous discharged energy data for the default secondary axis.
+  const dailyContinuousDischargedEnergyData = useGetOperationalKPIData({
+    queryParams: {
+      project_ids: [projectId || '-1'],
+      kpi_type_ids: [KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY],
+      start: project.data?.cod
+        ? dayjs(project.data.cod).format('YYYY-MM-DD')
+        : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
+      end: dayjs().format('YYYY-MM-DD'),
+      include_device_data: false,
+      include_all_dates: false,
+    },
+    queryOptions: {
+      enabled: !!projectId,
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
+      staleTime: QUERY_TIME.THIRTY_SECONDS,
+    },
+  })
+
   // Extract specific KPI values
   const sohData = kpiData.data?.find(
     (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
@@ -590,107 +620,89 @@ const BatteryHealthBESSProjectHome = () => {
   const restSocData = kpiData.data?.find(
     (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
   )
-  const avgDodData = kpiData.data?.find(
-    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_DEPTH_OF_DISCHARGE,
+  const continuousDischargedEnergyData = kpiData.data?.find(
+    (kpi) =>
+      kpi.kpi_type_id ===
+      KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
   )
+  const showContinuousDischargedEnergy =
+    !showCycleData && !showSocData && !showRestSocData
 
-  // Get the last available SOH value from daily data
-  const getLastSohValue = () => {
-    if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (
-        sohKpiData?.data?.project_data &&
-        sohKpiData.data.project_data.length > 0
-      ) {
-        // Get the last non-null value and convert to percentage
-        const lastValue = sohKpiData.data.project_data
-          .filter((val): val is number => val !== null)
-          .slice(-1)[0]
-        return lastValue ? lastValue * 100 : null
-      }
-    }
-    // Fallback to summary card data
-    return sohData?.ytd_value || sohData?.value || 100
+  const showProjectContinuousDischargedEnergyData = () => {
+    setShowCycleData(false)
+    setShowSocData(false)
+    setShowRestSocData(false)
   }
 
-  const currentSoh = getLastSohValue() || 100
-
-  // Calculate expected SOH for current date
-  const getExpectedSoh = () => {
-    // Determine start date: use COD if available, otherwise use first available data date
-    let startDate: dayjs.Dayjs
-    if (project.data?.cod) {
-      startDate = dayjs(project.data.cod)
-    } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
-        startDate = dayjs(sohKpiData.data.dates[0])
-      } else {
-        return 100
-      }
-    } else {
-      return 100
+  useEffect(() => {
+    if (activeMetricPopover !== 'project') {
+      setIsProjectPointExpanded(false)
+      return
     }
 
-    const currentDate = dayjs()
-    const daysSinceStart = currentDate.diff(startDate, 'days')
+    const intervalId = window.setInterval(() => {
+      setIsProjectPointExpanded((isExpanded) => !isExpanded)
+    }, 650)
 
-    // Daily degradation rate: 1% per year = 1/365 = 0.00274% per day
-    const dailyDegradationRate = 1 / 365
-    const expectedValue = Math.max(
-      100 - daysSinceStart * dailyDegradationRate,
-      80,
+    return () => window.clearInterval(intervalId)
+  }, [activeMetricPopover])
+
+  const trailingContinuousDischargedEnergyPoint = useMemo(() => {
+    const energyKpiData = dailyContinuousDischargedEnergyData.data?.find(
+      (kpi) =>
+        kpi.kpi_type_id ===
+        KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
     )
 
-    return expectedValue
-  }
-
-  // Calculate expected SOH for the last actual data point date
-  const getExpectedSohForLastDataPoint = () => {
-    if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
-        const lastDate = sohKpiData.data.dates[sohKpiData.data.dates.length - 1]
-
-        // Determine start date: use COD if available, otherwise use first available data date
-        let startDate: dayjs.Dayjs
-        if (project.data?.cod) {
-          startDate = dayjs(project.data.cod)
-        } else {
-          startDate = dayjs(sohKpiData.data.dates[0])
-        }
-
-        const lastDataDate = dayjs(lastDate)
-        const daysSinceStart = lastDataDate.diff(startDate, 'days')
-
-        // Daily degradation rate: 1% per year = 1/365 = 0.00274% per day
-        const dailyDegradationRate = 1 / 365
-        const expectedValue = Math.max(
-          100 - daysSinceStart * dailyDegradationRate,
-          80,
-        )
-
-        return expectedValue
-      }
+    if (!energyKpiData?.data?.dates || !energyKpiData.data.project_data) {
+      return null
     }
 
-    // Fallback to current date calculation
-    return getExpectedSoh()
-  }
+    const trailingStart = dayjs().subtract(12, 'months')
+    const points = energyKpiData.data.dates
+      .map((date, index) => ({
+        x: dayjs(date).format('YYYY-MM-DD'),
+        date: dayjs(date),
+        y: energyKpiData.data.project_data[index],
+      }))
+      .filter(
+        (point): point is { x: string; date: dayjs.Dayjs; y: number } =>
+          point.y !== null && !point.date.isBefore(trailingStart),
+      )
 
-  const expectedSoh = getExpectedSohForLastDataPoint()
-  const sohDifference = currentSoh - expectedSoh
-  const sohDifferenceFormatted =
-    sohDifference > 0
-      ? `+${sohDifference.toFixed(2)}%`
-      : `${sohDifference.toFixed(2)}%`
-  const sohDifferenceText = sohDifference > 0 ? 'above' : 'below'
+    if (points.length === 0) return null
+
+    return points.reduce((highestPoint, point) => {
+      if (point.y > highestPoint.y) return point
+      if (point.y === highestPoint.y && point.date.isAfter(highestPoint.date)) {
+        return point
+      }
+      return highestPoint
+    })
+  }, [dailyContinuousDischargedEnergyData.data])
+
+  const continuousDischargedEnergyYAxisRange = useMemo(() => {
+    const energyKpiData = dailyContinuousDischargedEnergyData.data?.find(
+      (kpi) =>
+        kpi.kpi_type_id ===
+        KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
+    )
+    const values = energyKpiData?.data?.project_data?.filter(
+      (value): value is number => value !== null,
+    )
+
+    if (!values || values.length === 0) return undefined
+
+    const minValue = Math.min(...values)
+    const maxValue = Math.max(...values)
+    if (minValue === maxValue) {
+      const padding = Math.max(Math.abs(maxValue) * 0.1, 1)
+      return [Math.max(0, minValue - padding), maxValue + padding]
+    }
+
+    const padding = (maxValue - minValue) * 0.1
+    return [Math.max(0, minValue - padding), maxValue + padding]
+  }, [dailyContinuousDischargedEnergyData.data])
 
   // Create SOH degradation chart data and zoom range
   const { chartData: sohChartData, defaultZoomRange } = useMemo(() => {
@@ -799,15 +811,75 @@ const BatteryHealthBESSProjectHome = () => {
       } satisfies Data,
     ]
 
-    if (actualSohData && actualSohData.x.length > 0) {
-      chartData.push({
-        x: actualSohData.x,
-        y: actualSohData.y,
-        name: 'Actual SOH',
-        line: { color: theme.colors.blue[6], width: 3 },
-        type: 'scatter',
-        hovertemplate: '%{y:.2f}%<extra></extra>',
-      } satisfies Data)
+    if (
+      showContinuousDischargedEnergy &&
+      dailyContinuousDischargedEnergyData.data &&
+      dailyContinuousDischargedEnergyData.data.length > 0
+    ) {
+      const energyKpiData = dailyContinuousDischargedEnergyData.data.find(
+        (kpi) =>
+          kpi.kpi_type_id ===
+          KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
+      )
+      if (energyKpiData?.data?.dates && energyKpiData?.data?.project_data) {
+        const points = energyKpiData.data.dates
+          .map((date, index) => ({
+            x: dayjs(date).format('YYYY-MM-DD'),
+            y: energyKpiData.data.project_data[index],
+          }))
+          .filter(
+            (point): point is { x: string; y: number } => point.y !== null,
+          )
+
+        if (points.length > 0) {
+          const minValue = Math.min(...points.map((point) => point.y))
+          const maxValue = Math.max(...points.map((point) => point.y))
+          const valueRange = maxValue - minValue
+          const getMarkerOpacity = (value: number) => {
+            if (valueRange === 0) return 1
+            return 0.15 + ((value - minValue) / valueRange) * 0.85
+          }
+          const isTrailingHighPoint = (point: { x: string; y: number }) =>
+            point.x === trailingContinuousDischargedEnergyPoint?.x &&
+            point.y === trailingContinuousDischargedEnergyPoint.y
+          const isProjectPointAnimating = activeMetricPopover === 'project'
+
+          chartData.push({
+            x: points.map((point) => point.x),
+            y: points.map((point) => point.y),
+            name: 'Project Discharged Energy',
+            mode: 'markers',
+            type: 'scatter',
+            yaxis: 'y2',
+            hovertemplate: '%{y:.2f} MWh<extra></extra>',
+            marker: {
+              color: points.map(() => projectDischargedEnergyColor),
+              size: points.map((point) =>
+                isTrailingHighPoint(point)
+                  ? isProjectPointAnimating && isProjectPointExpanded
+                    ? 14
+                    : 11
+                  : 6,
+              ),
+              opacity: points.map((point) => getMarkerOpacity(point.y)),
+              line: {
+                color: points.map((point) =>
+                  isTrailingHighPoint(point)
+                    ? projectDischargedEnergyLineColor
+                    : projectDischargedEnergyColor,
+                ),
+                width: points.map((point) =>
+                  isTrailingHighPoint(point)
+                    ? isProjectPointAnimating && isProjectPointExpanded
+                      ? 3
+                      : 2
+                    : 1,
+                ),
+              },
+            },
+          } satisfies Data)
+        }
+      }
     }
 
     // Add cycle data if enabled
@@ -855,7 +927,7 @@ const BatteryHealthBESSProjectHome = () => {
           x: dates,
           y: values,
           name: 'String SOC',
-          line: { color: theme.colors.green[6] },
+          line: { color: socColor },
           type: 'scatter',
           yaxis: 'y2',
           hovertemplate: '%{y:.1f}%<extra></extra>',
@@ -884,7 +956,7 @@ const BatteryHealthBESSProjectHome = () => {
           x: dates,
           y: values,
           name: 'String Rest SOC',
-          line: { color: theme.colors.violet[6] },
+          line: { color: restSocColor },
           type: 'scatter',
           yaxis: 'y2',
           hovertemplate: '%{y:.1f}%<extra></extra>',
@@ -903,20 +975,128 @@ const BatteryHealthBESSProjectHome = () => {
     dailySocData.data,
     showRestSocData,
     dailyRestSocData.data,
+    showContinuousDischargedEnergy,
+    dailyContinuousDischargedEnergyData.data,
+    trailingContinuousDischargedEnergyPoint,
+    activeMetricPopover,
+    isProjectPointExpanded,
+    projectDischargedEnergyColor,
+    projectDischargedEnergyLineColor,
+    socColor,
+    restSocColor,
   ])
+
+  const batteryHealthTitle = (
+    <Link
+      to={`/projects/${projectId}/battery-health`}
+      style={{ textDecoration: 'none', color: 'inherit' }}
+    >
+      Battery Health
+    </Link>
+  )
+
+  const batteryHealthInfo = (
+    <Stack gap="sm">
+      <Text fw={600}>Understanding Battery Health</Text>
+      <Text size="sm">
+        This chart combines modeled battery degradation with measured
+        dischargeable energy from the site.
+      </Text>
+
+      <Text size="sm" fw={500}>
+        Main Chart:
+      </Text>
+      <List spacing={6} withPadding>
+        <List.Item>
+          <Group gap={6} wrap="nowrap" align="flex-start">
+            <IconChartLine size={16} color={theme.colors.gray[6]} />
+            <Text size="sm">
+              <Text component="span" fw={500} c="gray.7">
+                Dashed gray line:
+              </Text>{' '}
+              Expected SOH degradation from COD, modeled at 1% per year and
+              floored at 80%.
+            </Text>
+          </Group>
+        </List.Item>
+        <List.Item>
+          <Group gap={6} wrap="nowrap" align="flex-start">
+            <IconCircleDot size={16} color={projectDischargedEnergyColor} />
+            <Text size="sm">
+              <Text component="span" fw={500} c={projectDischargedEnergyColor}>
+                Green points:
+              </Text>{' '}
+              Project-level continuous discharged energy on a daily basis,
+              plotted on the right y-axis in MWh.
+            </Text>
+          </Group>
+        </List.Item>
+        <List.Item>
+          <Group gap={6} wrap="nowrap" align="flex-start">
+            <IconCircleDot size={16} color={projectDischargedEnergyColor} />
+            <Text size="sm">
+              <Text component="span" fw={500} c={projectDischargedEnergyColor}>
+                Highlighted point:
+              </Text>{' '}
+              Highest project discharged-energy value in the last 12 months.
+            </Text>
+          </Group>
+        </List.Item>
+        <List.Item>
+          <Group gap={6} wrap="nowrap" align="flex-start">
+            <IconCircleDot size={16} color={theme.colors.gray[5]} />
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Opacity:
+              </Text>{' '}
+              Low discharged-energy points are faint; higher values become more
+              opaque.
+            </Text>
+          </Group>
+        </List.Item>
+      </List>
+
+      <Text size="sm" fw={500}>
+        Right Gauges:
+      </Text>
+      <Stack gap={6}>
+        <Group gap={6} wrap="nowrap">
+          <IconBolt size={16} color={projectDischargedEnergyColor} />
+          <Text size="sm">
+            <Text component="span" fw={500} c={projectDischargedEnergyColor}>
+              Project:
+            </Text>{' '}
+            Shows the trailing-12-month high project discharged energy.
+          </Text>
+        </Group>
+        <Group gap={6} wrap="nowrap">
+          <IconRepeat size={16} color={theme.colors.gray[6]} />
+          <Text size="sm">
+            <Text component="span" fw={500} c="gray.7">
+              Cycles:
+            </Text>{' '}
+            Hover to replace the right axis with string cycle count.
+          </Text>
+        </Group>
+        <Group gap={6} wrap="nowrap">
+          <IconBattery3 size={16} color={socColor} />
+          <Text size="sm">
+            <Text component="span" fw={500} c={socColor}>
+              SOC:
+            </Text>{' '}
+            Hover to inspect average SOC; hover Rest SOC for resting SOC.
+          </Text>
+        </Group>
+      </Stack>
+    </Stack>
+  )
 
   // Show loading state
   if (kpiData.isLoading) {
     return (
       <CustomCard
-        title={
-          <Link
-            to={`/projects/${projectId}/battery-health`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            Battery Health
-          </Link>
-        }
+        title={batteryHealthTitle}
+        info={batteryHealthInfo}
         style={{ height: 350, minHeight: 350 }}
       >
         <LoadingOverlay visible={true} />
@@ -932,37 +1112,47 @@ const BatteryHealthBESSProjectHome = () => {
     return `${value.toFixed(2)}${unit}`
   }
 
-  // Calculate annual cycle count projection
-  const calculateAnnualCycles = (ytdValue: number | null | undefined) => {
-    if (!ytdValue) return null
-    const currentDate = new Date()
-    const startOfYear = new Date(currentDate.getFullYear(), 0, 1)
-    const daysElapsed =
-      (currentDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-    const daysInYear = 365
-    return Math.round((ytdValue / daysElapsed) * daysInYear)
-  }
-
-  const getSohColor = (soh: number) => {
-    if (soh >= 90) return theme.colors.green[6]
-    if (soh >= 80) return theme.colors.yellow[6]
-    return theme.colors.red[6]
-  }
-
   // Check if we have any battery health data
   const hasBatteryData = sohData || cycleData || avgSocData
+  const projectEnergyPopoverText = trailingContinuousDischargedEnergyPoint
+    ? `Highest project-level continuous discharged energy in the last 12 months: ${trailingContinuousDischargedEnergyPoint.y.toFixed(
+        2,
+      )} MWh on ${trailingContinuousDischargedEnergyPoint.date.format(
+        'MMMM D, YYYY',
+      )}. This is the highlighted point on the chart.`
+    : continuousDischargedEnergyData?.info ||
+      'Highest project-level continuous discharged energy in the last 12 months.'
+  const cyclesPopoverText =
+    cycleData?.info || 'String cycle count year to date.'
+  const socPopoverText = `Average SOC: ${formatBatteryHealthValue(
+    avgSocData?.ytd_value ?? avgSocData?.value,
+    '%',
+  )}. Rest SOC: ${formatBatteryHealthValue(
+    restSocData?.ytd_value ?? restSocData?.value,
+    '%',
+  )}. ${
+    avgSocData?.info ||
+    restSocData?.info ||
+    'String average and resting state of charge.'
+  }`
+  const isBatteryHealthChartLoading =
+    (showContinuousDischargedEnergy &&
+      dailyContinuousDischargedEnergyData.isFetching) ||
+    (showCycleData && dailyCycleData.isFetching) ||
+    (showSocData && dailySocData.isFetching) ||
+    (showRestSocData && dailyRestSocData.isFetching)
+
+  /** Grows with copy; Mantine default is too narrow for these strings. */
+  const metricPopoverDropdownStyle = {
+    maxWidth: 'min(90vw, max-content)',
+    width: 'max-content',
+  }
 
   if (!hasBatteryData) {
     return (
       <CustomCard
-        title={
-          <Link
-            to={`/projects/${projectId}/battery-health`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            Battery Health
-          </Link>
-        }
+        title={batteryHealthTitle}
+        info={batteryHealthInfo}
         style={{ height: 350, minHeight: 350 }}
       >
         <Center h={200}>
@@ -974,325 +1164,248 @@ const BatteryHealthBESSProjectHome = () => {
 
   return (
     <CustomCard
-      title={
-        <Link
-          to={`/projects/${projectId}/battery-health`}
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          Battery Health
-        </Link>
-      }
+      title={batteryHealthTitle}
+      info={batteryHealthInfo}
       allowFullscreen={false}
       style={{ height: 350, minHeight: 350 }}
     >
-      <Stack gap="md">
-        {/* SOH Degradation Chart */}
-        {sohData && (
-          <PlotlyPlot
-            data={sohChartData}
-            layout={{
-              height: 200,
-              margin: { l: 40, r: 100, t: 20, b: 20 },
-              dragmode: 'zoom',
-              xaxis: {
-                type: 'date',
-                showgrid: true,
-                gridcolor: theme.colors.gray[2],
-                rangeslider: { visible: false },
-                range: defaultZoomRange,
-                fixedrange: false,
-              },
-              yaxis: {
-                title: { text: 'SOH (%)' },
-                range: [80, 100],
-                showgrid: true,
-                gridcolor: theme.colors.gray[2],
-                tickformat: '.2f',
-                fixedrange: true,
-              },
-              yaxis2:
-                showCycleData || showSocData || showRestSocData
-                  ? {
-                      title: {
-                        text: showCycleData
-                          ? 'Cycle Count'
-                          : showSocData
-                            ? 'String SOC (%)'
-                            : 'String Rest SOC (%)',
-                        font: {
-                          color: showCycleData
-                            ? theme.colors.gray[6]
-                            : showSocData
-                              ? theme.colors.green[6]
-                              : theme.colors.violet[6],
+      <Group gap="sm" align="stretch" wrap="nowrap" h="100%">
+        <Box flex={1} miw={0} pos="relative">
+          {/* SOH Degradation Chart */}
+          {sohData && (
+            <PlotlyPlot
+              data={sohChartData}
+              layout={{
+                height: 285,
+                margin: { l: 40, r: 64, t: 20, b: 20 },
+                dragmode: 'zoom',
+                uirevision: showContinuousDischargedEnergy
+                  ? 'project-discharged-energy'
+                  : showCycleData
+                    ? 'cycle-count'
+                    : showSocData
+                      ? 'string-soc'
+                      : showRestSocData
+                        ? 'string-rest-soc'
+                        : 'battery-health',
+                xaxis: {
+                  type: 'date',
+                  showgrid: true,
+                  gridcolor: theme.colors.gray[2],
+                  rangeslider: { visible: false },
+                  range: defaultZoomRange,
+                  fixedrange: false,
+                },
+                yaxis: {
+                  title: { text: 'SOH (%)' },
+                  range: [80, 100],
+                  showgrid: true,
+                  gridcolor: theme.colors.gray[2],
+                  tickformat: '.2f',
+                  fixedrange: true,
+                },
+                yaxis2:
+                  showContinuousDischargedEnergy ||
+                  showCycleData ||
+                  showSocData ||
+                  showRestSocData
+                    ? {
+                        title: {
+                          text: showContinuousDischargedEnergy
+                            ? 'Project Discharged Energy (MWh)'
+                            : showCycleData
+                              ? 'Cycle Count'
+                              : showSocData
+                                ? 'String SOC (%)'
+                                : 'String Rest SOC (%)',
+                          font: {
+                            color: showContinuousDischargedEnergy
+                              ? projectDischargedEnergyColor
+                              : showCycleData
+                                ? theme.colors.gray[6]
+                                : showSocData
+                                  ? socColor
+                                  : restSocColor,
+                          },
                         },
-                      },
-                      overlaying: 'y',
-                      side: 'right',
-                      showgrid: false,
-                      range: showCycleData ? [0, 2] : [0, 100],
-                      tickformat: showCycleData ? '.1f' : '.1f',
-                      fixedrange: true,
-                      tickfont: {
-                        color: showCycleData
-                          ? theme.colors.gray[6]
-                          : showSocData
-                            ? theme.colors.green[6]
-                            : theme.colors.violet[6],
-                      },
-                    }
-                  : undefined,
-              showlegend: true,
-              plot_bgcolor: 'transparent',
-              paper_bgcolor: 'transparent',
-            }}
-            config={{
-              scrollZoom: true,
-              displayModeBar: false,
-            }}
-            isLoading={kpiData.isLoading}
-            error={kpiData.error}
-          />
-        )}
-
-        {/* Key Metrics Grid */}
-        <Grid>
-          {/* SOH Metrics */}
-          <Grid.Col span={4}>
-            <Stack align="center" gap="xs">
-              {sohData ? (
-                <>
-                  <Box ta="center">
-                    <Text
-                      size="xl"
-                      fw={700}
-                      c={getSohColor(currentSoh)}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() =>
-                        navigate(
-                          `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_SOH}`,
-                        )
+                        overlaying: 'y',
+                        side: 'right',
+                        showgrid: false,
+                        range: showContinuousDischargedEnergy
+                          ? continuousDischargedEnergyYAxisRange
+                          : showCycleData
+                            ? [0, 2]
+                            : [0, 100],
+                        autorange:
+                          showContinuousDischargedEnergy &&
+                          !continuousDischargedEnergyYAxisRange
+                            ? true
+                            : undefined,
+                        tickformat: '.1f',
+                        fixedrange: true,
+                        tickfont: {
+                          color: showContinuousDischargedEnergy
+                            ? projectDischargedEnergyColor
+                            : showCycleData
+                              ? theme.colors.gray[6]
+                              : showSocData
+                                ? socColor
+                                : restSocColor,
+                        },
                       }
-                      onMouseEnter={() => {
-                        setShowCycleData(false)
-                        setShowSocData(false)
-                        setShowRestSocData(false)
-                      }}
-                    >
-                      {formatBatteryHealthValue(currentSoh, '%')}
-                    </Text>
-                    <Tooltip label={sohData.info || ''} withArrow>
-                      <Text
-                        size="xs"
-                        c="dimmed"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() =>
-                          navigate(
-                            `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_SOH}`,
-                          )
-                        }
-                        onMouseEnter={() => {
-                          setShowCycleData(false)
-                          setShowSocData(false)
-                          setShowRestSocData(false)
-                        }}
-                      >
-                        {sohData.title}
-                      </Text>
-                    </Tooltip>
-                    <Text size="xs" c="dimmed">
-                      {sohDifferenceFormatted} {sohDifferenceText} expected
-                    </Text>
-                  </Box>
-                </>
-              ) : (
-                <Box ta="center">
-                  <Text size="lg" c="dimmed">
-                    N/A
-                  </Text>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(
-                        `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_SOH}`,
-                      )
-                    }
-                  >
-                    System SOH
-                  </Text>
-                </Box>
-              )}
-            </Stack>
-          </Grid.Col>
+                    : undefined,
+                showlegend: true,
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+              }}
+              config={{
+                scrollZoom: true,
+                displayModeBar: false,
+              }}
+              isLoading={kpiData.isLoading}
+              error={kpiData.error}
+            />
+          )}
+          <LoadingOverlay visible={isBatteryHealthChartLoading} zIndex={1} />
+        </Box>
 
-          {/* Cycles YTD */}
-          <Grid.Col span={4}>
-            <Stack align="center" gap="xs">
-              <Box ta="center">
-                <Text
-                  size="xl"
-                  fw={700}
-                  c={theme.colors.gray[6]}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    navigate(
-                      `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_CYCLE_COUNT}`,
-                    )
-                  }
-                  onMouseEnter={() => {
-                    setShowCycleData(true)
-                    setShowSocData(false)
-                    setShowRestSocData(false)
-                  }}
-                >
-                  {formatBatteryHealthValue(
-                    cycleData?.ytd_value || cycleData?.value,
-                    '',
-                  )}
-                </Text>
-                <Tooltip label={cycleData?.info || ''} withArrow>
+        {/* Key Metrics */}
+        <Stack w={132} gap="lg" justify="center">
+          {/* Project Continuous Discharged Energy */}
+          <Popover
+            opened={activeMetricPopover === 'project'}
+            position="right"
+            withArrow
+            shadow="md"
+          >
+            <Popover.Target>
+              <Box
+                onMouseEnter={() => {
+                  showProjectContinuousDischargedEnergyData()
+                  setActiveMetricPopover('project')
+                }}
+                onMouseLeave={() => setActiveMetricPopover(null)}
+                onClick={() =>
+                  navigate(
+                    `/projects/${projectId}/kpis/type/${KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY}`,
+                  )
+                }
+                style={{ cursor: 'pointer' }}
+              >
+                <Stack align="center" gap={2}>
+                  <IconBolt size={30} color={projectDischargedEnergyColor} />
                   <Text
-                    size="xs"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(
-                        `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_CYCLE_COUNT}`,
-                      )
-                    }
-                    onMouseEnter={() => {
-                      setShowCycleData(true)
-                      setShowSocData(false)
-                      setShowRestSocData(false)
-                    }}
-                  >
-                    {cycleData?.title || 'Cycles YTD'}
-                  </Text>
-                </Tooltip>
-                {cycleData && calculateAnnualCycles(cycleData.ytd_value) && (
-                  <Text size="xs" c="dimmed">
-                    Projected: {calculateAnnualCycles(cycleData.ytd_value)}/year
-                  </Text>
-                )}
-              </Box>
-              {avgDodData && (
-                <Badge
-                  variant="light"
-                  color="gray"
-                  size="sm"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    navigate(
-                      `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_DEPTH_OF_DISCHARGE}`,
-                    )
-                  }
-                >
-                  <IconActivity size={12} style={{ marginRight: 4 }} />
-                  {formatBatteryHealthValue(
-                    avgDodData.ytd_value || avgDodData.value,
-                    '%',
-                  )}{' '}
-                  Avg DOD
-                </Badge>
-              )}
-            </Stack>
-          </Grid.Col>
-
-          {/* SOC Metrics */}
-          <Grid.Col span={4}>
-            <Stack align="center" gap="xs">
-              <Box ta="center">
-                <Text
-                  size="lg"
-                  fw={700}
-                  c={theme.colors.green[6]}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    navigate(
-                      `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT}`,
-                    )
-                  }
-                  onMouseEnter={() => {
-                    setShowSocData(true)
-                    setShowCycleData(false)
-                    setShowRestSocData(false)
-                  }}
-                >
-                  {formatBatteryHealthValue(
-                    avgSocData?.ytd_value || avgSocData?.value,
-                    '%',
-                  )}
-                </Text>
-                <Tooltip label={avgSocData?.info || ''} withArrow>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(
-                        `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT}`,
-                      )
-                    }
-                    onMouseEnter={() => {
-                      setShowSocData(true)
-                      setShowCycleData(false)
-                      setShowRestSocData(false)
-                    }}
-                  >
-                    String SOC YTD
-                  </Text>
-                </Tooltip>
-              </Box>
-              {restSocData && (
-                <Box ta="center">
-                  <Text
-                    size="sm"
-                    fw={500}
-                    c={theme.colors.gray[6]}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(
-                        `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT}`,
-                      )
-                    }
-                    onMouseEnter={() => {
-                      setShowRestSocData(true)
-                      setShowCycleData(false)
-                      setShowSocData(false)
-                    }}
+                    size="xl"
+                    fw={700}
+                    c={projectDischargedEnergyColor}
+                    lh={1.15}
                   >
                     {formatBatteryHealthValue(
-                      restSocData.ytd_value || restSocData.value,
+                      trailingContinuousDischargedEnergyPoint?.y,
+                      ' MWh',
+                    )}
+                  </Text>
+                  <Text size="xs" c="dimmed" lh={1.15}>
+                    Project
+                  </Text>
+                </Stack>
+              </Box>
+            </Popover.Target>
+            <Popover.Dropdown style={metricPopoverDropdownStyle}>
+              <Text size="xs" style={{ whiteSpace: 'normal' }}>
+                {projectEnergyPopoverText}
+              </Text>
+            </Popover.Dropdown>
+          </Popover>
+
+          {/* Cycles YTD */}
+          <Popover
+            opened={activeMetricPopover === 'cycles'}
+            position="right"
+            withArrow
+            shadow="md"
+          >
+            <Popover.Target>
+              <Box
+                onMouseEnter={() => {
+                  setShowCycleData(true)
+                  setShowSocData(false)
+                  setShowRestSocData(false)
+                  setActiveMetricPopover('cycles')
+                }}
+                onMouseLeave={() => setActiveMetricPopover(null)}
+                onClick={() =>
+                  navigate(
+                    `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_CYCLE_COUNT}`,
+                  )
+                }
+                style={{ cursor: 'pointer' }}
+              >
+                <Stack align="center" gap={2}>
+                  <IconRepeat size={30} color={theme.colors.gray[6]} />
+                  <Text size="xl" fw={700} c={theme.colors.gray[6]} lh={1.15}>
+                    {formatBatteryHealthValue(
+                      cycleData?.ytd_value ?? cycleData?.value,
+                    )}
+                  </Text>
+                  <Text size="xs" c="dimmed" lh={1.15}>
+                    Cycles
+                  </Text>
+                </Stack>
+              </Box>
+            </Popover.Target>
+            <Popover.Dropdown style={metricPopoverDropdownStyle}>
+              <Text size="xs" style={{ whiteSpace: 'normal' }}>
+                {cyclesPopoverText}
+              </Text>
+            </Popover.Dropdown>
+          </Popover>
+
+          {/* SOC Metrics */}
+          <Popover
+            opened={activeMetricPopover === 'soc'}
+            position="right"
+            withArrow
+            shadow="md"
+          >
+            <Popover.Target>
+              <Box
+                onMouseEnter={() => {
+                  setShowSocData(true)
+                  setShowCycleData(false)
+                  setShowRestSocData(true)
+                  setActiveMetricPopover('soc')
+                }}
+                onMouseLeave={() => setActiveMetricPopover(null)}
+                onClick={() =>
+                  navigate(
+                    `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT}`,
+                  )
+                }
+                style={{ cursor: 'pointer' }}
+              >
+                <Stack align="center" gap={2}>
+                  <IconBattery3 size={30} color={socColor} />
+                  <Text size="xl" fw={700} c={socColor} lh={1.15}>
+                    {formatBatteryHealthValue(
+                      avgSocData?.ytd_value ?? avgSocData?.value,
                       '%',
                     )}
                   </Text>
-                  <Tooltip label={restSocData.info || ''} withArrow>
-                    <Text
-                      size="xs"
-                      c="dimmed"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() =>
-                        navigate(
-                          `/projects/${projectId}/kpis/type/${KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT}`,
-                        )
-                      }
-                      onMouseEnter={() => {
-                        setShowRestSocData(true)
-                        setShowCycleData(false)
-                        setShowSocData(false)
-                      }}
-                    >
-                      String Rest SOC YTD
-                    </Text>
-                  </Tooltip>
-                </Box>
-              )}
-            </Stack>
-          </Grid.Col>
-        </Grid>
-      </Stack>
+                  <Text size="xs" c="dimmed" lh={1.15}>
+                    SOC
+                  </Text>
+                </Stack>
+              </Box>
+            </Popover.Target>
+            <Popover.Dropdown style={metricPopoverDropdownStyle}>
+              <Text size="xs" style={{ whiteSpace: 'normal' }}>
+                {socPopoverText}
+              </Text>
+            </Popover.Dropdown>
+          </Popover>
+        </Stack>
+      </Group>
     </CustomCard>
   )
 }
