@@ -1,0 +1,43 @@
+id: python-hardcoded-type-id
+message: "Use enum/constants instead of hardcoded *_type_id values"
+language: Python
+severity: error
+rule:
+  any:
+    - all:
+        - kind: module
+        - regex: "\\b\\w+_type_id\\s*(==|!=)\\s*\\d+\\b"
+    - all:
+        - kind: module
+        - regex: "\\b\\w+_type_id\\s*=\\s*\\d+\\b"
+    - all:
+        - kind: module
+        - regex: "\\b\\w+_type_ids\\s*=\\s*\\[\\s*(#|\\d)"
+    - all:
+        - kind: module
+        - regex: "(?m)^\\s*\\d+\\s*:\\s*\\["
+    - all:
+        - kind: module
+        - regex: "(?m)^\\s*case\\s+\\d+\\s*:"
+---
+id: ts-hardcoded-type-id
+message: "Use enum/constants instead of hardcoded *TypeId/*_type_id values"
+language: TypeScript
+severity: error
+rule:
+  any:
+    - all:
+        - kind: program
+        - regex: "\\b\\w+(TypeId|_type_id)\\s*[:=]\\s*\\d+\\b"
+    - all:
+        - kind: program
+        - regex: "\\b\\w+(TypeIds|_type_ids)\\s*[:=]\\s*\\[\\s*['\"]?\\d+"
+    - all:
+        - kind: program
+        - regex: "\\b\\w+(TypeId|_type_id)\\s*(===|==|!==|!=)\\s*\\d+\\b"
+    - all:
+        - kind: program
+        - regex: "(?m)^\\s*\\d+\\s*:\\s*\\["
+    - all:
+        - kind: program
+        - regex: "(?m)^\\s*case\\s+\\d+\\s*:"

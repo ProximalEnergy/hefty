@@ -202,9 +202,13 @@ usage = '''
 run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-} ${usage_existing:+--existing}"
 
 [tasks."root:static_type_id"]
-description = "Run static type ID check on entire monorepo"
+description = "Run ast-grep static type ID checks on entire monorepo"
 dir = "."
-run = "./_scripts/hardcoded_type_id_check.sh"
+run = '''
+./_scripts/ast_grep_check.sh \
+  --rules python-hardcoded-type-id,ts-hardcoded-type-id \
+  .
+'''
 
 [tasks."root:static_name_shorts"]
 description = "Run ast-grep static name shorts check on entire monorepo"
@@ -437,6 +441,11 @@ depends = [
 description = "Bump core version (usage: mise run core:bump [patch|minor|major])"
 dir = "core"
 run = "uv version --bump ${1:-patch}"
+
+[tasks."core:version-check"]
+description = "Ensure local core version exceeds latest published version"
+dir = "."
+run = "bash _scripts/check_core_version.sh"
 
 [tasks."core:freeze"]
 description = "Export frozen requirements.txt for core"

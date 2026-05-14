@@ -13,7 +13,7 @@ interface POIMeterProps {
 const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
   const { projectId } = useParams<{ projectId: string }>()
 
-  // Base sensor type IDs: active power (1), reactive power (8), apparent power (10), power factor (12)
+  // Base sensor type IDs: active, reactive, apparent, power factor.
   // Additional when showGridHzV: frequency (11), voltage (192)
   const baseSensorTypeIds = [
     SensorTypeEnum.METER_ACTIVE_POWER,
@@ -36,7 +36,7 @@ const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
     },
   })
 
-  // Calculate apparent power if active and reactive power are available but apparent power is not
+  // Calculate apparent power when active and reactive power are available.
   let calculatedApparentPower: DataTimeSeries | null = null
   const activePowerData = data?.find(
     (d) => d.sensor_type_id === SensorTypeEnum.METER_ACTIVE_POWER,
@@ -66,7 +66,7 @@ const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
       tag_name_scada: activePowerData.tag_name_scada,
       tag_name_long: activePowerData.tag_name_long,
       device_id: activePowerData.device_id,
-      sensor_type_id: 10,
+      sensor_type_id: SensorTypeEnum.METER_APPARENT_POWER,
     }
   }
 
@@ -132,23 +132,30 @@ const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
       d.sensor_type_id === SensorTypeEnum.PROJECT_LINE_TO_LINE_VOLTAGE,
   )
 
-  // Define colors for specific traces
-  const getTraceColor = (sensorTypeId: number): string | undefined => {
-    if (sensorTypeId === 1) return '#69DB7C' // active power (light green)
-    if (sensorTypeId === 8) return '#4DABF7' // reactive power (light blue)
-    if (sensorTypeId === 10) return '#FCC419' // apparent power (yellow)
-    if (sensorTypeId === 12) return '#DA77F2' // power factor (light purple)
-    if (sensorTypeId === 11) return '#22B8CF' // frequency (cyan)
-    if (sensorTypeId === 192) return '#FF922B' // voltage (orange)
-    return undefined // use default colorway
+  const traceColors: Record<number, string> = {
+    [SensorTypeEnum.METER_ACTIVE_POWER]: '#69DB7C',
+    [SensorTypeEnum.METER_REACTIVE_POWER]: '#4DABF7',
+    [SensorTypeEnum.METER_APPARENT_POWER]: '#FCC419',
+    [SensorTypeEnum.METER_POWER_FACTOR]: '#DA77F2',
+    [SensorTypeEnum.METER_FREQUENCY]: '#22B8CF',
+    [SensorTypeEnum.PROJECT_LINE_TO_LINE_VOLTAGE]: '#FF922B',
   }
 
-  // Determine yaxis and xaxis for each trace
+  const getTraceColor = (sensorTypeId: number): string | undefined => {
+    return traceColors[sensorTypeId]
+  }
+
   const getAxis = (sensorTypeId: number) => {
-    if (sensorTypeId === 12) return { yaxis: 'y2', xaxis: 'x' } // power factor (bottom subplot)
-    if (sensorTypeId === 11) return { yaxis: 'y3', xaxis: 'x2' } // frequency (top subplot)
-    if (sensorTypeId === 192) return { yaxis: 'y4', xaxis: 'x2' } // voltage (top subplot)
-    return { yaxis: 'y', xaxis: 'x' } // main plot (bottom subplot)
+    if (sensorTypeId === SensorTypeEnum.METER_POWER_FACTOR) {
+      return { yaxis: 'y2', xaxis: 'x' }
+    }
+    if (sensorTypeId === SensorTypeEnum.METER_FREQUENCY) {
+      return { yaxis: 'y3', xaxis: 'x2' }
+    }
+    if (sensorTypeId === SensorTypeEnum.PROJECT_LINE_TO_LINE_VOLTAGE) {
+      return { yaxis: 'y4', xaxis: 'x2' }
+    }
+    return { yaxis: 'y', xaxis: 'x' }
   }
 
   // Build data array
@@ -258,7 +265,7 @@ const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
   }
 
   // Create a unique key that includes projectId and whether grid layout is used
-  // This ensures Plotly re-renders when switching between projects with different grid support
+  // Ensures Plotly re-renders across projects with different grid support.
   const hasGridLayout = !!baseLayout.grid
   const plotKey = `poi-meter-${projectId}-${showGridHzV}-${hasGridLayout}`
 

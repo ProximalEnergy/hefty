@@ -109,7 +109,6 @@ declare -a FAILED_ERROR_CHECKS=()
 declare -a FAILED_WARNING_CHECKS=()
 
 # Arrays to store checks to be run
-declare -a CHECKS_NAME=()
 declare -a CHECKS_CMD=()
 declare -a CHECKS_IS_PARALLEL=()
 declare -a CHECKS_SEVERITY=()
@@ -117,6 +116,8 @@ declare -a CHECKS_SKIP_REASON=()
 declare -a CHECKS_UI_COMPLETED=()
 declare -a CHECKS_BATCH_GROUP=()
 declare -a CHECKS_BATCH_RULE_ID=()
+declare -a CHECKS_RESULT_STATUS=()
+declare -a CHECKS_ELAPSED_SECONDS=()
 CHECKS_COMPLETED_COUNT=0
 LAST_COMPLETED_CHECK=""
 LIVE_FAILURE_LINES=0
@@ -129,13 +130,10 @@ add_check() {
     local is_parallel="${4:-true}"
 
     # Ruff checks and Formatting should run sequentially at the end
-    if [[ "$name" == *"Ruff"* ]] \
-        || [[ "$name" == *"Formatting"* ]] \
-        || [[ "$name" == *"Format"* ]]; then
+    if [[ "$cmd" == *":ruff"* ]] || [[ "$cmd" == *":ruff_format"* ]]; then
         is_parallel="false"
     fi
 
-    CHECKS_NAME+=("$name")
     CHECKS_CMD+=("$cmd")
     CHECKS_IS_PARALLEL+=("$is_parallel")
     CHECKS_SEVERITY+=("$severity")
@@ -150,7 +148,7 @@ add_batched_ast_grep_check() {
     local check_index
 
     add_check "$name" "$cmd"
-    check_index=$((${#CHECKS_NAME[@]} - 1))
+    check_index=$((${#CHECKS_CMD[@]} - 1))
     CHECKS_BATCH_GROUP[$check_index]="root_ast_grep"
     CHECKS_BATCH_RULE_ID[$check_index]="$rule_id"
 }
@@ -179,7 +177,7 @@ add_skipped_check() {
     local check_index
 
     add_check "$name" "$cmd" "$severity" "$is_parallel"
-    check_index=$((${#CHECKS_NAME[@]} - 1))
+    check_index=$((${#CHECKS_CMD[@]} - 1))
     CHECKS_SKIP_REASON[$check_index]="$skip_reason"
 }
 
@@ -210,46 +208,6 @@ add_db_check() {
     fi
 
     add_check "$name" "$cmd"
-}
-
-# Function to run a check and track its result
-run_check() {
-    local check_name="$1"
-    local check_command="$2"
-    local log_file
-
-    if [ "${QUIET}" != "true" ]; then
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${BOLD}Running: ${check_name}${NC}"
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-        if eval "$check_command"; then
-            PASSED_CHECKS+=("$check_name")
-            echo -e "${GREEN}✓ ${check_name} passed${NC}\n"
-            return 0
-        else
-            FAILED_ERROR_CHECKS+=("$check_name:$check_command")
-            echo -e "${RED}✗ ${check_name} failed${NC}\n"
-            return 1
-        fi
-    fi
-
-    log_file=$(mktemp)
-    if eval "$check_command" >"$log_file" 2>&1; then
-        PASSED_CHECKS+=("$check_name")
-        echo -e "${GREEN}✓ ${check_name} passed${NC}"
-        rm -f "$log_file"
-        return 0
-    fi
-
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}Running: ${check_name}${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    cat "$log_file"
-    rm -f "$log_file"
-    FAILED_ERROR_CHECKS+=("$check_name:$check_command")
-    echo -e "${RED}✗ ${check_name} failed${NC}\n"
-    return 1
 }
 
 cleanup_run_all_checks() {
@@ -464,7 +422,7 @@ send_failures_to_codex() {
         echo ""
         for i in "${selected_codex_indices[@]}"; do
             echo "---"
-            echo "check: ${CHECKS_NAME[$i]}"
+            echo "check: $(get_check_ui_label "$i")"
             echo "command: ${CHECKS_CMD[$i]}"
             echo "severity: ${CHECKS_SEVERITY[$i]}"
             echo ""
@@ -535,8 +493,34 @@ truncate_ui_label() {
     printf "%.*s..." "$((max_len - 3))" "$label"
 }
 
+format_elapsed_seconds() {
+    local elapsed_seconds="$1"
+    local minutes
+    local seconds
+
+    if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+        echo "0s"
+        return
+    fi
+
+    if [ "$elapsed_seconds" -lt 60 ]; then
+        echo "${elapsed_seconds}s"
+        return
+    fi
+
+    minutes=$((elapsed_seconds / 60))
+    seconds=$((elapsed_seconds % 60))
+
+    if [ "$seconds" -eq 0 ]; then
+        echo "${minutes}m"
+        return
+    fi
+
+    echo "${minutes}m ${seconds}s"
+}
+
 render_live_summary() {
-    local total_checks="${#CHECKS_NAME[@]}"
+    local total_checks="${#CHECKS_CMD[@]}"
     local passed_count="${#PASSED_CHECKS[@]}"
     local failed_count="${#FAILED_ERROR_CHECKS[@]}"
     local warning_count="${#FAILED_WARNING_CHECKS[@]}"
@@ -559,9 +543,9 @@ render_live_summary() {
         max_line_len=1
     fi
 
-    prefix="Progress ${CHECKS_COMPLETED_COUNT}/${total_checks} "
-    prefix="${prefix}Pass ${passed_count} "
-    prefix="${prefix}Fail ${failed_count} Warn ${warning_count} Last "
+    prefix="Progress ${CHECKS_COMPLETED_COUNT}/${total_checks} | "
+    prefix="${prefix}Pass ${passed_count} | "
+    prefix="${prefix}Fail ${failed_count} | Warn ${warning_count} | Last "
     if [ "${#prefix}" -gt "$max_line_len" ]; then
         prefix=$(truncate_ui_label "$prefix" "$max_line_len")
     fi
@@ -596,7 +580,7 @@ update_check_ui_status_unlocked() {
         CHECKS_COMPLETED_COUNT=$((CHECKS_COMPLETED_COUNT + 1))
     fi
 
-    LAST_COMPLETED_CHECK="${CHECKS_NAME[$check_index]}"
+    LAST_COMPLETED_CHECK="$(get_check_ui_label "$check_index")"
     render_live_summary
 }
 
@@ -613,7 +597,7 @@ print_live_check_failure() {
     printf "\033[%sB\r\033[2K" "$lines_down"
     printf "%b✗ %s%b" \
         "${BOLD}${color}" \
-        "$(get_check_ui_label "$check_index")" \
+        "$(get_timed_check_ui_label "$check_index")" \
         "${NC}"
     LIVE_FAILURE_LINES=$((LIVE_FAILURE_LINES + 1))
     printf "\033[%sA\r" "$LIVE_FAILURE_LINES"
@@ -642,8 +626,21 @@ get_check_ui_label() {
     echo "$check_label"
 }
 
+get_timed_check_ui_label() {
+    local check_index="$1"
+    local elapsed_seconds="${CHECKS_ELAPSED_SECONDS[$check_index]:-}"
+    local check_label
+
+    check_label=$(get_check_ui_label "$check_index")
+    if [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+        check_label="${check_label} ($(format_elapsed_seconds "$elapsed_seconds"))"
+    fi
+
+    echo "$check_label"
+}
+
 print_passed_checks() {
-    local check_name
+    local i
 
     if [ "${#PASSED_CHECKS[@]}" -eq 0 ]; then
         return
@@ -652,8 +649,10 @@ print_passed_checks() {
     echo ""
     echo -e "${GREEN}Passed checks:${NC}"
     echo ""
-    for check_name in "${PASSED_CHECKS[@]}"; do
-        echo -e "${GREEN}✓ ${check_name}${NC}"
+    for i in "${!CHECKS_CMD[@]}"; do
+        if [ "${CHECKS_RESULT_STATUS[$i]:-}" = "0" ]; then
+            echo -e "${GREEN}✓ $(get_timed_check_ui_label "$i")${NC}"
+        fi
     done
     echo ""
 }
@@ -688,17 +687,25 @@ execute_check_to_log() {
 record_check_result() {
     local check_index="$1"
     local status="$2"
+    local elapsed_seconds="${3:-0}"
+
+    if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+        elapsed_seconds=0
+    fi
+
+    CHECKS_RESULT_STATUS[$check_index]="$status"
+    CHECKS_ELAPSED_SECONDS[$check_index]="$elapsed_seconds"
 
     if [ "$status" -eq 0 ]; then
-        PASSED_CHECKS+=("${CHECKS_NAME[$check_index]}")
+        PASSED_CHECKS+=("$(get_check_ui_label "$check_index")")
     elif [ "${CHECKS_SEVERITY[$check_index]}" = "warning" ]; then
         FAILED_WARNING_CHECKS+=(
-            "${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}"
+            "$(get_check_ui_label "$check_index"):${CHECKS_CMD[$check_index]}"
         )
         failed_warning_indices+=("$check_index")
     else
         FAILED_ERROR_CHECKS+=(
-            "${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}"
+            "$(get_check_ui_label "$check_index"):${CHECKS_CMD[$check_index]}"
         )
         failed_error_indices+=("$check_index")
     fi
@@ -816,7 +823,9 @@ PY
 execute_root_ast_grep_batch_to_logs() {
     local status_file="$1"
     local raw_log="${RUN_CHECKS_LOG_DIR}/root_ast_grep_batch.jsonl"
-    local rules
+    local command_status
+    local non_type_id_rules
+    local type_id_rules
     local check_started_at="$SECONDS"
     local status
     local elapsed_seconds
@@ -824,26 +833,39 @@ execute_root_ast_grep_batch_to_logs() {
     local rule_findings
     local i
 
-    rules="python-enforce-keyword-only-args"
-    rules="${rules},python-missing-args-in-docstring"
-    rules="${rules},python-disallow-sqlalchemy-query-filter"
-    rules="${rules},python-disallow-sqlalchemy-array-agg"
-    rules="${rules},fastapi-project-id-requires-access"
-    rules="${rules},fastapi-project-id-requires-access-prefix"
-    rules="${rules},forbidden-with-async-db-usage"
-    rules="${rules},python-no-dbquery-dataframe-cast"
+    non_type_id_rules="python-enforce-keyword-only-args"
+    non_type_id_rules="${non_type_id_rules},python-missing-args-in-docstring"
+    non_type_id_rules="${non_type_id_rules},python-disallow-sqlalchemy-query-filter"
+    non_type_id_rules="${non_type_id_rules},python-disallow-sqlalchemy-array-agg"
+    non_type_id_rules="${non_type_id_rules},fastapi-project-id-requires-access"
+    non_type_id_rules="${non_type_id_rules},fastapi-project-id-requires-access-prefix"
+    non_type_id_rules="${non_type_id_rules},forbidden-with-async-db-usage"
+    non_type_id_rules="${non_type_id_rules},python-no-dbquery-dataframe-cast"
+    type_id_rules="python-hardcoded-type-id,ts-hardcoded-type-id"
+    status=0
+    : >"$raw_log"
 
-    if ./_scripts/ast_grep_check.sh \
+    ./_scripts/ast_grep_check.sh \
         --json-stream \
-        --rules "$rules" \
-        >"$raw_log" 2>&1; then
-        status=0
-    else
-        status=$?
+        --rules "$non_type_id_rules" \
+        >>"$raw_log" 2>&1
+    command_status=$?
+    if [ "$command_status" -ne 0 ]; then
+        status="$command_status"
+    fi
+
+    ./_scripts/ast_grep_check.sh \
+        --json-stream \
+        --rules "$type_id_rules" \
+        . \
+        >>"$raw_log" 2>&1
+    command_status=$?
+    if [ "$command_status" -ne 0 ] && [ "$status" -eq 0 ]; then
+        status="$command_status"
     fi
 
     total_findings=$(count_root_ast_grep_findings "$raw_log")
-    for i in "${!CHECKS_NAME[@]}"; do
+    for i in "${!CHECKS_CMD[@]}"; do
         if ! is_root_ast_grep_batch_check "$i"; then
             continue
         fi
@@ -902,7 +924,7 @@ record_root_ast_grep_batch_results() {
 
 # Function to run all registered checks
 run_all_checks() {
-    local total_checks="${#CHECKS_NAME[@]}"
+    local total_checks="${#CHECKS_CMD[@]}"
     local -a parallel_indices=()
     local -a failed_error_indices=()
     local -a failed_warning_indices=()
@@ -945,6 +967,8 @@ run_all_checks() {
     trap 'exit 130' INT TERM
 
     CHECKS_UI_COMPLETED=()
+    CHECKS_RESULT_STATUS=()
+    CHECKS_ELAPSED_SECONDS=()
     CHECKS_COMPLETED_COUNT=0
     LAST_COMPLETED_CHECK=""
     LIVE_FAILURE_LINES=0
@@ -952,14 +976,14 @@ run_all_checks() {
     tput civis 2>/dev/null || true
     render_live_summary
 
-    for i in "${!CHECKS_NAME[@]}"; do
+    for i in "${!CHECKS_CMD[@]}"; do
         if is_check_skipped "$i"; then
             update_check_ui_status "$i"
         fi
     done
 
     # Phase 0: Run initial checks before any parallel work starts.
-    for i in "${!CHECKS_NAME[@]}"; do
+    for i in "${!CHECKS_CMD[@]}"; do
         if is_check_skipped "$i"; then
             continue
         fi
@@ -970,7 +994,7 @@ run_all_checks() {
     done
 
     # Phase 1: Kick off all parallel checks in the background.
-    for i in "${!CHECKS_NAME[@]}"; do
+    for i in "${!CHECKS_CMD[@]}"; do
         if is_check_skipped "$i"; then
             continue
         fi
@@ -1067,7 +1091,7 @@ run_all_checks() {
     done
 
     # Phase 2: Run sequential checks one at a time, then update in-place.
-    for i in "${!CHECKS_NAME[@]}"; do
+    for i in "${!CHECKS_CMD[@]}"; do
         if is_check_skipped "$i"; then
             continue
         fi
@@ -1089,7 +1113,7 @@ run_all_checks() {
             echo -e "${RED}Failed checks:${NC}"
             echo ""
             for i in "${failed_error_indices[@]}"; do
-                echo -e "${BOLD}${RED}✗ $(get_check_ui_label "$i")${NC}"
+                echo -e "${BOLD}${RED}✗ $(get_timed_check_ui_label "$i")${NC}"
             done
         fi
 
@@ -1100,7 +1124,8 @@ run_all_checks() {
             echo -e "${PURPLE}Warning checks:${NC}"
             echo ""
             for i in "${failed_warning_indices[@]}"; do
-                echo -e "${BOLD}${PURPLE}✗ $(get_check_ui_label "$i")${NC}"
+                echo -e \
+                    "${BOLD}${PURPLE}✗ $(get_timed_check_ui_label "$i")${NC}"
             done
         fi
     fi
@@ -1152,7 +1177,7 @@ run_all_checks() {
                 echo -e "${RED}Error failure logs:${NC}"
                 echo ""
                 for i in "${failed_error_indices[@]}"; do
-                    echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
+                    echo -e "${BOLD}${RED}$(get_timed_check_ui_label "$i")${NC}"
                     log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
                     if [ -f "$log_file" ]; then
                         cat "$log_file"
@@ -1171,7 +1196,8 @@ run_all_checks() {
                 echo -e "${PURPLE}Warning failure logs:${NC}"
                 echo ""
                 for i in "${failed_warning_indices[@]}"; do
-                    echo -e "${BOLD}${PURPLE}$(get_check_ui_label "$i")${NC}"
+                    echo -e \
+                        "${BOLD}${PURPLE}$(get_timed_check_ui_label "$i")${NC}"
                     log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
                     if [ -f "$log_file" ]; then
                         cat "$log_file"
@@ -1208,83 +1234,6 @@ run_all_checks() {
     echo ""
     echo -e "${PURPLE}Warning checks failed, but error checks passed.${NC}"
     exit 0
-}
-
-# Function to check for core version bump
-check_core_version() {
-    echo "Checking for core version bump..."
-
-    # Check for version bump
-    # Ensure jq is installed
-    if ! command -v jq &> /dev/null
-    then
-        echo "jq could not be found, please install it."
-        return 1
-    fi
-
-    current_version=$(
-        uv run python - <<'EOF'
-import tomllib
-
-print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])
-EOF
-    )
-    echo "Current version in pyproject.toml: $current_version"
-
-    # Configure AWS credentials if not already configured. This assumes the
-    # user has configured their AWS CLI.
-    # The user might need to run `aws configure` or `aws sso login`.
-    # For CI, this would be handled by the CI environment.
-    if ! aws sts get-caller-identity &> /dev/null; then
-        echo "AWS credentials not configured. Skipping version check."
-        return 0
-    fi
-
-
-    aws_output=$(
-        aws codeartifact list-package-versions \
-            --domain proximal-code-artifact-domain \
-            --repository proximal-hub \
-            --format pypi \
-            --package core \
-            --sort-by PUBLISHED_TIME 2>/dev/null || echo '{"versions":[]}'
-    )
-    latest_version=$(echo $aws_output | jq -r '.versions[0].version')
-    echo "Latest published version from CodeArtifact: $latest_version"
-
-    if [ -z "$latest_version" ] || [ "$latest_version" == "null" ]; then
-        echo "Could not determine the latest version from CodeArtifact."
-        echo "Assuming this is the first release."
-        latest_version="0.0.0"
-    fi
-
-
-    (cd core && uv run python - <<EOF
-from packaging.version import Version
-
-current = "$current_version"
-latest = "$latest_version"
-
-current_release = Version(current).release
-latest_release = Version(latest).release
-
-if current_release <= latest_release:
-    print(
-        "::error::Version check failed. The current version "
-        f"({current}) must be greater than the latest published version "
-        f"({latest}). Please bump the version in core/pyproject.toml."
-    )
-    exit(1)
-
-print(f"Version check passed. Current version ({current}) > Latest version ({latest}).")
-EOF
-    )
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-
-    return 0
 }
 
 # Detect changes vs dev when running diff-only checks.
@@ -1429,15 +1378,15 @@ if [ "${RUN_CORE_WARNINGS}" = "true" ]; then
         && [ "${ALL_WARNINGS}" != "true" ]; then
         add_skipped_warning_check \
             "Core: Version" \
-            "check_core_version" \
+            "mise run core:version-check" \
             "no core changes"
     elif [ "${OFFLINE}" = "true" ]; then
         add_skipped_warning_check \
             "Core: Version" \
-            "check_core_version" \
+            "mise run core:version-check" \
             "offline mode"
     else
-        add_warning_check "Core: Version" "check_core_version"
+        add_warning_check "Core: Version" "mise run core:version-check"
     fi
 fi
 
@@ -1477,8 +1426,6 @@ if [ "${RUN_ROOT}" = "true" ]; then
     add_check "Root: Protected Lint Config Changes" \
         "mise run root:lint_config_changes"
     add_check "Root: No package.json" "mise run root:no_package_json"
-    add_check "Root: Static Type ID Check" \
-        "mise run root:static_type_id"
     add_check "Root: Static Name Shorts Check" \
         "mise run root:static_name_shorts" \
         "error" \
@@ -1511,6 +1458,14 @@ if [ "${RUN_ROOT}" = "true" ] \
     || [ "${RUN_API}" = "true" ] \
     || [ "${RUN_MICRO}" = "true" ] \
     || [ "${RUN_WEB}" = "true" ]; then
+    add_batched_ast_grep_check \
+        "python-static-type-id" \
+        "mise run root:static_type_id" \
+        "python-hardcoded-type-id"
+    add_batched_ast_grep_check \
+        "ts-static-type-id" \
+        "mise run root:static_type_id" \
+        "ts-hardcoded-type-id"
     add_batched_ast_grep_check \
         "kw-only-args" \
         "mise run root:kw_only_args" \

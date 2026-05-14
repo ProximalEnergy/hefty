@@ -18,6 +18,8 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 cd "${REPO_ROOT}"
 
 ALL_RULES=(
+    python-hardcoded-type-id
+    ts-hardcoded-type-id
     python-enforce-keyword-only-args
     python-missing-args-in-docstring
     python-disallow-sqlalchemy-query-filter
@@ -88,6 +90,25 @@ if [ "${json_stream}" = "true" ]; then
 fi
 
 ast_grep_args+=("${scan_targets[@]}")
+ast_grep_args+=(--globs '!**/node_modules/**')
+ast_grep_args+=(--globs '!**/__pycache__/**')
+ast_grep_args+=(--globs '!**/.git/**')
+ast_grep_args+=(--globs '!**/.venv/**')
+ast_grep_args+=(--globs '!**/venv/**')
+ast_grep_args+=(--globs '!**/dist/**')
+ast_grep_args+=(--globs '!**/build/**')
+ast_grep_args+=(--globs '!**/.next/**')
+ast_grep_args+=(--globs '!**/.cache/**')
+ast_grep_args+=(--globs '!**/*.egg-info/**')
+ast_grep_args+=(--globs '!**/.pytest_cache/**')
+ast_grep_args+=(--globs '!**/.mypy_cache/**')
+ast_grep_args+=(--globs '!**/.ruff_cache/**')
+ast_grep_args+=(--globs '!_scripts/**')
+ast_grep_args+=(--globs '!**/_scripts/**')
+ast_grep_args+=(--globs '!api/_tests/**')
+ast_grep_args+=(--globs '!pv-eem/_tests/**')
+ast_grep_args+=(--globs '!web-app/src/api/schema.d.ts')
+ast_grep_args+=(--globs '!web-app/rollup-plugin-visualizer-stats.html')
 ast_grep_args+=(--globs '!api/app/dependencies.py')
 
 uvx --from ast-grep-cli ast-grep scan "${ast_grep_args[@]}"
