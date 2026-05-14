@@ -114,11 +114,12 @@ declare -a CHECKS_CMD=()
 declare -a CHECKS_IS_PARALLEL=()
 declare -a CHECKS_SEVERITY=()
 declare -a CHECKS_SKIP_REASON=()
-declare -a CHECKS_UI_LINES_UP=()
+declare -a CHECKS_UI_COMPLETED=()
 declare -a CHECKS_BATCH_GROUP=()
 declare -a CHECKS_BATCH_RULE_ID=()
-CHECKS_UI_MODE="in_place"
-CHECKS_UI_RENDER_LINE_COUNT=0
+CHECKS_COMPLETED_COUNT=0
+LAST_COMPLETED_CHECK=""
+LIVE_FAILURE_LINES=0
 
 # Function to add a check to the list
 add_check() {
@@ -293,6 +294,7 @@ prompt_failure_action() {
     local allow_errors="${1:-false}"
     local allow_warnings="${2:-false}"
     local allow_codex="${3:-false}"
+    local allow_successes="${4:-false}"
     local prompt_body
     local prompt_text
     local valid_input_text
@@ -310,6 +312,10 @@ prompt_failure_action() {
     if [ "$allow_errors" = "true" ] && [ "$allow_warnings" = "true" ]; then
         prompt_options+=("(a)ll")
         valid_inputs+=("a")
+    fi
+    if [ "$allow_successes" = "true" ]; then
+        prompt_options+=("(s)uccesses")
+        valid_inputs+=("s")
     fi
 
     prompt_options+=("(n)one")
@@ -349,6 +355,12 @@ prompt_failure_action() {
                 if [ "$allow_errors" = "true" ] \
                     && [ "$allow_warnings" = "true" ]; then
                     echo "all"
+                    return 0
+                fi
+                ;;
+            s|success|successes)
+                if [ "$allow_successes" = "true" ]; then
+                    echo "successes"
                     return 0
                 fi
                 ;;
@@ -480,100 +492,25 @@ send_failures_to_codex() {
         - || true
 }
 
-count_errors_in_log() {
-    local log_file="$1"
-    local match
-
-    if [ ! -f "$log_file" ]; then
-        echo 0
-        return
-    fi
-
-    match=$(
-        grep -Eio 'found[[:space:]]+[0-9]+[[:space:]]+errors?' \
-            "$log_file" | tail -n 1
-    )
-    if [ -n "$match" ]; then
-        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
-        return
-    fi
-
-    match=$(
-        grep -Eio '[0-9]+[[:space:]]+errors?,[[:space:]]*[0-9]+[[:space:]]+warnings?' \
-            "$log_file" | tail -n 1
-    )
-    if [ -n "$match" ]; then
-        echo "$match" | grep -Eo '^[0-9]+'
-        return
-    fi
-
-    match=$(
-        grep -Eio '[0-9]+[[:space:]]+errors?' \
-            "$log_file" | tail -n 1
-    )
-    if [ -n "$match" ]; then
-        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
-        return
-    fi
-
-    match=$(
-        grep -Eio '[0-9]+[[:space:]]+fail(ed|ures?)' \
-            "$log_file" | tail -n 1
-    )
-    if [ -n "$match" ]; then
-        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
-        return
-    fi
-
-    match=$(
-        grep -Eio '[0-9]+[[:space:]]+finding(s)?' \
-            "$log_file" | tail -n 1
-    )
-    if [ -n "$match" ]; then
-        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
-        return
-    fi
-
-    echo 1
-}
-
 get_ui_terminal_columns() {
-    local cols=120
+    local cols=80
+    local tput_cols
 
     if [ -t 1 ]; then
-        cols=$(tput cols 2>/dev/null || echo 120)
+        tput_cols=$(tput cols 2>/dev/null || echo 80)
+        if [[ "${COLUMNS:-}" =~ ^[0-9]+$ ]]; then
+            cols="$COLUMNS"
+        fi
+        if [[ "$tput_cols" =~ ^[0-9]+$ ]] && [ "$tput_cols" -lt "$cols" ]; then
+            cols="$tput_cols"
+        fi
     fi
 
     if ! [[ "$cols" =~ ^[0-9]+$ ]] || [ "$cols" -lt 20 ]; then
-        cols=120
+        cols=80
     fi
 
     echo "$cols"
-}
-
-get_ui_terminal_lines() {
-    local lines=24
-
-    if [ -t 1 ]; then
-        lines=$(tput lines 2>/dev/null || echo 24)
-    fi
-
-    if ! [[ "$lines" =~ ^[0-9]+$ ]] || [ "$lines" -lt 8 ]; then
-        lines=24
-    fi
-
-    echo "$lines"
-}
-
-select_check_ui_mode() {
-    local total_lines="$1"
-
-    CHECKS_UI_MODE="stream"
-    if [ -t 1 ]; then
-        CHECKS_UI_MODE="in_place"
-    fi
-
-    : "$total_lines"
 }
 
 truncate_ui_label() {
@@ -598,194 +535,44 @@ truncate_ui_label() {
     printf "%.*s..." "$((max_len - 3))" "$label"
 }
 
-render_check_ui_line() {
-    local color="$1"
-    local symbol="$2"
-    local label="$3"
+render_live_summary() {
+    local total_checks="${#CHECKS_NAME[@]}"
+    local passed_count="${#PASSED_CHECKS[@]}"
+    local failed_count="${#FAILED_ERROR_CHECKS[@]}"
+    local warning_count="${#FAILED_WARNING_CHECKS[@]}"
     local columns
-    local reserved_columns=6
+    local max_line_len
+    local prefix
+    local label
     local max_label_len
-    local rendered_label
+
+    if [ ! -t 1 ]; then
+        return
+    fi
 
     columns=$(get_ui_terminal_columns)
-    max_label_len=$((columns - reserved_columns))
-    if [ "$max_label_len" -lt 1 ]; then
-        max_label_len=1
+    max_line_len=$((columns - 8))
+    if [ "$max_line_len" -gt 72 ]; then
+        max_line_len=72
+    fi
+    if [ "$max_line_len" -lt 1 ]; then
+        max_line_len=1
     fi
 
-    rendered_label=$(truncate_ui_label "$label" "$max_label_len")
-    if [ -t 1 ]; then
-        printf "\r\033[2K%b%s%b %s\n" \
-            "$color" \
-            "$symbol" \
-            "$NC" \
-            "$rendered_label"
-        return
+    prefix="Progress ${CHECKS_COMPLETED_COUNT}/${total_checks} "
+    prefix="${prefix}Pass ${passed_count} "
+    prefix="${prefix}Fail ${failed_count} Warn ${warning_count} Last "
+    if [ "${#prefix}" -gt "$max_line_len" ]; then
+        prefix=$(truncate_ui_label "$prefix" "$max_line_len")
     fi
 
-    printf "%b%s%b %s\n" "$color" "$symbol" "$NC" "$rendered_label"
-}
-
-get_finished_check_ui_label() {
-    local check_index="$1"
-    local error_count="$2"
-    local elapsed_seconds="${3:-0}"
-    local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
-    local severity="${CHECKS_SEVERITY[$check_index]}"
-    local count_suffix="e"
-    local elapsed_label
-
-    if [ -n "$skip_reason" ]; then
-        echo "$(get_compact_check_ui_label "$check_index")"
-        return
+    max_label_len=$((max_line_len - ${#prefix}))
+    if [ "$max_label_len" -lt 0 ]; then
+        max_label_len=0
     fi
 
-    if [ "$severity" = "warning" ]; then
-        count_suffix="w"
-    fi
-
-    elapsed_label=$(format_elapsed_seconds "$elapsed_seconds")
-    echo "$(get_compact_check_ui_label "$check_index") (${error_count}${count_suffix}, \
-${elapsed_label})"
-}
-
-get_running_check_ui_label() {
-    local check_index="$1"
-
-    echo "$(get_compact_check_ui_label "$check_index") (running)"
-}
-
-format_elapsed_seconds() {
-    local elapsed_seconds="$1"
-    local minutes
-    local seconds
-
-    if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
-        echo "0s"
-        return
-    fi
-
-    if [ "$elapsed_seconds" -lt 60 ]; then
-        echo "${elapsed_seconds}s"
-        return
-    fi
-
-    minutes=$((elapsed_seconds / 60))
-    seconds=$((elapsed_seconds % 60))
-
-    if [ "$seconds" -eq 0 ]; then
-        echo "${minutes}m"
-        return
-    fi
-
-    echo "${minutes}m ${seconds}s"
-}
-
-init_check_ui_lines_up() {
-    with_check_ui_lock init_check_ui_lines_up_unlocked
-}
-
-emit_initial_check_ui_text_line() {
-    local action="$1"
-    local text="${2:-}"
-
-    if [ "$action" = "render" ]; then
-        if [ -n "$text" ]; then
-            echo -e "$text"
-        else
-            echo ""
-        fi
-    fi
-
-    CHECKS_UI_RENDER_LINE_COUNT=$((CHECKS_UI_RENDER_LINE_COUNT + 1))
-}
-
-emit_initial_check_ui_check_line() {
-    local action="$1"
-    local color="$2"
-    local symbol="$3"
-    local label="$4"
-
-    if [ "$action" = "render" ]; then
-        render_check_ui_line "$color" "$symbol" "$label"
-    fi
-
-    CHECKS_UI_RENDER_LINE_COUNT=$((CHECKS_UI_RENDER_LINE_COUNT + 1))
-}
-
-render_initial_check_ui_layout() {
-    local action="$1"
-    local ui_mode="$2"
-    local -a error_indices=()
-    local -a warning_indices=()
-    local i
-    local total_lines
-
-    CHECKS_UI_RENDER_LINE_COUNT=0
-
-    for i in "${!CHECKS_NAME[@]}"; do
-        if [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
-            warning_indices+=("$i")
-        else
-            error_indices+=("$i")
-        fi
-    done
-
-    if [ "${#error_indices[@]}" -gt 0 ]; then
-        emit_initial_check_ui_text_line \
-            "$action" \
-            "${BOLD}${RED}Error-level Checks:${NC}"
-        for i in "${error_indices[@]}"; do
-            emit_initial_check_ui_check_line \
-                "$action" \
-                "${YELLOW}" \
-                "●" \
-                "$(get_compact_check_ui_label "$i")"
-            if [ "$action" = "render" ] && [ "$ui_mode" = "in_place" ]; then
-                CHECKS_UI_LINES_UP[$i]="$CHECKS_UI_RENDER_LINE_COUNT"
-            fi
-        done
-    fi
-
-    if [ "${#warning_indices[@]}" -gt 0 ]; then
-        if [ "$CHECKS_UI_RENDER_LINE_COUNT" -gt 0 ]; then
-            emit_initial_check_ui_text_line "$action"
-        fi
-        emit_initial_check_ui_text_line \
-            "$action" \
-            "${BOLD}${PURPLE}Warning-level Checks:${NC}"
-        for i in "${warning_indices[@]}"; do
-            emit_initial_check_ui_check_line \
-                "$action" \
-                "${YELLOW}" \
-                "●" \
-                "$(get_compact_check_ui_label "$i")"
-            if [ "$action" = "render" ] && [ "$ui_mode" = "in_place" ]; then
-                CHECKS_UI_LINES_UP[$i]="$CHECKS_UI_RENDER_LINE_COUNT"
-            fi
-        done
-    fi
-
-    if [ "$ui_mode" != "in_place" ]; then
-        return
-    fi
-
-    if [ "$action" != "render" ]; then
-        return
-    fi
-
-    total_lines="$CHECKS_UI_RENDER_LINE_COUNT"
-    for i in "${!CHECKS_NAME[@]}"; do
-        if [ -n "${CHECKS_UI_LINES_UP[$i]:-}" ]; then
-            CHECKS_UI_LINES_UP[$i]=$((total_lines - CHECKS_UI_LINES_UP[$i] + 1))
-        fi
-    done
-}
-
-init_check_ui_lines_up_unlocked() {
-    render_initial_check_ui_layout "count" "in_place"
-    select_check_ui_mode "$CHECKS_UI_RENDER_LINE_COUNT"
-    render_initial_check_ui_layout "render" "$CHECKS_UI_MODE"
+    label=$(truncate_ui_label "$LAST_COMPLETED_CHECK" "$max_label_len")
+    printf "\r\033[2K%s%s" "$prefix" "$label"
 }
 
 update_check_ui_running() {
@@ -793,28 +580,8 @@ update_check_ui_running() {
 }
 
 update_check_ui_running_unlocked() {
-    local check_index="$1"
-    local lines_up="${CHECKS_UI_LINES_UP[$check_index]:-0}"
-    local lines_down=$((lines_up - 1))
-    local check_label
-
-    check_label=$(get_running_check_ui_label "$check_index")
-
-    if [ "$CHECKS_UI_MODE" != "in_place" ]; then
-        render_check_ui_line "$BLUE" ">" "$check_label"
-        return
-    fi
-
-    if [ "$lines_up" -le 0 ]; then
-        render_check_ui_line "$BLUE" ">" "$check_label"
-        return
-    fi
-
-    printf "\033[%sA" "$lines_up"
-    render_check_ui_line "$BLUE" ">" "$check_label"
-    if [ "$lines_down" -gt 0 ]; then
-        printf "\033[%sB" "$lines_down"
-    fi
+    : "$1"
+    render_live_summary
 }
 
 update_check_ui_status() {
@@ -823,52 +590,42 @@ update_check_ui_status() {
 
 update_check_ui_status_unlocked() {
     local check_index="$1"
-    local exit_code="$2"
-    local error_count="$3"
-    local elapsed_seconds="${4:-0}"
-    local severity="${CHECKS_SEVERITY[$check_index]}"
-    local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
-    local lines_up="${CHECKS_UI_LINES_UP[$check_index]:-0}"
-    local lines_down=$((lines_up - 1))
-    local color="$GREEN"
-    local symbol="*"
-    local check_label
 
-    check_label=$(
-        get_finished_check_ui_label \
-            "$check_index" \
-            "$error_count" \
-            "$elapsed_seconds"
-    )
-
-    if [ -n "$skip_reason" ]; then
-        color="$YELLOW"
-        symbol="-"
-    elif [ "$exit_code" -ne 0 ]; then
-        if [ "$severity" = "warning" ]; then
-            color="$PURPLE"
-            symbol="?"
-        else
-            color="$RED"
-            symbol="x"
-        fi
+    if [ "${CHECKS_UI_COMPLETED[$check_index]:-0}" -eq 0 ]; then
+        CHECKS_UI_COMPLETED[$check_index]=1
+        CHECKS_COMPLETED_COUNT=$((CHECKS_COMPLETED_COUNT + 1))
     fi
 
-    if [ "$CHECKS_UI_MODE" != "in_place" ]; then
-        render_check_ui_line "$color" "$symbol" "$check_label"
+    LAST_COMPLETED_CHECK="${CHECKS_NAME[$check_index]}"
+    render_live_summary
+}
+
+print_live_check_failure() {
+    local check_index="$1"
+    local color="$2"
+    local lines_down
+
+    if [ ! -t 1 ]; then
         return
     fi
 
-    if [ "$lines_up" -le 0 ]; then
-        render_check_ui_line "$color" "$symbol" "$check_label"
+    lines_down=$((LIVE_FAILURE_LINES + 1))
+    printf "\033[%sB\r\033[2K" "$lines_down"
+    printf "%b✗ %s%b" \
+        "${BOLD}${color}" \
+        "$(get_check_ui_label "$check_index")" \
+        "${NC}"
+    LIVE_FAILURE_LINES=$((LIVE_FAILURE_LINES + 1))
+    printf "\033[%sA\r" "$LIVE_FAILURE_LINES"
+}
+
+finish_live_summary() {
+    if [ ! -t 1 ]; then
+        echo ""
         return
     fi
 
-    printf "\033[%sA" "$lines_up"
-    render_check_ui_line "$color" "$symbol" "$check_label"
-    if [ "$lines_down" -gt 0 ]; then
-        printf "\033[%sB" "$lines_down"
-    fi
+    printf "\033[%sB\r" "$((LIVE_FAILURE_LINES + 1))"
 }
 
 get_check_ui_label() {
@@ -885,9 +642,20 @@ get_check_ui_label() {
     echo "$check_label"
 }
 
-get_compact_check_ui_label() {
-    local check_index="$1"
-    get_check_ui_label "$check_index"
+print_passed_checks() {
+    local check_name
+
+    if [ "${#PASSED_CHECKS[@]}" -eq 0 ]; then
+        return
+    fi
+
+    echo ""
+    echo -e "${GREEN}Passed checks:${NC}"
+    echo ""
+    for check_name in "${PASSED_CHECKS[@]}"; do
+        echo -e "${GREEN}✓ ${check_name}${NC}"
+    done
+    echo ""
 }
 
 CHECK_EXECUTION_STATUS=0
@@ -920,35 +688,31 @@ execute_check_to_log() {
 record_check_result() {
     local check_index="$1"
     local status="$2"
-    local elapsed_seconds="${3:-0}"
-    local log_file="${RUN_CHECKS_LOG_DIR}/check_${check_index}.log"
-    local error_count=0
-
-    if [ "$status" -ne 0 ]; then
-        error_count=$(count_errors_in_log "$log_file")
-    fi
-
-    update_check_ui_status \
-        "$check_index" \
-        "$status" \
-        "$error_count" \
-        "$elapsed_seconds"
 
     if [ "$status" -eq 0 ]; then
         PASSED_CHECKS+=("${CHECKS_NAME[$check_index]}")
-        return
-    fi
-
-    if [ "${CHECKS_SEVERITY[$check_index]}" = "warning" ]; then
+    elif [ "${CHECKS_SEVERITY[$check_index]}" = "warning" ]; then
         FAILED_WARNING_CHECKS+=(
             "${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}"
         )
         failed_warning_indices+=("$check_index")
-        return
+    else
+        FAILED_ERROR_CHECKS+=(
+            "${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}"
+        )
+        failed_error_indices+=("$check_index")
     fi
 
-    FAILED_ERROR_CHECKS+=("${CHECKS_NAME[$check_index]}:${CHECKS_CMD[$check_index]}")
-    failed_error_indices+=("$check_index")
+    update_check_ui_status "$check_index"
+
+    if [ "$status" -eq 0 ]; then
+        return
+    fi
+    if [ "${CHECKS_SEVERITY[$check_index]}" = "warning" ]; then
+        print_live_check_failure "$check_index" "$PURPLE"
+    else
+        print_live_check_failure "$check_index" "$RED"
+    fi
 }
 
 run_sync_check() {
@@ -1157,12 +921,14 @@ run_all_checks() {
     local elapsed_seconds
     local total_findings
     local check_started_at
+    local check_name
     local show_logs_mode="none"
     local post_log_codex_action="none"
     local displayed_failure_mode=""
     local allow_prompt_errors="false"
     local allow_prompt_warnings="false"
     local allow_prompt_codex="false"
+    local allow_prompt_successes="false"
     local interactive_codex_mode=""
 
     if [ "$total_checks" -eq 0 ]; then
@@ -1178,14 +944,17 @@ run_all_checks() {
     trap cleanup_run_all_checks EXIT
     trap 'exit 130' INT TERM
 
-    CHECKS_UI_LINES_UP=()
-    init_check_ui_lines_up
+    CHECKS_UI_COMPLETED=()
+    CHECKS_COMPLETED_COUNT=0
+    LAST_COMPLETED_CHECK=""
+    LIVE_FAILURE_LINES=0
 
     tput civis 2>/dev/null || true
+    render_live_summary
 
     for i in "${!CHECKS_NAME[@]}"; do
         if is_check_skipped "$i"; then
-            update_check_ui_status "$i" 0 0 0
+            update_check_ui_status "$i"
         fi
     done
 
@@ -1232,7 +1001,7 @@ run_all_checks() {
         ) &
     fi
 
-    # Poll status files and update each completed parallel check in-place.
+    # Poll status files and update the live summary for each completed check.
     parallel_total=$(( \
         ${#parallel_indices[@]} + ${#root_ast_grep_indices[@]} \
     ))
@@ -1308,30 +1077,32 @@ run_all_checks() {
         fi
     done
 
-    echo ""
+    finish_live_summary
     if [ "${#failed_error_indices[@]}" -eq 0 ] \
         && [ "${#failed_warning_indices[@]}" -eq 0 ]; then
         echo -e "${GREEN}All checks passed.${NC}"
         exit 0
     fi
 
-    if [ "${#failed_error_indices[@]}" -gt 0 ]; then
-        echo -e "${RED}Failed checks:${NC}"
-        echo ""
-        for i in "${failed_error_indices[@]}"; do
-            echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
-        done
-    fi
-
-    if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
+    if [ ! -t 1 ]; then
         if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+            echo -e "${RED}Failed checks:${NC}"
             echo ""
+            for i in "${failed_error_indices[@]}"; do
+                echo -e "${BOLD}${RED}✗ $(get_check_ui_label "$i")${NC}"
+            done
         fi
-        echo -e "${PURPLE}Warning checks:${NC}"
-        echo ""
-        for i in "${failed_warning_indices[@]}"; do
-            echo -e "${BOLD}${PURPLE}$(get_check_ui_label "$i")${NC}"
-        done
+
+        if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
+            if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+                echo ""
+            fi
+            echo -e "${PURPLE}Warning checks:${NC}"
+            echo ""
+            for i in "${failed_warning_indices[@]}"; do
+                echo -e "${BOLD}${PURPLE}✗ $(get_check_ui_label "$i")${NC}"
+            done
+        fi
     fi
 
     if [ -t 0 ]; then
@@ -1340,6 +1111,9 @@ run_all_checks() {
         fi
         if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
             allow_prompt_warnings="true"
+        fi
+        if [ "${#PASSED_CHECKS[@]}" -gt 0 ]; then
+            allow_prompt_successes="true"
         fi
         if [ "${CODEX_CONTEXT_MODE}" = "none" ] && codex_cli_available; then
             if [ "$allow_prompt_errors" = "true" ] \
@@ -1360,11 +1134,15 @@ run_all_checks() {
             prompt_failure_action \
                 "$allow_prompt_errors" \
                 "$allow_prompt_warnings" \
-                "$allow_prompt_codex"
+                "$allow_prompt_codex" \
+                "$allow_prompt_successes"
         )
         if [ "$show_logs_mode" = "codex" ] \
             && [ -n "$interactive_codex_mode" ]; then
             send_failures_to_codex "$interactive_codex_mode"
+        fi
+        if [ "$show_logs_mode" = "successes" ]; then
+            print_passed_checks
         fi
         if [ "$show_logs_mode" = "errors" ] \
             || [ "$show_logs_mode" = "all" ]; then
