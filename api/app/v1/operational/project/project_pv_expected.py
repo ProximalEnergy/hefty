@@ -3,6 +3,8 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from core.crud.project import data_expected as project_data_expected
+from core.crud.project import devices as project_devices
 from core.db_query import OutputType
 from core.enumerations import ExpectedMetricIdEnum
 from fastapi import APIRouter, Depends, Query
@@ -10,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import utils
 from app.dependencies import get_project_api, get_project_db
-from core import crud, models
+from core import models
 
 DESCRIPTION_404 = "Tag not found"
 
@@ -57,7 +59,7 @@ async def get_expected_power(
         query_device_ids.append(project_device_id)
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices = await crud.project.devices.get_project_devices(
+    devices = await project_devices.get_project_devices(
         device_ids=query_device_ids
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices = devices.set_index("device_id")
@@ -116,7 +118,7 @@ async def get_expected_power(
             ExpectedMetricIdEnum.PV_DC_COMBINER_POWER_SOILING_DEGRADATION,
         ],
     ]
-    data = await crud.project.data_expected.get_project_data_expected(
+    data = await project_data_expected.get_project_data_expected(
         start=start_query,
         end=end_query,
         device_ids=devices.index.tolist(),

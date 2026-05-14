@@ -123,8 +123,8 @@ def lambda_handler(
     try:
         from issues.orchestrator.run_issues import (  # noqa: PLC0415
             discover_project_ids,
-            run_local_midnight_backfill_for_projects,
             run_issues_for_projects,
+            run_local_midnight_backfill_for_projects,
         )
 
         if is_eventbridge_scheduled_event(payload=payload):

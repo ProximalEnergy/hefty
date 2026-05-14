@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import httpx
 import numpy as np
 import pandas as pd
+from core.crud.operational import qse_integrations as operational_qse_integrations
 from core.db_query import OutputType
 from core.utils.core_utils import model_list_to_pandas
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,7 +26,7 @@ from app.interfaces import UserAuthed
 from app.v1.protected.web_application.projects.ptp_data.ptp_data import (
     _get_ptp_identifiers,
 )
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/market-performance",
@@ -157,7 +158,7 @@ async def get_market_performance_debug_raw(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -169,10 +170,8 @@ async def get_market_performance_debug_raw(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,
@@ -271,7 +270,7 @@ async def get_market_performance_realtime(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -283,10 +282,8 @@ async def get_market_performance_realtime(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,
@@ -396,7 +393,7 @@ async def get_market_performance_realtime(
     df = df.replace({pd.NA: None, pd.NaT: None, np.nan: None})
 
     # Get field mappings
-    fields = await crud.operational.qse_integrations.get_qse_fields_by_provider_id(
+    fields = await operational_qse_integrations.get_qse_fields_by_provider_id(
         db=db_async, provider_id=qse_integration.qse_provider_id
     )
 
@@ -617,7 +614,7 @@ async def get_realtime_price(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -629,10 +626,8 @@ async def get_realtime_price(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,
@@ -747,7 +742,7 @@ async def get_project_identifiers(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -759,10 +754,8 @@ async def get_project_identifiers(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,

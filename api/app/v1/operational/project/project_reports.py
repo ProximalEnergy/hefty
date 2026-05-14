@@ -7,6 +7,9 @@ from typing import Annotated, Any, cast
 import boto3
 import numpy as np
 import pandas as pd
+from core.crud.project import devices as project_devices
+from core.crud.project import pv_dc_combiners as project_pv_dc_combiners
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
@@ -25,7 +28,7 @@ from app.dependencies import (
     get_project_db_async,
 )
 from app.logger import logger
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/reports",
@@ -50,7 +53,7 @@ async def get_pcs_apparent_vs_voltage(
         end: Description for end.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[
             SensorTypeEnum.PV_INVERTER_AC_APPARENT_POWER,
             SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_AB,
@@ -113,7 +116,7 @@ async def get_pcs_apparent_vs_voltage(
         df_voltage.loc[:, device_id] = df.loc[:, tag_ids].mean(axis=1)
 
     voltage_device_ids = [int(col) for col in df_voltage.columns.to_list()]
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_ids=voltage_device_ids
     ).get_async(
         output_type=OutputType.PANDAS,
@@ -184,7 +187,7 @@ async def dc_amperage_report_v2(
 
     logger.info("POA tags")
     project_schema = utils.get_project_schema(project_db=project_db)
-    poa_tags_df = await crud.project.tags.get_project_tags_v2(
+    poa_tags_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.MET_STATION_POA],
     ).get_async(
         output_type=OutputType.PANDAS,
@@ -232,7 +235,7 @@ async def dc_amperage_report_v2(
     ]
 
     logger.info("CB tags")
-    tags_cb_df = await crud.project.tags.get_project_tags_v2(
+    tags_cb_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
     ).get_async(
         output_type=OutputType.PANDAS,
@@ -265,7 +268,7 @@ async def dc_amperage_report_v2(
     df_cb.columns = df_cb.columns.astype(int)
 
     logger.info("CB data processing")
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_type_ids=[
             DeviceTypeEnum.PV_INVERTER,
             DeviceTypeEnum.MET_STATION,
@@ -293,7 +296,7 @@ async def dc_amperage_report_v2(
     ].to_dict("records")
     cb_devices = df_cb_report.reset_index().to_dict("records")
 
-    pv_dc_combiners_query = crud.project.pv_dc_combiners.get_pv_dc_combiners()
+    pv_dc_combiners_query = project_pv_dc_combiners.get_pv_dc_combiners()
     pv_dc_combiners = await pv_dc_combiners_query.get_async(
         schema=project.name_short,
         output_type=OutputType.POLARS,

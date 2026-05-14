@@ -2,9 +2,9 @@ from typing import Any, Literal
 from uuid import UUID
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 
 from core import enumerations, models
-from core.db_query import DbQuery
 
 
 def query_claim_configs(

@@ -5,6 +5,8 @@ import pandas as pd
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.operational.kpi_data import get_project_kpi_data_agg
+from core.crud.project import events as project_events
+from core.crud.project import tags as project_tags
 from core.crud.project.data_expected import get_project_data_expected
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.event_losses import get_event_losses_aggregated
@@ -21,7 +23,7 @@ from sqlalchemy.orm import Session
 
 from app import dependencies
 from app._crud.projects import pv_budgeted as crud_pv_budgeted
-from core import crud, models
+from core import models
 
 DESCRIPTION_404 = "Tag not found"
 
@@ -110,7 +112,7 @@ async def get_project_waterfall(
         raise ValueError("start and end must not be None")
     match project.project_type_id:
         case ProjectTypeEnum.PV:
-            meter_tags_df = await crud.project.tags.get_project_tags_v2(
+            meter_tags_df = await project_tags.get_project_tags_v2(
                 sensor_type_ids=[SensorTypeEnum.METER_ACTIVE_POWER],
                 deep=True,
             ).get_async(
@@ -139,7 +141,7 @@ async def get_project_waterfall(
         case ProjectTypeEnum.BESS:
             return []
         case ProjectTypeEnum.PVS:
-            meter_tags_df = await crud.project.tags.get_project_tags_v2(
+            meter_tags_df = await project_tags.get_project_tags_v2(
                 sensor_type_ids=[
                     SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
                 ],
@@ -198,7 +200,7 @@ async def get_project_waterfall(
         }
     df_expected = data_expected.set_index("time")
     df_expected.index = pd.to_datetime(df_expected.index).tz_convert(project.time_zone)
-    events_query = crud.project.events.get_windowed_event_summaries(
+    events_query = project_events.get_windowed_event_summaries(
         start=start,
         end=end,
     )

@@ -1,10 +1,10 @@
 from typing import Literal
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 from sqlalchemy.orm import joinedload
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_project_cmms_devices(

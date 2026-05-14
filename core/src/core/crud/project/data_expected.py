@@ -2,10 +2,10 @@ import datetime
 from collections.abc import Sequence
 from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_project_data_expected(

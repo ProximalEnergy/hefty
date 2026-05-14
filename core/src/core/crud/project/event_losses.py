@@ -5,14 +5,14 @@ from collections.abc import Sequence
 from typing import Any, Literal, cast
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
+from core.enumerations import EventLossTypeEnum
 from sqlalchemy import func
 from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from core import models
-from core.db_query import DbQuery
-from core.enumerations import EventLossTypeEnum
 
 
 def get_event_losses(

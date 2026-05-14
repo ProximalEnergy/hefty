@@ -1,10 +1,10 @@
 from typing import Any, Literal
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 from sqlalchemy.dialects.postgresql import insert
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_claim_attachment(

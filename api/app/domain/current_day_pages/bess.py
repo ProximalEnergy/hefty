@@ -1,13 +1,14 @@
 import datetime
 from typing import cast
 
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorTypeEnum, TimeOffset
 from sqlalchemy.orm import Session
 
 from app import utils
-from core import crud, models
+from core import models
 
 
 async def get_bess_data(
@@ -30,7 +31,7 @@ async def get_bess_data(
         A dictionary containing BESS data.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[
             SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT,
             SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT,

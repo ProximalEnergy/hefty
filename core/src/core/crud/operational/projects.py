@@ -2,12 +2,12 @@ from dataclasses import dataclass
 from typing import Any, Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import load_only, noload
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from core import enumerations, models
-from core.db_query import DbQuery
 
 ProjectAttribute = InstrumentedAttribute[Any]
 type ProjectColumns = tuple[ProjectAttribute, ...]

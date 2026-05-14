@@ -2,6 +2,7 @@ import uuid
 from typing import Annotated
 from uuid import UUID
 
+from core.crud.project import reports as project_reports
 from core.db_query import OutputType
 from core.enumerations import ReportTypeEnum
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,7 +19,6 @@ from app.dependencies import (
     requires_superadmin_async,
 )
 from app.interfaces import UserAuthed
-from core import crud
 
 SABLE_POINT_COMPANY_ID = UUID("38a8e696-dafa-44c0-b817-e3aee8cdfe8c")
 
@@ -51,7 +51,7 @@ async def get_project_reports_instances(
     else:
         is_visible = True
 
-    query = crud.project.reports.get_project_report_instances(
+    query = project_reports.get_project_report_instances(
         project_id=project_id,
         is_visible=is_visible,
         report_type_ids=report_type_ids,

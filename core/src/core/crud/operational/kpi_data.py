@@ -13,11 +13,11 @@ from typing import Literal
 from uuid import UUID
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
+from core.enumerations import KPITypeEnum
 from sqlalchemy import func, select
 
 from core import models
-from core.db_query import DbQuery
-from core.enumerations import KPITypeEnum
 
 
 def get_project_kpi_data_agg_freq(

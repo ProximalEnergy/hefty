@@ -3,14 +3,14 @@ from collections.abc import Iterable, Mapping
 from typing import Any, Literal, cast
 
 import sqlalchemy as sa
+from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
+from core.db_query import DbQuery
 from sqlalchemy import and_, func, literal, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session, joinedload
 
 from core import models
-from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
-from core.db_query import DbQuery
 
 
 def get_windowed_events(

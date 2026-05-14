@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 import polars as pl
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
+from core.crud.project import data_timeseries_last as project_data_timeseries_last
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, TimeOffset
@@ -19,7 +22,7 @@ from app import dependencies, utils
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app._utils.arrow import polars_to_arrow_response
 from app.interfaces import normalize_pandas_nullable
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/device-details",
@@ -129,7 +132,7 @@ async def get_horizontal_bess(
         sensor_type_ids.append(bess_sensor_type_id)
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags = await crud.project.tags.get_project_tags_v2(
+    tags = await project_tags.get_project_tags_v2(
         sensor_type_ids=sensor_type_ids,
         deep=True,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -250,7 +253,7 @@ async def get_horizontal_pv(
     ]
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags = await crud.project.tags.get_project_tags_v2(
+    tags = await project_tags.get_project_tags_v2(
         sensor_type_ids=sensor_type_ids,
         deep=True,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -337,7 +340,7 @@ async def get_single_by_device_id(
         project_db: Description for project_db.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags = await crud.project.tags.get_project_tags_v2(
+    tags = await project_tags.get_project_tags_v2(
         device_ids=[device_id],
         deep=True,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -426,7 +429,7 @@ async def get_vertical_controller(
 
     # Get the device associated with the device_id
     project_schema = utils.get_project_schema(project_db=project_db)
-    device = await crud.project.devices.get_project_device(
+    device = await project_devices.get_project_device(
         device_id=device_id,
         deep=False,
     ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
@@ -457,7 +460,7 @@ async def get_vertical_controller(
         block_device_type_id = DeviceTypeEnum.BESS_BLOCK
 
     # Get the block associated with the device_id
-    block_df = await crud.project.devices.get_project_devices(
+    block_df = await project_devices.get_project_devices(
         device_type_ids=[block_device_type_id],
         device_id_path_ancestor_of=device.device_id_path,
         deep=False,
@@ -511,7 +514,7 @@ async def get_vertical_controller(
     )
 
     # Get the child devices associated with the block
-    child_devices_df = await crud.project.devices.get_project_devices(
+    child_devices_df = await project_devices.get_project_devices(
         device_type_ids=device_type_ids,
         device_id_descendent_of=int(block["device_id"]),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -592,7 +595,7 @@ async def get_vertical(
 
     # Get the tags associated with the device IDs and sensor type IDs
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags = await crud.project.tags.get_project_tags_v2(
+    tags = await project_tags.get_project_tags_v2(
         device_ids=device_ids,
         sensor_type_ids=list(SENSOR_TYPE_IDS_TO_LABEL.keys()),
         deep=True,
@@ -661,7 +664,7 @@ async def get_data_availability(
         include_ghost_tags: Include tags without sensor_type_id when True.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    df = await crud.project.data_timeseries_last.get_data_timeseries_last(
+    df = await project_data_timeseries_last.get_data_timeseries_last(
         device_type_ids=device_type_ids,
         deep=True,
         include_ghost_tags=include_ghost_tags,
@@ -716,7 +719,7 @@ async def get_data_availability_v2(
         include_ghost_tags: Description for include_ghost_tags.
     """
 
-    query = crud.project.data_timeseries_last.get_data_timeseries_last_v2(
+    query = project_data_timeseries_last.get_data_timeseries_last_v2(
         device_type_ids=device_type_ids,
         include_ghost_tags=include_ghost_tags,
     )

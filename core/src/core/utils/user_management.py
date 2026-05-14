@@ -3,7 +3,6 @@
 import logging
 
 from clerk_backend_api import Clerk, models
-
 from core.settings import get_clerk_secret_key
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Any, Literal
 
+from core.db_query import DbQuery
+from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from sqlalchemy import extract, func, select
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import joinedload
 
 from core import models
-from core.db_query import DbQuery
-from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 
 
 def get_data_timeseries_latest_by_device_type(

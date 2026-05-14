@@ -1,8 +1,8 @@
 import xarray as xr
+from kpi.base.context import get_context
 from kpi.base.exception import MissingStaticDataError, NoDownloadedDataError
 from kpi.base.protocol import DeviceProtocol, schema_protocol
 from kpi.infra.download.devices import download_device_df
-from kpi.base.context import get_context
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract

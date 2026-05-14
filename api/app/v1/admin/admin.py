@@ -2,6 +2,7 @@ import logging
 from typing import Annotated
 
 import httpx
+from core.crud.admin import user_types as admin_user_types
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +23,6 @@ from app.v1.admin import (
     user_projects,
     users,
 )
-from core import crud
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 router.include_router(api_key.router)
@@ -55,7 +55,7 @@ async def get_user_type_route(
     """
     user_type_id = user_data.user_type_id
 
-    user_type_query = crud.admin.user_types.get_user_type(
+    user_type_query = admin_user_types.get_user_type(
         user_type_id=user_type_id,
     )
     user_type = await user_type_query.get_async(output_type=OutputType.SQLALCHEMY)

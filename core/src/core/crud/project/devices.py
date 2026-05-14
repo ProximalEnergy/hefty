@@ -1,12 +1,12 @@
 from typing import Any, Literal
 
+from core.db_query import DbQuery
+from core.enumerations import SensorTypeEnum
 from sqlalchemy import exists, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
 from core import models
-from core.db_query import DbQuery
-from core.enumerations import SensorTypeEnum
 
 
 def get_project_device_options(*, deep: bool, include_name_long: bool = False) -> Any:

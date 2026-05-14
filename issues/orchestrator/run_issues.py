@@ -16,10 +16,10 @@ if __package__ is None or __package__ == "":
     if str(core_src) not in sys.path:
         sys.path.insert(0, str(core_src))
 
+from core.crud.operational import projects as operational_projects
 from core.db_query import OutputType
 from core.enumerations import ProjectStatusType, ProjectTypeEnum
 
-from core import crud
 from issues.logging_utils import setup_logging
 from issues.orchestrator.context_builder import load_project_coordinates
 from issues.orchestrator.run_project import (
@@ -57,7 +57,7 @@ def get_core_package_version() -> str:
 def discover_project_ids() -> list[str]:
     """Read active project ids from operational.projects via core CRUD."""
     projects = (
-        crud.operational.projects.get_projects(
+        operational_projects.get_projects(
             project_status_type_ids=[ProjectStatusType.ACTIVE],
             project_type_ids=[ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
         ).get(output_type=OutputType.SQLALCHEMY)
@@ -285,11 +285,11 @@ def _resolve_project_time_zone(*, project_id: str) -> str:
     try:
         project_uuid = UUID(project_id)
     except ValueError:
-        projects_query = crud.operational.projects.get_projects(
+        projects_query = operational_projects.get_projects(
             name_shorts=[project_id],
         )
     else:
-        projects_query = crud.operational.projects.get_projects(
+        projects_query = operational_projects.get_projects(
             project_ids=[project_uuid],
         )
     projects = (

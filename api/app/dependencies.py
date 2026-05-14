@@ -7,6 +7,7 @@ from uuid import UUID
 import httpx
 import jwt
 import sqlalchemy as sa
+from core.crud.operational import projects as operational_projects
 from core.database import with_db as _with_db
 from core.database import with_db_async as _with_async_db
 from core.db_query import OutputType
@@ -20,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces, settings
 from app.integrations.token_manager import TokenManager, get_tps_token_manager
-from core import crud, models
+from core import models
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
@@ -51,7 +52,7 @@ async def get_project_api(*, project_id: UUID):
     Args:
         project_id: Project UUID to load from the operational database.
     """
-    project_query = crud.operational.projects.get_project(
+    project_query = operational_projects.get_project(
         project_id=project_id,
     )
     project_model = await project_query.get_async(

@@ -2,6 +2,8 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorTypeEnum
@@ -10,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import dependencies, utils
 from app.v1.protected.web_application.projects.reports.reports import router
-from core import crud, models
+from core import models
 
 
 @router.get("/clearsky-poa")
@@ -37,7 +39,7 @@ async def get_clearsky_poa(
     else:
         rolling_window = 12
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.MET_STATION_POA],
         deep=True,
     ).get_async(
@@ -68,7 +70,7 @@ async def get_clearsky_poa(
         df = df.resample(resample_rate).mean()
 
     device_ids = tags_df["device_id"].astype(int).tolist()
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_ids=device_ids,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     device_id_to_name_long = dict(

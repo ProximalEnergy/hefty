@@ -2,6 +2,8 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
@@ -10,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import interfaces, utils
 from app.dependencies import get_project_api, get_project_db
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/gis",
@@ -40,7 +42,7 @@ async def get_combiner_block_performance(
 
     # Get requested pv_block device
     project_schema = utils.get_project_schema(project_db=project_db)
-    device_block_df = await crud.project.devices.get_project_device(
+    device_block_df = await project_devices.get_project_device(
         device_id=block_device_id,
         deep=False,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -53,13 +55,13 @@ async def get_combiner_block_performance(
     device_block = device_block_df.to_dict("records")[0]
 
     # Get descendent pv_dc_combiner devices of requested pv_block
-    devices_combiner_df = await crud.project.devices.get_project_devices(
+    devices_combiner_df = await project_devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
         device_id_descendent_of=int(device_block["device_id"]),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get tags for combiner current
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         device_ids=devices_combiner_df["device_id"].astype(int).tolist(),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)

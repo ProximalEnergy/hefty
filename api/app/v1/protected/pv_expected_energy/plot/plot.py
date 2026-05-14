@@ -5,6 +5,9 @@ import pandas as pd
 from app import dependencies, interfaces, utils
 from app._utils.recursive_parents import get_recursive_parents
 from core.crud.operational.device_types import get_device_types
+from core.crud.project import data_expected as project_data_expected
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, ExpectedMetricIdEnum, SensorTypeEnum
@@ -13,7 +16,7 @@ from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from core import crud, models
+from core import models
 
 router = APIRouter(prefix="/plot")
 
@@ -95,7 +98,7 @@ async def utility_expected_route(
     ]
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    device_df = await crud.project.devices.get_project_device(
+    device_df = await project_devices.get_project_device(
         device_id=device_id,
         deep=False,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -157,7 +160,7 @@ async def utility_expected_route(
     # Query device data
     # If combiner, need to pull PCS module voltage and combiner current
     if pv_dc_combiner:
-        device_pv_inverter_df = await crud.project.devices.get_project_devices(
+        device_pv_inverter_df = await project_devices.get_project_devices(
             device_type_ids=[DeviceTypeEnum.PV_INVERTER],
             device_id_path_ancestor_of=device["device_id_path"],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -165,7 +168,7 @@ async def utility_expected_route(
             raise HTTPException(status_code=404, detail="PV Inverter device not found")
         device_pv_inverter = device_pv_inverter_df.to_dict("records")[0]
 
-        devices_pv_inverter_modules_df = await crud.project.devices.get_project_devices(
+        devices_pv_inverter_modules_df = await project_devices.get_project_devices(
             device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
             device_id_descendent_of=int(device_pv_inverter["device_id"]),
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -174,7 +177,7 @@ async def utility_expected_route(
             devices_pv_inverter_modules_df["device_id"].astype(int).tolist()
         )
 
-        tags_pv_inverter_module_voltage = await crud.project.tags.get_project_tags_v2(
+        tags_pv_inverter_module_voltage = await project_tags.get_project_tags_v2(
             device_ids=device_ids_pv_inverter_modules,
             sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -183,14 +186,12 @@ async def utility_expected_route(
         ## If there are no tags for PV Inverter Module Voltage,
         ## try using PV Inverter DC Voltage instead.
         if tags_pv_inverter_module_voltage.empty:
-            tags_pv_inverter_module_voltage = (
-                await crud.project.tags.get_project_tags_v2(
-                    device_ids=[int(device_pv_inverter["device_id"])],
-                    sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE],
-                ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-            )
+            tags_pv_inverter_module_voltage = await project_tags.get_project_tags_v2(
+                device_ids=[int(device_pv_inverter["device_id"])],
+                sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE],
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-        tags_pv_dc_combiner_current = await crud.project.tags.get_project_tags_v2(
+        tags_pv_dc_combiner_current = await project_tags.get_project_tags_v2(
             device_ids=[device_id],
             sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -239,7 +240,7 @@ async def utility_expected_route(
 
     # For non-combiner devices, can pull power directly
     else:
-        tags = await crud.project.tags.get_project_tags_v2(
+        tags = await project_tags.get_project_tags_v2(
             device_ids=[device_id],
             sensor_type_ids=sensor_type_ids,
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -265,7 +266,7 @@ async def utility_expected_route(
     s_actual = s_actual * multiplier
 
     # Query expected data
-    data_expected = await crud.project.data_expected.get_project_data_expected(
+    data_expected = await project_data_expected.get_project_data_expected(
         start=start,
         end=end,
         device_ids=expected_device_ids,

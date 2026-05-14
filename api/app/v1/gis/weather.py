@@ -1,13 +1,14 @@
 from uuid import UUID
 
 import httpx
+from core.crud.operational import projects as operational_projects
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from shapely.wkb import loads
 
 from app import settings
 from app._dependencies import authorization
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/{project_id}",
@@ -22,7 +23,7 @@ async def _get_project_lat_lon(*, project_id: UUID) -> tuple[float, float]:
     Args:
         project_id: Project UUID used to look up coordinates.
     """
-    project_query = crud.operational.projects.get_project(
+    project_query = operational_projects.get_project(
         project_id=project_id,
         columns=(models.Project.point,),
     )

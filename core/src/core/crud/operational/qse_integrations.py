@@ -1,12 +1,11 @@
 from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
+from core.models import QSEField, QSEIntegration, QSEPermission, QSEProvider
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
-
-from core.db_query import DbQuery
-from core.models import QSEField, QSEIntegration, QSEPermission, QSEProvider
 
 
 def get_qse_integration_by_project_id(

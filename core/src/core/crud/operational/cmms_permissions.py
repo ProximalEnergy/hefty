@@ -2,9 +2,9 @@ from typing import Literal
 from uuid import UUID
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_cmms_permissions_by_project_id(

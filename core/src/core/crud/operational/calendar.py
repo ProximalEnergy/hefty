@@ -3,11 +3,11 @@
 from typing import Any, Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_calendar_items(

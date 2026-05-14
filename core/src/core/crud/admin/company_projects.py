@@ -1,10 +1,10 @@
 from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_company_projects(

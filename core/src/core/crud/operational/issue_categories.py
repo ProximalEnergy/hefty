@@ -1,9 +1,9 @@
 from typing import Literal
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_issue_category(

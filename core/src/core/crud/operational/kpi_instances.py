@@ -5,11 +5,11 @@ from typing import Any, cast
 from uuid import UUID
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_kpi_instances_for_matrix(

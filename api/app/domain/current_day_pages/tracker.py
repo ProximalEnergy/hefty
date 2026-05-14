@@ -1,6 +1,8 @@
 import datetime
 from typing import Annotated
 
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, KPITypeEnum, SensorTypeEnum
@@ -10,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import dependencies, utils
 from app.v1.operational.kpi_data import get_kpi_data_helper
-from core import crud, models
+from core import models
 
 
 async def get_tracker_data(
@@ -34,7 +36,7 @@ async def get_tracker_data(
     """
     # Get devices
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_type_ids=[
             DeviceTypeEnum.PV_BLOCK,
             DeviceTypeEnum.TRACKER_ROW,
@@ -158,13 +160,13 @@ async def get_tracker_by_pv_block_id_data(
     """
     # Get tracker rows that are descendants of the pv block
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.TRACKER_ROW],
         device_id_descendent_of=pv_block_id,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get all position and setpoint tags for the tracker rows
-    tags = await crud.project.tags.get_project_tags_v2(
+    tags = await project_tags.get_project_tags_v2(
         device_ids=devices_df["device_id"].astype(int).tolist(),
         sensor_type_ids=[
             SensorTypeEnum.TRACKER_ROW_POSITION,

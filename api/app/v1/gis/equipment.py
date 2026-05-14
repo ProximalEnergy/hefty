@@ -5,6 +5,10 @@ from typing import Annotated
 
 import pandas as pd
 import polars as pl
+from core.crud.project import data_expected as project_data_expected
+from core.crud.project import data_timeseries_last as project_data_timeseries_last
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import (
@@ -21,7 +25,7 @@ from sqlalchemy.orm import Session
 from app import dependencies, interfaces, logger, utils
 from app._dependencies import authorization
 from app.v1.operational.kpi_data import get_kpi_data_helper
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/{project_id}",
@@ -100,7 +104,7 @@ async def _get_latest_scaled_sensor_values_by_device(
         project_schema: Project schema for the query execution.
         multiplier: Optional multiplier applied after scaling the raw value.
     """
-    latest_df = await crud.project.data_timeseries_last.get_data_timeseries_last(
+    latest_df = await project_data_timeseries_last.get_data_timeseries_last(
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
         deep=True,
@@ -144,7 +148,7 @@ async def _get_latest_combiner_power_by_device(
         return {}
 
     parent_device_ids = list(parent_ids)
-    parent_devices_df = await crud.project.devices.get_project_devices(
+    parent_devices_df = await project_devices.get_project_devices(
         device_ids=[typing.cast(int, pid) for pid in parent_device_ids],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     parent_devices_df = parent_devices_df.copy()
@@ -184,7 +188,7 @@ async def _get_latest_combiner_power_by_device(
     if not parent_pcs_ids:
         return {}
 
-    all_pcs_modules_df = await crud.project.devices.get_project_devices(
+    all_pcs_modules_df = await project_devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
         parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -300,7 +304,7 @@ async def _get_latest_expected_power_by_device(
     data_expected = None
     found_metric_id = None
     for expected_metric_id in expected_metric_ids_fallback:
-        data_expected = await crud.project.data_expected.get_project_data_expected(
+        data_expected = await project_data_expected.get_project_data_expected(
             start=start,
             end=end,
             device_ids=device_ids,
@@ -421,7 +425,7 @@ async def get_tracker_by_block(
         project: Description for project.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.TRACKER_ROW],
         device_id_descendent_of=block_id,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -498,7 +502,7 @@ async def get_bess_enclosure(
         project_db: Description for project_db.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.BESS_ENCLOSURE]
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
@@ -731,7 +735,7 @@ async def utility_expected(
             status_code=500,
             detail="Project database schema is not available.",
         )
-    devices_df = await crud.project.devices.get_project_devices(
+    devices_df = await project_devices.get_project_devices(
         device_ids=device_ids
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_df = devices_df.copy()
@@ -764,7 +768,7 @@ async def utility_expected(
         sensor_type_ids = [SensorTypeEnum.TRACKER_ROW_POSITION.value]
 
         try:
-            latest_query = crud.project.data_timeseries_last.get_data_timeseries_last(
+            latest_query = project_data_timeseries_last.get_data_timeseries_last(
                 device_ids=device_ids,
                 sensor_type_ids=sensor_type_ids,
                 deep=True,
@@ -917,7 +921,7 @@ async def utility_expected(
 
         # Fetch parent devices to check their types
         parent_device_ids = list(parent_ids)
-        parent_devices_df = await crud.project.devices.get_project_devices(
+        parent_devices_df = await project_devices.get_project_devices(
             device_ids=[typing.cast(int, pid) for pid in parent_device_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         parent_devices_df = parent_devices_df.copy()
@@ -976,7 +980,7 @@ async def utility_expected(
             )
 
         # DB Call 1: Fetch all relevant PV Inverter Modules using parent IDs
-        all_pcs_modules_df = await crud.project.devices.get_project_devices(
+        all_pcs_modules_df = await project_devices.get_project_devices(
             device_type_ids=[DeviceTypeEnum.PV_INVERTER_MODULE],
             parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -1009,7 +1013,7 @@ async def utility_expected(
             )
 
         # DB Call for current tags (combiners)
-        tags_current_pl = await crud.project.tags.get_project_tags_v2(
+        tags_current_pl = await project_tags.get_project_tags_v2(
             device_ids=device_ids,
             sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
@@ -1021,13 +1025,13 @@ async def utility_expected(
 
         # DB Call for voltage tags (primary: module-level, fallback: PCS-level)
         using_pcs_level_voltage = False
-        tags_voltage_pl = await crud.project.tags.get_project_tags_v2(
+        tags_voltage_pl = await project_tags.get_project_tags_v2(
             device_ids=module_ids,
             sensor_type_ids=[SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE],
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
         if tags_voltage_pl.is_empty():
-            tags_voltage_pl = await crud.project.tags.get_project_tags_v2(
+            tags_voltage_pl = await project_tags.get_project_tags_v2(
                 device_ids=parent_pcs_ids,  # Use PCS device IDs for fallback
                 sensor_type_ids=[SensorTypeEnum.PV_INVERTER_DC_VOLTAGE],
             ).get_async(output_type=OutputType.POLARS, schema=project_schema)
@@ -1129,7 +1133,7 @@ async def utility_expected(
 
     else:
         # --- Standard Actual Power Fetching (Meter, PCS) ---
-        tags_pl = await crud.project.tags.get_project_tags_v2(
+        tags_pl = await project_tags.get_project_tags_v2(
             device_ids=device_ids,
             sensor_type_ids=sensor_type_ids,
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
@@ -1187,7 +1191,7 @@ async def utility_expected(
     data_expected = None
     found_metric_id = None
     for expected_metric_id in expected_metric_ids_fallback:
-        data_expected = await crud.project.data_expected.get_project_data_expected(
+        data_expected = await project_data_expected.get_project_data_expected(
             start=start,
             end=end,
             device_ids=expected_device_ids_for_query,
@@ -1333,7 +1337,7 @@ async def get_met_station_latest_values(
     project_schema = utils.get_project_schema(project_db=project_db)
 
     try:
-        latest_query = crud.project.data_timeseries_last.get_data_timeseries_last(
+        latest_query = project_data_timeseries_last.get_data_timeseries_last(
             device_ids=device_ids,
             sensor_type_ids=list(met_sensor_type_to_field),
             deep=True,

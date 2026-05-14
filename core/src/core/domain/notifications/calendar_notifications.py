@@ -7,12 +7,6 @@ from datetime import UTC, date, datetime, timedelta
 from typing import TypedDict
 from uuid import UUID
 
-from dateutil.rrule import rrulestr
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from core import enumerations, models
 from core.crud.admin.notifications import (
     create_notification,
     create_notification_state,
@@ -28,6 +22,12 @@ from core.utils.notifications import (
     ensure_notification_states_exist,
     send_notification_emails_with_rate_limit,
 )
+from dateutil.rrule import rrulestr
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core import enumerations, models
 
 logger = logging.getLogger(__name__)
 

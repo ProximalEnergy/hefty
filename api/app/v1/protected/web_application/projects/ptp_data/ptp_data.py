@@ -6,6 +6,7 @@ import datetime
 import logging
 from typing import Annotated, TypedDict
 
+from core.crud.operational import qse_integrations as operational_qse_integrations
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +16,7 @@ from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/ptp-data",
@@ -210,7 +211,7 @@ async def get_ptp_endpoints_route(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -222,10 +223,8 @@ async def get_ptp_endpoints_route(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,
@@ -282,7 +281,7 @@ async def get_ptp_endpoints_availability(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -294,10 +293,8 @@ async def get_ptp_endpoints_availability(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,
@@ -387,7 +384,7 @@ async def get_ptp_data(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -399,10 +396,8 @@ async def get_ptp_data(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,
@@ -894,7 +889,7 @@ async def get_active_outage_tickets(
     """
     # Get QSE integration
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -906,10 +901,8 @@ async def get_active_outage_tickets(
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
     # Check permissions
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         executor=db_async,

@@ -5,14 +5,15 @@ from typing import Any, Literal, cast
 import numpy as np
 import pandas as pd
 import polars as pl
+from core.crud.project import tags as project_tags
+from core.db_query import DbQuery, OutputType
 from pandas._libs.missing import NAType
 from sqlalchemy import case, func, select
 from sqlalchemy import cast as sa_cast
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.sqltypes import Text
 
-from core import crud, models
-from core.db_query import DbQuery, OutputType
+from core import models
 
 # Cache translation table outside the endpoint
 delete_chars = string.punctuation + string.whitespace
@@ -250,7 +251,7 @@ async def get_status_interpret(
     project_schema = _resolve_project_schema_from_session(db=db, schema=schema)
     if project_schema is None:
         raise ValueError("project schema is required for status interpretation")
-    tags_query = crud.project.tags.get_project_tags_v2(tag_ids=status_tags)
+    tags_query = project_tags.get_project_tags_v2(tag_ids=status_tags)
     tags_df: pl.DataFrame = await tags_query.get_async(
         output_type=OutputType.POLARS,
         schema=project_schema,
@@ -262,7 +263,7 @@ async def get_status_interpret(
     )
     if len(status_lookup_ids) == 0:
         raise ValueError("Status tags not configured for device.")
-    status_lookup_pl: pl.DataFrame = await crud.project.statuses.get_status_lookup(
+    status_lookup_pl: pl.DataFrame = await get_status_lookup(
         status_lookup_ids=list(status_lookup_ids.values()),
     ).get_async(output_type=OutputType.POLARS, schema=project_schema)
     if status_lookup_pl.is_empty():
@@ -286,7 +287,7 @@ async def get_status_interpret(
 
         if status_type == "status_binary_id":
             status_df["value"] = status_df["value"].astype(int)
-            status_binary_query = crud.project.statuses.get_status_binary(
+            status_binary_query = get_status_binary(
                 status_binary_ids=status_df[status_type].tolist(),
             )
             status_binary_pl: pl.DataFrame = await status_binary_query.get_async(
@@ -345,7 +346,7 @@ async def get_status_interpret(
             status_df["value"] = status_df["value"].map(
                 lambda x: bool(strtobool(str(int(float(x)))))
             )
-            status_boolean_query = crud.project.statuses.get_status_boolean(
+            status_boolean_query = get_status_boolean(
                 status_boolean_ids=status_df[status_type].tolist(),
             )
             status_boolean_pl: pl.DataFrame = await status_boolean_query.get_async(
@@ -377,7 +378,7 @@ async def get_status_interpret(
             status_df["value"] = (
                 status_df["value"].astype(str).str.translate(tbl).str.lower()
             )
-            status_string_query = crud.project.statuses.get_status_string(
+            status_string_query = get_status_string(
                 status_string_ids=status_df[status_type].tolist(),
             )
             status_string_pl: pl.DataFrame = await status_string_query.get_async(

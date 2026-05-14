@@ -3,10 +3,10 @@ from typing import Any, Literal
 from uuid import UUID
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 from sqlalchemy.orm import noload, selectinload
 
 from core import enumerations, models
-from core.db_query import DbQuery
 
 
 def query_project_claims(

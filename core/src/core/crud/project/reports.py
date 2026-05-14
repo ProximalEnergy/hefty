@@ -1,11 +1,11 @@
 from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload, noload
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_project_report_instances(

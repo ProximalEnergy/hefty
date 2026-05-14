@@ -2,9 +2,9 @@ import datetime
 
 from issues.orchestrator.run_issues import (
     _floor_to_five_minute_boundary,
-    run_local_midnight_backfill_for_projects,
     run_issues_backfill_for_projects,
     run_issues_for_projects,
+    run_local_midnight_backfill_for_projects,
 )
 from issues.orchestrator.run_project import ProjectIssueRunSummary
 

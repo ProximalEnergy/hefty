@@ -11,12 +11,13 @@ from app._dependencies.authentication import get_user
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
+from core.crud.operational import qse_integrations as operational_qse_integrations
 from core.db_query import OutputType
 from core.utils.core_utils import model_list_to_pandas
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/battery-settlement",
@@ -119,7 +120,7 @@ async def get_battery_settlement_details(
         db_async: Async database session.
     """
     qse_integration_query = (
-        crud.operational.qse_integrations.get_qse_integration_by_project_id(
+        operational_qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
     )
@@ -130,10 +131,8 @@ async def get_battery_settlement_details(
     if qse_integration is None:
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
-    permissions_query = (
-        crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            company_id=user.company_id,
-        )
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
     )
     permissions = await permissions_query.get_async(
         output_type=OutputType.SQLALCHEMY,
@@ -144,7 +143,7 @@ async def get_battery_settlement_details(
     )
     if not has_permission:
         raise HTTPException(status_code=403, detail="Forbidden")
-    fields = await crud.operational.qse_integrations.get_qse_fields_by_provider_id(
+    fields = await operational_qse_integrations.get_qse_fields_by_provider_id(
         db=db_async, provider_id=qse_integration.qse_provider_id
     )
     fields_df = model_list_to_pandas(model_list=fields).set_index("qse_field_name")

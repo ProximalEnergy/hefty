@@ -3,14 +3,14 @@ from dataclasses import dataclass
 
 import polars as pl
 from async_lru import alru_cache
-from sqlalchemy import select
-from sqlalchemy.orm import load_only
-
-from core import models
 from core.crud.project.tags import get_project_tags_v2
 from core.database import with_db_async
 from core.db_query import OutputType
 from core.enumerations import ProjectDatabaseProvider
+from sqlalchemy import select
+from sqlalchemy.orm import load_only
+
+from core import models
 
 QUERY_METADATA_TTL_SECONDS = 24 * 60 * 60
 

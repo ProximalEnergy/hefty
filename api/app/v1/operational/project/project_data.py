@@ -3,6 +3,8 @@ from types import SimpleNamespace
 from typing import Annotated, cast
 
 import pandas as pd
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import TimeInterval
@@ -16,7 +18,7 @@ from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
-from core import crud, enumerations, models
+from core import enumerations, models
 
 router = APIRouter(
     prefix="",
@@ -49,7 +51,7 @@ async def get_llm_time_series(
         sensor_type_ids: Description for sensor_type_ids.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         tag_ids=tag_ids or [],
         sensor_type_ids=sensor_type_ids or [],
         name_scada="",
@@ -168,7 +170,7 @@ async def get_time_series(
     """
     if parent_device_id:
         project_schema = utils.get_project_schema(project_db=project_db)
-        devices_df = await crud.project.devices.get_project_devices(
+        devices_df = await project_devices.get_project_devices(
             parent_device_ids=[parent_device_id]
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         device_ids_from_parent = devices_df["device_id"].astype(int).tolist()
@@ -179,7 +181,7 @@ async def get_time_series(
     device_ids = list(set(device_ids + device_ids_from_parent))
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         tag_ids=tag_ids,
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
@@ -358,13 +360,13 @@ async def get_timeseries_v3(
 
     project_schema = utils.get_project_schema(project_db=project_db)
     if tag_ids:
-        tags_df = await crud.project.tags.get_project_tags_v2(
+        tags_df = await project_tags.get_project_tags_v2(
             tag_ids=tag_ids,
             deep=True,
             include_ghost_tags=True,
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
     else:
-        tags_df = await crud.project.tags.get_project_tags_v2(
+        tags_df = await project_tags.get_project_tags_v2(
             sensor_type_ids=sensor_type_ids,
             deep=True,
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)

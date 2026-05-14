@@ -2,6 +2,7 @@ import typing
 from typing import Any, Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
 from sqlalchemy import (
     case,
     cast,
@@ -18,7 +19,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.schema import Table
 
 from core import enumerations, models
-from core.db_query import DbQuery
 
 
 def _notification_severity_rank_expr(

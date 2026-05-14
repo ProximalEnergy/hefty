@@ -1,15 +1,14 @@
 import datetime
 from typing import Literal, cast
 
-import pandas as pd
-import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import ClauseElement
-
 import core.crud.project.devices as crud_devices
 import core.models as models
+import pandas as pd
+import sqlalchemy as sa
 from core.db_query import DbQuery, OutputType
 from core.enumerations import DeviceTypeEnum
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import ClauseElement
 
 
 def get_event_cmms_tickets(

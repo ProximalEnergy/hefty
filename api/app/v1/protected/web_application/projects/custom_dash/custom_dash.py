@@ -5,6 +5,9 @@ from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
+from core.crud.project import data_expected as project_data_expected
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, ProjectTypeEnum, SensorTypeEnum
@@ -45,7 +48,7 @@ from app._crud.operational.custom_dashboards import (
 )
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
-from core import crud, enumerations, models
+from core import enumerations, models
 
 router = APIRouter(
     prefix="/custom-dash",
@@ -125,7 +128,7 @@ async def get_bar(
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
 
     # Use get_project_tags_v2 with deep=True to get all required metadata in one query
-    tags_query = crud.project.tags.get_project_tags_v2(
+    tags_query = project_tags.get_project_tags_v2(
         sensor_type_ids=[sensor_type_id],
         deep=True,
     )
@@ -233,7 +236,7 @@ async def get_gauge(
                 measured_sensor_type_id = (
                     SensorTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
                 )
-            tags_query = crud.project.tags.get_project_tags_v2(
+            tags_query = project_tags.get_project_tags_v2(
                 sensor_type_ids=[measured_sensor_type_id],
                 deep=False,
             )
@@ -258,10 +261,10 @@ async def get_gauge(
         case "expected_energy":
             metrics_priority_order = [12, 11, 6, 5]
             project_schema = utils.get_project_schema(project_db=project_db)
-            device_df = await crud.project.devices.get_project_devices(
+            device_df = await project_devices.get_project_devices(
                 device_type_ids=[DeviceTypeEnum.PROJECT],
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-            data_expected = await crud.project.data_expected.get_project_data_expected(
+            data_expected = await project_data_expected.get_project_data_expected(
                 device_ids=[int(device_df["device_id"].iloc[0])],
                 start=start,
                 end=end,
@@ -447,7 +450,7 @@ async def get_line(
     # Tags for sensor types that require *all* tags
     tags_all_df = pd.DataFrame()
     if sensor_type_ids_need_all:
-        tags_all_query = crud.project.tags.get_project_tags_v2(
+        tags_all_query = project_tags.get_project_tags_v2(
             sensor_type_ids=list(sensor_type_ids_need_all),
             deep=True,
         )
@@ -462,7 +465,7 @@ async def get_line(
             {tid for tids in specific_tag_ids_by_sensor_type.values() for tid in tids}
         )
         if flat_specific_tag_ids:
-            tags_specific_query = crud.project.tags.get_project_tags_v2(
+            tags_specific_query = project_tags.get_project_tags_v2(
                 tag_ids=flat_specific_tag_ids,
                 deep=True,
             )
@@ -494,7 +497,7 @@ async def get_line(
     # ------------------------------------------------------------------
     tag_ids_for_timeseries = tags_df["tag_id"].tolist()
 
-    data_timeseries_v3 = await crud.project.data_timeseries.DataTimeseries(
+    data_timeseries_v3 = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
         filter_values=tag_ids_for_timeseries,
@@ -657,7 +660,7 @@ async def get_scatter(
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     # Use get_project_tags_v2 with deep=True to get all required metadata in one query
-    tags_query = crud.project.tags.get_project_tags_v2(
+    tags_query = project_tags.get_project_tags_v2(
         sensor_type_ids=[x_axis_sensor_type_id, y_axis_sensor_type_id],
         deep=True,
     )

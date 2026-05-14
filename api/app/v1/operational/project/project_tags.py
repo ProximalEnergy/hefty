@@ -2,6 +2,7 @@ import re
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project import tags as project_tags
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,6 @@ from app.dependencies import (
     get_project_db_async,
     get_project_name_short_async,
 )
-from core import crud
 
 router = APIRouter(
     prefix="/tags",
@@ -54,7 +54,7 @@ async def get_project_tags(
         has_sensor_type_id: Description for has_sensor_type_id.
         project_schema: Description for project_schema.
     """
-    tags_query = crud.project.tags.get_project_tags_v2(
+    tags_query = project_tags.get_project_tags_v2(
         tag_ids=tag_ids,
         in_tsdb=in_tsdb,
         device_ids=device_ids,
@@ -109,6 +109,6 @@ async def get_tags_by_regex_route(
             status_code=400,
             detail=f"Invalid regular expression pattern: {str(e)}",
         )
-    return await crud.project.tags.get_tags_by_regex(
+    return await project_tags.get_tags_by_regex(
         db=project_db, regex=regex, limit=limit, deep=deep
     )

@@ -7,6 +7,7 @@ from app.domain.eem.google_sheet.read.s01_read_gsheet import (
     _build_google_sheets_service,
     _column_index_to_letter,
 )
+from core.crud.project import devices as project_devices
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum
 from fastapi import HTTPException, status
@@ -14,8 +15,6 @@ from shapely.errors import GEOSException
 from shapely.wkb import loads as wkb_loads
 from shapely.wkt import loads as wkt_loads
 from sqlalchemy.orm import Session
-
-from core import crud
 
 SHEET_NAME = "Input"
 INVERTER_COLUMN = "PCS Number"
@@ -85,7 +84,7 @@ async def _get_nearest_met_names_by_inverter_name(
     project_db: Session,
 ) -> dict[str, str]:
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices = await crud.project.devices.get_project_devices(
+    devices = await project_devices.get_project_devices(
         device_type_ids=[
             DeviceTypeEnum.PV_INVERTER,
             DeviceTypeEnum.MET_STATION,

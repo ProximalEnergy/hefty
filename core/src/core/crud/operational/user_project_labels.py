@@ -1,11 +1,11 @@
 import uuid
 from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_user_project_labels_by_user_id(

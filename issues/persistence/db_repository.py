@@ -5,12 +5,14 @@ import logging
 from typing import Any, Literal
 from uuid import UUID
 
+from core.crud.operational import issue_categories as operational_issue_categories
+from core.crud.operational import issue_states as operational_issue_states
+from core.crud.project import issues as project_issues
 from core.database import with_db
 from core.db_query import DbQuery, OutputType
 from core.dependencies import get_project_name_short
 from sqlalchemy.orm import Session
 
-from core import crud
 from issues.models.issue_candidate import IssueCandidate, IssueIdentity
 from issues.models.persistence_models import IssueRecord
 from issues.persistence.matcher import candidate_identity, issue_identity
@@ -29,7 +31,7 @@ class DbIssueRepository:
             category_name,
         )
         rows = (
-            crud.operational.issue_categories.get_issue_categories(
+            operational_issue_categories.get_issue_categories(
                 name_longs=[category_name]
             ).get(output_type=OutputType.SQLALCHEMY, schema="operational")
             or []
@@ -94,7 +96,7 @@ class DbIssueRepository:
                     )
                     matched_count += 1
                     _execute_scalar_write(
-                        query=crud.project.issues.update_issue(
+                        query=project_issues.update_issue(
                             issue_id=existing.issue_id,
                             values={
                                 "time_start": earliest_time_start,
@@ -106,7 +108,7 @@ class DbIssueRepository:
                     )
                     if existing.time_end is not None:
                         _execute_scalar_write(
-                            query=crud.project.issues.create_issue_update(
+                            query=project_issues.create_issue_update(
                                 issue_update={
                                     "issue_id": existing.issue_id,
                                     "issue_state_id": open_state_id,
@@ -121,7 +123,7 @@ class DbIssueRepository:
                             continue
                         deleted_count += int(
                             _execute_scalar_write(
-                                query=crud.project.issues.query_delete_issue(
+                                query=project_issues.query_delete_issue(
                                     issue_id=duplicate.issue_id,
                                 ),
                                 db=db,
@@ -131,7 +133,7 @@ class DbIssueRepository:
 
                 opened_count += 1
                 created = _execute_scalar_returning(
-                    query=crud.project.issues.create_issue(
+                    query=project_issues.create_issue(
                         issue={
                             "device_id": identity.device_id,
                             "tag_id": identity.tag_id,
@@ -150,7 +152,7 @@ class DbIssueRepository:
                     _identity_to_log(identity=identity),
                 )
                 _execute_scalar_write(
-                    query=crud.project.issues.create_issue_update(
+                    query=project_issues.create_issue_update(
                         issue_update={
                             "issue_id": created_issue_id,
                             "issue_state_id": open_state_id,
@@ -171,7 +173,7 @@ class DbIssueRepository:
                         )
                         deleted_count += int(
                             _execute_scalar_write(
-                                query=crud.project.issues.query_delete_issue(
+                                query=project_issues.query_delete_issue(
                                     issue_id=issue.issue_id,
                                 ),
                                 db=db,
@@ -187,7 +189,7 @@ class DbIssueRepository:
                         _identity_to_log(identity=identity),
                     )
                     _execute_scalar_write(
-                        query=crud.project.issues.close_issue(
+                        query=project_issues.close_issue(
                             issue_id=active_issue.issue_id,
                             time_end=run_time,
                         ),
@@ -200,7 +202,7 @@ class DbIssueRepository:
                         )
                     )
                     _execute_scalar_write(
-                        query=crud.project.issues.create_issue_update(
+                        query=project_issues.create_issue_update(
                             issue_update={
                                 "issue_id": active_issue.issue_id,
                                 "issue_state_id": resolved_state_id,
@@ -238,7 +240,7 @@ class DbIssueRepository:
     def _get_state_id(self, *, state_name: str) -> int:
         LOGGER.info("\t\tResolving issue state id for state_name=%s", state_name)
         rows = (
-            crud.operational.issue_states.get_issue_states(name_longs=[state_name]).get(
+            operational_issue_states.get_issue_states(name_longs=[state_name]).get(
                 output_type=OutputType.SQLALCHEMY, schema="operational"
             )
             or []
@@ -255,7 +257,7 @@ class DbIssueRepository:
         return state_id
 
     def _count_active_issues(self, *, project_schema: str) -> int:
-        active = crud.project.issues.get_issues(open_only=True).get(
+        active = project_issues.get_issues(open_only=True).get(
             output_type=OutputType.POLARS,
             schema=project_schema,
         )
@@ -275,7 +277,7 @@ class DbIssueRepository:
         reconciliation_window_minutes: int | None,
     ) -> list[IssueRecord]:
         if reconciliation_window_minutes is None:
-            rows = crud.project.issues.get_issues(open_only=True).get(
+            rows = project_issues.get_issues(open_only=True).get(
                 output_type=OutputType.POLARS,
                 schema=project_schema,
             )
@@ -283,7 +285,7 @@ class DbIssueRepository:
             window_start = run_time - datetime.timedelta(
                 minutes=reconciliation_window_minutes
             )
-            rows = crud.project.issues.get_issues_open_in_window(
+            rows = project_issues.get_issues_open_in_window(
                 time_start=window_start,
                 time_end=run_time,
             ).get(

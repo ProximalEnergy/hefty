@@ -1,1 +1,0 @@
-"""GIS-related domain logic."""

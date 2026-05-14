@@ -9,8 +9,12 @@ from uuid import UUID
 
 import pandas as pd
 import sqlalchemy as sa
+from core.crud.operational import claim_configs as operational_claim_configs
+from core.crud.project import claims as project_claims
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
+from core.domain.statuses import statuses as domain_statuses
 from fastapi import (
     APIRouter,
     Body,
@@ -36,7 +40,7 @@ from app._utils.claim_emails import (
     build_claim_submission_email_html,
     send_claim_submission_email,
 )
-from core import crud, domain, enumerations, models
+from core import enumerations, models
 
 router = APIRouter(
     prefix="/claims",
@@ -327,7 +331,7 @@ async def patch_claim_config(
         db: Async DB session.
         user: Authenticated user.
     """
-    claim_config_query = crud.operational.claim_configs.query_claim_config(
+    claim_config_query = operational_claim_configs.query_claim_config(
         claim_config_id=claim_config_id,
     )
     existing = cast(
@@ -401,7 +405,7 @@ async def delete_claim_config_route(
         project_db: Project-scoped async DB session (for counting claims).
         user: Authenticated user.
     """
-    claim_config_query = crud.operational.claim_configs.query_claim_config(
+    claim_config_query = operational_claim_configs.query_claim_config(
         claim_config_id=claim_config_id,
     )
     existing = cast(
@@ -416,7 +420,7 @@ async def delete_claim_config_route(
     if existing.submitter_company_id != user.company_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    claim_count = await crud.project.claims.query_count_claims_for_config(
+    claim_count = await project_claims.query_count_claims_for_config(
         claim_config_id=claim_config_id,
     ).get_async(
         executor=project_db,
@@ -536,7 +540,7 @@ async def get_claim_event_data_csv(
 
     start = event.time_start - EVENT_DATA_WINDOW
     end = event.time_start + EVENT_DATA_WINDOW
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         in_tsdb=True,
         device_ids=[event.device_id],
         deep=True,
@@ -581,16 +585,14 @@ async def get_claim_event_data_csv(
         for _, row in tags_pd[tags_pd["status_lookup_id"].notna()].iterrows()
     ]
     if status_tag_ids:
-        decoded_status = (
-            await domain.statuses.statuses.get_status_timeseries_interpreted(
-                project_db=project_db,
-                project=project,
-                tag_ids=status_tag_ids,
-                start=start,
-                end=end,
-                get_all=True,
-                freq=EVENT_DATA_INTERVAL,
-            )
+        decoded_status = await domain_statuses.get_status_timeseries_interpreted(
+            project_db=project_db,
+            project=project,
+            tag_ids=status_tag_ids,
+            start=start,
+            end=end,
+            get_all=True,
+            freq=EVENT_DATA_INTERVAL,
         )
         status_df = _build_status_label_frame(
             facts=decoded_status,
@@ -641,7 +643,7 @@ async def get_claim_route(
         claim_id: Claim primary key.
         db: Project-scoped async DB session.
     """
-    claim_query = crud.project.claims.query_claim(
+    claim_query = project_claims.query_claim(
         claim_id=claim_id,
         project_id=project_id,
     )
@@ -788,7 +790,7 @@ async def delete_claim_route(
         db: Project-scoped async DB session.
         user: Authenticated user.
     """
-    claim_query = crud.project.claims.query_claim(
+    claim_query = project_claims.query_claim(
         claim_id=claim_id,
         project_id=project_id,
     )
@@ -1117,7 +1119,7 @@ async def submit_claim(
         db: Async DB session.
         user: Authenticated user data.
     """
-    claim_query = crud.project.claims.query_claim(claim_id=claim_id)
+    claim_query = project_claims.query_claim(claim_id=claim_id)
     claim = cast(
         models.Claim | None,
         await claim_query.get_async(

@@ -1,10 +1,10 @@
 from typing import Literal
 
+from core.db_query import DbQuery
+from core.enumerations import UserTypeEnum
 from sqlalchemy import select
 
 from core import models
-from core.db_query import DbQuery
-from core.enumerations import UserTypeEnum
 
 
 def get_user_type(

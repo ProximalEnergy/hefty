@@ -1,10 +1,10 @@
 import uuid
 from typing import Any, Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_user_by_id(*, user_id: str) -> DbQuery[models.User, Literal[True]]:

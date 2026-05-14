@@ -1,12 +1,13 @@
 import datetime
 
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorTypeEnum, TimeOffset
 from sqlalchemy.orm import Session
 
 from app import utils
-from core import crud, models
+from core import models
 
 
 async def get_bess_pcs_data(
@@ -29,7 +30,7 @@ async def get_bess_pcs_data(
         A list of dictionaries containing BESS PCS data.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    tags_df = await crud.project.tags.get_project_tags_v2(
+    tags_df = await project_tags.get_project_tags_v2(
         sensor_type_ids=[SensorTypeEnum.BESS_PCS_AC_POWER],
         deep=True,
     ).get_async(output_type=OutputType.POLARS, schema=project_schema)

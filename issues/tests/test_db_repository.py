@@ -108,23 +108,23 @@ def _patch_repository(
         lambda *, schema: _FakeDbContext(db=fake_db),
     )
     monkeypatch.setattr(
-        "issues.persistence.db_repository.crud.project.issues.update_issue",
+        "issues.persistence.db_repository.project_issues.update_issue",
         fake_update_issue,
     )
     monkeypatch.setattr(
-        "issues.persistence.db_repository.crud.project.issues.query_delete_issue",
+        "issues.persistence.db_repository.project_issues.query_delete_issue",
         fake_query_delete_issue,
     )
     monkeypatch.setattr(
-        "issues.persistence.db_repository.crud.project.issues.close_issue",
+        "issues.persistence.db_repository.project_issues.close_issue",
         fake_close_issue,
     )
     monkeypatch.setattr(
-        "issues.persistence.db_repository.crud.project.issues.create_issue",
+        "issues.persistence.db_repository.project_issues.create_issue",
         fake_create_issue,
     )
     monkeypatch.setattr(
-        "issues.persistence.db_repository.crud.project.issues.create_issue_update",
+        "issues.persistence.db_repository.project_issues.create_issue_update",
         fake_create_issue_update,
     )
     return repository, fake_db, operations

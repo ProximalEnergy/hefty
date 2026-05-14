@@ -5,13 +5,14 @@ import pandas as pd
 from app import dependencies, logger
 from app._dependencies import authorization
 from app.utils import get_include_in_schema
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/combiner-swaps",
@@ -58,7 +59,7 @@ async def validate_combiner_data(
         combiner_device_ids = [int(x) for x in device_ids]
 
         # Get combiner current tags
-        tags = await crud.project.tags.get_project_tags_v2(
+        tags = await project_tags.get_project_tags_v2(
             sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
             device_ids=combiner_device_ids,
         ).get_async(

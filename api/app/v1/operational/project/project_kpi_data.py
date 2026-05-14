@@ -7,11 +7,13 @@ from typing import Annotated, Any, Literal
 import boto3
 import numpy as np
 import pandas as pd
+from core.crud.operational import device_types as operational_device_types
 from core.crud.operational.kpi_data import (
     core_get_kpi_data,
     get_project_kpi_data_agg,
     get_project_kpi_data_agg_freq,
 )
+from core.crud.project import devices as project_devices
 from core.database import get_db
 from core.db_query import OutputType
 from core.domain.kpis.rte import (
@@ -47,7 +49,7 @@ from app.interfaces import UserAuthed
 from app.v1.operational.kpi_data import get_kpi_data_helper
 from app.v1.operational.kpi_instances import get_kpi_instances_helper
 from app.v1.operational.project.project_documents import generate_presigned_url
-from core import crud, models
+from core import models
 
 router = APIRouter(
     prefix="/kpi-data",
@@ -669,12 +671,12 @@ async def get_kpi_excel(
         )
         project_schema = utils.get_project_schema(project_db=project_db)
         device_ids = [int(device_id) for device_id in device_df.columns.to_list()]
-        devices_df = await crud.project.devices.get_project_devices(
+        devices_df = await project_devices.get_project_devices(
             device_ids=device_ids,
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         devices_df = devices_df.copy()
         devices_df["name_long"] = devices_df["name_long"].fillna("")
-        device_types_df = await crud.operational.device_types.get_device_types(
+        device_types_df = await operational_device_types.get_device_types(
             device_type_ids=np.unique(
                 devices_df["device_type_id"].astype(int),
             ).tolist(),

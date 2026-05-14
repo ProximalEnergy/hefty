@@ -5,6 +5,8 @@ import datetime
 import logging
 
 import polars as pl
+from core.crud.operational import projects as operational_projects
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.database import with_db
 from core.enumerations import AggregationMethod, OutputType, TimeInterval, TimeOffset
@@ -13,7 +15,6 @@ from geoalchemy2.shape import to_shape
 from shapely import wkb, wkt
 from shapely.errors import ShapelyError
 
-import core
 from issues.models.detector_context import (
     DetectorContext,
     MetStationChannel,
@@ -105,7 +106,7 @@ def _load_tags(
             "\t\tSkipping tag load because no device/sensor filters were provided"
         )
         return pl.DataFrame()
-    tags = core.crud.project.tags.get_project_tags_v2(
+    tags = project_tags.get_project_tags_v2(
         device_type_ids=list(device_type_ids),
         sensor_type_ids=list(sensor_type_ids),
         include_ghost_tags=False,
@@ -179,7 +180,7 @@ def load_project_coordinates(
     Returns:
         Latitude and longitude from project point, or (None, None) if missing.
     """
-    projects = core.crud.operational.projects.get_projects(
+    projects = operational_projects.get_projects(
         name_short=project_name_short,
     ).get(
         output_type=OutputType.SQLALCHEMY,

@@ -11,10 +11,10 @@ from typing import Any, Literal
 from uuid import UUID
 
 import polars as pl
+from core.db_query import DbQuery, OutputType
 from sqlalchemy import outerjoin, select
 
 from core import enumerations, models
-from core.db_query import DbQuery, OutputType
 
 
 @dataclass(frozen=True)

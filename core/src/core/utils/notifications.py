@@ -7,10 +7,6 @@ from collections.abc import Callable, Sequence
 from uuid import UUID
 
 from botocore.exceptions import ClientError
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from core import enumerations, models
 from core.crud.admin.notifications import (
     create_notification_state,
     get_notification_preferences_for_project,
@@ -20,6 +16,10 @@ from core.database import AsyncSessionLambda
 from core.db_query import OutputType
 from core.utils.email_delivery import send_email_async
 from core.utils.user_management import get_user_email_from_clerk
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core import enumerations, models
 
 logger = logging.getLogger(__name__)
 

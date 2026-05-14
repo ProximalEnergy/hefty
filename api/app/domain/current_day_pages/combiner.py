@@ -2,6 +2,8 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project import devices as project_devices
+from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
@@ -10,7 +12,7 @@ from natsort import natsorted
 from sqlalchemy.orm import Session
 
 from app import dependencies, utils
-from core import crud, models
+from core import models
 
 
 async def get_equipment_analysis_combiner_data(
@@ -51,7 +53,7 @@ async def get_equipment_analysis_combiner_data(
 
     # Get combiner devices
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_combiner_df = await crud.project.devices.get_project_devices(
+    devices_combiner_df = await project_devices.get_project_devices(
         device_type_ids=[DeviceTypeEnum.PV_DC_COMBINER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_combiner_df = devices_combiner_df.copy()
@@ -59,7 +61,7 @@ async def get_equipment_analysis_combiner_data(
     devices_combiner_df["capacity_dc"] = devices_combiner_df["capacity_dc"].fillna(1)
 
     # Get combiner current tags
-    tags_combiner_current = await crud.project.tags.get_project_tags_v2(
+    tags_combiner_current = await project_tags.get_project_tags_v2(
         in_tsdb=True,
         sensor_type_ids=[SensorTypeEnum.PV_DC_COMBINER_CURRENT],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)

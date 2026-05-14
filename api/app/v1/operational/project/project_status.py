@@ -3,7 +3,9 @@ import string
 from typing import Annotated, Any, Literal
 
 import pandas as pd
+from core.crud.project import statuses as project_statuses
 from core.db_query import OutputType
+from core.domain.statuses import statuses as domain_statuses
 from core.enumerations import SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsorted
@@ -14,7 +16,7 @@ from sqlalchemy.orm import Session
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.dependencies import get_project_api, get_project_db
 from app.logger import logger
-from core import crud, database, domain, models
+from core import database, models
 
 DESCRIPTION_404 = "Status not found"
 
@@ -69,7 +71,7 @@ async def interpret(
         status_values: Description for status_values.
     """
     try:
-        return await crud.project.statuses.get_status_interpret(
+        return await project_statuses.get_status_interpret(
             db=db,
             status_tags=status_tags,
             status_values=status_values,
@@ -110,14 +112,14 @@ async def get_status_time_series_python(
     """
     logger.warning(
         "/projects/{project_id}/status/time-series-python is deprecated; "
-        "call core.domain.statuses.statuses.get_status_time_series_failure_mode_ids "
+        "call domain_statuses.get_status_time_series_failure_mode_ids "
         "instead.",
     )
     if sensor_types is not None:
         sensor_type_ids = SensorTypeEnum.extract_values(enum_list=sensor_types)
     else:
         sensor_type_ids = None
-    data = await domain.statuses.statuses.get_status_time_series_failure_mode_ids(
+    data = await domain_statuses.get_status_time_series_failure_mode_ids(
         project_db=project_db,
         project=project,
         sensor_type_ids=sensor_type_ids,
@@ -176,7 +178,7 @@ async def get_last_known_statuses_route(
         alert_only: If True, only return statuses that are in alert (non-nominal) state.
         If False, return all statuses. WARNING: False may return a lot of data.
     """
-    data = await crud.project.statuses.get_last_known_statuses(
+    data = await project_statuses.get_last_known_statuses(
         project=project,
         device_type_ids=device_type_ids,
         sensor_type_ids=sensor_type_ids,
@@ -218,7 +220,7 @@ async def get_status_time_series_js(
         start: The start time to get statuses for.
         end: The end time to get statuses for.
     """
-    get_status_tags_query = crud.project.statuses.get_status_tags(
+    get_status_tags_query = project_statuses.get_status_tags(
         device_ids=device_ids,
     )
     tag_ids = (
@@ -232,14 +234,14 @@ async def get_status_time_series_js(
     )
     if len(tag_ids) == 0:
         return []
-    data = await domain.statuses.statuses.get_status_timeseries_interpreted(
+    data = await domain_statuses.get_status_timeseries_interpreted(
         project_db=project_db,
         project=project,
         tag_ids=tag_ids,
         start=start,
         end=end,
     )
-    status_names = await crud.project.statuses.get_status_name_from_tag_id(
+    status_names = await project_statuses.get_status_name_from_tag_id(
         tag_ids=tag_ids,
     ).get_async(output_type=OutputType.PANDAS, schema=project.name_short)
     status_names = status_names.set_index("tag_id")

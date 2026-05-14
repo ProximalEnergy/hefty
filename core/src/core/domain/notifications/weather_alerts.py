@@ -6,12 +6,6 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import cast
 
-from geoalchemy2.shape import to_shape
-from shapely.geometry import Point as ShapelyPoint
-from shapely.geometry import Polygon
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from core import enumerations, models
 from core.crud.admin.notifications import (
     create_notification,
     create_notification_state,
@@ -29,6 +23,12 @@ from core.utils.notifications import (
     severity_to_numeric,
 )
 from core.utils.user_management import get_user_email_from_clerk
+from geoalchemy2.shape import to_shape
+from shapely.geometry import Point as ShapelyPoint
+from shapely.geometry import Polygon
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core import enumerations, models
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ import boto3
 import pandas as pd
 import streamlit as st
 from botocore.exceptions import BotoCoreError, ClientError
-from core.crud import operational as op_crud
+from core.crud.operational import kpi_instances as operational_kpi_instances
 from core.database import with_db
 from core.enumerations import KPITypeEnum, ProjectTypeEnum
 from dotenv import load_dotenv
@@ -1204,11 +1204,11 @@ def main_kpi_dep_app() -> None:
             ):
                 try:
                     with with_db(schema="operational") as db:
-                        op_crud.kpi_instances.bulk_upsert_kpi_instances(
+                        operational_kpi_instances.bulk_upsert_kpi_instances(
                             db=db,
                             rows=upserts,
                         )
-                        op_crud.kpi_instances.bulk_delete_kpi_instances(
+                        operational_kpi_instances.bulk_delete_kpi_instances(
                             db=db,
                             rows=deletes,
                         )

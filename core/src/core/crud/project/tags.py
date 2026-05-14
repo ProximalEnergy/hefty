@@ -1,13 +1,13 @@
 from collections.abc import Sequence
 from typing import Any, Literal
 
+from core.db_query import DbQuery
+from core.enumerations import SensorTypeEnum
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, joinedload, noload
 
 from core import models
-from core.db_query import DbQuery
-from core.enumerations import SensorTypeEnum
 
 
 def _get_project_tag_options(*, deep: bool) -> Any:

@@ -3,6 +3,7 @@ from datetime import date
 from typing import Annotated, Any, cast
 from uuid import UUID
 
+from core.crud.operational import projects as operational_projects
 from core.database import get_db
 from core.db_query import OutputType
 from core.models import Project as DBProject
@@ -25,7 +26,7 @@ from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
 from app.logger import logger
-from core import crud, enumerations, models
+from core import enumerations, models
 
 DESCRIPTION_404 = "Project not found"
 
@@ -145,7 +146,7 @@ async def get_projects_route(
             set(project_ids_requested) & set(project_ids_kpi_instances),
         )
 
-    projects_query = crud.operational.projects.get_projects(
+    projects_query = operational_projects.get_projects(
         project_ids=project_ids_requested,
         project_type_ids=project_type_ids,
         project_status_type_ids=project_status_type_ids,
@@ -189,7 +190,7 @@ async def get_project_route(
         project_id: Description for project_id.
         user_data: Description for user_data.
     """
-    project_query = crud.operational.projects.get_project(
+    project_query = operational_projects.get_project(
         project_id=project_id,
     )
     project_db_model = await project_query.get_async(

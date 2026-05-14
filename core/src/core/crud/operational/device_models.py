@@ -1,11 +1,11 @@
 from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_device_model_options(*, deep: bool) -> _AbstractLoad:

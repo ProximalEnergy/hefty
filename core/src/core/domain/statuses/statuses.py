@@ -4,16 +4,16 @@ import datetime
 import math
 from typing import Literal, SupportsInt, cast
 
+import core.crud.project.statuses as crud_statuses
 import numpy as np
 import pandas as pd
-from pandas.api.extensions import ExtensionDtype
-from sqlalchemy.orm import Session
-
-import core.crud.project.statuses as crud_statuses
-from core import models
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import TimeInterval
+from pandas.api.extensions import ExtensionDtype
+from sqlalchemy.orm import Session
+
+from core import models
 
 StatusKind = Literal["binary", "boolean", "string"]
 
