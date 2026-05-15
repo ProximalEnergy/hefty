@@ -5876,13 +5876,25 @@ export interface paths {
         };
         /**
          * Get Report Instances Route
-         * @description todo
+         * @description Retrieve report instances for a given set of project IDs and report type IDs.
+         *
+         *     Returns a list of report instances filtered by the user's permissions and, where
+         *     applicable, restricts access to certain report types based on the user's company.
          *
          *     Args:
-         *         is_superadmin: Description for is_superadmin.
-         *         project_ids: Description for project_ids.
-         *         report_type_ids: Description for report_type_ids.
-         *         deep: Description for deep.
+         *         is_superadmin (bool): Whether the requesting user is a superadmin. Superadmins
+         *             can view all report instances, visible or not.
+         *         project_ids (list[UUID] | None): List of project UUIDs the request should be
+         *             filtered to, further filtered to those the user has access to. If None,
+         *             apply based on user's accessible projects.
+         *         user (UserAuthed): The current authenticated user making the request.
+         *         report_type_ids (list[int] | None): Optional list of report type IDs to filter
+         *             the report instances by. report instances. If None, includes all report
+         *             types.
+         *         deep (bool): If True, fetches report instances with additional nested data.
+         *
+         *     Returns:
+         *         list[dict]: List of report instances (as dictionaries) matching the filters.
          */
         get: operations["get_report_instances"];
         put?: never;

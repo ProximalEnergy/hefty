@@ -9,9 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
-from app._crud.operational.report_instances import (
-    bulk_upsert_report_instances,
-)
+from app._crud.operational.report_instances import bulk_upsert_report_instances
 from app._dependencies import authentication
 from app.dependencies import (
     get_async_db,
@@ -20,8 +18,12 @@ from app.dependencies import (
 )
 from app.interfaces import UserAuthed
 
-SABLE_POINT_COMPANY_ID = UUID("38a8e696-dafa-44c0-b817-e3aee8cdfe8c")
-
+_EEC_BESS_MONTHLY_VISIBLE_COMPANY_IDS = frozenset(
+    {
+        UUID("01959294-3e51-4d3e-9f57-e9c2c3635c84"),  # Proximal
+        UUID("a04594f8-9ee7-4916-80df-84a0dc9cb27d"),  # Excelsior
+    }
+)
 
 router = APIRouter(
     prefix="/report-instances",
@@ -60,8 +62,7 @@ async def get_project_reports_instances(
 
     report_instances = await query.get_async(output_type=OutputType.SQLALCHEMY)
 
-    # Remove the EEC report instance if you are a Sable Point user.
-    if user.company_id == SABLE_POINT_COMPANY_ID:
+    if user.company_id not in _EEC_BESS_MONTHLY_VISIBLE_COMPANY_IDS:
         report_instances = [
             ri
             for ri in report_instances

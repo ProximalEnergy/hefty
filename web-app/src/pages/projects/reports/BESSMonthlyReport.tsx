@@ -1,4 +1,5 @@
 import { ProjectTypeEnum, ReportTypeEnum } from '@/api/enumerations'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
@@ -10,6 +11,8 @@ import {
 } from '@/api/v1/operational/project/project_reports'
 import { useGetProjects, useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
+import { PageError } from '@/components/Error'
+import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useProjectFilter } from '@/hooks/custom'
 import {
@@ -690,4 +693,21 @@ const BESSMonthlyReport = () => {
   )
 }
 
-export default BESSMonthlyReport
+const BESSMonthlyReportRestricted = () => {
+  const user = useGetUserSelf({})
+
+  if (user.isLoading) {
+    return <PageLoader />
+  }
+
+  if (
+    user.data?.company_id == '01959294-3e51-4d3e-9f57-e9c2c3635c84' ||
+    user.data?.company_id == 'a04594f8-9ee7-4916-80df-84a0dc9cb27d'
+  ) {
+    return <BESSMonthlyReport />
+  }
+
+  return <PageError text="You are not authorized to access this report." />
+}
+
+export default BESSMonthlyReportRestricted
