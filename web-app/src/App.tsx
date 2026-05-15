@@ -127,6 +127,7 @@ import EquipmentAnalysisTracker from './pages/projects/equipment_analysis/tracke
 // Events
 import EventRouter from './pages/projects/events/EventRouter'
 import EventsMetaAnalysisPage from './pages/projects/events/EventsMetaAnalysis'
+import ProjectImpacts from './pages/projects/events/ProjectImpacts'
 import UptimeTable from './pages/projects/events/UptimeTable'
 import BatterySettlementPage from './pages/projects/finances/BatterySettlement'
 import MarketPerformance from './pages/projects/finances/MarketPerformance'
@@ -429,6 +430,14 @@ const ClerkProviderWithRoutes = () => {
               </Route>
 
               {/* Events */}
+              <Route
+                path="impacts"
+                element={
+                  <RequiresUserType requiredUserType="superadmin">
+                    <ProjectImpacts />
+                  </RequiresUserType>
+                }
+              />
               <Route path="events">
                 <Route index element={<ProjectEvents />} />
                 <Route path="event" element={<EventRouter />} />

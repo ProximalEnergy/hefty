@@ -45,7 +45,11 @@ dayjs.extend(timezone)
 dayjs.extend(relativeTime)
 dayjs.extend(utc)
 
-const ProjectEvents = () => {
+const ProjectEvents = ({
+  withPageTitle = true,
+}: {
+  withPageTitle?: boolean
+}) => {
   // Hooks
   useTipsEventsTable()
   useProjectFilter({
@@ -104,14 +108,17 @@ const ProjectEvents = () => {
   }
 
   return (
-    <Stack p="md">
-      <PageTitle
-        info={
-          'This page displays a summary of project events. Use the filters to narrow down the events displayed in the table.'
-        }
-      >
-        Events
-      </PageTitle>
+    <Stack p={withPageTitle ? 'md' : 0}>
+      {withPageTitle && (
+        <PageTitle
+          info={
+            'This page displays a summary of project events. Use the filters ' +
+            'to narrow down the events displayed in the table.'
+          }
+        >
+          Events
+        </PageTitle>
+      )}
       <Group justify="space-between">
         <Switch
           checked={showClosedEvents}

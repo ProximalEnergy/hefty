@@ -4243,6 +4243,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Issues Route
+         * @description Retrieve project issues for the impacts page.
+         *
+         *     Args:
+         *         project: Project model from dependency injection.
+         *         active_only: Include only unresolved issues when true.
+         *         start: Include issues active at or after this timestamp.
+         *         end: Include issues active at or before this timestamp.
+         *         issue_category_ids: Issue category ids to include.
+         */
+        get: operations["get_project_issues_route_v1_operational_projects__project_id__issues_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
         parameters: {
             query?: never;
@@ -12292,6 +12319,37 @@ export interface components {
             has_real_time_data: boolean;
         };
         /**
+         * ProjectIssueSummary
+         * @description Project issue summary model.
+         */
+        ProjectIssueSummary: {
+            /** Issue Id */
+            issue_id: number;
+            /** Device Id */
+            device_id: number;
+            /** Device Type Id */
+            device_type_id: number | null;
+            /** Device Type Name */
+            device_type_name: string;
+            /** Device Name Full */
+            device_name_full: string;
+            /** Tag Id */
+            tag_id: number | null;
+            /** Tag Name Full */
+            tag_name_full: string | null;
+            /** Issue Category Id */
+            issue_category_id: number;
+            /** Issue Category */
+            issue_category: string;
+            /**
+             * Time Start
+             * Format: date-time
+             */
+            time_start: string;
+            /** Time End */
+            time_end: string | null;
+        };
+        /**
          * ProjectKPIData
          * @description Response model for project KPI data with dates and values.
          */
@@ -19997,6 +20055,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_issues_route_v1_operational_projects__project_id__issues_get: {
+        parameters: {
+            query?: {
+                active_only?: boolean;
+                start?: string | null;
+                end?: string | null;
+                issue_category_ids?: number[] | null;
+            };
+            header?: {
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectIssueSummary"][];
                 };
             };
             /** @description Validation Error */

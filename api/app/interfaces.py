@@ -1017,6 +1017,22 @@ class EventSummary(BaseModel):
     loss_daily_energy: float | None
 
 
+class ProjectIssueSummary(BaseModel):
+    """Project issue summary model."""
+
+    issue_id: int
+    device_id: int
+    device_type_id: int | None
+    device_type_name: str
+    device_name_full: str
+    tag_id: int | None
+    tag_name_full: str | None
+    issue_category_id: int
+    issue_category: str
+    time_start: datetime.datetime
+    time_end: datetime.datetime | None
+
+
 class EventCMMSTicketInterface(BaseModel):
     """Eventcmmsticket model."""
 

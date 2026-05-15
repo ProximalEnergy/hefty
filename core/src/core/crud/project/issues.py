@@ -39,6 +39,8 @@ def get_issues(
     issue_category_ids: list[int] | None = None,
     time_start: datetime.datetime | None = None,
     time_end: datetime.datetime | None = None,
+    window_start: datetime.datetime | None = None,
+    window_end: datetime.datetime | None = None,
     open_only: bool = False,
 ) -> DbQuery[models.Issue, Literal[False]]:
     """Build a query for issue rows using optional filters.
@@ -51,6 +53,8 @@ def get_issues(
         issue_state_ids: Current issue state ids to include.
         time_start: Include issues with time_start >= this timestamp.
         time_end: Include issues with time_start <= this timestamp.
+        window_start: Include issues active at or after this timestamp.
+        window_end: Include issues active at or before this timestamp.
         open_only: Include only unresolved issues (time_end is null).
 
     TODO: Add a filter for issue_state_ids by joining on issue_updates, and
@@ -69,6 +73,12 @@ def get_issues(
         stmt = stmt.where(models.Issue.time_start >= time_start)
     if time_end is not None:
         stmt = stmt.where(models.Issue.time_start <= time_end)
+    if window_start is not None:
+        stmt = stmt.where(
+            or_(models.Issue.time_end >= window_start, models.Issue.time_end.is_(None))
+        )
+    if window_end is not None:
+        stmt = stmt.where(models.Issue.time_start <= window_end)
     if open_only:
         stmt = stmt.where(models.Issue.time_end.is_(None))
     return DbQuery(query=stmt)
