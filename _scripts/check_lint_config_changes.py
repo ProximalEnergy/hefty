@@ -132,6 +132,18 @@ def full_file_changed(*, base_ref: str, path: str) -> bool:
     return read_base_file(base_ref=base_ref, path=path) != read_current_file(path=path)
 
 
+def changed_config_keys(
+    *,
+    base_config: dict[str, Any],
+    current_config: dict[str, Any],
+) -> list[str]:
+    return [
+        key
+        for key in sorted(base_config.keys() | current_config.keys())
+        if base_config.get(key, MISSING) != current_config.get(key, MISSING)
+    ]
+
+
 def protected_config_changes(*, base_ref: str) -> list[str]:
     changes: list[str] = []
 
@@ -148,10 +160,12 @@ def protected_config_changes(*, base_ref: str) -> list[str]:
 
     base_package = read_base_file(base_ref=base_ref, path="web-app/package.json")
     current_package = read_current_file(path="web-app/package.json")
-    if package_lint_config(content=base_package) != package_lint_config(
-        content=current_package,
-    ):
-        changes.append("web-app/package.json lint/prettier script config")
+    package_changes = changed_config_keys(
+        base_config=package_lint_config(content=base_package),
+        current_config=package_lint_config(content=current_package),
+    )
+    for key in package_changes:
+        changes.append(f"web-app/package.json {key}")
 
     return changes
 

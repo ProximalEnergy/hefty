@@ -2,11 +2,11 @@
 
 ## TSX
 
-This project uses `tsc` as the type checker.
+This project uses `tsgo` as the type checker.
 
 Useful commands:
 
-- `pnpm exec tsc`: Checks for type problems in the repository
+- `pnpm exec tsgo`: Checks for type problems in the repository
 
 ## Prettier
 
