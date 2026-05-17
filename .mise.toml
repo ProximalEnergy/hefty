@@ -50,7 +50,19 @@ run = "mise install node@latest pnpm@latest"
 [tasks.sync-deps]
 description = "Install and sync all dependencies across the monorepo"
 run = """
-uv sync --package mono --package core --package api && \
+#!/usr/bin/env bash
+sync_uv_project() {
+  local project_path="${1}"
+  local package_name="${2}"
+  local venv_path="${3}"
+
+  env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="${venv_path}" \
+    uv sync --project "${project_path}" --package "${package_name}"
+}
+
+sync_uv_project . mono .venv && \
+sync_uv_project core core core/.venv && \
+sync_uv_project api api api/.venv && \
 mise install && \
 (
   mise run web:install || \
@@ -69,25 +81,39 @@ NEEDS_SYNC=false
 UV_CHANGE_PATTERN='^Would (create|download|install|remove|uninstall|update)'
 
 uv_sync_dry_run_shows_changes() {
+  local project_path="${1}"
+  local package_name="${2}"
+  local venv_path="${3}"
+  local label="${4}"
   local output
 
   if output="$(
-    env -u VIRTUAL_ENV uv sync --dry-run --inexact \
-      --package mono --package core --package api 2>&1
+    env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="${venv_path}" \
+      uv sync --dry-run --inexact \
+      --project "${project_path}" \
+      --package "${package_name}" 2>&1
   )"; then
     if echo "${output}" | rg -q "${UV_CHANGE_PATTERN}"; then
-      echo "Stale uv environment: dev workspace packages"
+      echo "Stale uv environment: ${label}"
       return 0
     fi
     return 1
   fi
 
-  echo "uv sync --dry-run failed for dev workspace packages; syncing dependencies."
+  echo "uv sync --dry-run failed for ${label}; syncing dependencies."
   echo "${output}"
   return 0
 }
 
-if uv_sync_dry_run_shows_changes; then
+if uv_sync_dry_run_shows_changes . mono .venv "root project"; then
+  NEEDS_SYNC=true
+fi
+
+if uv_sync_dry_run_shows_changes core core core/.venv "core project"; then
+  NEEDS_SYNC=true
+fi
+
+if uv_sync_dry_run_shows_changes api api api/.venv "api project"; then
   NEEDS_SYNC=true
 fi
 
@@ -175,6 +201,48 @@ mise run api:deptry && \
 mise run web:knip && \
 uv tree --outdated && \
 cd web-app && pnpm outdated
+"""
+
+[tasks.clean]
+description = "Clean uv cache and prune Docker images and containers"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+prune_docker() {
+  docker image prune -f
+  docker container prune -f
+}
+
+uv cache clean
+
+if docker info >/dev/null 2>&1; then
+  prune_docker
+  exit 0
+fi
+
+while true; do
+  printf "\\nDocker is not running. Open Docker Desktop, then enter "
+  printf "(c)onfirm to retry or (s)kip Docker prune: "
+  read -r choice
+
+  case "${choice}" in
+    c|C|confirm|Confirm)
+      if docker info >/dev/null 2>&1; then
+        prune_docker
+        exit 0
+      fi
+      echo "Docker still is not running."
+      ;;
+    s|S|skip|Skip)
+      echo "Skipping Docker prune."
+      exit 0
+      ;;
+    *)
+      echo "Enter c to retry or s to skip."
+      ;;
+  esac
+done
 """
 
 [tasks.sync]
