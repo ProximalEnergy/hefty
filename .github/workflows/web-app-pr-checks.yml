@@ -2,6 +2,7 @@ name: Web App Pull Request Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev, staging, main]
     paths:
       - "web-app/**"
@@ -14,6 +15,7 @@ concurrency:
 
 jobs:
   pnpm_version_sync:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,6 +26,7 @@ jobs:
         run: mise run root:pnpm_version_sync
 
   deprecation_checker:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -32,6 +35,7 @@ jobs:
         working-directory: web-app
 
   default-query-options-no-explicit-type:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -42,6 +46,7 @@ jobs:
         run: uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --filter "^default-query-options-no-explicit-type$" web-app/src
 
   query-time-enum:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -52,6 +57,7 @@ jobs:
         run: ./_scripts/web_query_time_enum_check.sh --all-files
 
   typescript_checker:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -97,6 +103,7 @@ jobs:
           path: web-app/tsconfig.json
 
   prettier:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -129,6 +136,7 @@ jobs:
         run: mise run web:prettier
 
   knip_checker:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -161,6 +169,7 @@ jobs:
         run: mise run web:knip
 
   oxlint:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

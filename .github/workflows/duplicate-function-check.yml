@@ -2,6 +2,7 @@ name: Duplicate Function Check
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev]
 
 concurrency:
@@ -14,6 +15,7 @@ permissions:
 jobs:
   duplicate-functions:
     name: Duplicate Function Check
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +32,7 @@ jobs:
 
   duplicate-classes:
     name: Duplicate Class Check
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:

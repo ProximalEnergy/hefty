@@ -2,6 +2,7 @@ name: Hardcoded Type ID Check
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev, staging, main]
     paths:
       - "api/**"
@@ -16,6 +17,7 @@ concurrency:
 jobs:
   hardcoded-type-id-check:
     name: Hardcoded Type ID Check
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:

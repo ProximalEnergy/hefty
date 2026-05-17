@@ -2,6 +2,7 @@ name: Microservices Pull Request Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev, staging, main]
     paths:
       - "microservices/**"
@@ -22,6 +23,7 @@ permissions:
 
 jobs:
   ruff:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -92,6 +94,7 @@ jobs:
           done
 
   star-syntax:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -102,6 +105,7 @@ jobs:
         run: ./_scripts/ast_grep_check.sh --rules python-enforce-keyword-only-args microservices
 
   sqlalchemy-query-filter:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -112,6 +116,7 @@ jobs:
         run: ./_scripts/ast_grep_check.sh --rules python-disallow-sqlalchemy-query-filter microservices
 
   sqlalchemy-array-agg:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -122,6 +127,7 @@ jobs:
         run: ./_scripts/ast_grep_check.sh --rules python-disallow-sqlalchemy-array-agg microservices
 
   fastapi-project-id-access:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -132,6 +138,7 @@ jobs:
         run: ./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access microservices
 
   fastapi-project-id-access-prefix:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -142,6 +149,7 @@ jobs:
         run: ./_scripts/ast_grep_check.sh --rules fastapi-project-id-requires-access-prefix microservices
 
   forbidden-with-async-db:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -152,6 +160,7 @@ jobs:
         run: ./_scripts/ast_grep_check.sh --rules forbidden-with-async-db-usage microservices
 
   dbquery-dataframe-cast:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -165,10 +174,11 @@ jobs:
           microservices
 
   detect-microservice-changes:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       calendar_notifications_lambda: ${{ steps.changes.outputs.calendar_notifications_lambda }}
-      data_connection_outage_notifications_lambda: ${{ steps.changes.outputs.data_connection_outage_notifications_lambda }}
+      data_outage: ${{ steps.changes.outputs.data_outage }}
       kpi_pipeline_fetcher: ${{ steps.changes.outputs.kpi_pipeline_fetcher }}
       weather_alerts_lambda: ${{ steps.changes.outputs.weather_alerts_lambda }}
     steps:
@@ -179,7 +189,7 @@ jobs:
           filters: |
             calendar_notifications_lambda:
               - 'microservices/calendar_notifications_lambda/**'
-            data_connection_outage_notifications_lambda:
+            data_outage:
               - 'microservices/data_connection_outage_notifications_lambda/**'
             kpi_pipeline_fetcher:
               - 'microservices/kpi-pipeline-fetcher/**'
@@ -188,7 +198,9 @@ jobs:
 
   mypy-calendar-notifications-lambda:
     needs: detect-microservice-changes
-    if: needs.detect-microservice-changes.outputs.calendar_notifications_lambda == 'true'
+    if: |
+      github.event.pull_request.draft == false &&
+      needs.detect-microservice-changes.outputs.calendar_notifications_lambda == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -231,7 +243,9 @@ jobs:
 
   mypy-data-connection-outage-notifications-lambda:
     needs: detect-microservice-changes
-    if: needs.detect-microservice-changes.outputs.data_connection_outage_notifications_lambda == 'true'
+    if: |
+      github.event.pull_request.draft == false &&
+      needs.detect-microservice-changes.outputs.data_outage == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -274,7 +288,9 @@ jobs:
 
   mypy-kpi-pipeline-fetcher:
     needs: detect-microservice-changes
-    if: needs.detect-microservice-changes.outputs.kpi_pipeline_fetcher == 'true'
+    if: |
+      github.event.pull_request.draft == false &&
+      needs.detect-microservice-changes.outputs.kpi_pipeline_fetcher == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -317,7 +333,9 @@ jobs:
 
   mypy-weather-alerts-lambda:
     needs: detect-microservice-changes
-    if: needs.detect-microservice-changes.outputs.weather_alerts_lambda == 'true'
+    if: |
+      github.event.pull_request.draft == false &&
+      needs.detect-microservice-changes.outputs.weather_alerts_lambda == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -359,6 +377,7 @@ jobs:
             mypy --config-file "${ROOT_DIR}/pyproject.toml" .
 
   docstring-args:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

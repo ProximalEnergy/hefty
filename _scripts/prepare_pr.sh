@@ -42,7 +42,7 @@ cleanup_closed_pr_assets() {
     [[ -z "${asset_name}" ]] && continue
     if [[ "${asset_name}" =~ ^pr-([0-9]+)- ]]; then
       asset_pr="${BASH_REMATCH[1]}"
-      if ! grep -Fxq "${asset_pr}" <<<"${open_pr_numbers}"; then
+      if ! rg -Fxq "${asset_pr}" <<<"${open_pr_numbers}"; then
         gh release delete-asset "${release_tag}" "${asset_name}" \
           --yes >/dev/null 2>&1 || true
       fi
@@ -299,7 +299,7 @@ pr_number="$(gh pr list --base "${BASE_BRANCH}" --head "${branch_name}" \
 if [[ -z "${pr_number}" ]]; then
   created_pr_url="$(gh pr create --base "${BASE_BRANCH}" --head \
     "${branch_name}" --title "${commit_title}" \
-    --body "_Draft body. Updating via codex..._")"
+    --body "_Draft body. Updating via codex..._" --draft)"
   pr_number="$(printf '%s' "${created_pr_url}" | sed -E \
     's#.*/pull/([0-9]+)$#\1#')"
 fi
@@ -357,19 +357,30 @@ copy_file="$(mktemp)"
 {
   cat <<'PROMPT'
 You are writing pull request content.
+Use the current pull_request_template.md content below as the canonical
+template structure and instructions.
+
+PULL_REQUEST_TEMPLATE_START
+PROMPT
+  cat "${template_path}"
+  cat <<'PROMPT'
+PULL_REQUEST_TEMPLATE_END
+
 Use this context:
 PROMPT
   cat "${context_file}"
   cat <<'PROMPT'
-Read pull_request_template.md and output exactly:
+Output exactly:
 TITLE: <final title including prefix>
 BODY_START
-<full markdown body based on template>
+<full markdown body based on the template above>
 BODY_END
 Rules:
-- Keep '# Reasoning for Changes' present but empty.
-- In '## Summary of Changes', explain application behavior changes in plain
-  English.
+- Preserve all headings, checklists, and reviewer instructions from the
+  template.
+- Leave the Reason for Changes section present but empty.
+- In the Summary of Changes section, explain application behavior changes in
+  plain English.
 - Focus on user-visible effects, API contract changes, and operational impact.
 - Do not provide a file-by-file list unless needed for clarity.
 - If context is incomplete, state assumptions briefly and avoid fabricated
@@ -481,4 +492,5 @@ if [[ -n "${pr_url}" ]]; then
   printf 'PR URL: %s\n' "${pr_url}"
   printf 'Open PR: \033]8;;%s\033\\%s\033]8;;\033\\\n' \
     "${pr_url}" "${pr_url}"
+  gh pr view "${pr_number}" --web >/dev/null 2>&1 || true
 fi

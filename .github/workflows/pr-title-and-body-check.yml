@@ -70,6 +70,8 @@ on:
       - edited # PR title or body was manually changed
       - synchronize # New commits pushed to the PR branch
       - reopened # PR was re-opened after being closed
+      - ready_for_review # Draft PR was marked ready
+      - converted_to_draft # PR was moved back to draft
 
 # The workflow needs write access to pull requests so it can PATCH PR fields.
 # All other permissions are left at their default (read or none).
@@ -91,6 +93,7 @@ concurrency:
 jobs:
   sync-title-and-body:
     if: |
+      github.event.pull_request.draft == false &&
       github.event.pull_request.base.ref == 'dev' &&
       github.event.pull_request.head.ref != 'dev' &&
       github.event.pull_request.head.ref != 'staging' &&

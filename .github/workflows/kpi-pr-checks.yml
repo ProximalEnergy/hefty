@@ -2,6 +2,7 @@ name: KPI Pull Request Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev, staging, main]
     paths:
       - "kpi/**"
@@ -17,6 +18,7 @@ permissions:
 
 jobs:
   kpi-check:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

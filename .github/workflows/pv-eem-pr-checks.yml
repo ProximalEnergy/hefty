@@ -2,6 +2,7 @@ name: PV-EEM Pull Request Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev, staging, main]
     paths:
       - "pv-eem/**"
@@ -17,6 +18,7 @@ permissions:
 
 jobs:
   pveem-types:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -28,6 +30,7 @@ jobs:
         run: mise run pveem:types
 
   pveem-ruff:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -2,6 +2,7 @@ name: Lint Config Change Check
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev]
     paths:
       - "pyproject.toml"
@@ -24,6 +25,7 @@ permissions:
 jobs:
   protected-lint-config:
     name: Protected Lint Config Changes
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:
