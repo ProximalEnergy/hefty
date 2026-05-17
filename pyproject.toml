@@ -55,6 +55,7 @@ members = [
     "microservices/cmms-integration-fetcher",
     "microservices/kpi-pipeline-fetcher",
     "pv-eem",
+    "forecast",
 ]
 
 [[tool.uv.index]]

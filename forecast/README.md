@@ -1,0 +1,1 @@
+- Uses a port and adaptors pattern to manage multiple different sources of data
