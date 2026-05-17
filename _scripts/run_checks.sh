@@ -1323,7 +1323,6 @@ if [ "${RUN_ALL}" = "false" ]; then
 fi
 
 if [ "${RUN_ALL}" = "true" ]; then
-    CORE_CHANGED=true
     RUN_CORE=true
     RUN_API=true
     RUN_MICRO=true
@@ -1415,7 +1414,9 @@ fi
 
 if [ "${RUN_PVEEM}" = "true" ]; then
     if [ "${ROOT_PYPROJECT_CHANGED}" = "true" ]; then
-        add_check "PV-EEM: Check Task" "mise run pveem:check" "error" "false"
+        add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
+        add_check "PV-EEM: Ruff" "mise run pveem:ruff"
+        add_check "PV-EEM: Pytest" "mise run pveem:pytest"
     else
         add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
         add_check "PV-EEM: Pytest" "mise run pveem:pytest"

@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12.8,<3.13"
 dependencies = [
     "core",
+    "hefty",
 ]
 
 [tool.uv]
@@ -13,3 +14,4 @@ package = false
 
 [tool.uv.sources]
 core = { workspace = true }
+hefty = { path = "../third-party/hefty", editable = true }

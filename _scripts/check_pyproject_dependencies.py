@@ -6,6 +6,11 @@ import sys
 import tomllib
 from pathlib import Path
 
+VENDORED_DIRS = {
+    "third-party",
+    "third_party",
+}
+
 SKIP_DIRS = {
     ".git",
     ".venv",
@@ -13,6 +18,7 @@ SKIP_DIRS = {
     "build",
     "dist",
     "node_modules",
+    *VENDORED_DIRS,
 }
 
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
@@ -212,6 +218,14 @@ def check_pyproject(
         errors.append(f"{path} [dependency-groups] must be a table")
 
 
+def should_skip_discovered_path(*, root: Path, path: Path) -> bool:
+    try:
+        parts = path.relative_to(root).parts
+    except ValueError:
+        parts = path.parts
+    return any(part in SKIP_DIRS for part in parts[:-1])
+
+
 def discover_pyprojects(*, root: Path) -> list[Path]:
     try:
         output = subprocess.check_output(
@@ -233,7 +247,14 @@ def discover_pyprojects(*, root: Path) -> list[Path]:
     except subprocess.SubprocessError:
         return discover_pyprojects_via_walk(root=root)
 
-    paths = [root / rel for rel in output.splitlines() if rel]
+    paths = []
+    for rel_path in output.splitlines():
+        if not rel_path:
+            continue
+        path = root / rel_path
+        if should_skip_discovered_path(root=root, path=path):
+            continue
+        paths.append(path)
     return sorted(paths)
 
 

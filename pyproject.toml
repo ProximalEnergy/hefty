@@ -69,7 +69,7 @@ explicit = true
 [tool.ruff]
 line-length = 88
 fix = true
-extend-exclude = ["_scripts"]
+extend-exclude = ["_scripts", "third-party/**"]
 
 [tool.ruff.lint]
 select = [
@@ -212,6 +212,7 @@ exclude = [
     "^app\\.crud\\.py$",
     "^app\\.utils\\.py$",
     ".*cdk\\.out.*",      # Exclude CDK output directory
+    "^third-party/.*",
 ]
 
 [[tool.mypy.overrides]]
@@ -246,6 +247,7 @@ paths = ["core/src/core", "api/app"]
 exclude = [
     # --- CORE ---
     # --- API ---
+    "third-party/**",
     "*protected/deletions/delete_project*.py",
 ]
 ignore_decorators = [

@@ -19,12 +19,10 @@ current device metadata, run simplified PVWatts, store POI forecast output.
 - Forecast cadence: hourly hEFTy output.
 - Eligibility: explicit project list in `forecast/config.py`.
 - Output unit: W at POI, matching pv-eem `p_mp`; hourly energy derived by interval.
-- Keep `pv_energy_forecast` / `available_pv_energy_forecast` table names.
 - `available_pv_energy_forecast`: don't implement this yet
 - CRUD/database access via `DbQuery`.
-- Deploy with CDK Docker Lambda, daily EventBridge schedule.
-- Runtime DB credentials from AWS Secrets Manager.
-- Latest forecast means one latest run per project/provider.
+- Deploy with CDK Docker Lambda, EventBridge schedule.
+- env vars will be in AWS secrets manager
 - Ignore all static checks inside `third-party/**`.
 
 ## Dependency Graph
@@ -35,7 +33,7 @@ device metadata lookup -> PVWatts model -> forecast persistence -> CDK deploy.
 
 ### Phase 1: Foundation
 - [ ] Task 1: Workspace + third-party boundary
-- [ ] Task 2: Forecast DB schema
+- [ ] Task 2: Forecast DB schema in `core/src/core/models.py`
 - [ ] Task 3: Provider seed + CRUD
 
 ### Phase 2: Core Flow
@@ -43,7 +41,7 @@ device metadata lookup -> PVWatts model -> forecast persistence -> CDK deploy.
 - [ ] Task 5: IFS weather ingest
 - [ ] Task 6: Device metadata lookup
 - [ ] Task 7: PVWatts POI forecast
-- [ ] Task 8: Available forecast deferred
+- [ ] Task 8: Available forecast mirror
 
 ### Checkpoint: Core Flow
 - [ ] One configured project writes met + POI forecast rows.
@@ -60,11 +58,10 @@ device metadata lookup -> PVWatts model -> forecast persistence -> CDK deploy.
 
 ## Task 1: Workspace + Third-Party Boundary
 
-**Description:** Make `forecast/` installable and exclude vendored code.
+**Description:** setup `forecast/`  
 
 **Acceptance criteria:**
 - [ ] `forecast` added to root `uv` workspace.
-- [ ] `forecast/pyproject.toml` defines package deps.
 - [ ] local hEFTy dependency resolves from `third-party/hefty`.
 - [ ] ruff/mypy/vulture config excludes `third-party/**`.
 
@@ -86,8 +83,8 @@ and latest forecast storage.
 - [ ] project tables: `met_forecast`, `met_forecast_latest`,
 `pv_energy_forecast`, `available_pv_energy_forecast`.
 - [ ] project migrations use `for_each_project_schema`.
-- [ ] latest table replaced atomically per project/provider run.
-- [ ] latest table stores latest run per project/provider.
+- [ ] use existing mise db command to make sure that migration files are correct
+- [ ] latest table upsertable by provider/run/forecasted time.
 - [ ] output column documented as W at POI despite energy table naming.
 
 **Dependencies:** None
@@ -196,20 +193,20 @@ metadata, producing pv-eem-compatible POI power.
 
 **Estimated scope:** Medium: 3-5 files
 
-## Task 8: Available Forecast Deferred
+## Task 8: Available Forecast Mirror
 
-**Description:** Create table only; do not calculate available forecast yet.
+**Description:** Persist available forecast without downtime subtraction for MVP.
 
 **Acceptance criteria:**
-- [ ] `available_pv_energy_forecast` table exists from migration.
-- [ ] no runtime writes to available forecast.
+- [ ] `available_pv_energy_forecast` value equals PV forecast value.
+- [ ] code names make downtime intentionally absent.
 - [ ] no dependency on outage/ticket/energy downtime APIs.
 
-**Dependencies:** Task 2
+**Dependencies:** Task 7
 
 **Files likely touched:**
-- `core/src/core/models.py`
-- `core/_alembic_migrations/versions/*.py`
+- `forecast/pv_energy/availability.py`
+- `core/src/core/crud/project/available_pv_energy_forecast.py`
 
 **Estimated scope:** Small: 1-2 files
 
@@ -236,8 +233,8 @@ metadata, producing pv-eem-compatible POI power.
 
 **Acceptance criteria:**
 - [ ] Dockerfile builds `forecast`, `core`, and local hEFTy dependency.
-- [ ] CDK stack creates Lambda, log group, daily EventBridge schedule.
-- [ ] IAM permits AWS Secrets Manager access for DB credentials.
+- [ ] CDK stack creates Lambda, log group, EventBridge schedule (once per day).
+- [ ] IAM permits DB/secrets access needed by runtime.
 - [ ] `.mise.toml` has forecast deploy/check tasks.
 
 **Dependencies:** Task 9
@@ -278,4 +275,5 @@ metadata, producing pv-eem-compatible POI power.
 | CDK image may need hefty native deps | Med | Docker build test before deploy |
 
 ## Open Questions
-- None.
+- Secret/env source for forecast DB credentials?
+- Should latest table retain one provider latest run per project, or per run time?
