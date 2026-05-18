@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Literal
 
 import sentry_sdk
@@ -13,6 +14,8 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from app import settings
 from app.dependencies import get_async_db
 from app.interfaces import UserAuthed
+
+logger = logging.getLogger(__name__)
 
 
 async def get_user(
@@ -57,6 +60,11 @@ async def get_user(
 
     # If an unexpected error occurs, log the error and raise an HTTPException
     except Exception as e:
+        logger.error(
+            "Authentication failed for %s: %s",
+            request.url.path,
+            type(e).__name__,
+        )
         sentry_sdk.capture_exception(e)
         raise HTTPException(
             status_code=401,
