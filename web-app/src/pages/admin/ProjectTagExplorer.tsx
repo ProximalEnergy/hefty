@@ -1617,7 +1617,6 @@ const ProjectTagExplorer = () => {
                               typeof value === 'number' ? value : null,
                             )
                           }
-                          min={0}
                           step={0.000001}
                           decimalScale={6}
                           size="xs"
