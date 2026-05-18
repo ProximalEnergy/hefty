@@ -1,4 +1,4 @@
-import { paths } from '@/api/schema'
+import { components, paths } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
@@ -8,18 +8,7 @@ type get = paths[typeof URL]['get']
 type getPathParams = get['parameters']['path']
 type getQueryParams = get['parameters']['query']
 
-export interface ProjectIssue {
-  issue_id: number
-  device_id: number
-  device_type_id: number | null
-  device_type_name: string
-  device_name_full: string
-  tag_id: number | null
-  issue_category_id: number
-  issue_category: string
-  time_start: string
-  time_end: string | null
-}
+export type ProjectIssue = components['schemas']['ProjectIssueSummary']
 
 export const useGetProjectIssues = ({
   pathParams,

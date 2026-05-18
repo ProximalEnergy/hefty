@@ -1,0 +1,2428 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Bulletproof React (Proximal variant) — Cursor rules walkthrough
+    </title>
+    <style>
+      /* ============= Theme tokens ============= */
+      :root {
+        --proximal-blue-0: #e6f7fd;
+        --proximal-blue-3: #83d8f7;
+        --proximal-blue-6: #21b8f1;
+        --proximal-blue-7: #00aeef;
+        --proximal-blue-9: #009dd7;
+        --proximal-black: #231f20;
+        --bg: #ffffff;
+        --bg-subtle: #f6f8fa;
+        --bg-card: #ffffff;
+        --bg-rail: #fbfcfd;
+        --border: #e6e9ee;
+        --border-strong: #d4d9e0;
+        --text: var(--proximal-black);
+        --text-dim: #4a5159;
+        --text-mute: #7a8089;
+        --code-bg: #f0f3f6;
+        --code-text: #1f2933;
+        --pre-bg: #15181b;
+        --pre-text: #e9ecef;
+        --pre-border: #2a2e34;
+        --accent: var(--proximal-blue-7);
+        --accent-hover: var(--proximal-blue-9);
+        --accent-soft: var(--proximal-blue-0);
+        --accent-strong: var(--proximal-blue-9);
+        --shadow:
+          0 1px 2px rgba(15, 20, 30, 0.04), 0 0 0 1px rgba(15, 20, 30, 0.04);
+        --shadow-elev: 0 4px 14px rgba(15, 20, 30, 0.08);
+        --radius: 10px;
+        --radius-sm: 6px;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+          Arial, sans-serif;
+        --font-mono:
+          ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono',
+          monospace;
+      }
+      [data-theme='dark'] {
+        --bg: #14171a;
+        --bg-subtle: #1c2024;
+        --bg-card: #1c2024;
+        --bg-rail: #181b1f;
+        --border: #2c3138;
+        --border-strong: #3a4049;
+        --text: #ecedef;
+        --text-dim: #c5cbd1;
+        --text-mute: #8c939c;
+        --code-bg: #25282d;
+        --code-text: #f1f3f5;
+        --pre-bg: #0e1013;
+        --pre-text: #ecedef;
+        --pre-border: #2a2e34;
+        --accent-soft: rgba(0, 174, 239, 0.14);
+        --shadow:
+          0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
+        --shadow-elev:
+          0 4px 14px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      /* ============= Reset / base ============= */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--font-sans);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ============= Topbar (full width) ============= */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: rgba(255, 255, 255, 0.85);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: saturate(180%) blur(10px);
+      }
+      [data-theme='dark'] .topbar {
+        background: rgba(20, 23, 26, 0.85);
+      }
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 28px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .brand-mark {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: linear-gradient(
+          135deg,
+          var(--accent),
+          var(--accent-strong)
+        );
+        box-shadow: 0 2px 8px rgba(0, 174, 239, 0.4);
+      }
+      .topbar-right {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .pill-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        padding: 4px 10px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-radius: 999px;
+        font-weight: 600;
+      }
+      .pill-status::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.18);
+      }
+      .theme-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 12.5px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .theme-toggle:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ============= Page grid (full-width) ============= */
+      .page {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 36px;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 28px 28px 96px;
+      }
+      @media (max-width: 980px) {
+        .page {
+          grid-template-columns: 1fr;
+          gap: 16px;
+          padding: 16px 16px 64px;
+        }
+      }
+
+      /* ============= Sidebar TOC (sticky within its own column) ============= */
+      aside.sidebar {
+        position: sticky;
+        top: 76px;
+        align-self: start;
+        max-height: calc(100vh - 96px);
+        overflow-y: auto;
+        padding: 16px 14px;
+        background: var(--bg-rail);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 13px;
+      }
+      @media (max-width: 980px) {
+        aside.sidebar {
+          position: static;
+          max-height: none;
+        }
+      }
+      .toc-title {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--text-mute);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin: 4px 8px 10px;
+      }
+      .toc-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .toc-list a {
+        display: block;
+        padding: 6px 10px;
+        color: var(--text-dim);
+        text-decoration: none;
+        border-radius: var(--radius-sm);
+        border-left: 2px solid transparent;
+        transition: all 0.12s;
+      }
+      .toc-list a:hover {
+        background: var(--bg-card);
+        color: var(--text);
+      }
+      .toc-list a.active {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-left-color: var(--accent);
+        font-weight: 500;
+      }
+      .toc-divider {
+        margin: 12px 8px;
+        border: 0;
+        border-top: 1px solid var(--border);
+      }
+      .toc-meta {
+        font-size: 11.5px;
+        color: var(--text-mute);
+        margin: 2px 8px 0;
+        line-height: 1.5;
+      }
+
+      /* ============= Main column ============= */
+      main.content {
+        min-width: 0;
+      }
+
+      /* ============= Hero ============= */
+      .hero {
+        padding: 8px 0 24px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 28px;
+      }
+      .hero-eyebrow {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+      .hero h1 {
+        font-size: 32px;
+        line-height: 1.15;
+        margin: 0 0 10px;
+        letter-spacing: -0.02em;
+      }
+      .hero p.lead {
+        font-size: 16px;
+        color: var(--text-dim);
+        max-width: 70ch;
+        margin: 0 0 16px;
+      }
+      .stat-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .stat {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+      }
+      .stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-mute);
+        letter-spacing: 0.06em;
+      }
+      .stat-value {
+        font-size: 14px;
+        color: var(--text);
+        margin-top: 2px;
+        font-family: var(--font-mono);
+      }
+
+      /* ============= Sections ============= */
+      section {
+        margin-top: 56px;
+        scroll-margin-top: 80px;
+      }
+      section h2 {
+        font-size: 22px;
+        margin: 0 0 4px;
+        letter-spacing: -0.01em;
+      }
+      section .sub {
+        color: var(--text-mute);
+        font-size: 14px;
+        margin: 0 0 20px;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 22px 0 10px;
+      }
+      h4 {
+        font-size: 12.5px;
+        margin: 16px 0 8px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      a {
+        color: var(--accent);
+      }
+      a:hover {
+        color: var(--accent-hover);
+      }
+      blockquote {
+        margin: 12px 0;
+        padding: 10px 14px;
+        border-left: 3px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        color: var(--text);
+        font-size: 14px;
+      }
+      blockquote p {
+        margin: 0;
+      }
+
+      /* ============= Cards ============= */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+      }
+      .card + .card {
+        margin-top: 14px;
+      }
+
+      /* ============= Inline code / pre ============= */
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.87em;
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 1.5px 6px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+      }
+      pre {
+        margin: 12px 0;
+        padding: 14px 16px;
+        background: var(--pre-bg);
+        color: var(--pre-text);
+        border: 1px solid var(--pre-border);
+        border-radius: var(--radius-sm);
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        line-height: 1.55;
+        overflow-x: auto;
+      }
+      pre code {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        border: 0;
+        font-size: inherit;
+      }
+
+      /* ============= Tables ============= */
+      .table-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--bg-card);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-weight: 600;
+        font-size: 12.5px;
+        color: var(--text-dim);
+        background: var(--bg-subtle);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      /* ============= Pills ============= */
+      .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-right: 6px;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      .pill-mute {
+        background: var(--bg-subtle);
+        color: var(--text-mute);
+        border: 1px solid var(--border);
+      }
+      .pill-warn {
+        background: rgba(250, 176, 5, 0.12);
+        color: #b06800;
+      }
+      [data-theme='dark'] .pill-warn {
+        background: rgba(250, 176, 5, 0.18);
+        color: #ffc940;
+      }
+      .pill-good {
+        background: rgba(47, 158, 68, 0.12);
+        color: #2b8a3e;
+      }
+      [data-theme='dark'] .pill-good {
+        background: rgba(47, 158, 68, 0.2);
+        color: #69db7c;
+      }
+
+      /* ============= Interactive label ============= */
+      .interactive-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 3px 9px;
+        border-radius: 999px;
+        margin-left: 8px;
+      }
+      .interactive-flag::before {
+        content: '✦';
+        font-size: 10px;
+      }
+
+      /* ============= Folder tree (clickable, very obvious) ============= */
+      .tree {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        background: var(--bg-rail);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        margin: 12px 0;
+      }
+      .tree details {
+        margin: 0;
+      }
+      .tree summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 4px 6px 4px 0;
+        color: var(--text);
+        user-select: none;
+        border-radius: 4px;
+        transition: background 0.12s;
+      }
+      .tree summary:hover {
+        background: var(--accent-soft);
+      }
+      .tree summary::-webkit-details-marker {
+        display: none;
+      }
+      .tree summary::before {
+        content: '▸';
+        display: inline-block;
+        width: 16px;
+        color: var(--accent);
+        font-weight: bold;
+        transition: transform 0.18s;
+      }
+      .tree details[open] > summary::before {
+        transform: rotate(90deg);
+      }
+      .tree .file {
+        padding: 3px 0 3px 22px;
+        color: var(--text-dim);
+      }
+      .tree .file::before {
+        content: '·';
+        color: var(--text-mute);
+        margin-right: 8px;
+        margin-left: -10px;
+      }
+      .tree .file-comment {
+        color: var(--text-mute);
+        font-style: italic;
+      }
+      .tree .nested {
+        padding-left: 20px;
+        border-left: 1px dashed var(--border-strong);
+        margin-left: 6px;
+        margin-top: 2px;
+      }
+      .tree-hint {
+        font-size: 12px;
+        color: var(--accent);
+        margin: 0 0 6px;
+        font-weight: 500;
+      }
+
+      /* ============= Tabs (button-like) ============= */
+      .tabs {
+        display: inline-flex;
+        gap: 4px;
+        background: var(--bg-rail);
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 14px;
+        max-width: 100%;
+        flex-wrap: wrap;
+      }
+      .tabs button {
+        background: transparent;
+        border: 0;
+        color: var(--text-dim);
+        font-family: var(--font-sans);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.12s;
+      }
+      .tabs button:hover:not(.active) {
+        background: var(--bg-card);
+        color: var(--text);
+      }
+      .tabs button.active {
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 1px 3px rgba(0, 174, 239, 0.35);
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* ============= Diff layout ============= */
+      .diff-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      @media (max-width: 820px) {
+        .diff-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .diff-stat {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-left: 8px;
+      }
+      .diff-stat.before {
+        background: rgba(224, 49, 49, 0.1);
+        color: #c92a2a;
+      }
+      .diff-stat.after {
+        background: rgba(47, 158, 68, 0.1);
+        color: #2b8a3e;
+      }
+      [data-theme='dark'] .diff-stat.before {
+        background: rgba(224, 49, 49, 0.2);
+        color: #ff8787;
+      }
+      [data-theme='dark'] .diff-stat.after {
+        background: rgba(47, 158, 68, 0.2);
+        color: #69db7c;
+      }
+
+      /* ============= Two-column layout ============= */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      @media (max-width: 820px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ============= Callouts ============= */
+      .callout {
+        border-left: 3px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 16px;
+        margin: 14px 0;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        font-size: 14px;
+      }
+      .callout strong {
+        color: var(--text);
+      }
+
+      /* ============= Terminal block ============= */
+      .terminal {
+        background: #0e1013;
+        color: #e9ecef;
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.6;
+        border: 1px solid #2a2e34;
+        overflow-x: auto;
+      }
+      .terminal .prompt {
+        color: #66e8a9;
+      }
+      .terminal .ok {
+        color: #69db7c;
+      }
+      .terminal .dim {
+        color: #8c939c;
+      }
+
+      /* ============= Footer ============= */
+      footer {
+        margin-top: 64px;
+        padding-top: 22px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-mute);
+        text-align: center;
+      }
+
+      /* ============= Changes section ============= */
+      .changes-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin: 18px 0 4px;
+      }
+      .severity-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px 22px;
+        margin: 18px 0 26px;
+        padding: 12px 16px;
+        background: var(--bg-rail);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--text-dim);
+        align-items: center;
+      }
+      .sev-key {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sev-pill {
+        display: inline-block;
+        padding: 3px 10px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        border-radius: 999px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .sev-pill-exclude {
+        background: rgba(224, 49, 49, 0.16);
+        color: #c92a2a;
+        border: 1px solid rgba(224, 49, 49, 0.35);
+      }
+      .sev-pill-high {
+        background: rgba(244, 122, 33, 0.16);
+        color: #b06400;
+        border: 1px solid rgba(244, 122, 33, 0.35);
+      }
+      .sev-pill-medium {
+        background: rgba(0, 174, 239, 0.14);
+        color: var(--accent);
+        border: 1px solid rgba(0, 174, 239, 0.35);
+      }
+      .sev-pill-low {
+        background: rgba(47, 158, 68, 0.14);
+        color: #2b8a3e;
+        border: 1px solid rgba(47, 158, 68, 0.35);
+      }
+      [data-theme='dark'] .sev-pill-exclude {
+        color: #ff8787;
+        background: rgba(224, 49, 49, 0.25);
+      }
+      [data-theme='dark'] .sev-pill-high {
+        color: #ffc940;
+        background: rgba(244, 122, 33, 0.25);
+      }
+      [data-theme='dark'] .sev-pill-medium {
+        color: #74c0fc;
+        background: rgba(0, 174, 239, 0.22);
+      }
+      [data-theme='dark'] .sev-pill-low {
+        color: #69db7c;
+        background: rgba(47, 158, 68, 0.25);
+      }
+
+      .diff-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-left-width: 4px;
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        margin: 16px 0;
+        box-shadow: var(--shadow);
+      }
+      .diff-card.sev-exclude {
+        border-left-color: #c92a2a;
+      }
+      .diff-card.sev-high {
+        border-left-color: #f47a21;
+      }
+      .diff-card.sev-medium {
+        border-left-color: var(--accent);
+      }
+      .diff-card.sev-low {
+        border-left-color: #2b8a3e;
+      }
+
+      .diff-card-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .diff-file {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        word-break: break-all;
+      }
+      .diff-tag {
+        display: inline-block;
+        padding: 2px 9px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-mute);
+        background: var(--bg-subtle);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        letter-spacing: 0.02em;
+      }
+      .diff-why {
+        color: var(--text-dim);
+        font-size: 14px;
+        margin: 0 0 12px;
+        line-height: 1.6;
+      }
+      .diff-why strong {
+        color: var(--text);
+      }
+
+      .diff-block {
+        background: var(--pre-bg);
+        color: var(--pre-text);
+        border: 1px solid var(--pre-border);
+        border-radius: var(--radius-sm);
+        padding: 8px 0;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.7;
+        overflow-x: auto;
+        white-space: pre;
+        margin: 0;
+      }
+      .diff-block > span {
+        display: block;
+        padding: 0 14px;
+      }
+      .diff-block .diff-hunk {
+        color: #66d9ef;
+        background: rgba(102, 217, 239, 0.08);
+        padding: 3px 14px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .diff-block .diff-hunk:first-child {
+        margin-top: 0;
+      }
+      .diff-block .diff-add {
+        background: rgba(47, 158, 68, 0.22);
+        color: #b2f2bb;
+        border-left: 3px solid #2b8a3e;
+        padding-left: 11px;
+      }
+      .diff-block .diff-del {
+        background: rgba(224, 49, 49, 0.22);
+        color: #ffc9c9;
+        border-left: 3px solid #c92a2a;
+        padding-left: 11px;
+      }
+      .diff-block .diff-ctx {
+        color: #adb5bd;
+      }
+
+      /* margin annotations next to specific lines */
+      .annotation-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: var(--bg-rail);
+        border: 1px dashed var(--border-strong);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .annotation-row .anno-line {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 1px 7px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <span>Bulletproof React · Proximal</span>
+        </div>
+        <div class="topbar-right">
+          <span class="pill-status">2 features pass conformance</span>
+          <button
+            class="theme-toggle"
+            id="themeToggle"
+            type="button"
+            aria-label="Toggle theme"
+          >
+            <span id="themeLabel">Dark</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="page">
+      <!-- ============= Sidebar ============= -->
+      <aside class="sidebar" aria-label="Table of contents">
+        <div class="toc-title">On this page</div>
+        <ul class="toc-list" id="toc">
+          <li><a href="#changes">Changes in this PR</a></li>
+          <li><a href="#what">What this is</a></li>
+          <li><a href="#deviations">Deviations from upstream</a></li>
+          <li><a href="#anatomy">Feature anatomy</a></li>
+          <li><a href="#folders">Allowed subfolders</a></li>
+          <li><a href="#naming">File naming</a></li>
+          <li><a href="#pattern">Context + view-model</a></li>
+          <li><a href="#data">Data layer deviation</a></li>
+          <li><a href="#migration">Migration recipe</a></li>
+          <li><a href="#rules">The two .mdc files</a></li>
+          <li><a href="#excuses">Anti-rationalization</a></li>
+          <li><a href="#evidence">Conformance check</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ul>
+        <hr class="toc-divider" />
+        <div class="toc-meta">
+          Branch:<br /><code style="font-size: 11px"
+            >feature/bulletproof-met-station</code
+          >
+        </div>
+        <div class="toc-meta" style="margin-top: 8px">
+          Reference:
+          <code style="font-size: 11px">performance/met-station</code>
+        </div>
+      </aside>
+
+      <!-- ============= Main content ============= -->
+      <main class="content">
+        <header class="hero">
+          <span class="hero-eyebrow">web-app/.cursor/rules/</span>
+          <h1>Bulletproof React, the Proximal way.</h1>
+          <p class="lead">
+            Two Cursor rules + one Claude Code skill + one conformance script
+            that codify how features are organized in
+            <code>web-app/src/features/</code>. SKILL.md is the canonical
+            source; <code>.cursor/rules/*.mdc</code> mirrors it. The script
+            enforces structure regardless of which agent wrote the code.
+          </p>
+          <div class="stat-row">
+            <div class="stat">
+              <div class="stat-label">Auto-attach rule</div>
+              <div class="stat-value">feature-structure.mdc</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Manual rule</div>
+              <div class="stat-value" style="font-size: 11px">
+                @bulletproof-react-legacy-page-to-feature
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Check script</div>
+              <div class="stat-value">pnpm check:bulletproof-react</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Reference feature</div>
+              <div class="stat-value">performance/met-station</div>
+            </div>
+          </div>
+        </header>
+
+        <!-- ============= Update — PR #1570 review ============= -->
+        <section id="update-1570">
+          <div
+            class="callout"
+            style="
+              margin-top: 8px;
+              margin-bottom: 32px;
+              border-left-color: var(--proximal-blue-7);
+              background: var(--accent-soft);
+            "
+          >
+            <strong>Update — 2026-05-14 · PR #1570 review</strong>
+            <p style="margin-top: 8px">
+              Two rounds of post-merge review applied to the skill mirrors
+              (Claude Code, Codex CLI, Cursor). The &quot;Changes in this
+              PR&quot; section below reflects PR #1556 (the original ship); the
+              <em>current</em> on-disk state is captured in this update.
+            </p>
+            <ul style="margin: 8px 0 0; padding-left: 20px">
+              <li>
+                <strong>File rename</strong> — <code>migration.md</code> →
+                <code>legacy-page-to-feature.md</code> across all three mirrors.
+                Cursor invocation is now
+                <code>@bulletproof-react-legacy-page-to-feature</code>.
+                <a
+                  href="https://github.com/ProximalEnergy/mono/pull/1570#issuecomment-4453012468"
+                  >Kurt's request</a
+                >
+                — &quot;migration&quot; collides with Alembic-style DB
+                schema-versioning in this codebase.
+              </li>
+              <li>
+                <strong>Path prefix on <code>web-app/</code></strong> — four
+                <code>src/&hellip;</code> callouts in <code>SKILL.md</code> and
+                <code>legacy-page-to-feature.md</code> updated to
+                <code>web-app/src/&hellip;</code> in the
+                <code>.claude/</code> and <code>.agents/</code> mirrors. Per
+                Gemini review:
+                <a
+                  href="https://github.com/ProximalEnergy/mono/pull/1570#discussion_r3235898120"
+                  >SKILL L53</a
+                >,
+                <a
+                  href="https://github.com/ProximalEnergy/mono/pull/1570#discussion_r3235898156"
+                  >SKILL L139</a
+                >,
+                <a
+                  href="https://github.com/ProximalEnergy/mono/pull/1570#discussion_r3235898165"
+                  >recipe L49</a
+                >,
+                <a
+                  href="https://github.com/ProximalEnergy/mono/pull/1570#discussion_r3235898173"
+                  >recipe L52</a
+                >.
+              </li>
+              <li>
+                <strong
+                  >Cursor <code>.mdc</code> files <em>not</em> prefixed</strong
+                >
+                — those declare <code>globs: src/features/**</code> from a
+                <code>web-app/</code>-rooted context, so unqualified
+                <code>src/&hellip;</code> is already correct there. Adding
+                <code>web-app/</code> would be wrong.
+              </li>
+              <li>
+                <strong>Terminology sweep</strong> — noun uses of
+                &quot;migration&quot; inside the renamed recipe (e.g.
+                &quot;Evidence the migration is done&quot;) updated to
+                &quot;refactor&quot; / &quot;conversion&quot; to match the new
+                filename. Verb form (&quot;Migrating a legacy
+                page&hellip;&quot;) left alone — it reads as an action, not the
+                DB-schema term.
+              </li>
+              <li>
+                <strong>Codex CLI mirror added</strong> — new
+                <code>.agents/skills/bulletproof-react-feature-structure/</code>
+                holds the byte-identical-content twin of the
+                <code>.claude/</code> skill so the Codex CLI loads it from its
+                own scan root. Conformance script comment now lists all three
+                mirrors as source-of-truth pointers.
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ============= Changes in this PR ============= -->
+        <section id="changes">
+          <h2>Changes in this PR</h2>
+          <p class="sub">
+            Six files modified, two empty placeholders deleted, two renames
+            already staged. Reconciling SKILL.md frontmatter with Anthropic's
+            spec, syncing the Cursor <code>.mdc</code> mirror, fixing one
+            doc-vs-reference drift in <code>DayView.tsx</code>, expanding
+            documented deviations.
+          </p>
+
+          <div class="changes-stats">
+            <div class="stat">
+              <div class="stat-label">Files modified</div>
+              <div class="stat-value" style="font-size: 18px">6</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Files deleted</div>
+              <div class="stat-value" style="font-size: 16px">
+                2 placeholders
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Renames staged</div>
+              <div class="stat-value" style="font-size: 13px">
+                SKILL.md, migration.md → repo root
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Conformance</div>
+              <div class="stat-value" style="font-size: 14px; color: #2b8a3e">
+                ✓ 2 features pass
+              </div>
+            </div>
+          </div>
+
+          <div class="severity-legend">
+            <span class="sev-key"
+              ><span class="sev-pill sev-pill-high">High</span> spec compliance
+              / correctness</span
+            >
+            <span class="sev-key"
+              ><span class="sev-pill sev-pill-medium">Medium</span> doc sync,
+              clarity</span
+            >
+            <span class="sev-key"
+              ><span class="sev-pill sev-pill-low">Low</span> cleanup,
+              comment-only</span
+            >
+          </div>
+
+          <!-- HIGH — SKILL.md frontmatter + body -->
+          <article class="diff-card sev-high">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-high">High</span>
+              <code class="diff-file"
+                >.claude/skills/bulletproof-react-feature-structure/SKILL.md</code
+              >
+              <span class="diff-tag">Anthropic spec + Addy anatomy</span>
+            </header>
+            <p class="diff-why">
+              <strong>Frontmatter (line 4 removed):</strong> Anthropic's
+              SKILL.md schema accepts only <code>name</code>,
+              <code>description</code>, and optional <code>allowed-tools</code>.
+              The <code>paths:</code> key was foreign — a Cursor concept (and
+              even there it's <code>globs:</code>). The Claude Code loader is
+              permissive but the field misleads anyone reading the file. Trigger
+              is already encoded in the description.<br /><br />
+              <strong>Body (3 additions):</strong> "Anti-patterns" renamed to
+              "Red Flags" to align with Addy Osmani's skill anatomy. New "Common
+              Rationalizations" table (5 rows) parallels
+              <code>migration.md</code> but targets structural rules. New "Soft
+              rules (warnings, not errors)" section documents the three warnings
+              the conformance script emits silently —
+              <code>self-barrel-absolute-import</code>,
+              <code>self-deep-absolute-import</code>,
+              <code>feature-root-stray-file</code>.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">@@ -1,7 +1,6 @@   frontmatter</span>
+<span class="diff-ctx"> ---</span>
+<span class="diff-ctx"> name: bulletproof-react-feature-structure</span>
+<span class="diff-ctx"> description: Defines the Bulletproof React (Proximal variant)…</span>
+<span class="diff-del">-paths: web-app/src/features/**/*.{ts,tsx}, web-app/src/pages/**/*.{ts,tsx}</span>
+<span class="diff-ctx"> ---</span>
+<span class="diff-hunk">@@ section heading rename</span>
+<span class="diff-del">-# Anti-patterns</span>
+<span class="diff-add">+# Red Flags</span>
+<span class="diff-hunk">@@ new section: Common Rationalizations</span>
+<span class="diff-add">+# Common Rationalizations</span>
+<span class="diff-add">+</span>
+<span class="diff-add">+| Excuse | Rebuttal |</span>
+<span class="diff-add">+| --- | --- |</span>
+<span class="diff-add">+| "I just need a `stores/`… folder for this one feature."   | Folders outside the seven are not permitted. … |</span>
+<span class="diff-add">+| "I'll inline the route path in `routes/Route.tsx`…"        | Route paths live in `App.tsx`. … |</span>
+<span class="diff-add">+| "Within my own feature it's clearer to absolute-import…"   | Within a feature, use relative paths. … |</span>
+<span class="diff-add">+| "The view can call `useQuery` directly — VM hook is ceremony." | View-model hooks isolate query composition from rendering. … |</span>
+<span class="diff-add">+| "I'll throw an `axios` call in the view-model for a one-off." | View-models compose shared API hooks only. … |</span>
+<span class="diff-hunk">@@ new section: Soft rules (warnings, not errors)</span>
+<span class="diff-add">+# Soft rules (warnings, not errors)</span>
+<span class="diff-add">+</span>
+<span class="diff-add">+- **`self-barrel-absolute-import`** — Importing your own feature's barrel…</span>
+<span class="diff-add">+- **`self-deep-absolute-import`** — Absolute deep imports into your own feature…</span>
+<span class="diff-add">+- **`feature-root-stray-file`** — Any file at the feature root other than `index.ts`…</span></pre>
+            <div class="annotation-row">
+              <span class="anno-line">L4</span>
+              <span
+                ><code>paths:</code> is not in Anthropic's SKILL.md schema. See
+                <a
+                  href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
+                  >Agent Skills · Skill structure</a
+                >.</span
+              >
+            </div>
+          </article>
+
+          <!-- 3. HIGH — DayView.tsx prop typing -->
+          <article class="diff-card sev-high">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-high">High</span>
+              <code class="diff-file"
+                >web-app/src/features/performance/met-station/views/DayView.tsx</code
+              >
+              <span class="diff-tag">Doc ↔ reference drift</span>
+            </header>
+            <p class="diff-why">
+              SKILL.md's "Component prop typing" section literally cites
+              <code>DayView</code> as the reference example for the hoisted
+              <code>type DayViewProps = { ... }</code> pattern — but the file
+              itself used the inline anonymous-type form. Reference now matches
+              the doc. <code>LongTermView.tsx</code> and
+              <code>RealTimeView.tsx</code> already follow the hoisted form.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">@@ -11,7 +11,9 @@</span>
+<span class="diff-ctx"> import { buildTimeSearchParams } from '../utils/build-time-search-params'</span>
+<span class="diff-ctx"> import { MetStationWindRose } from '../components/MetStationWindRose'</span>
+<span class="diff-ctx"> import { MetStationIssuesTable } from '../components/MetStationIssuesTable'</span>
+<span class="diff-ctx"> </span>
+<span class="diff-del">-export function DayView({ context }: { context: MetStationContext }) {</span>
+<span class="diff-add">+type DayViewProps = { context: MetStationContext }</span>
+<span class="diff-add">+</span>
+<span class="diff-add">+export function DayView({ context }: DayViewProps) {</span>
+<span class="diff-ctx">   const [searchParams] = useSearchParams()</span>
+<span class="diff-ctx">   const [averageTimeseries, setAverageTimeseries] = useState(false)</span></pre>
+          </article>
+
+          <!-- 4. MEDIUM — feature-structure.mdc sync -->
+          <article class="diff-card sev-medium">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-medium">Medium</span>
+              <code class="diff-file"
+                >web-app/.cursor/rules/bulletproof-react-feature-structure.mdc</code
+              >
+              <span class="diff-tag">Sync to canon</span>
+            </header>
+            <p class="diff-why">
+              Synced to match SKILL.md (now canonical). Imports section expanded
+              with three-form cross-feature import callout (absolute / relative
+              / side-effect). "Anti-patterns" → "Red Flags" rename. New Common
+              Rationalizations table, Soft rules section, and Verification
+              section. Same content as SKILL.md, tightened for Cursor's
+              auto-attach context budget.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">@@ Imports section (expanded to 3-form callout)</span>
+<span class="diff-del">-- Features never import from other features. Compose features at the route/app layer.</span>
+<span class="diff-add">+- Features never import from other features in any form. This includes:</span>
+<span class="diff-add">+  - Absolute: `import x from '@/features/&lt;other&gt;/...'`</span>
+<span class="diff-add">+  - Relative: `import x from '../../&lt;other-feature&gt;/...'`</span>
+<span class="diff-add">+  - Side-effect: `import '@/features/&lt;other&gt;'` (bare, no `from`)</span>
+<span class="diff-hunk">@@ Anti-patterns → Red Flags + new sections</span>
+<span class="diff-del">-# Anti-patterns</span>
+<span class="diff-add">+# Red Flags</span>
+<span class="diff-add">+ … plus Common Rationalizations (5 rows), Soft rules, Verification — see SKILL.md for full text</span></pre>
+          </article>
+
+          <!-- 5. MEDIUM — migration.mdc -->
+          <article class="diff-card sev-medium">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-medium">Medium</span>
+              <code class="diff-file"
+                >web-app/.cursor/rules/bulletproof-react-migration.mdc</code
+              >
+              <span class="diff-tag">Sync + stale-note removal</span>
+            </header>
+            <p class="diff-why">
+              Three fixes. (1) Step 9 verify now uses
+              <code>mise exec -- pnpm run check</code> — the wired-up gate — not
+              the obsolete per-tool list. (2) Adds the 7th anti-rationalization
+              row (side-effect import) that was missing here but present in
+              <code>migration.md</code>. (3) Removes stale "future
+              <code>pnpm check:features</code> script (planned)" line — the
+              script exists now, named <code>check-bulletproof-react</code>,
+              already folded into <code>pnpm check</code>.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">@@ Step 9 — verify command</span>
+<span class="diff-del">-9. **Verify.** Run `pnpm typecheck`, `pnpm lint`, `pnpm prettier:check`. …</span>
+<span class="diff-add">+9. **Verify.** Run `mise exec -- pnpm run check` (typecheck + prettier + knip + bulletproof-react conformance). …</span>
+<span class="diff-hunk">@@ Anti-rationalization table — add side-effect import row</span>
+<span class="diff-add">+| "I'll just use a side-effect import for the cross-feature dependency." | Any cross-feature import is a no-go (absolute, relative, side-effect). Lift the shared piece to `src/`. |</span>
+<span class="diff-hunk">@@ Evidence — replace per-tool list with `pnpm check`</span>
+<span class="diff-del">-- `pnpm typecheck` passes.</span>
+<span class="diff-del">-- `pnpm lint` passes.</span>
+<span class="diff-del">-- `pnpm prettier:check` passes.</span>
+<span class="diff-add">+- `mise exec -- pnpm run check:bulletproof-react` outputs "✓ … no violations".</span>
+<span class="diff-add">+- `mise exec -- pnpm run check` passes (typecheck + prettier + knip + bulletproof).</span>
+<span class="diff-hunk">@@ Footer — remove stale "future planned" note</span>
+<span class="diff-del">-A future `pnpm check:features` script (planned) will mechanise the structural checks. Until then, eyeball this list before opening the PR.</span>
+<span class="diff-add">+The conformance script (`web-app/scripts/check-bulletproof-react.mjs`) is the mechanical enforcer.</span></pre>
+          </article>
+
+          <!-- 6. MEDIUM — _README_FEATURES.md -->
+          <article class="diff-card sev-medium">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-medium">Medium</span>
+              <code class="diff-file">web-app/_docs/_README_FEATURES.md</code>
+              <span class="diff-tag">Documented deviations</span>
+            </header>
+            <p class="diff-why">
+              The "Deviations from Bulletproof React" section previously
+              documented only one deviation (queries-shared). Three more were
+              intentional but undocumented: nested
+              <code>&lt;group&gt;/&lt;feature&gt;/</code> layout, co-located
+              routes (upstream puts routes in <code>src/app/routes/</code>), and
+              the closed subfolder list. New authors now see all four upfront.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">@@ Deviations section — was 1 bullet, now 4</span>
+<span class="diff-ctx"> ## Deviations from Bulletproof React</span>
+<span class="diff-add">+- **Queries are shared, not feature-local.** … (existing content, kept)</span>
+<span class="diff-add">+- **Features are grouped by product domain.** We nest features under `src/features/&lt;group&gt;/&lt;feature&gt;/` …</span>
+<span class="diff-add">+- **Routes are co-located inside features.** Upstream BR puts route components under `src/app/routes/`; we keep them in the feature …</span>
+<span class="diff-add">+- **The subfolder list is closed and enforced.** Allowed: `components`, `hooks`, `queries`, `routes`, `types`, `utils`, `views`. … The conformance script blocks any unknown subfolder.</span></pre>
+          </article>
+
+          <!-- 7. MEDIUM — Rename (already staged) -->
+          <article class="diff-card sev-medium">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-medium">Medium</span>
+              <code class="diff-file"
+                >.claude/skills/bulletproof-react-feature-structure/{SKILL.md,
+                migration.md}</code
+              >
+              <span class="diff-tag">Rename — single skill root</span>
+            </header>
+            <p class="diff-why">
+              Skills moved from <code>web-app/.claude/skills/</code> to
+              repo-root <code>.claude/skills/</code>. Claude Code only discovers
+              skills at the project-root level (cwd-relative); nested under
+              <code>web-app/</code> they would never load. The rename was staged
+              before this session — included here for completeness.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">R 80%  web-app/.claude/skills/bulletproof-react-feature-structure/SKILL.md     → .claude/skills/bulletproof-react-feature-structure/SKILL.md</span>
+<span class="diff-hunk">R 100% web-app/.claude/skills/bulletproof-react-feature-structure/migration.md → .claude/skills/bulletproof-react-feature-structure/migration.md</span></pre>
+          </article>
+
+          <!-- 8. LOW — check-bulletproof-react.mjs -->
+          <article class="diff-card sev-low">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-low">Low</span>
+              <code class="diff-file"
+                >web-app/scripts/check-bulletproof-react.mjs</code
+              >
+              <span class="diff-tag">Comment-only — canon flip</span>
+            </header>
+            <p class="diff-why">
+              Cosmetic. The script's source-of-truth comment previously pointed
+              at the <code>.mdc</code>. With SKILL.md now richer
+              (rationalizations table, soft rules, cleaned frontmatter), we
+              flipped canon to SKILL.md and added a "mirrored at" pointer to the
+              .mdc. <em>No behavioral change.</em>
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-hunk">@@ -1,3 +1,4 @@</span>
+<span class="diff-ctx"> #!/usr/bin/env node</span>
+<span class="diff-ctx"> // Conformance checker for the Bulletproof React (Proximal variant).</span>
+<span class="diff-del">-// Source of truth for the rules: web-app/.cursor/rules/bulletproof-react-feature-structure.mdc</span>
+<span class="diff-add">+// Source of truth for the rules: .claude/skills/bulletproof-react-feature-structure/SKILL.md (canonical).</span>
+<span class="diff-add">+// Mirrored at: web-app/.cursor/rules/bulletproof-react-feature-structure.mdc.</span></pre>
+          </article>
+
+          <!-- 9. LOW — empty file deletions -->
+          <article class="diff-card sev-low">
+            <header class="diff-card-head">
+              <span class="sev-pill sev-pill-low">Low</span>
+              <code class="diff-file"
+                >…/met-station/hooks/use-met-station-{long-term,realtime}-model.ts</code
+              >
+              <span class="diff-tag">Empty placeholders — deleted</span>
+            </header>
+            <p class="diff-why">
+              Both files are 0 bytes — Hunter scaffolded them when laying out
+              met-station, but neither view-model has been written and the
+              corresponding views (<code>LongTermView</code>,
+              <code>RealTimeView</code>) don't import them.
+              <code>knip</code> wasn't catching them. Deletion matches the
+              working pattern in <code>pv-inverter</code> (which has only
+              <code>use-pv-inverter-day-view-model.ts</code>). When those views
+              are implemented, the new files should be named
+              <code>use-met-station-long-term-view-model.ts</code> and
+              <code>use-met-station-real-time-view-model.ts</code> to match the
+              canonical <code>-view-model.ts</code> suffix.
+            </p>
+            <pre
+              class="diff-block"
+            ><span class="diff-del">D web-app/src/features/performance/met-station/hooks/use-met-station-long-term-model.ts  (0 bytes)</span>
+<span class="diff-del">D web-app/src/features/performance/met-station/hooks/use-met-station-realtime-model.ts   (0 bytes)</span></pre>
+          </article>
+
+          <div
+            class="callout"
+            style="
+              margin-top: 26px;
+              border-left-color: #2b8a3e;
+              background: rgba(47, 158, 68, 0.08);
+            "
+          >
+            <strong>Verification, post-change.</strong>
+            <code>pnpm check:bulletproof-react</code> exits 0 with
+            <em
+              >"✓ Bulletproof React conformance: 2 feature(s) checked, no
+              violations."</em
+            >
+            The <code>Skill</code> tool successfully loads
+            <code>bulletproof-react-feature-structure</code> after frontmatter
+            cleanup. Slash-command invocation
+            (<code>/bulletproof-react-feature-structure</code>) works.
+          </div>
+        </section>
+
+        <!-- ============= What ============= -->
+        <section id="what">
+          <h2>What this is</h2>
+          <p class="sub">For the reviewer who landed here cold.</p>
+          <p>
+            The team is migrating <code>web-app/</code> toward
+            <a href="https://github.com/alan2207/bulletproof-react"
+              >Bulletproof React</a
+            >, with adjustments. Hunter Coleman scaffolded the canonical example
+            at <code>web-app/src/features/performance/met-station/</code> and
+            wrote <code>web-app/_docs/_README_FEATURES.md</code> describing the
+            deviations.
+          </p>
+          <p>
+            Cursor reads <code>.cursor/rules/*.mdc</code> automatically. Claude
+            Code reads <code>.claude/skills/&lt;name&gt;/SKILL.md</code>. Both
+            tools now point at the same source of truth — the SKILL.md is
+            canonical; the <code>.mdc</code> mirrors it. The conformance script
+            is comment-tagged accordingly.
+          </p>
+          <div class="table-card" style="margin-top: 14px">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 38%">File</th>
+                  <th>How it triggers</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <code
+                      >.claude/skills/bulletproof-react-feature-structure/SKILL.md</code
+                    >
+                  </td>
+                  <td>
+                    <span class="pill pill-good">Canonical</span> Claude Code
+                    skill. Triggered by description-match or
+                    <code>/bulletproof-react-feature-structure</code>. The
+                    <code>legacy-page-to-feature.md</code> sibling loads via
+                    progressive disclosure when SKILL.md references it.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>bulletproof-react-feature-structure.mdc</code>
+                  </td>
+                  <td>
+                    <span class="pill">Auto-attach</span> when editing
+                    <code>src/features/**/*.{ts,tsx}</code> or
+                    <code>src/pages/**/*.{ts,tsx}</code>. Mirrors SKILL.md.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>bulletproof-react-legacy-page-to-feature.mdc</code>
+                  </td>
+                  <td>
+                    <span class="pill pill-mute">Manual</span> via
+                    <code>@bulletproof-react-legacy-page-to-feature</code>.
+                    Discrete-task shape — only loaded when actually doing a
+                    migration.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>scripts/check-bulletproof-react.mjs</code></td>
+                  <td>
+                    <span class="pill pill-good">CI / pre-commit</span> via
+                    <code>pnpm check:bulletproof-react</code>, also folded into
+                    <code>pnpm check</code>. Tool-agnostic — scans code
+                    regardless of which agent (or human) wrote it.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============= Deviations ============= -->
+        <section id="deviations">
+          <h2>Deviations from upstream Bulletproof React</h2>
+          <p class="sub">
+            All explicit; nothing accidental. See
+            <code>_docs/_README_FEATURES.md</code> for Hunter's framing.
+          </p>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Aspect</th>
+                  <th>Upstream</th>
+                  <th>Proximal variant</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Feature location</td>
+                  <td><code>features/&lt;feature&gt;/</code> flat</td>
+                  <td>
+                    <code>features/&lt;group&gt;/&lt;feature&gt;/</code>,
+                    grouped by product domain
+                  </td>
+                </tr>
+                <tr>
+                  <td>Allowed subfolders</td>
+                  <td>
+                    <code>api</code>, <code>assets</code>,
+                    <code>components</code>, <code>hooks</code>,
+                    <code>stores</code>, <code>types</code>, <code>utils</code>
+                  </td>
+                  <td>
+                    Closed list of seven: <code>components</code>,
+                    <code>hooks</code>, <code>queries</code>,
+                    <code>routes</code>, <code>types</code>, <code>utils</code>,
+                    <code>views</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Barrel files</td>
+                  <td>"Avoid"</td>
+                  <td>
+                    Required <code>index.ts</code> per feature exporting only
+                    the route — boundary enforcement chosen over tree-shaking
+                  </td>
+                </tr>
+                <tr>
+                  <td>Query/data hooks</td>
+                  <td>Inside the feature's <code>api/</code></td>
+                  <td>
+                    Mostly shared in <code>@/api/v1/...</code> and
+                    <code>@/hooks/api</code>; feature <code>queries/</code> is
+                    rare
+                  </td>
+                </tr>
+                <tr>
+                  <td>Routes</td>
+                  <td><code>src/app/routes/</code></td>
+                  <td>
+                    Inside the feature
+                    (<code>routes/&lt;Feature&gt;Route.tsx</code>); paths still
+                    in <code>App.tsx</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>File naming</td>
+                  <td>Everything kebab-case</td>
+                  <td>
+                    PascalCase <code>.tsx</code> for component-exporting files;
+                    kebab-case <code>.ts</code> for everything else
+                  </td>
+                </tr>
+                <tr>
+                  <td>Migration affordance</td>
+                  <td>n/a</td>
+                  <td>
+                    Legacy <code>page.tsx</code> becomes a one-line shim
+                    importing the feature route — router stays untouched
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============= Anatomy ============= -->
+        <section id="anatomy">
+          <h2>
+            Feature anatomy
+            <span class="interactive-flag">Click folders to expand</span>
+          </h2>
+          <p class="sub">
+            Live structure of
+            <code>web-app/src/features/performance/met-station/</code>.
+          </p>
+          <div class="tree" aria-label="Folder tree">
+            <p class="tree-hint">▸ Click any folder to expand or collapse.</p>
+            <details open>
+              <summary>met-station/</summary>
+              <div class="nested">
+                <div class="file">
+                  index.ts
+                  <span class="file-comment"
+                    >// public API — exports MetStationRoute only</span
+                  >
+                </div>
+                <details>
+                  <summary>routes/</summary>
+                  <div class="nested">
+                    <div class="file">
+                      MetStationRoute.tsx
+                      <span class="file-comment"
+                        >// wires context, loading/error, tabs, views</span
+                      >
+                    </div>
+                  </div>
+                </details>
+                <details>
+                  <summary>views/</summary>
+                  <div class="nested">
+                    <div class="file">
+                      DayView.tsx
+                      <span class="file-comment"
+                        >// receives { context }, calls VM hook</span
+                      >
+                    </div>
+                    <div class="file">RealTimeView.tsx</div>
+                    <div class="file">LongTermView.tsx</div>
+                  </div>
+                </details>
+                <details>
+                  <summary>hooks/</summary>
+                  <div class="nested">
+                    <div class="file">
+                      use-met-station-context.ts
+                      <span class="file-comment"
+                        >// aggregates queries shared across views</span
+                      >
+                    </div>
+                    <div class="file">
+                      use-met-station-day-view-model.ts
+                      <span class="file-comment"
+                        >// shapes data for DayView</span
+                      >
+                    </div>
+                    <div class="file">
+                      use-met-station-tab.ts
+                      <span class="file-comment"
+                        >// tab state lives in the URL</span
+                      >
+                    </div>
+                  </div>
+                </details>
+                <details>
+                  <summary>components/</summary>
+                  <div class="nested">
+                    <div class="file">Tabs.tsx</div>
+                    <div class="file">MetStationTimeseries.tsx</div>
+                    <div class="file">MetStationWindRose.tsx</div>
+                    <div class="file">MetStationIssuesTable.tsx</div>
+                  </div>
+                </details>
+                <details>
+                  <summary>types/</summary>
+                  <div class="nested">
+                    <div class="file">
+                      met-station.ts
+                      <span class="file-comment"
+                        >// MetStationContext, MetStationTab</span
+                      >
+                    </div>
+                  </div>
+                </details>
+                <details>
+                  <summary>utils/</summary>
+                  <div class="nested">
+                    <div class="file">build-time-search-params.ts</div>
+                  </div>
+                </details>
+              </div>
+            </details>
+          </div>
+          <p style="color: var(--text-mute); font-size: 13px">
+            Note the absence of <code>queries/</code>: this feature consumes
+            data hooks from the shared <code>@/api/v1/...</code> layer, by
+            deliberate design.
+          </p>
+        </section>
+
+        <!-- ============= Folders ============= -->
+        <section id="folders">
+          <h2>The seven allowed subfolders</h2>
+          <p class="sub">
+            Closed list. Adding any other folder is an anti-pattern (and the
+            conformance script will fail).
+          </p>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Folder</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>components</code></td>
+                  <td>Presentational/composite UI used by this feature</td>
+                </tr>
+                <tr>
+                  <td><code>hooks</code></td>
+                  <td>React hooks: state, wiring, context consumers</td>
+                </tr>
+                <tr>
+                  <td><code>queries</code></td>
+                  <td>
+                    Feature-local data hooks — used sparingly; most queries live
+                    in shared <code>@/api/v1/...</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>routes</code></td>
+                  <td>
+                    Route-level entry components
+                    (<code>&lt;Feature&gt;Route.tsx</code>)
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>types</code></td>
+                  <td>TypeScript types for this feature</td>
+                </tr>
+                <tr>
+                  <td><code>utils</code></td>
+                  <td>Pure helpers, builders, normalizers</td>
+                </tr>
+                <tr>
+                  <td><code>views</code></td>
+                  <td>Larger screens or tab panels composed from components</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============= Naming ============= -->
+        <section id="naming">
+          <h2>File naming</h2>
+          <p class="sub">
+            Mixed by export type. Mechanical mapping in both directions.
+          </p>
+          <div class="two-col">
+            <div class="card">
+              <h4>PascalCase <code>.tsx</code></h4>
+              <p
+                style="color: var(--text-dim); font-size: 14px; margin: 0 0 8px"
+              >
+                Files whose primary export is a React component. Symbol =
+                filename.
+              </p>
+              <pre><code>routes/MetStationRoute.tsx
+  export function MetStationRoute()
+
+views/DayView.tsx
+  export function DayView()
+
+components/Tabs.tsx
+  export function Tabs()</code></pre>
+            </div>
+            <div class="card">
+              <h4>kebab-case <code>.ts</code></h4>
+              <p
+                style="color: var(--text-dim); font-size: 14px; margin: 0 0 8px"
+              >
+                Everything else. Function name → kebab-name is mechanical.
+              </p>
+              <pre><code>hooks/use-met-station-context.ts
+  export function useMetStationContext()
+
+utils/build-time-search-params.ts
+  export function buildTimeSearchParams()
+
+types/met-station.ts
+  export type MetStationContext, MetStationTab</code></pre>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>Folders are always kebab-case.</strong>
+            <code>met-station</code> never <code>MetStation</code> or
+            <code>met_station</code>. The conformance script enforces this.
+          </div>
+        </section>
+
+        <!-- ============= Pattern ============= -->
+        <section id="pattern">
+          <h2>Context + view-model pattern</h2>
+          <p class="sub">
+            Hunter's signature pattern. Two layers cleanly separate "what this
+            feature needs" from "what this view needs".
+          </p>
+
+          <div class="table-card" style="margin-bottom: 14px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Layer</th>
+                  <th>File</th>
+                  <th>Returns</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Context hook</strong></td>
+                  <td><code>hooks/use-&lt;feature&gt;-context.ts</code></td>
+                  <td><code>{ ids, entities, isLoading, error }</code></td>
+                </tr>
+                <tr>
+                  <td><strong>View-model hook</strong></td>
+                  <td>
+                    <code
+                      >hooks/use-&lt;feature&gt;-&lt;view&gt;-view-model.ts</code
+                    >
+                  </td>
+                  <td>The shape that one view renders</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pre><code>function MetStationRoute() {
+  const { projectId } = useParams()
+  const { activeTab, setActiveTab } = useMetStationTab()
+  const context = useMetStationContext({ projectId })
+
+  if (context.isLoading) return &lt;PageLoader /&gt;
+  if (context.error !== null) return &lt;PageError text="..." /&gt;
+  if (context.project == null) return &lt;PageError text="Project not found" /&gt;
+
+  return (
+    &lt;Tabs value={activeTab} onChange={setActiveTab}&gt;
+      {activeTab === 'realtime'    && &lt;RealTimeView context={context} /&gt;}
+      {activeTab === 'current-day' && &lt;DayView      context={context} /&gt;}
+      {activeTab === 'long-term'   && &lt;LongTermView context={context} /&gt;}
+    &lt;/Tabs&gt;
+  )
+}
+
+function DayView({ context }: { context: MetStationContext }) {
+  const data = useMetStationDayViewModel({ context, start, end })
+  return &lt;Layout&gt;...&lt;/Layout&gt;
+}</code></pre>
+
+          <div class="callout">
+            <strong>Why two layers?</strong> Loading and errors are checked
+            <em>once</em> at the route. Each view receives a resolved context
+            and adds only its per-view shaping. Adding a new view = one VM hook
+            + one component + one tab branch.
+          </div>
+        </section>
+
+        <!-- ============= Data ============= -->
+        <section id="data">
+          <h2>Data layer — the biggest deviation</h2>
+          <p class="sub">
+            Most query hooks live <strong>outside</strong> the feature.
+          </p>
+          <blockquote>
+            Most queries and data hooks are not co-located with their associated
+            features. Our API is generalized enough that most endpoints touch
+            multiple pages, so those hooks usually belong in shared API or
+            query-layer locations anyway. Use a feature's <code>queries</code>
+            folder only for hyper-specific hooks that provide truly
+            individualized endpoint access, and do so sparingly.
+            <br /><br />
+            <span style="color: var(--text-mute); font-size: 13px"
+              >— <code>web-app/_docs/_README_FEATURES.md</code></span
+            >
+          </blockquote>
+          <p>
+            In practice: shared hooks live in <code>@/api/v1/...</code> and
+            <code>@/hooks/api</code> (which includes
+            <code>useCustomQuery</code>). Both met-station and pv-inverter have
+            no <code>queries/</code> folder — by design.
+          </p>
+        </section>
+
+        <!-- ============= Migration ============= -->
+        <section id="migration">
+          <h2>
+            Page-to-feature recipe
+            <span class="interactive-flag">Click tabs to switch</span>
+          </h2>
+          <p class="sub">
+            Use <code>@bulletproof-react-legacy-page-to-feature</code> in Cursor
+            for the full recipe. Below: the actual diff for the met-station
+            migration.
+          </p>
+
+          <div class="tabs" role="tablist">
+            <button class="tab-btn active" data-target="tab-before" role="tab">
+              Before
+            </button>
+            <button class="tab-btn" data-target="tab-after" role="tab">
+              After
+            </button>
+            <button class="tab-btn" data-target="tab-steps" role="tab">
+              9 Steps
+            </button>
+          </div>
+
+          <div id="tab-before" class="tab-panel active">
+            <h4>
+              src/pages/.../met_station/page.tsx
+              <span class="diff-stat before">~337 lines</span>
+            </h4>
+            <pre><code>// Page-level fetching + tab state + per-view inline rendering,
+// loading checks scattered through. All in one file.
+
+export default function Page() {
+  const { projectId } = useParams()
+  const project = useSelectProject(projectId)
+  const devices = useGetDevicesV2({ /* ... */ })
+  const [tab, setTab] = useState('realtime')
+
+  // Day view inline:
+  const dayPoa  = useGetDataTimeSeriesV3({ /* ... */ })
+  const dayWind = useGetDataTimeSeriesV3({ /* ... */ })
+  // ...repeated for every sensor type...
+
+  if (project.isLoading || devices.isLoading) return &lt;PageLoader /&gt;
+  if (project.error)  return &lt;PageError /&gt;
+
+  return (
+    &lt;Tabs value={tab} onChange={setTab}&gt;
+      {tab === 'realtime'    && &lt;Stack&gt;{/* 80+ lines inline */}&lt;/Stack&gt;}
+      {tab === 'current-day' && &lt;Stack&gt;{/* 120+ lines inline */}&lt;/Stack&gt;}
+      {tab === 'long-term'   && &lt;Stack&gt;{/* inline */}&lt;/Stack&gt;}
+    &lt;/Tabs&gt;
+  )
+}</code></pre>
+          </div>
+
+          <div id="tab-after" class="tab-panel">
+            <h4>
+              src/pages/.../met_station/page.tsx
+              <span class="diff-stat after">5 lines (shim)</span>
+            </h4>
+            <pre><code>import { MetStationRoute } from '@/features/performance/met-station'
+
+export default function Page() {
+  return &lt;MetStationRoute /&gt;
+}</code></pre>
+            <h4 style="margin-top: 18px">
+              New feature
+              <span class="diff-stat after">organized into 13 small files</span>
+            </h4>
+            <pre><code>src/features/performance/met-station/
+├── index.ts                                    1 line
+├── routes/MetStationRoute.tsx                  ~45 lines
+├── hooks/use-met-station-context.ts            ~30 lines
+├── hooks/use-met-station-day-view-model.ts     ~75 lines
+├── hooks/use-met-station-tab.ts                ~45 lines
+├── views/DayView.tsx                           ~85 lines
+├── views/RealTimeView.tsx                      ~15 lines (placeholder)
+├── views/LongTermView.tsx                      ~15 lines (placeholder)
+├── components/Tabs.tsx                         ~38 lines
+├── components/MetStationTimeseries.tsx         ~100 lines
+├── components/MetStationWindRose.tsx           ~215 lines
+├── components/MetStationIssuesTable.tsx        ~15 lines
+├── types/met-station.ts                        ~12 lines
+└── utils/build-time-search-params.ts           ~22 lines</code></pre>
+            <p
+              style="color: var(--text-mute); font-size: 13px; margin-top: 8px"
+            >
+              <code>App.tsx</code> didn't change. The shim is the whole reason —
+              the router still imports the same path; the implementation moved
+              underneath.
+            </p>
+          </div>
+
+          <div id="tab-steps" class="tab-panel">
+            <ol style="margin: 0; padding-left: 20px">
+              <li>
+                <strong>Pick destination.</strong>
+                <code>src/features/&lt;group&gt;/&lt;feature&gt;/</code>.
+              </li>
+              <li>
+                <strong>Scaffold only what you need</strong> from the seven
+                allowed subfolders.
+              </li>
+              <li>
+                <strong>Extract context hook</strong>
+                (<code>hooks/use-&lt;feature&gt;-context.ts</code>) aggregating
+                shared queries.
+              </li>
+              <li>
+                <strong>Split per view</strong>: one VM hook + one
+                <code>&lt;View&gt;</code> per tab.
+              </li>
+              <li>
+                <strong>Relocate the rest</strong>: components, helpers, types
+                into matching subfolders.
+              </li>
+              <li>
+                <strong>Wire the route</strong>:
+                <code>routes/&lt;Feature&gt;Route.tsx</code>.
+              </li>
+              <li>
+                <strong>Public API</strong>: add <code>index.ts</code>, export
+                only the route.
+              </li>
+              <li>
+                <strong>Shim the legacy page</strong> with the 5-line import +
+                render.
+              </li>
+              <li>
+                <strong>Verify</strong>: <code>pnpm check</code> (now includes
+                conformance) + manual smoke-test each tab.
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- ============= Rules in full ============= -->
+        <section id="rules">
+          <h2>
+            The two .mdc files
+            <span class="interactive-flag">Click tabs to view each</span>
+          </h2>
+          <p class="sub">What Cursor actually loads.</p>
+
+          <div class="tabs" role="tablist">
+            <button class="tab-btn active" data-target="rule-feat" role="tab">
+              feature-structure.mdc
+            </button>
+            <button class="tab-btn" data-target="rule-mig" role="tab">
+              legacy-page-to-feature.mdc
+            </button>
+          </div>
+
+          <div id="rule-feat" class="tab-panel active">
+            <h4>
+              <code
+                >web-app/.cursor/rules/bulletproof-react-feature-structure.mdc</code
+              >
+              <span class="pill">Auto-attach</span>
+            </h4>
+            <pre><code>---
+description: Bulletproof React feature structure, naming, context/view-model
+  pattern, data-layer split, and migration recipe — applies when creating,
+  refactoring, or scaffolding features under src/features/
+globs: src/features/**/*.{ts,tsx}, src/pages/**/*.{ts,tsx}
+---
+
+[ Folder layout · Public API · File naming · Imports · Data layer ·
+  Context and view-model hooks · Routes and app wiring ·
+  Loading and errors · URL state for tabs · Component prop typing ·
+  Red Flags · Common Rationalizations · Soft rules (warnings) ·
+  Verification · Pointer to migration rule ]</code></pre>
+          </div>
+
+          <div id="rule-mig" class="tab-panel">
+            <h4>
+              <code
+                >web-app/.cursor/rules/bulletproof-react-legacy-page-to-feature.mdc</code
+              >
+              <span class="pill pill-mute">Manual</span>
+            </h4>
+            <pre><code>---
+description: Step-by-step recipe for converting an existing
+  src/pages/.../page.tsx into a Bulletproof React feature under
+  src/features/&lt;group&gt;/&lt;feature&gt;/. Invoke manually with
+  @bulletproof-react-legacy-page-to-feature when refactoring a legacy page.
+---
+
+[ When to use · Inputs to confirm · 9-step recipe ·
+  Anti-rationalization table (excuses + rebuttals) ·
+  Evidence-of-completion checklist ]</code></pre>
+          </div>
+        </section>
+
+        <!-- ============= Excuses ============= -->
+        <section id="excuses">
+          <h2>Anti-rationalization table</h2>
+          <p class="sub">
+            Borrowed from
+            <a href="https://addyosmani.com/blog/agent-skills/"
+              >Addy Osmani's</a
+            >
+            pattern. Pre-written rebuttals stop step-skipping.
+          </p>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 38%">Excuse</th>
+                  <th>Rebuttal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>"I'll inline the fetcher just for now."</td>
+                  <td>
+                    The fetcher belongs in <code>@/api/v1/...</code> or
+                    <code>@/hooks/api</code>. Inlining now means another
+                    refactor later. Do it once.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    "The page imports from another feature — I'll keep it."
+                  </td>
+                  <td>
+                    No cross-feature imports. Lift the shared piece up first,
+                    then migrate.
+                  </td>
+                </tr>
+                <tr>
+                  <td>"Adding <code>index.ts</code> is overhead."</td>
+                  <td>
+                    The barrel is the only public boundary. Without it, callers
+                    reach into internals and the boundary erodes.
+                  </td>
+                </tr>
+                <tr>
+                  <td>"I'll skip the shim and update <code>App.tsx</code>."</td>
+                  <td>
+                    The shim limits the blast radius. Router edits change every
+                    reviewer's mental map of routing; shim edits don't.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    "I'll use a side-effect import for the cross-feature
+                    dependency."
+                  </td>
+                  <td>
+                    Any cross-feature import is a no-go (absolute, relative,
+                    side-effect). Lift the shared piece to <code>src/</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>"I'll gate the whole view on <code>isLoading</code>."</td>
+                  <td>
+                    Per-card <code>&lt;Skeleton&gt;</code> keeps the layout
+                    stable. Gate the route, not the view.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============= Evidence / conformance ============= -->
+        <section id="evidence">
+          <h2>Conformance check</h2>
+          <p class="sub">
+            Addy Osmani's principle:
+            <em>"every skill terminates in concrete evidence."</em> The
+            structural rules now have a script that enforces them.
+          </p>
+
+          <h3>How to run</h3>
+          <pre><code># Standalone
+pnpm check:bulletproof-react
+
+# Or as part of the full check pipeline:
+pnpm check
+# → typecheck → prettier:check → knip → check:bulletproof-react</code></pre>
+
+          <h3>Live result on this branch</h3>
+          <div class="terminal">
+            <span class="prompt">$</span> pnpm check:bulletproof-react<br />
+            <span class="dim">&gt; web-app@0.0.0 check:bulletproof-react</span
+            ><br />
+            <span class="dim"
+              >&gt; node scripts/check-bulletproof-react.mjs</span
+            ><br /><br />
+            <span class="ok"
+              >✓ Bulletproof React conformance: 2 feature(s) checked, no
+              violations.</span
+            >
+          </div>
+          <p style="color: var(--text-mute); font-size: 13px; margin-top: 6px">
+            Both <code>performance/met-station</code> and
+            <code>performance/pv-inverter</code> pass cleanly.
+          </p>
+
+          <h3>What it checks</h3>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>What it does</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>group-kebab-case</code></td>
+                  <td>
+                    Group folder names (<code>performance</code>, …) are
+                    kebab-case
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>feature-kebab-case</code></td>
+                  <td>Feature folder names are kebab-case</td>
+                </tr>
+                <tr>
+                  <td><code>subfolder-allowlist</code></td>
+                  <td>Only the seven allowed subfolders inside a feature</td>
+                </tr>
+                <tr>
+                  <td><code>subfolder-kebab-case</code></td>
+                  <td>Subfolder names are kebab-case</td>
+                </tr>
+                <tr>
+                  <td><code>public-api-barrel</code></td>
+                  <td>Every feature has <code>index.ts</code></td>
+                </tr>
+                <tr>
+                  <td><code>file-naming-pascal-tsx</code></td>
+                  <td>
+                    <code>.tsx</code> in <code>routes/</code>,
+                    <code>views/</code>, <code>components/</code> is PascalCase
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>file-naming-use-hook</code></td>
+                  <td>
+                    <code>hooks/*.ts</code> and <code>queries/*.ts</code> match
+                    <code>use-&lt;kebab&gt;.ts</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>file-naming-kebab-ts</code></td>
+                  <td>
+                    <code>.ts</code> files in <code>utils/</code>,
+                    <code>types/</code>, <code>components/</code>,
+                    <code>views/</code>, <code>routes/</code> are kebab-case
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>no-cross-feature-import</code></td>
+                  <td>
+                    Inside a feature, no
+                    <code>@/features/&lt;other&gt;/...</code> absolute imports
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>no-cross-feature-import-relative</code></td>
+                  <td>
+                    Inside a feature, no relative imports (<code>../</code>)
+                    that resolve into another feature's directory
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>no-deep-feature-import</code></td>
+                  <td>
+                    From outside features, no
+                    <code>@/features/&lt;g&gt;/&lt;f&gt;/&lt;sub&gt;/...</code>
+                    imports — only the barrel
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>no-deep-feature-import-relative</code></td>
+                  <td>
+                    From outside features, no relative imports
+                    (<code>../</code>) that resolve into a feature's internals —
+                    only the barrel directory
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p style="margin-top: 14px">
+            <strong>Tool-agnostic.</strong> The script reads the codebase, not
+            the agent that wrote it. Whether changes come from Cursor, Claude
+            Code, or a human, conformance is measured the same way. This
+            independence keeps both Cursor (<code>.mdc</code>) and Claude Code
+            (<code>SKILL.md</code>) rule files honest — neither needs its own
+            enforcement layer.
+          </p>
+        </section>
+
+        <!-- ============= Sources ============= -->
+        <section id="sources">
+          <h2>Sources</h2>
+          <p class="sub">What informed the design.</p>
+
+          <h4>Internal</h4>
+          <ul>
+            <li>
+              <code
+                >.claude/skills/bulletproof-react-feature-structure/SKILL.md</code
+              >
+              + <code>legacy-page-to-feature.md</code> — Claude Code skill,
+              canonical source synced with the <code>.mdc</code> mirror.
+            </li>
+            <li>
+              <code>web-app/_docs/_README_FEATURES.md</code> — Hunter's named
+              deviations (now expanded to four).
+            </li>
+            <li>
+              <code>web-app/src/features/performance/met-station/</code> —
+              canonical reference.
+            </li>
+            <li>
+              <code>web-app/src/features/performance/pv-inverter/</code> —
+              second instance.
+            </li>
+            <li>
+              <code
+                >web-app/src/pages/projects/equipment_analysis/met_station/page.tsx</code
+              >
+              — the 5-line shim.
+            </li>
+            <li>
+              Existing <code>web-app/.cursor/rules/*.mdc</code> — the team's
+              house style, matched here.
+            </li>
+          </ul>
+
+          <h4>External</h4>
+          <ul>
+            <li>
+              <a href="https://github.com/alan2207/bulletproof-react"
+                >alan2207/bulletproof-react</a
+              >
+              — upstream architecture this variant adapts.
+            </li>
+            <li>
+              <a href="https://addyosmani.com/blog/agent-skills/"
+                >Addy Osmani — Agent Skills</a
+              >
+              — source of "evidence as exit criterion" and the
+              anti-rationalization table format.
+            </li>
+            <li>
+              <a href="https://github.com/addyosmani/agent-skills"
+                >addyosmani/agent-skills</a
+              >
+              — production-grade skills for AI coding agents.
+            </li>
+            <li>
+              <a
+                href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices"
+                >Anthropic — Skill authoring best practices</a
+              >.
+            </li>
+            <li>
+              <a href="https://agentskills.io/specification"
+                >Agent Skills open specification</a
+              >.
+            </li>
+            <li>
+              <a href="https://docs.cursor.com/context/rules"
+                >Cursor — Rules for AI</a
+              >.
+            </li>
+          </ul>
+        </section>
+
+        <footer>
+          Generated for review of
+          <code>feature/bulletproof-react-cursor-rules</code>.
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      // ====== Theme toggle ======
+      const root = document.documentElement
+      const btn = document.getElementById('themeToggle')
+      const label = document.getElementById('themeLabel')
+      const setTheme = (t) => {
+        root.setAttribute('data-theme', t)
+        label.textContent = t === 'dark' ? 'Light' : 'Dark'
+        try {
+          localStorage.setItem('bp-theme', t)
+        } catch (_) {}
+      }
+      const stored = (() => {
+        try {
+          return localStorage.getItem('bp-theme')
+        } catch (_) {
+          return null
+        }
+      })()
+      const prefersDark =
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+      setTheme(stored || (prefersDark ? 'dark' : 'light'))
+      btn.addEventListener('click', () => {
+        setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')
+      })
+
+      // ====== Tabs ======
+      document.querySelectorAll('.tabs').forEach((group) => {
+        const buttons = group.querySelectorAll('.tab-btn')
+        const panelIds = Array.from(buttons).map((b) =>
+          b.getAttribute('data-target'),
+        )
+        buttons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-target')
+            buttons.forEach((b) => b.classList.toggle('active', b === btn))
+            panelIds.forEach((id) => {
+              const panel = document.getElementById(id)
+              if (panel) panel.classList.toggle('active', id === target)
+            })
+          })
+        })
+      })
+
+      // ====== Smooth scroll + active TOC highlighting ======
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const id = a.getAttribute('href').slice(1)
+          const target = document.getElementById(id)
+          if (!target) return
+          e.preventDefault()
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          history.replaceState(null, '', '#' + id)
+        })
+      })
+
+      // Highlight current section in TOC as user scrolls
+      const tocLinks = Array.from(
+        document.querySelectorAll('#toc a[href^="#"]'),
+      )
+      const sections = tocLinks
+        .map((a) => document.getElementById(a.getAttribute('href').slice(1)))
+        .filter(Boolean)
+      const setActive = (id) => {
+        tocLinks.forEach((a) =>
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id),
+        )
+      }
+      const obs = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((e) => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+          if (visible[0]) setActive(visible[0].target.id)
+        },
+        { rootMargin: '-80px 0px -60% 0px', threshold: [0, 1] },
+      )
+      sections.forEach((s) => obs.observe(s))
+    </script>
+  </body>
+</html>

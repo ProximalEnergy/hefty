@@ -1,6 +1,7 @@
 {
   // Setting `plugins` overwrites the default plugin set, so the array should include everything you want enabled.
   // https://oxc.rs/docs/guide/usage/linter/config.html#configure-plugins
+  "ignorePatterns": ["scripts/**/*.mjs"],
   "plugins": [
     "eslint",
     "import",

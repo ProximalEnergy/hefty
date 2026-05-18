@@ -1,5 +1,6 @@
+import asyncio
 import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from core.crud.operational.device_types import get_device_types
 from core.crud.operational.issue_categories import get_issue_categories
@@ -88,13 +89,38 @@ async def get_project_issues_route(
     issue_category_ids = _unique_ints(rows=issue_rows, key="issue_category_id")
     tag_ids = _unique_ints(rows=issue_rows, key="tag_id")
 
-    devices_df = (
-        await get_project_devices(device_ids=device_ids).get_async(
+    devices_task = (
+        get_project_devices(device_ids=device_ids).get_async(
             schema=project.name_short,
             output_type=OutputType.POLARS,
         )
         if device_ids
-        else None
+        else asyncio.sleep(0, result=cast(Any, None))
+    )
+    issue_categories_task = (
+        get_issue_categories(
+            issue_category_ids=issue_category_ids,
+        ).get_async(output_type=OutputType.POLARS)
+        if issue_category_ids
+        else asyncio.sleep(0, result=cast(Any, None))
+    )
+    tags_task = (
+        get_project_tags_v2(
+            tag_ids=tag_ids,
+            deep=True,
+            include_ghost_tags=True,
+        ).get_async(
+            schema=project.name_short,
+            output_type=OutputType.POLARS,
+        )
+        if tag_ids
+        else asyncio.sleep(0, result=cast(Any, None))
+    )
+
+    devices_df, issue_categories_df, tags_df = await asyncio.gather(
+        devices_task,
+        issue_categories_task,
+        tags_task,
     )
     device_rows = (
         devices_df.to_dicts()
@@ -126,13 +152,6 @@ async def get_project_issues_route(
         if device_type.get("device_type_id") is not None
     }
 
-    issue_categories_df = (
-        await get_issue_categories(
-            issue_category_ids=issue_category_ids,
-        ).get_async(output_type=OutputType.POLARS)
-        if issue_category_ids
-        else None
-    )
     issue_category_rows = (
         issue_categories_df.to_dicts()
         if issue_categories_df is not None and not issue_categories_df.is_empty()
@@ -144,18 +163,6 @@ async def get_project_issues_route(
         if category.get("issue_category_id") is not None
     }
 
-    tags_df = (
-        await get_project_tags_v2(
-            tag_ids=tag_ids,
-            deep=True,
-            include_ghost_tags=True,
-        ).get_async(
-            schema=project.name_short,
-            output_type=OutputType.POLARS,
-        )
-        if tag_ids
-        else None
-    )
     tag_rows = (
         tags_df.to_dicts() if tags_df is not None and not tags_df.is_empty() else []
     )

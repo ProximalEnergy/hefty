@@ -18,7 +18,7 @@ import { PvPcsReactivePowerChart } from '@/components/pv-pcs/ReactivePowerChart'
 import { PVPCSStatsCards } from '@/components/pv-pcs/StatsCards'
 import { StatusAndErrorCodes } from '@/components/pv-pcs/StatusAndErrorCodes'
 import { useGetDevicesV2 } from '@/hooks/api'
-import { DataTimeSeries } from '@/hooks/types'
+import type { DataTimeSeries } from '@/hooks/types'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { Stack } from '@mantine/core'
 import dayjs from 'dayjs'
@@ -41,10 +41,13 @@ const findLatestExpectedPower = (series?: DataTimeSeries[]) => {
     expectedTrace.x &&
     expectedTrace.x.length > 0
   ) {
-    for (let i = expectedTrace.y.length - 1; i >= 0; i--) {
-      if (expectedTrace.y[i] !== null && expectedTrace.y[i] !== undefined) {
-        value = expectedTrace.y[i] as number
-        timestamp = expectedTrace.x[i] || null
+    for (let index = expectedTrace.y.length - 1; index >= 0; index -= 1) {
+      if (
+        expectedTrace.y[index] !== null &&
+        expectedTrace.y[index] !== undefined
+      ) {
+        value = expectedTrace.y[index] as number
+        timestamp = expectedTrace.x[index] || null
         break
       }
     }
@@ -53,25 +56,17 @@ const findLatestExpectedPower = (series?: DataTimeSeries[]) => {
   return { value, timestamp }
 }
 
-const PVInverterRealtimeTab = () => {
+export function PvInverterRealTimeView() {
   const { projectId } = useParams<{ projectId: string }>()
   const project = useSelectProject(projectId!)
-
-  // Only include expected power values if the project has expected energy integration
   const hasExpectedIntegration = project.data?.has_expected_energy_integration
 
-  // Get all PV Inverter devices for CMMS tickets
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
-    filters: {
-      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
-    },
-    queryOptions: {
-      enabled: !!projectId,
-    },
+    filters: { device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID] },
+    queryOptions: { enabled: !!projectId },
   })
 
-  // Get realtime data for active power, reactive power, power factor, voltages, status
   const realtimeData = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
@@ -93,12 +88,11 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
-  // Get active events for PV Inverter devices
   const activeEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -107,11 +101,10 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
-  // Get active events for all PV Circuit devices
   const pvCircuitEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -120,11 +113,10 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
-  // Get active events for PV Block devices
   const pvBlockEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -133,11 +125,10 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
-  // Get expected power at POI - update time range every 30 seconds to match refetch interval
   const [expectedPowerTimeRange, setExpectedPowerTimeRange] = useState(() => {
     const now = dayjs()
     return {
@@ -153,12 +144,11 @@ const PVInverterRealtimeTab = () => {
         start: now.subtract(1, 'hour').toISOString(),
         end: now.toISOString(),
       })
-    }, 30000) // Update every 30 seconds
+    }, 30000)
 
     return () => clearInterval(interval)
   }, [])
 
-  // Preserve previous expected power value during refetches
   const expectedPowerData = useGetMeterPowerAndExpectedPowerV3({
     pathParams: { project_id: projectId || '-1' },
     queryParams: {
@@ -169,27 +159,23 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedIntegration === true,
-      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS, // Consider data stale after 25 seconds
+      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS,
     },
   })
 
-  // Get CMMS tickets for PV Inverter devices
   const cmmsTickets = useGetCMMSTickets({
     pathParams: { project_id: projectId || '-1' },
-    queryParams: {
-      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
-    },
+    queryParams: { device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID] },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.ONE_MINUTE, // Refetch every minute
+      refetchInterval: QUERY_TIME.ONE_MINUTE,
     },
   })
 
-  // Get expected power for all PCS devices using the new endpoint
   const pcsExpectedPower = useGetExpectedPowerByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
@@ -197,20 +183,19 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedIntegration === true,
-      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS, // Consider data stale after 25 seconds
+      staleTime: QUERY_TIME.TWENTY_FIVE_SECONDS,
     },
   })
 
-  // Get solar position to determine if it's nighttime
   const solarPosition = useGetSolarPosition({
     pathParams: { project_id: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
@@ -224,8 +209,6 @@ const PVInverterRealtimeTab = () => {
     return findLatestExpectedPower(expectedPowerData.data as DataTimeSeries[])
   }, [expectedPowerData.data])
 
-  // Preserve last known expected power while the time-window query refetches.
-  // Without this, `expectedPowerMW` can flicker to null between refetches.
   useEffect(() => {
     if (latestExpectedPower.value !== null) {
       setPreservedExpectedPower({
@@ -235,14 +218,12 @@ const PVInverterRealtimeTab = () => {
     }
   }, [latestExpectedPower.value, latestExpectedPower.timestamp])
 
-  // Clear expected power at night so we don't show a stale daytime value.
   useEffect(() => {
     if (solarPosition.data && !solarPosition.data.is_daytime) {
       setPreservedExpectedPower({ mw: null, timestamp: null })
     }
   }, [solarPosition.data])
 
-  // Get realtime meter data for POI Power (same endpoint as PCS Power for up-to-date readings)
   const meterRealtimeData = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
@@ -253,52 +234,54 @@ const PVInverterRealtimeTab = () => {
     },
     queryOptions: {
       enabled: !!projectId,
-      refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds
+      refetchInterval: QUERY_TIME.THIRTY_SECONDS,
       staleTime: QUERY_TIME.FIFTEEN_SECONDS,
     },
   })
 
-  // Calculate stats from realtime data
   const stats = useMemo(() => {
     const powerTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER,
+      (trace) => trace.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER,
     )
     const reactivePowerTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER,
+      (trace) =>
+        trace.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER,
     )
     const efficiencyTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_MODULE_EFFICIENCY,
+      (trace) =>
+        trace.sensor_type_id === SensorTypeEnum.PV_INVERTER_MODULE_EFFICIENCY,
     )
 
     const powerValues =
-      powerTrace?.values?.filter((v): v is number => v !== null) || []
+      powerTrace?.values?.filter((value): value is number => value !== null) ||
+      []
     const reactivePowerValues =
-      reactivePowerTrace?.values?.filter((v): v is number => v !== null) || []
+      reactivePowerTrace?.values?.filter(
+        (value): value is number => value !== null,
+      ) || []
     const efficiencyValues =
-      efficiencyTrace?.values?.filter((v): v is number => v !== null) || []
+      efficiencyTrace?.values?.filter(
+        (value): value is number => value !== null,
+      ) || []
 
-    const totalPowerMW = powerValues.reduce((sum, val) => sum + val, 0)
+    const totalPowerMW = powerValues.reduce((sum, value) => sum + value, 0)
     const totalReactivePowerMVar = reactivePowerValues.reduce(
-      (sum, val) => sum + val,
+      (sum, value) => sum + value,
       0,
     )
 
-    // Get the latest timestamp for cumulative PCS power
     let cumulativePCSPowerTimestamp: string | null = null
     if (powerTrace?.times && powerTrace.times.length > 0) {
-      // Get the last timestamp (corresponds to the latest values)
       cumulativePCSPowerTimestamp =
         powerTrace.times[powerTrace.times.length - 1] || null
     }
 
-    // Calculate average efficiency
     const avgEfficiency =
       efficiencyValues.length > 0
-        ? efficiencyValues.reduce((sum, val) => sum + val, 0) /
+        ? efficiencyValues.reduce((sum, value) => sum + value, 0) /
           efficiencyValues.length
         : null
 
-    // Find devices with stale data (no data in last hour)
     const oneHourAgo = dayjs().subtract(1, 'hour').valueOf()
     const staleDeviceIds: number[] = []
     if (
@@ -306,27 +289,22 @@ const PVInverterRealtimeTab = () => {
       realtimeData.data?.device_ids &&
       powerTrace.times.length === realtimeData.data.device_ids.length
     ) {
-      powerTrace.times.forEach((time, idx) => {
-        if (time) {
-          const timestamp = new Date(time).getTime()
-          if (timestamp < oneHourAgo || isNaN(timestamp)) {
-            const deviceId = realtimeData.data.device_ids[idx]
-            if (deviceId !== undefined && deviceId !== null) {
-              staleDeviceIds.push(deviceId)
-            }
-          }
-        } else {
-          // No timestamp means no data - consider it stale
-          const deviceId = realtimeData.data.device_ids[idx]
-          if (deviceId !== undefined && deviceId !== null) {
-            staleDeviceIds.push(deviceId)
-          }
+      powerTrace.times.forEach((time, index) => {
+        const deviceId = realtimeData.data?.device_ids[index]
+        if (deviceId === undefined || deviceId === null) {
+          return
+        }
+        if (!time) {
+          staleDeviceIds.push(deviceId)
+          return
+        }
+        const timestamp = new Date(time).getTime()
+        if (timestamp < oneHourAgo || Number.isNaN(timestamp)) {
+          staleDeviceIds.push(deviceId)
         }
       })
     }
-    const staleDevicesCount = staleDeviceIds.length
 
-    // Calculate daily revenue loss from all active events (PCS, PV Circuit, PV Block)
     const dailyRevenueLoss =
       (activeEvents.data?.reduce(
         (sum, event) => sum + (event.loss_daily_financial || 0),
@@ -347,12 +325,11 @@ const PVInverterRealtimeTab = () => {
     const totalEventsCount =
       pcsEventsCount + pvCircuitEventsCount + pvBlockEventsCount
 
-    // Get latest meter power from realtime endpoint (same as PCS Power for up-to-date readings)
     let poiPowerMW: number | null = null
     let poiPowerTimestamp: string | null = null
     if (meterRealtimeData.data?.traces) {
       const meterPowerTrace = meterRealtimeData.data.traces.find(
-        (t) => t.sensor_type_id === SensorTypeEnum.METER_ACTIVE_POWER,
+        (trace) => trace.sensor_type_id === SensorTypeEnum.METER_ACTIVE_POWER,
       )
       if (
         meterPowerTrace &&
@@ -361,17 +338,13 @@ const PVInverterRealtimeTab = () => {
         meterPowerTrace.times &&
         meterPowerTrace.times.length > 0
       ) {
-        // Sum all meter values (in case there are multiple meters)
-        // Values are already in MW due to unit_scale applied in the endpoint
         const validValues = meterPowerTrace.values.filter(
-          (v): v is number => v !== null && v !== undefined,
+          (value): value is number => value !== null && value !== undefined,
         )
         if (validValues.length > 0) {
-          // Sum all meter readings (already in MW, same as PCS power)
-          poiPowerMW = validValues.reduce((sum, val) => sum + val, 0)
-          // Get the latest timestamp
+          poiPowerMW = validValues.reduce((sum, value) => sum + value, 0)
           const validTimes = meterPowerTrace.times.filter(
-            (t): t is string => t !== null && t !== undefined,
+            (time): time is string => time !== null && time !== undefined,
           )
           if (validTimes.length > 0) {
             poiPowerTimestamp = validTimes[validTimes.length - 1]
@@ -380,27 +353,21 @@ const PVInverterRealtimeTab = () => {
       }
     }
 
-    const finalExpectedPowerMW = preservedExpectedPower.mw
-    const finalExpectedPowerTimestamp = preservedExpectedPower.timestamp
-
-    // Calculate cumulative expected PCS power (sum of all PCS devices' expected power)
-    // Use the same timestamp as POI Power Expected since they come from the same data source
     let cumulativeExpectedPCSPowerMW: number | null = null
     if (pcsExpectedPower.data?.expected_power) {
       const expectedPowerValues = Object.values(
         pcsExpectedPower.data.expected_power,
-      ).filter((v): v is number => v !== null && v !== undefined)
+      ).filter(
+        (value): value is number => value !== null && value !== undefined,
+      )
       if (expectedPowerValues.length > 0) {
         cumulativeExpectedPCSPowerMW = expectedPowerValues.reduce(
-          (sum, val) => sum + val,
+          (sum, value) => sum + value,
           0,
         )
       }
     }
-    // Use the same timestamp as finalExpectedPowerTimestamp since they're from the same data source
-    const cumulativeExpectedPCSPowerTimestamp = finalExpectedPowerTimestamp
 
-    // Map stale device IDs to device names
     const staleDeviceNames: string[] = []
     if (devices.data && staleDeviceIds.length > 0) {
       staleDeviceIds.forEach((deviceId) => {
@@ -411,10 +378,8 @@ const PVInverterRealtimeTab = () => {
       })
     }
 
-    // Check if it's nighttime using solar position endpoint
-    const isNighttime = solarPosition.data
-      ? !solarPosition.data.is_daytime
-      : false
+    const finalExpectedPowerMW = preservedExpectedPower.mw
+    const finalExpectedPowerTimestamp = preservedExpectedPower.timestamp
 
     return {
       poiPowerMW: poiPowerMW !== null ? poiPowerMW.toFixed(2) : null,
@@ -435,7 +400,7 @@ const PVInverterRealtimeTab = () => {
           ? cumulativeExpectedPCSPowerMW.toFixed(2)
           : null,
       cumulativeExpectedPCSPowerTimestamp: hasExpectedIntegration
-        ? cumulativeExpectedPCSPowerTimestamp
+        ? finalExpectedPowerTimestamp
         : null,
       cumulativePCSReactivePowerMVar: totalReactivePowerMVar.toFixed(2),
       totalEventsCount,
@@ -446,8 +411,8 @@ const PVInverterRealtimeTab = () => {
       openCMMSTickets: cmmsTickets.data?.data?.length || 0,
       staleDeviceIds,
       staleDeviceNames,
-      staleDevicesCount,
-      isNighttime,
+      staleDevicesCount: staleDeviceIds.length,
+      isNighttime: solarPosition.data ? !solarPosition.data.is_daytime : false,
       avgEfficiency: avgEfficiency ? `${avgEfficiency.toFixed(1)}%` : 'N/A',
     }
   }, [
@@ -465,13 +430,14 @@ const PVInverterRealtimeTab = () => {
     preservedExpectedPower.timestamp,
   ])
 
-  // Calculate max capacity_ac from devices (convert from kWac to MWac)
   const maxCapacityMWac = useMemo(() => {
     if (!devices.data || devices.data.length === 0) {
       return null
     }
-    const maxKWac = Math.max(...devices.data.map((d) => d.capacity_ac || 0))
-    return maxKWac / 1000 // Convert kWac to MWac
+    const maxKWac = Math.max(
+      ...devices.data.map((device) => device.capacity_ac || 0),
+    )
+    return maxKWac / 1000
   }, [devices.data])
 
   if (project.isLoading) {
@@ -481,7 +447,6 @@ const PVInverterRealtimeTab = () => {
   return (
     <Stack gap="md" pb="md">
       <PVPCSStatsCards stats={stats} />
-
       <ActivePowerChartPvPcs
         realtimeData={realtimeData}
         maxCapacityMWac={maxCapacityMWac}
@@ -489,26 +454,18 @@ const PVInverterRealtimeTab = () => {
           project.data?.has_expected_energy_integration
         }
       />
-
       <PvPcsReactivePowerChart
         realtimeData={realtimeData}
         maxCapacityMWac={maxCapacityMWac}
       />
-
       <EfficiencyChart devices={devices} />
-
       <ACVoltageChartPvPcs realtimeData={realtimeData} />
-
       <DCVoltageChartPvPcs realtimeData={realtimeData} />
-
       <StatusAndErrorCodes
         realtimeData={realtimeData}
         projectId={projectId || '-1'}
       />
-
       <EfficiencyLevelCard avgEfficiency={stats.avgEfficiency} />
     </Stack>
   )
 }
-
-export default PVInverterRealtimeTab

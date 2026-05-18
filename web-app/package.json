@@ -13,7 +13,8 @@
     "prettier": "pnpm exec prettier --write --log-level warn .",
     "prettier:check": "pnpm exec prettier --check --log-level warn .",
     "knip": "pnpm exec knip",
-    "check": "pnpm run typecheck && pnpm run prettier:check && pnpm run knip"
+    "check:bulletproof-react": "node scripts/check-bulletproof-react.mjs",
+    "check": "pnpm run typecheck && pnpm run prettier:check && pnpm run knip && pnpm run check:bulletproof-react"
   },
   "dependencies": {
     "@clerk/react": "^6.1.0",
