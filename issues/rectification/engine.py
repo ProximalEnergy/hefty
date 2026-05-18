@@ -3,7 +3,10 @@
 from collections.abc import Callable
 
 from issues.models.issue_candidate import IssueCandidate
-from issues.rectification.rules import deduplicate_candidates
+from issues.rectification.rules import (
+    deduplicate_candidates,
+    suppress_poa_position_when_met_station_non_communicating,
+)
 
 CandidateRule = Callable[[list[IssueCandidate]], list[IssueCandidate]]
 
@@ -17,6 +20,9 @@ class IssueRectificationEngine:
         rules: tuple[CandidateRule, ...] | None = None,
     ) -> None:
         self._rules = rules or (
+            lambda candidates: suppress_poa_position_when_met_station_non_communicating(
+                candidates=candidates,
+            ),
             lambda candidates: deduplicate_candidates(candidates=candidates),
         )
 

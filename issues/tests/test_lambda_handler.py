@@ -4,7 +4,6 @@ import json
 import pytest
 
 from issues.lambda_handler import (
-    is_eventbridge_scheduled_event,
     lambda_handler,
     parse_backfill_date,
     parse_issue_category_ids,
@@ -50,24 +49,27 @@ def test_validate_backfill_rejects_start_after_end() -> None:
         )
 
 
-def test_is_eventbridge_scheduled_event() -> None:
-    assert is_eventbridge_scheduled_event(
-        payload={"source": "aws.events", "detail-type": "Scheduled Event"}
-    )
-
-
-def test_lambda_handler_routes_scheduled_event_to_midnight_backfill(
+def test_lambda_handler_routes_scheduled_event_to_standard_run(
     *,
     monkeypatch,
 ) -> None:
     run_times: list[datetime.datetime | None] = []
 
-    def fake_run_local_midnight_backfill_for_projects(
+    def fake_discover_project_ids() -> list[str]:
+        return ["project-a"]
+
+    def fake_run_issues_for_projects(
         *,
         project_ids: list[str] | None = None,
         run_time: datetime.datetime | None = None,
+        issue_category_ids: list[int] | None = None,
+        start: datetime.date | None = None,
+        end: datetime.date | None = None,
     ) -> list[ProjectIssueRunSummary]:
-        assert project_ids is None
+        assert project_ids == ["project-a"]
+        assert issue_category_ids is None
+        assert start is None
+        assert end is None
         run_times.append(run_time)
         assert run_time is not None
         return [
@@ -88,8 +90,12 @@ def test_lambda_handler_routes_scheduled_event_to_midnight_backfill(
         lambda: None,
     )
     monkeypatch.setattr(
-        "issues.orchestrator.run_issues.run_local_midnight_backfill_for_projects",
-        fake_run_local_midnight_backfill_for_projects,
+        "issues.orchestrator.run_issues.discover_project_ids",
+        fake_discover_project_ids,
+    )
+    monkeypatch.setattr(
+        "issues.orchestrator.run_issues.run_issues_for_projects",
+        fake_run_issues_for_projects,
     )
 
     response = lambda_handler(

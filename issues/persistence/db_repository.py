@@ -17,6 +17,10 @@ from issues.models.issue_candidate import IssueCandidate, IssueIdentity
 from issues.models.persistence_models import IssueRecord
 from issues.persistence.matcher import candidate_identity, issue_identity
 from issues.persistence.repository import IssuePersistenceResult
+from issues.rectification.rules import (
+    MET_STATION_NON_COMMUNICATING_DETECTOR,
+    POA_SENSOR_OUT_OF_POSITION_DETECTOR,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -71,6 +75,10 @@ class DbIssueRepository:
             run_time=run_time,
             reconciliation_window_minutes=reconciliation_window_minutes,
         )
+        candidates = _suppress_poa_position_candidates_for_open_non_comm_issues(
+            candidates=candidates,
+            scoped_issues=scoped_issues,
+        )
         issues_by_identity = _group_issues_by_identity(issues=scoped_issues)
         open_state_id = self._get_state_id(state_name="Open")
         resolved_state_id = self._get_state_id(state_name="Resolved")
@@ -89,6 +97,10 @@ class DbIssueRepository:
                         candidate.time_start,
                         *(issue.time_start for issue in existing_issues),
                     )
+                    time_end = _merged_time_end(
+                        candidate=candidate,
+                        existing_issues=existing_issues,
+                    )
                     LOGGER.info(
                         "\t\t\tMatched existing issue_id=%s for identity=%s",
                         existing.issue_id,
@@ -100,19 +112,31 @@ class DbIssueRepository:
                             issue_id=existing.issue_id,
                             values={
                                 "time_start": earliest_time_start,
-                                "time_end": None,
+                                "time_end": time_end,
                                 "detector_metadata": dict(candidate.detector_metadata),
                             },
                         ),
                         db=db,
                     )
-                    if existing.time_end is not None:
+                    if existing.time_end is not None and time_end is None:
                         _execute_scalar_write(
                             query=project_issues.create_issue_update(
                                 issue_update={
                                     "issue_id": existing.issue_id,
                                     "issue_state_id": open_state_id,
                                     "state_time_start": run_time,
+                                    "state_changed_source": candidate.detector_name,
+                                },
+                            ),
+                            db=db,
+                        )
+                    if existing.time_end is None and time_end is not None:
+                        _execute_scalar_write(
+                            query=project_issues.create_issue_update(
+                                issue_update={
+                                    "issue_id": existing.issue_id,
+                                    "issue_state_id": resolved_state_id,
+                                    "state_time_start": time_end,
                                     "state_changed_source": candidate.detector_name,
                                 },
                             ),
@@ -139,7 +163,7 @@ class DbIssueRepository:
                             "tag_id": identity.tag_id,
                             "issue_category_id": identity.issue_category_id,
                             "time_start": candidate.time_start,
-                            "time_end": None,
+                            "time_end": candidate.time_end,
                             "detector_metadata": dict(candidate.detector_metadata),
                         },
                     ),
@@ -162,6 +186,18 @@ class DbIssueRepository:
                     ),
                     db=db,
                 )
+                if candidate.time_end is not None:
+                    _execute_scalar_write(
+                        query=project_issues.create_issue_update(
+                            issue_update={
+                                "issue_id": created_issue_id,
+                                "issue_state_id": resolved_state_id,
+                                "state_time_start": candidate.time_end,
+                                "state_changed_source": candidate.detector_name,
+                            },
+                        ),
+                        db=db,
+                    )
 
             for identity, remaining_issues in issues_by_identity.items():
                 if is_reconciliation_run:
@@ -188,10 +224,14 @@ class DbIssueRepository:
                         active_issue.issue_id,
                         _identity_to_log(identity=identity),
                     )
+                    time_end = _resolve_time_end_for_absent_issue(
+                        issue=active_issue,
+                        default_time_end=run_time,
+                    )
                     _execute_scalar_write(
                         query=project_issues.close_issue(
                             issue_id=active_issue.issue_id,
-                            time_end=run_time,
+                            time_end=time_end,
                         ),
                         db=db,
                     )
@@ -206,7 +246,7 @@ class DbIssueRepository:
                             issue_update={
                                 "issue_id": active_issue.issue_id,
                                 "issue_state_id": resolved_state_id,
-                                "state_time_start": run_time,
+                                "state_time_start": time_end,
                                 "state_changed_source": source,
                             },
                         ),
@@ -215,7 +255,7 @@ class DbIssueRepository:
 
             db.commit()
             LOGGER.info(
-                "\t\tCommitted lifecycle updates for project_id=%s opened=%s matched=%s "
+                "\t\tCommitted lifecycle updates project_id=%s opened=%s matched=%s "
                 "resolved=%s deleted=%s",
                 project_id,
                 opened_count,
@@ -356,6 +396,61 @@ def _select_issue_to_keep(*, issues: list[IssueRecord]) -> IssueRecord:
             issue.issue_id,
         ),
     )[0]
+
+
+def _suppress_poa_position_candidates_for_open_non_comm_issues(
+    *,
+    candidates: list[IssueCandidate],
+    scoped_issues: list[IssueRecord],
+) -> list[IssueCandidate]:
+    non_communicating_channels = {
+        (issue.device_id, issue.tag_id)
+        for issue in scoped_issues
+        if issue.time_end is None
+        and issue.detector_metadata.get("detector_name")
+        == MET_STATION_NON_COMMUNICATING_DETECTOR
+    }
+    if not non_communicating_channels:
+        return candidates
+    return [
+        candidate
+        for candidate in candidates
+        if (
+            candidate.detector_name != POA_SENSOR_OUT_OF_POSITION_DETECTOR
+            or (candidate.identity.device_id, candidate.identity.tag_id)
+            not in non_communicating_channels
+        )
+    ]
+
+
+def _merged_time_end(
+    *,
+    candidate: IssueCandidate,
+    existing_issues: list[IssueRecord],
+) -> datetime.datetime | None:
+    if candidate.time_end is None:
+        return None
+    closed_times = [
+        issue.time_end for issue in existing_issues if issue.time_end is not None
+    ]
+    return max([candidate.time_end, *closed_times])
+
+
+def _resolve_time_end_for_absent_issue(
+    *,
+    issue: IssueRecord,
+    default_time_end: datetime.datetime,
+) -> datetime.datetime:
+    raw_last_detected_time = issue.detector_metadata.get("candidate_time_end")
+    if not isinstance(raw_last_detected_time, str):
+        return default_time_end
+    try:
+        parsed_time = datetime.datetime.fromisoformat(raw_last_detected_time)
+    except ValueError:
+        return default_time_end
+    if parsed_time.tzinfo is None:
+        return parsed_time.replace(tzinfo=datetime.UTC)
+    return parsed_time
 
 
 def _coerce_optional_int(*, raw: object) -> int | None:

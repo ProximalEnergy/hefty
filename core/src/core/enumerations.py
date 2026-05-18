@@ -1125,3 +1125,4 @@ class PGDataTypeEnum(IntEnum):
 # do not contain the `name_short` column.
 class IssueCategoryEnum(IntEnum):
     MET_STATION_NON_COMMUNICATING = 0
+    POA_SENSOR_OUT_OF_POSITION = 1

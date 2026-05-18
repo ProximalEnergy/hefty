@@ -40,25 +40,38 @@ def _build_issue(
     issue_id: int,
     time_start: datetime.datetime,
     time_end: datetime.datetime | None = None,
+    detector_name: str = "test_detector",
+    issue_category_id: int = 30,
 ) -> IssueRecord:
     return IssueRecord(
         issue_id=issue_id,
         device_id=10,
         tag_id=20,
-        issue_category_id=30,
+        issue_category_id=issue_category_id,
         time_start=time_start,
         time_end=time_end,
-        detector_metadata={"detector_name": "test_detector"},
+        detector_metadata={"detector_name": detector_name},
     )
 
 
-def _build_candidate(*, time_start: datetime.datetime) -> IssueCandidate:
+def _build_candidate(
+    *,
+    time_start: datetime.datetime,
+    time_end: datetime.datetime | None = None,
+    detector_name: str = "test_detector",
+    issue_category_id: int = 30,
+) -> IssueCandidate:
     return IssueCandidate(
         project_id="project-a",
-        detector_name="test_detector",
-        identity=IssueIdentity(device_id=10, tag_id=20, issue_category_id=30),
+        detector_name=detector_name,
+        identity=IssueIdentity(
+            device_id=10,
+            tag_id=20,
+            issue_category_id=issue_category_id,
+        ),
         time_start=time_start,
-        detector_metadata={"detector_name": "test_detector", "fresh": True},
+        time_end=time_end,
+        detector_metadata={"detector_name": detector_name, "fresh": True},
     )
 
 
@@ -203,3 +216,120 @@ def test_normal_run_resolves_absent_issue(*, monkeypatch) -> None:
     assert operations["deletes"] == []
     assert operations["closes"][0]["issue_id"] == 1
     assert operations["issue_updates"][0]["issue_update"]["issue_id"] == 1
+
+
+def test_candidate_time_end_creates_closed_issue(*, monkeypatch) -> None:
+    """Detector-provided end timestamps are persisted for bounded issues."""
+    run_time = datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC)
+    time_start = run_time - datetime.timedelta(hours=2)
+    time_end = run_time - datetime.timedelta(hours=1)
+    repository, _, operations = _patch_repository(
+        monkeypatch=monkeypatch,
+        scoped_issues=[],
+    )
+
+    result = repository.apply_candidates(
+        project_id="project-a",
+        run_time=run_time,
+        candidates=[
+            _build_candidate(
+                time_start=time_start,
+                time_end=time_end,
+            )
+        ],
+    )
+
+    assert result.opened_count == 1
+    assert operations["creates"][0]["issue"]["time_start"] == time_start
+    assert operations["creates"][0]["issue"]["time_end"] == time_end
+    resolved_update = operations["issue_updates"][1]["issue_update"]
+    assert resolved_update["state_time_start"] == time_end
+
+
+def test_candidate_time_end_updates_open_issue(*, monkeypatch) -> None:
+    """Bounded candidates resolve matched open issues."""
+    run_time = datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC)
+    time_start = run_time - datetime.timedelta(hours=2)
+    time_end = run_time - datetime.timedelta(hours=1)
+    repository, _, operations = _patch_repository(
+        monkeypatch=monkeypatch,
+        scoped_issues=[
+            _build_issue(
+                issue_id=1,
+                time_start=time_start,
+            )
+        ],
+    )
+
+    result = repository.apply_candidates(
+        project_id="project-a",
+        run_time=run_time,
+        candidates=[
+            _build_candidate(
+                time_start=time_start,
+                time_end=time_end,
+            )
+        ],
+    )
+
+    assert result.matched_count == 1
+    assert operations["updates"][0]["values"]["time_end"] == time_end
+    resolved_update = operations["issue_updates"][0]["issue_update"]
+    assert resolved_update["state_time_start"] == time_end
+
+
+def test_absent_issue_prefers_metadata_candidate_time_end(*, monkeypatch) -> None:
+    """Resolution uses last detected timestamp when detector saved one."""
+    run_time = datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC)
+    time_end = run_time - datetime.timedelta(minutes=30)
+    issue = _build_issue(issue_id=1, time_start=run_time)
+    issue.detector_metadata["candidate_time_end"] = time_end.isoformat()
+    repository, _, operations = _patch_repository(
+        monkeypatch=monkeypatch,
+        scoped_issues=[issue],
+    )
+
+    repository.apply_candidates(
+        project_id="project-a",
+        run_time=run_time,
+        candidates=[],
+    )
+
+    assert operations["closes"][0]["time_end"] == time_end
+    resolved_update = operations["issue_updates"][0]["issue_update"]
+    assert resolved_update["state_time_start"] == time_end
+
+
+def test_open_non_comm_issue_suppresses_poa_position_candidate(
+    *,
+    monkeypatch,
+) -> None:
+    """Open communication issues suppress POA position candidates."""
+    run_time = datetime.datetime(2026, 1, 2, 6, 0, tzinfo=datetime.UTC)
+    repository, _, operations = _patch_repository(
+        monkeypatch=monkeypatch,
+        scoped_issues=[
+            _build_issue(
+                issue_id=1,
+                time_start=run_time - datetime.timedelta(hours=1),
+                detector_name="met_station_non_communicating",
+                issue_category_id=30,
+            )
+        ],
+    )
+
+    result = repository.apply_candidates(
+        project_id="project-a",
+        run_time=run_time,
+        candidates=[
+            _build_candidate(
+                time_start=run_time,
+                detector_name="poa_sensor_out_of_position",
+                issue_category_id=31,
+            )
+        ],
+    )
+
+    assert result.opened_count == 0
+    assert operations["creates"] == []
+    assert operations["closes"][0]["issue_id"] == 1

@@ -10,6 +10,7 @@ class MetStationChannel:
 
     device_id: int
     tag_id: int | None
+    sensor_type_id: int | None
     expected_interval_minutes: int
     latitude: float | None
     longitude: float | None

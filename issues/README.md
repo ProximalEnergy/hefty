@@ -16,17 +16,20 @@
 ## Run backfill manually
 Backfill is set up to run any arbitrary combination of (project_ids, start, end, issue_category_ids). `start` and `end` are required, while None for `project_ids` and `issue_category_ids` will run the backfill for all. Backfills run in 1-day intervals over the requested period.
 
-This is a dumb way to invoke this, but it will be improved later.
 ```
 uv run --project issues python -c '
-from issues.lambda_handler import lambda_handler
-event = {
-  "project_ids": None,
-  "issue_category_ids": None,
-  "start": "2026-04-01",
-  "end": "2026-04-03"
-}
-print(lambda_handler(event, None))
+import datetime
+
+from issues.orchestrator.run_issues import run_issues_backfill_for_projects
+
+print(
+    run_issues_backfill_for_projects(
+        project_ids=["project-name-short"],
+        issue_category_ids=None,
+        start=datetime.date(2026, 4, 1),
+        end=datetime.date(2026, 4, 3),
+    )
+)
 '
 ```
 

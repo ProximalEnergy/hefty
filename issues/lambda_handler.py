@@ -124,24 +124,16 @@ def lambda_handler(
         from issues.orchestrator.run_issues import (  # noqa: PLC0415
             discover_project_ids,
             run_issues_for_projects,
-            run_local_midnight_backfill_for_projects,
         )
 
-        if is_eventbridge_scheduled_event(payload=payload):
-            summaries = cast(Any, run_local_midnight_backfill_for_projects)(
-                project_ids=project_ids,
-                run_time=run_time,
-            )
-            requested_project_ids = [summary.project_id for summary in summaries]
-        else:
-            requested_project_ids = project_ids or discover_project_ids()
-            summaries = cast(Any, run_issues_for_projects)(
-                project_ids=requested_project_ids,
-                run_time=run_time,
-                issue_category_ids=issue_category_ids,
-                start=start,
-                end=end,
-            )
+        requested_project_ids = project_ids or discover_project_ids()
+        summaries = cast(Any, run_issues_for_projects)(
+            project_ids=requested_project_ids,
+            run_time=run_time,
+            issue_category_ids=issue_category_ids,
+            start=start,
+            end=end,
+        )
         response_body = build_response_body(
             requested_project_ids=requested_project_ids,
             summaries=summaries,
@@ -161,18 +153,6 @@ def lambda_handler(
             "statusCode": 500,
             "body": json.dumps({"error": str(exc)}),
         }
-
-
-def is_eventbridge_scheduled_event(*, payload: dict[str, Any]) -> bool:
-    """Return whether the payload is an EventBridge scheduled invocation.
-
-    Args:
-        payload: Lambda event payload.
-    """
-    return (
-        payload.get("source") == "aws.events"
-        and payload.get("detail-type") == "Scheduled Event"
-    )
 
 
 def parse_project_ids(*, value: object) -> list[str] | None:

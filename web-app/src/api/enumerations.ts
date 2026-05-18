@@ -325,6 +325,7 @@ export const FailureModeEnum = {
 
 export const IssueCategoryEnum = {
   MET_STATION_NON_COMMUNICATING: 0,
+  POA_SENSOR_OUT_OF_POSITION: 1,
 } as const;
 
 export const KPITypeEnum = {

@@ -23,3 +23,4 @@ class IssueCandidate:
     identity: IssueIdentity
     time_start: datetime.datetime
     detector_metadata: dict[str, Any]
+    time_end: datetime.datetime | None = None

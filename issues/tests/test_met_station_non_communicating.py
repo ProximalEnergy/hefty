@@ -16,6 +16,7 @@ def _build_context(*, points: tuple[TelemetryPoint, ...]) -> DetectorContext:
     channel = MetStationChannel(
         device_id=1,
         tag_id=2,
+        sensor_type_id=None,
         expected_interval_minutes=5,
         latitude=35.0,
         longitude=-97.0,
@@ -31,6 +32,7 @@ def _build_context(*, points: tuple[TelemetryPoint, ...]) -> DetectorContext:
 
 
 def test_detector_daylight_window_keeps_current_behavior(*, monkeypatch) -> None:
+    """Daylight schedule still drives expected sample count."""
     detector = MetStationNonCommunicatingDetector(
         issue_category_id=11,
         config=MetStationNonCommunicatingConfig(),
@@ -60,6 +62,7 @@ def test_detector_daylight_window_keeps_current_behavior(*, monkeypatch) -> None
 
 
 def test_detector_treats_zero_values_as_missing(*, monkeypatch) -> None:
+    """Zero-valued telemetry counts as missing communication."""
     detector = MetStationNonCommunicatingDetector(
         issue_category_id=11,
         config=MetStationNonCommunicatingConfig(),
@@ -90,6 +93,7 @@ def test_detector_treats_zero_values_as_missing(*, monkeypatch) -> None:
 
 
 def test_detector_nighttime_window_emits_no_candidate(*, monkeypatch) -> None:
+    """Nighttime windows do not produce communication candidates."""
     detector = MetStationNonCommunicatingDetector(
         issue_category_id=11,
         config=MetStationNonCommunicatingConfig(),
@@ -115,6 +119,7 @@ def test_detector_nighttime_window_emits_no_candidate(*, monkeypatch) -> None:
 
 
 def test_detector_mixed_window_uses_daylight_only(*, monkeypatch) -> None:
+    """Mixed windows only count daylight expected samples."""
     detector = MetStationNonCommunicatingDetector(
         issue_category_id=11,
         config=MetStationNonCommunicatingConfig(),
@@ -144,6 +149,7 @@ def test_detector_mixed_window_uses_daylight_only(*, monkeypatch) -> None:
 
 
 def test_daytime_helper_normalizes_naive_timestamps_to_aware() -> None:
+    """Naive timestamps are treated as UTC before PVLib daylight checks."""
     detector = MetStationNonCommunicatingDetector(
         issue_category_id=11,
         config=MetStationNonCommunicatingConfig(),

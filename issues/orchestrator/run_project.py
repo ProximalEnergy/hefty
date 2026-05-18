@@ -17,6 +17,9 @@ from issues.detectors.base import IssueDetector
 from issues.detectors.met_station_non_communicating import (
     MetStationNonCommunicatingDetector,
 )
+from issues.detectors.poa_sensor_out_of_position import (
+    PoaSensorOutOfPositionDetector,
+)
 from issues.models.detector_context import DetectorContext
 from issues.models.issue_candidate import IssueCandidate
 from issues.orchestrator.context_builder import build_detector_context
@@ -87,6 +90,10 @@ def run_project_issues(
             detector_config,
             met_station_non_communicating=replace(
                 detector_config.met_station_non_communicating,
+                evaluation_window_minutes=evaluation_window_minutes_override,
+            ),
+            poa_sensor_out_of_position=replace(
+                detector_config.poa_sensor_out_of_position,
                 evaluation_window_minutes=evaluation_window_minutes_override,
             ),
         )
@@ -202,6 +209,13 @@ def _build_configured_detectors(
     met_category_id = met_detector.issue_category_id
     if not selected_ids or met_category_id in selected_ids:
         configured.append(met_detector)
+    poa_detector = _build_poa_sensor_out_of_position_detector(
+        detector_config=detector_config,
+        repository=repository,
+    )
+    poa_category_id = poa_detector.issue_category_id
+    if not selected_ids or poa_category_id in selected_ids:
+        configured.append(poa_detector)
 
     if selected_ids:
         configured_ids = {item.issue_category_id for item in configured}
@@ -249,6 +263,39 @@ def _build_met_station_non_communicating_detector(
     )
     logger.info(
         "\t\tConfigured detector met_station_non_communicating category_id=%d",
+        category_id,
+    )
+    return ConfiguredIssueDetector(
+        detector=detector,
+        issue_category_id=category_id,
+        requirements=requirements,
+    )
+
+
+def _build_poa_sensor_out_of_position_detector(
+    *,
+    detector_config: IssueDetectorConfig,
+    repository: IssueRepository,
+) -> ConfiguredIssueDetector:
+    """Build POA sensor out-of-position detector configuration."""
+    poa_config = detector_config.poa_sensor_out_of_position
+    category_id = repository.get_issue_category_id(
+        category_name=poa_config.issue_category_name,
+    )
+    detector = PoaSensorOutOfPositionDetector(
+        issue_category_id=category_id,
+        config=poa_config,
+    )
+    requirements = DetectorDataRequirements(
+        device_type_ids=(DeviceTypeEnum.MET_STATION.value,),
+        sensor_type_ids=(SensorTypeEnum.MET_STATION_POA_TILT.value,),
+        telemetry_window_minutes=poa_config.evaluation_window_minutes,
+        expected_interval_minutes_default=(
+            poa_config.expected_interval_minutes_default
+        ),
+    )
+    logger.info(
+        "\t\tConfigured detector poa_sensor_out_of_position category_id=%d",
         category_id,
     )
     return ConfiguredIssueDetector(

@@ -136,7 +136,10 @@ def _build_channels_from_tags(
         return []
 
     channels: list[MetStationChannel] = []
-    unique_rows = tags.select(["device_id", "tag_id", "device_point"]).unique()
+    columns = ["device_id", "tag_id", "device_point"]
+    if "sensor_type_id" in tags.columns:
+        columns.append("sensor_type_id")
+    unique_rows = tags.select(columns).unique()
     for row in unique_rows.iter_rows(named=True):
         tag_id = row["tag_id"]
         device_id = row["device_id"]
@@ -159,6 +162,9 @@ def _build_channels_from_tags(
             MetStationChannel(
                 device_id=int(device_id),
                 tag_id=int(tag_id),
+                sensor_type_id=_coerce_optional_sensor_type_id(
+                    raw=row.get("sensor_type_id")
+                ),
                 expected_interval_minutes=default_interval,
                 latitude=latitude,
                 longitude=longitude,
@@ -166,6 +172,17 @@ def _build_channels_from_tags(
         )
     LOGGER.info("\t\t\tBuilt %d detector channels", len(channels))
     return channels
+
+
+def _coerce_optional_sensor_type_id(*, raw: object) -> int | None:
+    if raw is None:
+        return None
+    if isinstance(raw, int):
+        return raw
+    try:
+        return int(float(raw))
+    except (TypeError, ValueError, OverflowError):
+        return None
 
 
 def load_project_coordinates(
