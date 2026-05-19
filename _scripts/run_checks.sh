@@ -339,6 +339,32 @@ prompt_failure_action() {
     done
 }
 
+prompt_all_passed_action() {
+    local show_passed_input
+
+    while true; do
+        read -r -p \
+            "All checks passed. Show [(n)one/(p)assed]: " \
+            show_passed_input
+        show_passed_input=$(
+            printf '%s' "$show_passed_input" | tr '[:upper:]' '[:lower:]'
+        )
+        case "$show_passed_input" in
+            n|none)
+                echo "none"
+                return 0
+                ;;
+            p|passed)
+                echo "passed"
+                return 0
+                ;;
+            *)
+                echo "Please enter one of: n, p."
+                ;;
+        esac
+    done
+}
+
 prompt_post_log_codex_action() {
     local codex_mode="$1"
     local prompt_subject="failures"
@@ -1104,7 +1130,14 @@ run_all_checks() {
     finish_live_summary
     if [ "${#failed_error_indices[@]}" -eq 0 ] \
         && [ "${#failed_warning_indices[@]}" -eq 0 ]; then
-        echo -e "${GREEN}All checks passed.${NC}"
+        if [ -t 0 ]; then
+            show_logs_mode=$(prompt_all_passed_action)
+            if [ "$show_logs_mode" = "passed" ]; then
+                print_passed_checks
+            fi
+        else
+            echo -e "${GREEN}All checks passed.${NC}"
+        fi
         exit 0
     fi
 
@@ -1505,7 +1538,7 @@ fi
 
 if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Type Check" "mise run web:typecheck"
-    add_check "Web-App: Prettier Check" "mise run web:prettier"
+    add_check "Web-App: Oxfmt" "mise run web:format"
     add_check "Web-App: Knip" "mise run web:knip"
     add_check "Web-App: Linting" "mise run web:lint"
     add_check "Web-App: Default Query Options No Explicit Type" \

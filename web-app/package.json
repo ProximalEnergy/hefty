@@ -10,11 +10,11 @@
     "lint:github": "oxlint --deny-warnings --report-unused-disable-directives --format=github",
     "preview": "vite preview",
     "typecheck": "pnpm exec tsgo --noEmit",
-    "prettier": "pnpm exec prettier --write --log-level warn .",
-    "prettier:check": "pnpm exec prettier --check --log-level warn .",
+    "format": "pnpm exec oxfmt",
+    "format:check": "pnpm exec oxfmt --check",
     "knip": "pnpm exec knip",
     "check:bulletproof-react": "node scripts/check-bulletproof-react.mjs",
-    "check": "pnpm run typecheck && pnpm run prettier:check && pnpm run knip && pnpm run check:bulletproof-react"
+    "check": "pnpm run typecheck && pnpm run format:check && pnpm run knip && pnpm run check:bulletproof-react"
   },
   "dependencies": {
     "@clerk/react": "^6.1.0",
@@ -79,7 +79,6 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/chroma-js": "^3.1.2",
     "@types/geojson": "^7946.0.16",
     "@types/lodash": "^4.17.16",
@@ -94,12 +93,12 @@
     "@vitejs/plugin-react-swc": "^4.2",
     "knip": "^5.66.0",
     "openapi-typescript": "^7.10.1",
+    "oxfmt": "~0.50.0",
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.19.0",
     "postcss": "^8.5.3",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
-    "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.9.2",
     "vite": "^7.2.2"
@@ -107,23 +106,6 @@
   "overrides": {
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@types/mapbox__point-geometry": "npm:@mapbox/point-geometry@^1.1.0"
-  },
-  "prettier": {
-    "singleQuote": true,
-    "trailingComma": "all",
-    "tabWidth": 2,
-    "semi": false,
-    "plugins": [
-      "@trivago/prettier-plugin-sort-imports"
-    ],
-    "importOrder": [
-      "^@core/(.*)$",
-      "^@server/(.*)$",
-      "^@ui/(.*)$",
-      "^[./]"
-    ],
-    "importOrderSeparation": true,
-    "importOrderSortSpecifiers": true
   },
   "packageManager": "pnpm@10.33.2"
 }

@@ -13,6 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FULL_FILE_CONFIGS = {
     "web-app/knip.json": "web-app/knip.json",
     "web-app/.oxlintrc.json": "web-app/.oxlintrc.json",
+    "web-app/.oxfmtrc.json": "web-app/.oxfmtrc.json",
     "web-app/tsconfig.json": "web-app/tsconfig.json",
     "web-app/tsconfig.node.json": "web-app/tsconfig.node.json",
 }
@@ -21,11 +22,10 @@ PACKAGE_JSON_KEYS = (
     "scripts.lint",
     "scripts.lint:github",
     "scripts.typecheck",
-    "scripts.prettier",
-    "scripts.prettier:check",
+    "scripts.format",
+    "scripts.format:check",
     "scripts.knip",
     "scripts.check",
-    "prettier",
 )
 
 MISSING = object()

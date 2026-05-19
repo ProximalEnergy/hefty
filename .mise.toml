@@ -998,10 +998,15 @@ pnpm approve-builds
 pnpm run typecheck
 """
 
-[tasks."web:prettier"]
-description = "Run Prettier for web-app"
+[tasks."web:oxfmt"]
+description = "Run Oxfmt for web-app"
 dir = "web-app"
-run = "pnpm run prettier"
+run = "pnpm run format"
+
+[tasks."web:format"]
+description = "Run Oxfmt for web-app"
+dir = "web-app"
+run = "pnpm run format"
 
 [tasks."web:knip"]
 description = "Run Knip for web-app"
@@ -1009,7 +1014,7 @@ dir = "web-app"
 run = "pnpm run knip"
 
 [tasks."web:check"]
-description = "Run TypeScript, Prettier, Knip, and oxlint checks for web-app"
+description = "Run TypeScript, Oxfmt, Knip, and oxlint checks for web-app"
 dir = "web-app"
 depends = ["web:default-query-options-no-explicit-type"]
 run = "pnpm run check && pnpm run lint"

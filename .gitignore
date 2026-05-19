@@ -65,6 +65,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Generated PV-EEM test output artifacts. Fixture snapshots remain tracked under
+# pv-eem/_tests/_artifacts/snapshots/ and named project fixture directories.
+pv-eem/_tests/_artifacts/*_test_*/
+
 # Translations
 *.mo
 *.pot

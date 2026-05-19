@@ -545,6 +545,8 @@ class SensorTypeEnum(BaseDatabaseEnum[int], IntEnum):
     PROJECT_BREAKER_STATUS = 218
     PROJECT_RECLOSER_STATUS = 219
     TRACKER_ZONE_WIND_SPEED = 220
+    BESS_PCS_AVAILABLE_CHARGE_POWER_EMS = 221
+    BESS_PCS_AVAILABLE_DISCHARGE_POWER_EMS = 222
 
 
 class ExpectedMetricIdEnum(BaseDatabaseEnum[int], IntEnum):

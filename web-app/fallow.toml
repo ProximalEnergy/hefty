@@ -4,10 +4,10 @@
 entry = ["src/index.{ts,tsx,js,jsx}", "src/main.{ts,tsx,js,jsx}"]
 ignorePatterns = ["src/api/enumerations.ts", "src/api/schema.d.ts"]
 ignoreDependencies = [
-    # Specified by Mantine
-    # https://mantine.dev/x/tiptap/
-    "@tiptap/extension-link",
-    "@tiptap/pm",
-    # Mise Job
-    "openapi-typescript",
+  # Specified by Mantine
+  # https://mantine.dev/x/tiptap/
+  "@tiptap/extension-link",
+  "@tiptap/pm",
+  # Mise Job
+  "openapi-typescript",
 ]

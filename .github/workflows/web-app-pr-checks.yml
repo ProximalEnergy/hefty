@@ -102,7 +102,7 @@ jobs:
           name: tsconfig
           path: web-app/tsconfig.json
 
-  prettier:
+  format:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
@@ -116,7 +116,7 @@ jobs:
         run: mise install node pnpm
 
       - name: Cache dependencies
-        id: cache-prettier-deps
+        id: cache-format-deps
         uses: actions/cache@v5
         with:
           path: |
@@ -129,11 +129,11 @@ jobs:
             pnpm-${{ runner.os }}-
 
       - name: Install dependencies
-        if: steps.cache-prettier-deps.outputs.cache-hit != 'true'
+        if: steps.cache-format-deps.outputs.cache-hit != 'true'
         run: PNPM_STORE_DIR=.pnpm-store mise run web:install
 
-      - name: Run Prettier check
-        run: mise run web:prettier
+      - name: Run Oxfmt
+        run: mise run web:format
 
   knip_checker:
     if: github.event.pull_request.draft == false

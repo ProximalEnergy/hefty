@@ -1,0 +1,8 @@
+allowBuilds:
+  '@clerk/shared': true
+  '@sentry/cli': true
+  '@swc/core': true
+  core-js: true
+  es5-ext: true
+  esbuild: true
+  protobufjs: true
