@@ -1,13 +1,12 @@
 import { type OMContractorScope } from '@/api/v1/operational/project/om_contractors'
+import {
+  getProjectInfoTabPath,
+  getProjectOMContractorsTabPath,
+} from '@/pages/projects/project-settings-paths'
 import { ActionIcon, Group, Stack, Text } from '@mantine/core'
 import { IconEdit } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { Link } from 'react-router'
-
-import {
-  getProjectInfoTabPath,
-  getProjectOMContractorsTabPath,
-} from '../../project-settings-paths'
 
 type InstallDetailsProps = {
   projectId?: string

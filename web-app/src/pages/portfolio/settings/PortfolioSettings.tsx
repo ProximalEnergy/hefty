@@ -3,14 +3,13 @@ import { ProjectTypeEnum, UserTypeEnum } from '@/api/enumerations'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import PVInverterSettings from '@/pages/portfolio/settings/PVInverter'
+import PVModuleSettings from '@/pages/portfolio/settings/PVModule'
+import PVRackSettings from '@/pages/portfolio/settings/PVRack'
+import System from '@/pages/portfolio/settings/System'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
-
-import PVInverterSettings from './PVInverter'
-import PVModuleSettings from './PVModule'
-import PVRackSettings from './PVRack'
-import System from './System'
 
 const PortfolioSettingsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()

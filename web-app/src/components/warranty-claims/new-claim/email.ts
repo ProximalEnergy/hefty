@@ -1,4 +1,4 @@
-import type { DeviceEntry } from './devices'
+import type { DeviceEntry } from '@/components/warranty-claims/new-claim/devices'
 
 export const CLAIM_EMAIL_LABEL_COL_W = 76
 const PROXIMAL_BLUE = '#00AEEF'

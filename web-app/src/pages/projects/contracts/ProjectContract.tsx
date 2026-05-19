@@ -1,5 +1,6 @@
 import { useGetProjectContracts } from '@/api/v1/operational/project/contracts'
 import { PageLoader } from '@/components/Loading'
+import { BatteryWarrantyContract } from '@/pages/projects/contracts/BatteryWarrantyContract'
 import {
   Button,
   Container,
@@ -12,8 +13,6 @@ import {
 } from '@mantine/core'
 import dayjs from 'dayjs'
 import { useNavigate, useParams } from 'react-router'
-
-import { BatteryWarrantyContract } from './BatteryWarrantyContract'
 
 const ProjectContract = () => {
   const { projectId, contractId } = useParams()

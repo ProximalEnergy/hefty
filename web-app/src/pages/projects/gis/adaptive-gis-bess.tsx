@@ -19,6 +19,7 @@ import ProjectEventOverlayLayers, {
   EVENT_SOURCE_ID,
   isProjectEventLayerId,
 } from '@/pages/projects/events/ProjectEventOverlayLayers'
+import { HoverInfo } from '@/pages/projects/gis/utils'
 import * as gisUtils from '@/utils/GIS'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
@@ -55,8 +56,6 @@ import MapboxMap, {
   Source,
 } from 'react-map-gl/mapbox'
 import { useNavigate, useParams } from 'react-router'
-
-import { HoverInfo } from './utils'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

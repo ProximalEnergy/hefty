@@ -1,6 +1,5 @@
+import { getRealtimeGaugeColor } from '@/pages/projects/components/realtimeGaugeUtils'
 import { RingProgress, Text, Tooltip } from '@mantine/core'
-
-import { getRealtimeGaugeColor } from './realtimeGaugeUtils'
 
 export const RealtimePowerAvailabilityGauge = ({
   value,

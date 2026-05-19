@@ -1,5 +1,6 @@
 import { DataTable } from '@/components/DataTable'
 import { Tag } from '@/hooks/projectTags'
+import { columns } from '@/pages/projects/tags/ProjectTagsColumns'
 import {
   ColumnFiltersState,
   getCoreRowModel,
@@ -9,8 +10,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-
-import { columns } from './ProjectTagsColumns'
 
 export function ProjectTagsTable({
   data,

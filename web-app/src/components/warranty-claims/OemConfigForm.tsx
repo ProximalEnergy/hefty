@@ -1,9 +1,11 @@
 import { ClaimSubmissionChannelEnum } from '@/api/enumerations'
 import CompanyLookup from '@/components/CompanyLookup'
+import {
+  CHANNEL_OPTIONS,
+  channelUsesPortalUrl,
+} from '@/components/warranty-claims/constants'
 import { Group, Select, Stack, Text, TextInput } from '@mantine/core'
 import { IconBuildingFactory2 } from '@tabler/icons-react'
-
-import { CHANNEL_OPTIONS, channelUsesPortalUrl } from './constants'
 
 export interface OemConfigFormValues {
   /** Required when `mode === 'create'`; null otherwise. */

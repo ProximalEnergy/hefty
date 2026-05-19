@@ -1,4 +1,5 @@
 import type * as types from '@/api/schema'
+import type { NotificationType } from '@/api/v1/admin/notification_types'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { QUERY_TIME } from '@/utils/queryTiming'
@@ -10,8 +11,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import axios from 'axios'
-
-import type { NotificationType } from './notification_types'
 
 export type NotificationPreference =
   types.components['schemas']['NotificationPreferenceInterface']

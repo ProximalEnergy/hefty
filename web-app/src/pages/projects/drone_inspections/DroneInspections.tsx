@@ -16,6 +16,8 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { OrderDroneInspectionModal } from '@/components/modals/OrderDroneInspectionModal'
 import { StatsGrid } from '@/components/stats/StatsGrid'
+import DroneAnomaliesTable from '@/pages/projects/drone_inspections/DroneAnomaliesTable'
+import DroneInspectionsMap from '@/pages/projects/drone_inspections/DroneInspectionsMap'
 import { getCompanyLogoUrl } from '@/utils/cdn'
 import {
   ActionIcon,
@@ -43,9 +45,6 @@ import {
 } from '@tabler/icons-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
-
-import DroneAnomaliesTable from './DroneAnomaliesTable'
-import DroneInspectionsMap from './DroneInspectionsMap'
 
 const DroneInspections: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>()

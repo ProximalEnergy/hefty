@@ -1,14 +1,13 @@
+import {
+  DeviceListTable,
+  DeviceTypeSummaryTable,
+  OnboardingPageHeader,
+} from '@/pages/onboarding/components'
 import { AppShell, Container, Paper, Stack, Text, Title } from '@mantine/core'
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone'
 import { IconUpload, IconX } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useParams } from 'react-router'
-
-import {
-  DeviceListTable,
-  DeviceTypeSummaryTable,
-  OnboardingPageHeader,
-} from './components'
 
 interface DeviceData {
   device: string

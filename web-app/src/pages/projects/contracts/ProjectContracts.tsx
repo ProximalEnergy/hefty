@@ -14,6 +14,7 @@ import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { VoiceChatModal } from '@/components/VoiceChat'
+import CreateContractModal from '@/pages/projects/contracts/CreateContractModal'
 import {
   ActionIcon,
   Alert,
@@ -45,8 +46,6 @@ import {
 } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
-import CreateContractModal from './CreateContractModal'
 
 // Placeholder contractual KPIs data
 const placeholderKPIs = [

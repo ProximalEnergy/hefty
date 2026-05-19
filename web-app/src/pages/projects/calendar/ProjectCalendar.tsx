@@ -5,6 +5,11 @@ import {
 } from '@/api/v1/operational/calendar'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
+import { CalendarItemModal } from '@/pages/projects/calendar/CalendarItemModal'
+import { DetachAndEditOccurrenceModal } from '@/pages/projects/calendar/DetachAndEditOccurrenceModal'
+import classes from '@/pages/projects/calendar/ProjectCalendar.module.css'
+import { ViewCalendarItemModal } from '@/pages/projects/calendar/ViewCalendarItemModal'
+import { makePreviousDayCellClassNames } from '@/utils/calendarUtils'
 import { DateSelectArg, EventClickArg, EventInput } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -15,12 +20,6 @@ import { Box, Paper, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
-
-import { makePreviousDayCellClassNames } from '../../../utils/calendarUtils'
-import { CalendarItemModal } from './CalendarItemModal'
-import { DetachAndEditOccurrenceModal } from './DetachAndEditOccurrenceModal'
-import classes from './ProjectCalendar.module.css'
-import { ViewCalendarItemModal } from './ViewCalendarItemModal'
 
 export const ProjectCalendar = () => {
   const { projectId } = useParams<{ projectId: string }>()

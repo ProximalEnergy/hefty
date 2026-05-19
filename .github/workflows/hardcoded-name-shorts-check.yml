@@ -17,7 +17,12 @@ on:
     paths:
       - "api/**"
       - "core/**"
+      - "issues/**"
+      - "microservices/**"
+      - "pv-eem/**"
       - "web-app/**"
+      - "_scripts/name_shorts_ast_grep_check.sh"
+      - ".mise.toml"
       - ".github/workflows/hardcoded-name-shorts-check.yml"
 
 concurrency:
@@ -34,12 +39,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Install ripgrep
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ripgrep
+      - name: Set up mise
+        uses: jdx/mise-action@v4
 
-      - name: Run hardcoded name shorts check
-        run: |
-          chmod +x _scripts/hardcoded_name_shorts_check.sh
-          _scripts/hardcoded_name_shorts_check.sh
+      - name: Run static name shorts check
+        run: mise run root:static_name_shorts

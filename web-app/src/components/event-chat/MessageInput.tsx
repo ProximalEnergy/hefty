@@ -2,6 +2,11 @@ import { useGetCompanies } from '@/api/v1/admin/companies'
 import { useGetAllCompanyProjectsForProject } from '@/api/v1/admin/company_projects'
 import { useGetSelfCompanyUsers } from '@/api/v1/admin/users'
 import {
+  ALLOWED_IMAGE_TYPES,
+  MAX_IMAGE_SIZE_BYTES,
+  generateImageId,
+} from '@/components/event-chat/utils'
+import {
   ActionIcon,
   Avatar,
   Button,
@@ -33,12 +38,6 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import {
-  ALLOWED_IMAGE_TYPES,
-  MAX_IMAGE_SIZE_BYTES,
-  generateImageId,
-} from './utils'
 
 interface MessageInputProps {
   eventId: number

@@ -4,9 +4,8 @@ import {
   useGetProjectIssues,
 } from '@/api/v1/operational/project/issues'
 import { useGetDataTimeSeriesV3 } from '@/api/v1/operational/project/project_data'
+import type { MetStationContext } from '@/features/performance/met-station/types/met-station'
 import { DataTimeSeries } from '@/hooks/types'
-
-import type { MetStationContext } from '../types/met-station'
 
 type DayViewData = {
   poa: DataTimeSeries[]

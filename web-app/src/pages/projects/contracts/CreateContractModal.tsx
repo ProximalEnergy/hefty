@@ -11,6 +11,8 @@ import {
   useGetContractCategories,
 } from '@/api/v1/operational/project/contracts'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import PdfViewer, { PdfViewerHandle } from '@/components/PdfViewer'
+import { StreamingText } from '@/components/StreamingText'
 import {
   ActionIcon,
   Badge,
@@ -43,9 +45,6 @@ import {
 } from '@tabler/icons-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
-
-import PdfViewer, { PdfViewerHandle } from '../../../components/PdfViewer'
-import { StreamingText } from '../../../components/StreamingText'
 
 // Contract categories from the database models
 // const CONTRACT_CATEGORIES = [ ... ]

@@ -1,6 +1,8 @@
 import { NotificationStateEnum } from '@/api/enumerations'
 import type * as types from '@/api/schema'
 import { useGetUnreadNotificationCount } from '@/api/v1/admin/notifications'
+import NotificationsPanel from '@/pages/layout/header/NotificationsPanel'
+import classes from '@/pages/layout/header/ThemeToggle.module.css'
 import { baseURL } from '@/urlConfig'
 import { formatNotification } from '@/utils/notificationFormatters'
 import { useAuth } from '@clerk/react'
@@ -12,9 +14,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import cx from 'clsx'
 import { useEffect, useRef } from 'react'
-
-import NotificationsPanel from './NotificationsPanel'
-import classes from './ThemeToggle.module.css'
 
 const UserAlerts = () => {
   const { data: unreadCountData } = useGetUnreadNotificationCount({})

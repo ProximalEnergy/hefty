@@ -1,17 +1,16 @@
 import { ErrorBoundary } from '@/ErrorBoundary'
 import { StatusAndAlarmCodes } from '@/components/bess-pcs/StatusAndAlarmCodes'
+import { ACVoltageChartBessPcsRealtime } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/ac-voltage/ac-voltage-chart'
+import { ActivePowerChartBessPcsRealtime } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/active-power/active-power-chart'
+import { DCVoltageChartBessPcsRealtime } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/dc-voltage/dc-voltage-chart'
+import { IGBTTemperatureChartBessPcsRealtime } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/igbt-temperature/igbt-temperature-chart'
+import { BessPcsRealtimeReactivePowerChart } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/reactive-power/reactive-power-chart'
+import { RealtimeStats } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/stats/realtime-stats'
+import { useRealtimeSources } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/use-realtime-sources'
+import { useBessPcsStaticData } from '@/pages/projects/equipment_analysis/bess_pcs/use-bess-pcs-static-data'
 import { Stack } from '@mantine/core'
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
-
-import { useBessPcsStaticData } from '../use-bess-pcs-static-data'
-import { ACVoltageChartBessPcsRealtime } from './ac-voltage/ac-voltage-chart'
-import { ActivePowerChartBessPcsRealtime } from './active-power/active-power-chart'
-import { DCVoltageChartBessPcsRealtime } from './dc-voltage/dc-voltage-chart'
-import { IGBTTemperatureChartBessPcsRealtime } from './igbt-temperature/igbt-temperature-chart'
-import { BessPcsRealtimeReactivePowerChart } from './reactive-power/reactive-power-chart'
-import { RealtimeStats } from './stats/realtime-stats'
-import { useRealtimeSources } from './use-realtime-sources'
 
 export function Realtime() {
   const { projectId } = useParams<{ projectId: string }>()

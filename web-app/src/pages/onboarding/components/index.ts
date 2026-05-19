@@ -1,3 +1,3 @@
-export { OnboardingPageHeader } from './OnboardingPageHeader'
-export { DeviceTypeSummaryTable } from './DeviceTypeSummaryTable'
-export { DeviceListTable } from './DeviceListTable'
+export { OnboardingPageHeader } from '@/pages/onboarding/components/OnboardingPageHeader'
+export { DeviceTypeSummaryTable } from '@/pages/onboarding/components/DeviceTypeSummaryTable'
+export { DeviceListTable } from '@/pages/onboarding/components/DeviceListTable'

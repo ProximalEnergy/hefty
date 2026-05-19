@@ -1,6 +1,8 @@
 import { useGetDataLastUpdated } from '@/api/v1/operational/project/project_data_last_updated'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import classes from '@/pages/layout/header/DataStatus.module.css'
+import { StatusIconWrapper } from '@/pages/layout/header/StatusIconWrapper'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import { Box, Indicator, Tooltip } from '@mantine/core'
 import dayjs from 'dayjs'
@@ -8,9 +10,6 @@ import duration from 'dayjs/plugin/duration'
 import type { Duration } from 'dayjs/plugin/duration'
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
-import classes from './DataStatus.module.css'
-import { StatusIconWrapper } from './StatusIconWrapper'
 
 dayjs.extend(duration)
 

@@ -1,6 +1,7 @@
 import { useGetProjectContracts } from '@/api/v1/operational/project/contracts'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateFeedbackMutation } from '@/hooks/api'
+import CreateContractModal from '@/pages/projects/contracts/CreateContractModal'
 import { useAuth } from '@clerk/react'
 import {
   Button,
@@ -13,8 +14,6 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 import { useParams } from 'react-router'
-
-import CreateContractModal from '../contracts/CreateContractModal'
 
 interface RequestKPIModalProps {
   opened: boolean

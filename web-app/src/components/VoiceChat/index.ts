@@ -1,1 +1,1 @@
-export { default as VoiceChatModal } from './VoiceChatModal'
+export { default as VoiceChatModal } from '@/components/VoiceChat/VoiceChatModal'

@@ -7,6 +7,12 @@ import {
   useGetPortfolioCalendarEvents,
 } from '@/api/v1/protected/web-application/portfolio/calendar'
 import { PageTitle } from '@/components/PageTitle'
+import { CalendarItemModal } from '@/pages/projects/calendar/CalendarItemModal'
+import { renderAssigneeOption } from '@/pages/projects/calendar/CalendarRenderers'
+import { DetachAndEditOccurrenceModal } from '@/pages/projects/calendar/DetachAndEditOccurrenceModal'
+import classes from '@/pages/projects/calendar/ProjectCalendar.module.css'
+import { ViewCalendarItemModal } from '@/pages/projects/calendar/ViewCalendarItemModal'
+import { makePreviousDayCellClassNames } from '@/utils/calendarUtils'
 import { useUser } from '@clerk/react'
 import type { CalendarApi, EventApi, EventClickArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -28,13 +34,6 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-
-import { makePreviousDayCellClassNames } from '../../utils/calendarUtils'
-import { CalendarItemModal } from '../projects/calendar/CalendarItemModal'
-import { renderAssigneeOption } from '../projects/calendar/CalendarRenderers'
-import { DetachAndEditOccurrenceModal } from '../projects/calendar/DetachAndEditOccurrenceModal'
-import classes from '../projects/calendar/ProjectCalendar.module.css'
-import { ViewCalendarItemModal } from '../projects/calendar/ViewCalendarItemModal'
 
 export const PortfolioCalendar = () => {
   const [searchParams, setSearchParams] = useSearchParams()

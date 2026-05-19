@@ -1,9 +1,8 @@
-import { ReactNode, useState } from 'react'
-
 import {
   ProjectDropdownContext,
   ProjectFilterCriteria,
-} from './ProjectDropdownContext'
+} from '@/providers/ProjectDropdownContext'
+import { ReactNode, useState } from 'react'
 
 // Provider component with type for props
 interface ProjectDropdownProviderProps {

@@ -1,6 +1,5 @@
 import { SensorType } from '@/api/v1/operational/sensor_types'
-
-import { Device, MultiPolygon, Point } from './devices'
+import { Device, MultiPolygon, Point } from '@/hooks/devices'
 
 interface DataType {
   data_type_id: number

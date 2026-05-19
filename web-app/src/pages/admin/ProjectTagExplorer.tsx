@@ -17,6 +17,7 @@ import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { getUniqueUnits } from '@/pages/admin/sensorTypeUnits'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
@@ -71,8 +72,6 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import React, { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
-
-import { getUniqueUnits } from './sensorTypeUnits'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

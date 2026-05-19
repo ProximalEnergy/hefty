@@ -1,6 +1,8 @@
 import { ChatCard, IStep } from '@/components/ChatCard'
 import { ProjectSpotlight, SpotlightSearch } from '@/components/Spotlight'
 import useVersionChecker from '@/hooks/versionChecker'
+import AppLayoutHeader from '@/pages/layout/header/Header'
+import { NavbarNested } from '@/pages/layout/navbar/NavbarNested'
 import {
   ActionIcon,
   Affix,
@@ -19,9 +21,6 @@ import {
 } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useParams } from 'react-router'
-
-import AppLayoutHeader from './header/Header'
-import { NavbarNested } from './navbar/NavbarNested'
 
 const Demo = ({
   messages,

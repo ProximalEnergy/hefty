@@ -1,5 +1,6 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { baseURL } from '@/urlConfig'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import {
@@ -8,8 +9,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import axios from 'axios'
-
-import { baseURL } from '../urlConfig'
 
 type Permission = types.components['schemas']['PermissionInterface']
 type UserWithPermissions = types.components['schemas']['UserWithPermissions']

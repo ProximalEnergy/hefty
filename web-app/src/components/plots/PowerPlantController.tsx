@@ -1,7 +1,6 @@
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
+import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useParams } from 'react-router'
-
-import PlotlyPlot from './PlotlyPlot'
 
 const PowerPlantController = () => {
   const { projectId } = useParams<{ projectId: string }>()

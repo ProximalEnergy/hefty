@@ -1,4 +1,5 @@
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import type { PvInverterContext } from '@/features/performance/pv-inverter/hooks/use-pv-inverter-context'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import {
   ActionIcon,
@@ -24,8 +25,6 @@ import type { PlotType } from 'plotly.js'
 import type { SyntheticEvent } from 'react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-
-import type { PvInverterContext } from '../hooks/use-pv-inverter-context'
 
 const deviceModelIconUrl = '/icon_pv_pcs.svg'
 
@@ -165,7 +164,10 @@ export function PvInverterHeader({ context }: PvInverterHeaderProps) {
                               Rated AC power:{' '}
                               <Text component="span" fw={500}>
                                 {context.inverter.power_ac_nominal
-                                  ? `${(context.inverter.power_ac_nominal / 1000000).toFixed(2)} MWac`
+                                  ? `${(
+                                      context.inverter.power_ac_nominal /
+                                      1000000
+                                    ).toFixed(2)} MWac`
                                   : 'N/A'}
                               </Text>
                             </Text>
@@ -173,7 +175,10 @@ export function PvInverterHeader({ context }: PvInverterHeaderProps) {
                               Rated DC power:{' '}
                               <Text component="span" fw={500}>
                                 {context.inverter.power_dc_nominal
-                                  ? `${(context.inverter.power_dc_nominal / 1000000).toFixed(2)} MWdc`
+                                  ? `${(
+                                      context.inverter.power_dc_nominal /
+                                      1000000
+                                    ).toFixed(2)} MWdc`
                                   : 'N/A'}
                               </Text>
                             </Text>

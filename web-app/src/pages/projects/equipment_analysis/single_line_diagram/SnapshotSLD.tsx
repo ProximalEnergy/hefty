@@ -12,6 +12,8 @@ import {
 import { PageLoader } from '@/components/Loading'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
+import { BlockHeader } from '@/pages/projects/equipment_analysis/single_line_diagram/BlockHeader'
+import { PowerFlowEdge } from '@/pages/projects/equipment_analysis/single_line_diagram/PowerFlowEdge'
 import {
   ActionIcon,
   Box,
@@ -42,9 +44,6 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
-
-import { BlockHeader } from './BlockHeader'
-import { PowerFlowEdge } from './PowerFlowEdge'
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)

@@ -1,9 +1,8 @@
 import { useGetUserType } from '@/api/admin'
 import { DeviceTypeEnum, UserTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import type { MetStationContext } from '@/features/performance/met-station/types/met-station'
 import { useGetDevicesV2 } from '@/hooks/api'
-
-import type { MetStationContext } from '../types/met-station'
 
 type UseMetStationContextProps = {
   projectId: string | undefined

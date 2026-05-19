@@ -4,10 +4,9 @@ import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useProjectFilter } from '@/hooks/custom'
+import { useEquipmentAnalysisTab } from '@/pages/projects/equipment_analysis/useEquipmentAnalysisTab'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useParams } from 'react-router'
-
-import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const CircuitPage = () => {
   useProjectFilter({

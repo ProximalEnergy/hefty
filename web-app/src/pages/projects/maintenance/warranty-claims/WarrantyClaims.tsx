@@ -23,6 +23,11 @@ import {
 } from '@/components/warranty-claims/constants'
 import { formatDate } from '@/components/warranty-claims/formatDate'
 import {
+  BESS_PLACEHOLDERS,
+  PV_PLACEHOLDERS,
+  getFakeUpdates,
+} from '@/pages/projects/maintenance/warranty-claims/placeholders'
+import {
   ActionIcon,
   Alert,
   Badge,
@@ -68,12 +73,6 @@ import {
 } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
-import {
-  BESS_PLACEHOLDERS,
-  PV_PLACEHOLDERS,
-  getFakeUpdates,
-} from './placeholders'
 
 function isProximalCompanyName(value: string | null | undefined) {
   return value?.trim().toLowerCase().startsWith('proximal') ?? false

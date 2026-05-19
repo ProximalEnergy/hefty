@@ -1,7 +1,6 @@
+import { OnboardingPageHeader } from '@/pages/onboarding/components/OnboardingPageHeader'
 import { AppShell, Container, Stack } from '@mantine/core'
 import { useParams } from 'react-router'
-
-import { OnboardingPageHeader } from '../components/OnboardingPageHeader'
 
 function Combiners() {
   const { projectId } = useParams<{ projectId: string }>()

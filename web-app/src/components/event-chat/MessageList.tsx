@@ -1,3 +1,8 @@
+import { EditMessageForm } from '@/components/event-chat/EditMessageForm'
+import { MessageBodyWithImages } from '@/components/event-chat/MessageBodyWithImages'
+import { MessageReactions } from '@/components/event-chat/MessageReactions'
+import { MessageToolbar } from '@/components/event-chat/MessageToolbar'
+import { QuotedMessage } from '@/components/event-chat/QuotedMessage'
 import {
   Avatar,
   Group,
@@ -12,14 +17,6 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
 import { useEffect, useRef, useState } from 'react'
-
-import { EditMessageForm } from './EditMessageForm'
-import {
-  MessageBodyWithImages,
-  MessageReactions,
-  MessageToolbar,
-  QuotedMessage,
-} from './index'
 
 dayjs.extend(utc)
 dayjs.extend(relativeTime)

@@ -7,6 +7,7 @@ import {
 } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
 import { useTableSort } from '@/hooks/useTableSort'
+import { getUniqueUnits } from '@/pages/admin/sensorTypeUnits'
 import {
   ActionIcon,
   Button,
@@ -25,8 +26,6 @@ import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconPlus } from '@tabler/icons-react'
 import { useState } from 'react'
-
-import { getUniqueUnits } from './sensorTypeUnits'
 
 const columns = [
   { key: 'sensor_type_id', header: 'ID', align: 'center' as const },

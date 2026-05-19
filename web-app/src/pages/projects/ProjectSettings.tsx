@@ -1,13 +1,12 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
+import OMContractors from '@/pages/projects/settings/OMContractors'
+import PVBudgeted from '@/pages/projects/settings/PVBudgeted'
+import ProjectInfo from '@/pages/projects/settings/ProjectInfo'
+import Documents from '@/pages/projects/settings/documents'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useParams, useSearchParams } from 'react-router'
-
-import OMContractors from './settings/OMContractors'
-import PVBudgeted from './settings/PVBudgeted'
-import ProjectInfo from './settings/ProjectInfo'
-import Documents from './settings/documents'
 
 const ProjectSettings = () => {
   const { projectId } = useParams<{ projectId?: string }>()

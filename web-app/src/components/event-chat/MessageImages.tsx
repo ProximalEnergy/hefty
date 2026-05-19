@@ -2,6 +2,7 @@ import {
   EventMessageImage,
   useGetEventMessageImages,
 } from '@/api/v1/operational/event_messages'
+import { MessageImagesModal } from '@/components/event-chat/MessageImagesModal'
 import {
   Group,
   Image,
@@ -9,8 +10,6 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useMemo, useState } from 'react'
-
-import { MessageImagesModal } from './MessageImagesModal'
 
 interface MessageImagesProps {
   eventId: number

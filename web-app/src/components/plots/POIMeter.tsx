@@ -1,10 +1,9 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
+import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { DataTimeSeries } from '@/hooks/types'
 import { Layout } from 'plotly.js'
 import { useParams } from 'react-router'
-
-import PlotlyPlot from './PlotlyPlot'
 
 interface POIMeterProps {
   showGridHzV?: boolean

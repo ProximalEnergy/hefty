@@ -2,6 +2,7 @@ import { AggregationMethodEnum, SensorTypeEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
 import { Tag } from '@/hooks/projectTags'
 import { Device } from '@/hooks/types'
+import { LineConfig as LineConfigType } from '@/pages/projects/custom_dash/CustomDash'
 import {
   ActionIcon,
   Box,
@@ -26,8 +27,6 @@ import { IconPlus, IconX } from '@tabler/icons-react'
 import { UseQueryResult } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useMemo, useState } from 'react'
-
-import { LineConfig as LineConfigType } from './CustomDash'
 
 const MAX_DISPLAYED_VALUES = 2
 

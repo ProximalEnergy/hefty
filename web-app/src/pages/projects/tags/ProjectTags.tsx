@@ -1,12 +1,11 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetTags } from '@/hooks/api'
+import { ProjectTagsTable } from '@/pages/projects/tags/ProjectTagsTable'
 import { Group, Select, Stack } from '@mantine/core'
 import { type ColumnFiltersState } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
-
-import { ProjectTagsTable } from './ProjectTagsTable'
 
 const SELECT_DATA = Array.from({ length: 100 }, (_, i) => ({
   value: (i + 1).toString(),

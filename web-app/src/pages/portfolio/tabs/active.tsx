@@ -4,10 +4,9 @@ import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
+import styles from '@/pages/portfolio/PortfolioHome.module.css'
+import { PortfolioProjectCard } from '@/pages/portfolio/components/PortfolioProjectCard/PortfolioProjectCard'
 import { Box, Center, SimpleGrid, Stack, Text } from '@mantine/core'
-
-import styles from '../PortfolioHome.module.css'
-import { PortfolioProjectCard } from '../components/PortfolioProjectCard/PortfolioProjectCard'
 
 interface ActiveProjectsTabProps {
   projects: NonNullable<ReturnType<typeof useSelectProject>['data']>[]

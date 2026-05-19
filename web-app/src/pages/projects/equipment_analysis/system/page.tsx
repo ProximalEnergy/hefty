@@ -12,6 +12,7 @@ import { LossWaterfallCardInfo } from '@/components/plots/LossWaterfallCardInfo'
 import POIMeter from '@/components/plots/POIMeter'
 import PowerPlantController from '@/components/plots/PowerPlantController'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
+import { useEquipmentAnalysisTab } from '@/pages/projects/equipment_analysis/useEquipmentAnalysisTab'
 import {
   ActionIcon,
   Group,
@@ -27,8 +28,6 @@ import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
 import { useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
-
-import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const SystemPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()

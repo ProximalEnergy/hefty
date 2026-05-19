@@ -1,0 +1,15 @@
+id: web-no-relative-internal-imports
+message: "Use @/... for web-app src imports instead of relative paths."
+language: TypeScript
+severity: error
+rule:
+  any:
+    - all:
+        - kind: import_statement
+        - regex: "(from\\s*['\"]\\.\\.?/|^\\s*import\\s*['\"]\\.\\.?/)"
+    - all:
+        - kind: export_statement
+        - regex: "from\\s*['\"]\\.\\.?/"
+    - all:
+        - kind: call_expression
+        - regex: "\\bimport\\s*\\(\\s*['\"]\\.\\.?/"

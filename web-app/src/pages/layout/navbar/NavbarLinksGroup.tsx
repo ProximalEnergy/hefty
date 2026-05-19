@@ -1,3 +1,5 @@
+import classes from '@/pages/layout/navbar/NavbarLinksGroup.module.css'
+import { isPathActive } from '@/pages/layout/navbar/isPathActive'
 import {
   Box,
   Group,
@@ -9,9 +11,6 @@ import {
 } from '@mantine/core'
 import { IconChevronRight } from '@tabler/icons-react'
 import { Link, useLocation } from 'react-router'
-
-import classes from './NavbarLinksGroup.module.css'
-import { isPathActive } from './isPathActive'
 
 interface DropdownLinkProps {
   label: string
@@ -102,7 +101,11 @@ export function LinksGroup({
   )
 
   const menuTarget = to ? (
-    <Link to={to} style={{ textDecoration: 'none' }} data-active={activeState}>
+    <Link
+      to={to}
+      style={{ textDecoration: 'none', color: 'inherit' }}
+      data-active={activeState}
+    >
       {buttonContent}
     </Link>
   ) : (

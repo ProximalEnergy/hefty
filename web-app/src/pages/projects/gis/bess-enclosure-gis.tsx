@@ -7,6 +7,7 @@ import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetGISBessEnclosure } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
+import { HoverInfo } from '@/pages/projects/gis/utils'
 import * as gisUtils from '@/utils/GIS'
 import {
   Box,
@@ -24,8 +25,6 @@ import {
   Source,
 } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router'
-
-import { HoverInfo } from './utils'
 
 const BessEnclosureGISPage = () => {
   useProjectFilter({

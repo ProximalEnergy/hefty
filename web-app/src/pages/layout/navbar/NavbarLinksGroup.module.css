@@ -3,7 +3,7 @@
   display: block;
   width: 100%;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--mantine-font-size-sm) !important;
 
   @mixin hover {
     background-color: light-dark(

@@ -1,10 +1,9 @@
 // Filter component for the favorites column that allows users to toggle between showing all KPIs
 // or only favorited KPIs. Displays a heart icon that changes opacity based on filter state.
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import { Tooltip } from '@mantine/core'
 import { IconHeartFilled } from '@tabler/icons-react'
 import { type Column } from '@tanstack/react-table'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
 
 type FavoriteFilterProps = {
   column: Column<EnrichedKPISummaryTableRow, unknown>

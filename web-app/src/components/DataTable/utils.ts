@@ -1,6 +1,8 @@
+import type {
+  DataTableAlign,
+  DataTableFormat,
+} from '@/components/DataTable/types'
 import type { Row } from '@tanstack/react-table'
-
-import type { DataTableAlign, DataTableFormat } from './types'
 
 export const getDataTableAlignment = (align?: DataTableAlign): DataTableAlign =>
   align ?? 'left'

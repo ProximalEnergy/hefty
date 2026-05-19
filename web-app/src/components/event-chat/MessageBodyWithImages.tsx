@@ -1,10 +1,9 @@
 import { useGetEventMessageImages } from '@/api/v1/operational/event_messages'
+import { MessageImages } from '@/components/event-chat/MessageImages'
+import { MessageImagesModal } from '@/components/event-chat/MessageImagesModal'
+import { formatMessageBody } from '@/components/event-chat/utils'
 import { Image, MantineTheme, Paper, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
-
-import { MessageImages } from './MessageImages'
-import { MessageImagesModal } from './MessageImagesModal'
-import { formatMessageBody } from './utils'
 
 interface MessageBodyWithImagesProps {
   body: string

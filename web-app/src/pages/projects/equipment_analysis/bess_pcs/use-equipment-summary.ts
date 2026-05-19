@@ -1,11 +1,10 @@
 import { DeviceTypeEnum } from '@/api/enumerations'
+import type { BessPcsStaticData } from '@/pages/projects/equipment_analysis/bess_pcs/use-bess-pcs-static-data'
 import {
   getDeviceModelImagePublicUrl,
   getDeviceModelImageUrl,
 } from '@/utils/cdn'
 import { useMemo } from 'react'
-
-import type { BessPcsStaticData } from './use-bess-pcs-static-data'
 
 type ChildDeviceSummary = {
   label: string

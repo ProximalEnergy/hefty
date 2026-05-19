@@ -2,6 +2,7 @@ import { NoData, PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { useGetResources } from '@/hooks/api'
+import { countyCoordinates } from '@/pages/development/county-data'
 import {
   Badge,
   HoverCard,
@@ -11,8 +12,6 @@ import {
 } from '@mantine/core'
 import MapboxMap, { Marker } from 'react-map-gl/mapbox'
 import { Link } from 'react-router'
-
-import { countyCoordinates } from './county-data'
 
 class SeededRandom {
   private seed: number

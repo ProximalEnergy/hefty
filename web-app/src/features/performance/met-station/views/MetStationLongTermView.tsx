@@ -1,4 +1,4 @@
-import type { MetStationContext } from '../types/met-station'
+import type { MetStationContext } from '@/features/performance/met-station/types/met-station'
 
 type MetStationLongTermViewProps = {
   context: MetStationContext

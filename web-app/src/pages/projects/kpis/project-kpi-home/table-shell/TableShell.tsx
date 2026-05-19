@@ -1,3 +1,5 @@
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
+import RenderTableHeader from '@/pages/projects/kpis/project-kpi-home/table-shell/RenderTableHeader'
 import { Table, Text } from '@mantine/core'
 import {
   type Column,
@@ -6,9 +8,6 @@ import {
   flexRender,
 } from '@tanstack/react-table'
 import { type ComponentType } from 'react'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
-import RenderTableHeader from './RenderTableHeader'
 
 //
 // This file is in charge of the mantine table styling of the tanstack

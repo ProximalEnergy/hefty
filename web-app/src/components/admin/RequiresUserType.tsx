@@ -1,8 +1,7 @@
 import { useGetUserType } from '@/api/admin'
+import { PageError } from '@/components/Error'
+import { PageLoader } from '@/components/Loading'
 import { Stack, Text, Title } from '@mantine/core'
-
-import { PageError } from '../Error'
-import { PageLoader } from '../Loading'
 
 type RequiresUserTypeProps = {
   requiredUserType: 'admin' | 'superadmin'

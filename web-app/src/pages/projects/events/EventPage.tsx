@@ -24,6 +24,9 @@ import { traceColors } from '@/components/plots/PlotlyPlotUtils'
 import { useGetEvents, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
+import DeviceEventsTimeline from '@/pages/projects/events/DeviceEventsTimeline'
+import EventCMMSLinks from '@/pages/projects/events/components/EventCMMSLinks'
+import { buildUpdateRootCauseHandler } from '@/pages/projects/events/updateRootCause'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,
@@ -49,10 +52,6 @@ import dayjs from 'dayjs'
 import type { Dash, Layout } from 'plotly.js'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
-
-import DeviceEventsTimeline from './DeviceEventsTimeline'
-import EventCMMSLinks from './components/EventCMMSLinks'
-import { buildUpdateRootCauseHandler } from './updateRootCause'
 
 // Types
 interface EventTraceTag {

@@ -17,12 +17,11 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import RealTime from '@/pages/projects/device_details/RealTime'
+import { useEquipmentAnalysisTab } from '@/pages/projects/equipment_analysis/useEquipmentAnalysisTab'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useRef } from 'react'
 import { useParams } from 'react-router'
-
-import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const MAX_DAYS = 7
 

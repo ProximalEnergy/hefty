@@ -1,4 +1,4 @@
-import { DeviceTypeEnum, ProjectTypeEnum } from './enumerations'
+import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 
 /** Device type IDs that belong to a PV project (warranty/claim scope). */
 const PV_DEVICE_TYPE_IDS: number[] = [

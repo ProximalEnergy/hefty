@@ -1,8 +1,7 @@
 import { CMMSTicket } from '@/api/v1/operational/project/cmms_tickets'
+import CMMSTicketCard from '@/pages/projects/cmms/CMMSTicketCard'
 import { Card, Group, Text, ThemeIcon, rem } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-
-import CMMSTicketCard from './CMMSTicketCard'
 
 const PlaceholderTicket = () => {
   const placeholderTicket: CMMSTicket = {

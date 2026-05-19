@@ -1,12 +1,11 @@
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { useGetReportInstances } from '@/api/v1/operational/report_instances'
+import { resolveProjectNavigationPath } from '@/pages/layout/header/ProjectDropdown.utils'
 import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import { Select, Tooltip } from '@mantine/core'
 import { useDidUpdate, useOs } from '@mantine/hooks'
 import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
-import { resolveProjectNavigationPath } from './ProjectDropdown.utils'
 
 const ProjectDropdown = () => {
   // Detect if the user is on macOS

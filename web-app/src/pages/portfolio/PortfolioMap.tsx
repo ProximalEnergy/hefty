@@ -20,6 +20,7 @@ import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { WeatherHoverCard } from '@/components/portfolio/WeatherHoverCard'
 import { GISContext } from '@/contexts/GISContext'
+import styles from '@/pages/portfolio/PortfolioMap.module.css'
 import * as gisUtils from '@/utils/GIS'
 import { useAuth } from '@clerk/react'
 import {
@@ -66,8 +67,6 @@ import MapboxMap, {
   Source,
 } from 'react-map-gl/mapbox'
 import { Link, useSearchParams } from 'react-router'
-
-import styles from './PortfolioMap.module.css'
 
 // Project Type Icon Component
 const ProjectTypeIcon = ({

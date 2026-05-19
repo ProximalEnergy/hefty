@@ -1,5 +1,6 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
+import { ScatterConfig as ScatterConfigType } from '@/pages/projects/custom_dash/CustomDash'
 import {
   Button,
   Group,
@@ -12,8 +13,6 @@ import {
 import { UseQueryResult } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
-
-import { ScatterConfig as ScatterConfigType } from './CustomDash'
 
 const ScatterConfig = ({
   mode,

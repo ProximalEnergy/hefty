@@ -18,9 +18,11 @@ import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { MarketStatsGrid } from '@/components/stats/MarketStatsGrid'
 import { useAutoUpdatingTimeRange } from '@/hooks/useAutoUpdatingTimeRange'
+import { TopEventsTableCard } from '@/pages/projects/TopEventsTableCard'
 import { KPICards } from '@/pages/projects/components/KPICards'
 import { ProjectLabels } from '@/pages/projects/components/ProjectLabels'
 import { getCurrentContractKpiThreshold } from '@/pages/projects/contractKpiThresholds'
+import AdaptiveGisBESS from '@/pages/projects/gis/adaptive-gis-bess'
 import {
   getInterval,
   getLast24HourTimeRange,
@@ -77,9 +79,6 @@ import type { Data, Layout } from 'plotly.js'
 import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-
-import { TopEventsTableCard } from './TopEventsTableCard'
-import AdaptiveGisBESS from './gis/adaptive-gis-bess'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)

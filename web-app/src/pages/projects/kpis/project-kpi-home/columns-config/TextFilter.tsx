@@ -1,9 +1,8 @@
 // Text input filter component for searching and filtering KPI metrics by name.
 // Provides a simple text field that filters table rows as the user types.
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import { TextInput } from '@mantine/core'
 import { type Column } from '@tanstack/react-table'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
 
 type TextFilterProps = {
   column: Column<EnrichedKPISummaryTableRow, unknown>

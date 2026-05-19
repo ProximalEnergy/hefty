@@ -10,6 +10,7 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import { ReportInstancesConfigModal } from '@/components/modals/ReportInstancesConfigModal'
+import styles from '@/pages/projects/ProjectReports.module.css'
 import {
   Badge,
   Button,
@@ -44,8 +45,6 @@ import {
 } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
-
-import styles from './ProjectReports.module.css'
 
 // Report metadata configuration
 // NOTE: In the future some of this information could be moved to the database

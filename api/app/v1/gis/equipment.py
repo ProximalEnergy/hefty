@@ -641,16 +641,12 @@ async def get_devices_in_viewport(
             # Catch HTTP exceptions (like 404 Not Found) specifically.
             # Log as info or warning, not error, as this can be an expected state.
             if e.status_code == 404:
-                logger.info(
-                    f"Met Station data not found (as expected): {e.detail}"
-                )
+                logger.info(f"Met Station data not found (as expected): {e.detail}")
             else:
                 logger.warning(f"HTTP error fetching Met Station data: {e}")
         except Exception as e:
             # Catch any other unexpected errors.
-            logger.error(
-                f"An unexpected error occurred fetching Met Station data: {e}"
-            )
+            logger.error(f"An unexpected error occurred fetching Met Station data: {e}")
 
     # --- Prepare Response ---
     # Convert devices to dicts and merge additional data if available
@@ -1350,9 +1346,7 @@ async def get_met_station_latest_values(
             schema=project_schema,
         )
         if latest_df.is_empty():
-            logger.info(
-                f"No relevant Met Station tags found for devices: {device_ids}"
-            )
+            logger.info(f"No relevant Met Station tags found for devices: {device_ids}")
             return {}
 
         latest_values: dict[int, dict[str, float]] = {}

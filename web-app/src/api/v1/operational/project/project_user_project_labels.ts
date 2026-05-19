@@ -1,8 +1,7 @@
+import { UserProjectLabel } from '@/api/v1/operational/user_project_labels'
 import { useCustomQuery } from '@/hooks/api'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
-
-import { UserProjectLabel } from '../user_project_labels'
 
 const URL_GET_USER_PROJECT_LABELS_BY_PROJECT_ID =
   '/v1/operational/projects/{project_id}/user-project-labels'

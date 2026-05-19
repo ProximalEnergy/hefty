@@ -6,6 +6,7 @@ on:
     branches: [dev, staging, main]
     paths:
       - "web-app/**"
+      - "_scripts/ast-grep/**"
       - ".github/workflows/web-app-pr-checks.yml"
       - ".mise.toml"
 
@@ -42,8 +43,16 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-      - name: Run ast-grep default-query-options-no-explicit-type check
-        run: uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --filter "^default-query-options-no-explicit-type$" web-app/src
+      - name: Run web ast-grep checks
+        run: |
+          WEB_AST_GREP_RULES='^('
+          WEB_AST_GREP_RULES="${WEB_AST_GREP_RULES}default-query-options-no-explicit-type|"
+          WEB_AST_GREP_RULES="${WEB_AST_GREP_RULES}web-no-relative-internal-imports)$"
+          uvx --from ast-grep-cli ast-grep scan \
+            --config _scripts/ast-grep/sgconfig.yml \
+            --filter "${WEB_AST_GREP_RULES}" \
+            web-app/src \
+            --globs '!web-app/src/api/schema.d.ts'
 
   query-time-enum:
     if: github.event.pull_request.draft == false

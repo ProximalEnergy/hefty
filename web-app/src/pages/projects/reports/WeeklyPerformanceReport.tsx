@@ -39,6 +39,8 @@ import { AutoFitStatValue } from '@/components/stats/AutoFitStatValue'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import type { DataTimeSeries, EventSummary } from '@/hooks/types'
+import { EventTable } from '@/pages/projects/ProjectEvents'
+import { PerformanceReportMapCard } from '@/pages/projects/reports/PerformanceReportMapCard'
 import { alignLossSeries } from '@/utils/alignLossSeries'
 import { calculateMovingAverage } from '@/utils/movingAverage'
 import { QUERY_TIME } from '@/utils/queryTiming'
@@ -82,9 +84,6 @@ import jsPDF from 'jspdf'
 import type * as Plotly from 'plotly.js'
 import React, { useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
-
-import { EventTable } from '../ProjectEvents'
-import { PerformanceReportMapCard } from './PerformanceReportMapCard'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

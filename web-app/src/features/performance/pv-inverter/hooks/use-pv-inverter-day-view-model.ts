@@ -2,13 +2,12 @@ import { KPITypeEnum } from '@/api/enumerations'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_inverter'
 import { useValidateDateRange } from '@/components/datepicker/utils'
+import type { PvInverterContext } from '@/features/performance/pv-inverter/hooks/use-pv-inverter-context'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { useEffect, useMemo, useRef, useState } from 'react'
-
-import type { PvInverterContext } from './use-pv-inverter-context'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

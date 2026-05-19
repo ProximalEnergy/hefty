@@ -1,5 +1,6 @@
 import { CMMSTicket } from '@/api/v1/operational/project/cmms_tickets'
 import * as types from '@/hooks/types'
+import CMMSTicketCard from '@/pages/projects/cmms/CMMSTicketCard'
 import {
   Badge,
   Box,
@@ -15,8 +16,6 @@ import { IconExternalLink } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-
-import CMMSTicketCard from '../cmms/CMMSTicketCard'
 
 interface EventOrTicket {
   type: string

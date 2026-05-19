@@ -9,6 +9,9 @@ import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfoli
 import { NoData, PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { useTipsPersonalPortfolio } from '@/components/Tips'
+import { ActiveProjectsTab } from '@/pages/portfolio/tabs/active'
+import { ArchivedProjectsTab } from '@/pages/portfolio/tabs/archived'
+import { OnboardingProjectsTab } from '@/pages/portfolio/tabs/onboarding'
 import { useUser } from '@clerk/react'
 import {
   Box,
@@ -23,10 +26,6 @@ import {
 import { useDebouncedValue } from '@mantine/hooks'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-
-import { ActiveProjectsTab } from './tabs/active'
-import { ArchivedProjectsTab } from './tabs/archived'
-import { OnboardingProjectsTab } from './tabs/onboarding'
 
 function PortfolioHome() {
   const navigate = useNavigate()

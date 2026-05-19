@@ -1,9 +1,8 @@
+import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetSunburstData } from '@/hooks/api'
 import { PlotMouseEvent, PlotType } from 'plotly.js'
 import { useRef } from 'react'
 import { useParams } from 'react-router'
-
-import PlotlyPlot from './PlotlyPlot'
 
 const DeviceSunburst = ({
   depth,

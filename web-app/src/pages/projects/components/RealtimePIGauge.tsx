@@ -1,6 +1,5 @@
+import { getRealtimeGaugeColor } from '@/pages/projects/components/realtimeGaugeUtils'
 import { RingProgress, Text, Tooltip } from '@mantine/core'
-
-import { getRealtimeGaugeColor } from './realtimeGaugeUtils'
 
 const DASH = 8
 const GAP = 1

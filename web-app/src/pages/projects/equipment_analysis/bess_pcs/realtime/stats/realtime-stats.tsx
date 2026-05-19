@@ -3,12 +3,11 @@ import type { components } from '@/api/schema'
 import type { CalendarEvent } from '@/api/v1/operational/calendar'
 import { BessPCSStatsCards } from '@/components/bess-pcs/StatsCards'
 import type { Device } from '@/hooks/types'
+import { useRealtimeSources } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/use-realtime-sources'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useMemo } from 'react'
 import { rrulestr } from 'rrule'
-
-import { useRealtimeSources } from '../use-realtime-sources'
 
 dayjs.extend(utc)
 

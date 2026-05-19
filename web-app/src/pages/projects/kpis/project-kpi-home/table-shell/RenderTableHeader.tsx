@@ -1,5 +1,8 @@
 // Table header component that renders column headers with sorting controls and filter rows.
 // Manages the two-row header structure: one row for headers/sort indicators, one row for filters.
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
+import FilterWrapper from '@/pages/projects/kpis/project-kpi-home/table-shell/FilterWrapper'
+import SortChevron from '@/pages/projects/kpis/project-kpi-home/table-shell/SortChevron'
 import { Table, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import {
   type Column,
@@ -7,10 +10,6 @@ import {
   flexRender,
 } from '@tanstack/react-table'
 import { Fragment } from 'react'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
-import FilterWrapper from './FilterWrapper'
-import SortChevron from './SortChevron'
 
 type RenderTableHeaderProps = {
   table: TanStackTable<EnrichedKPISummaryTableRow>

@@ -1,3 +1,3 @@
-import './types'
+import '@/components/DataTable/types'
 
-export { DataTable } from './DataTable'
+export { DataTable } from '@/components/DataTable/DataTable'

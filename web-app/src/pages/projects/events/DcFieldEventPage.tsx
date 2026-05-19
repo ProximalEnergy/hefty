@@ -12,6 +12,9 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2, useGetEvents, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
+import DcFieldAnomaliesMap from '@/pages/projects/events/DcFieldAnomaliesMap'
+import DeviceEventsTimeline from '@/pages/projects/events/DeviceEventsTimeline'
+import { buildUpdateRootCauseHandler } from '@/pages/projects/events/updateRootCause'
 import {
   Badge,
   Button,
@@ -32,10 +35,6 @@ import { IconClock } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router'
-
-import DcFieldAnomaliesMap from './DcFieldAnomaliesMap'
-import DeviceEventsTimeline from './DeviceEventsTimeline'
-import { buildUpdateRootCauseHandler } from './updateRootCause'
 
 // Types
 

@@ -12,6 +12,7 @@ cd "${REPO_ROOT}"
 scan_targets=(
     "core/src"
     "api/app"
+    "issues"
     "microservices"
     "pv-eem/src"
     "web-app/src"
@@ -111,6 +112,7 @@ uvx --from ast-grep-cli ast-grep scan \
   --globs '!**/*.egg-info/**' \
   --globs '!api/app/_data_insert/**' \
   --globs '!api/app/_tests/**' \
+  --globs '!issues/tests/**' \
   --globs '!pv-eem/_scripts/**' \
   --globs '!pv-eem/_tests/**' \
   --globs '!web-app/src/api/schema.d.ts' \

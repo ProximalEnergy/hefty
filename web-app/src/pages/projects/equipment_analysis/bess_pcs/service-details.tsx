@@ -1,9 +1,8 @@
 import { type OMContractorScope } from '@/api/v1/operational/project/om_contractors'
+import { getProjectOMContractorsTabPath } from '@/pages/projects/project-settings-paths'
 import { ActionIcon, Group, Stack, Text } from '@mantine/core'
 import { IconEdit, IconMail, IconPhone } from '@tabler/icons-react'
 import { Link } from 'react-router'
-
-import { getProjectOMContractorsTabPath } from '../../project-settings-paths'
 
 type ServiceDetailsProps = {
   projectId?: string

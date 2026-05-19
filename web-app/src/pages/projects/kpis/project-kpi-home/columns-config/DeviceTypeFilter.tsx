@@ -1,9 +1,8 @@
 // Device type filter component for filtering KPI metrics by device type.
 // Provides a select dropdown that filters table rows by device type.
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import { Select } from '@mantine/core'
 import { type Column } from '@tanstack/react-table'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
 
 type DeviceTypeFilterProps = {
   column: Column<EnrichedKPISummaryTableRow, unknown>

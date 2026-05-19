@@ -7,6 +7,10 @@ import {
   useCreateCalendarEvent,
   useGetCalendarEventCategories,
 } from '@/api/v1/operational/calendar'
+import {
+  renderAssigneeOption,
+  renderCategoryOption,
+} from '@/pages/projects/calendar/CalendarRenderers'
 // Use DateTimePicker for start/end
 import {
   Button,
@@ -25,8 +29,6 @@ import { DateInput, DateTimePicker } from '@mantine/dates'
 import { UseFormReturnType, useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { useEffect, useMemo } from 'react'
-
-import { renderAssigneeOption, renderCategoryOption } from './CalendarRenderers'
 
 // Note: Recurrence (rrule) related imports and logic will be mostly removed or disabled
 

@@ -6,13 +6,12 @@ import {
   useGetEventCMMSTickets,
   useGetSuggestedEvents,
 } from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
+import EventCard from '@/components/event-ticket-links/EventCard'
 import { useGetEvents } from '@/hooks/api'
 import CMMSTicketCard from '@/pages/projects/cmms/CMMSTicketCard'
 import { Group, Modal, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
-
-import EventCard from './EventCard'
 
 const TicketFirstModal = ({
   opened,

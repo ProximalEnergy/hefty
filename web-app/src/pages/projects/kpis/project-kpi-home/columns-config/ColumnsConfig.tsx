@@ -1,4 +1,15 @@
 import { KPISummaryTableRow } from '@/api/v1/protected/web-application/projects/project-kpi-summary-table'
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
+import DeviceTypeFilter from '@/pages/projects/kpis/project-kpi-home/columns-config/DeviceTypeFilter'
+import FavoriteFilter from '@/pages/projects/kpis/project-kpi-home/columns-config/FavoriteFilter'
+import FavoriteHeart from '@/pages/projects/kpis/project-kpi-home/columns-config/FavoriteHeart'
+import HiddenFilter from '@/pages/projects/kpis/project-kpi-home/columns-config/HiddenFilter'
+import { KPISparkline } from '@/pages/projects/kpis/project-kpi-home/columns-config/KPISparkline'
+import MetricCellWithIcon from '@/pages/projects/kpis/project-kpi-home/columns-config/MetricCellWithIcon'
+import MetricInfoHoverCard from '@/pages/projects/kpis/project-kpi-home/columns-config/MetricInfoHoverCard'
+import SimpleInfoHoverCard from '@/pages/projects/kpis/project-kpi-home/columns-config/SimpleInfoHoverCard'
+import StatusFilter from '@/pages/projects/kpis/project-kpi-home/columns-config/StatusFilter'
+import TextFilter from '@/pages/projects/kpis/project-kpi-home/columns-config/TextFilter'
 import { Group, Text } from '@mantine/core'
 import { IconEyeOff } from '@tabler/icons-react'
 import {
@@ -9,18 +20,6 @@ import {
 } from '@tanstack/react-table'
 import { type ReactNode, useMemo } from 'react'
 import { Link } from 'react-router'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
-import DeviceTypeFilter from './DeviceTypeFilter'
-import FavoriteFilter from './FavoriteFilter'
-import FavoriteHeart from './FavoriteHeart'
-import HiddenFilter from './HiddenFilter'
-import { KPISparkline } from './KPISparkline'
-import MetricCellWithIcon from './MetricCellWithIcon'
-import MetricInfoHoverCard from './MetricInfoHoverCard'
-import SimpleInfoHoverCard from './SimpleInfoHoverCard'
-import StatusFilter from './StatusFilter'
-import TextFilter from './TextFilter'
 
 //
 // This file is in charge of creating the tanstack column configuration for the Project KPI Home page.

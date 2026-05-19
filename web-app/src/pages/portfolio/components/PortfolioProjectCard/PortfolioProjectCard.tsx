@@ -1,13 +1,12 @@
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
+import styles from '@/pages/portfolio/PortfolioHome.module.css'
+import { PortfolioProjectCardHeader } from '@/pages/portfolio/components/PortfolioProjectCard/Header'
+import { PortfolioProjectSparkline } from '@/pages/portfolio/components/PortfolioProjectCard/PortfolioProjectSparkline'
+import { Stats } from '@/pages/portfolio/components/PortfolioProjectCard/Stats'
 import { Box, Card, Group } from '@mantine/core'
 import { Link } from 'react-router'
-
-import styles from '../../PortfolioHome.module.css'
-import { PortfolioProjectCardHeader } from './Header.tsx'
-import { PortfolioProjectSparkline } from './PortfolioProjectSparkline.tsx'
-import { Stats } from './Stats.tsx'
 
 export function PortfolioProjectCard({
   project,

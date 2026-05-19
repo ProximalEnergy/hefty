@@ -2,13 +2,12 @@ import {
   useGetSharedUserDashboards,
   useGetUserDashboards,
 } from '@/api/v1/operational/project/custom_dash'
+import classes from '@/pages/layout/navbar/NavbarLinksGroup.module.css'
+import { isPathActive } from '@/pages/layout/navbar/isPathActive'
 import { Box, Group, Menu, Text, ThemeIcon, Tooltip, rem } from '@mantine/core'
 import { IconChevronRight, IconHome, IconSettings } from '@tabler/icons-react'
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
-
-import classes from './NavbarLinksGroup.module.css'
-import { isPathActive } from './isPathActive'
 
 export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
   const { projectId } = useParams<{ projectId: string }>()

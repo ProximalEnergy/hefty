@@ -1,10 +1,9 @@
 import type { KPIType } from '@/api/v1/operational/kpi_types'
+import type { Device } from '@/hooks/devices'
 import type { ReactNode } from 'react'
 
-import type { Device } from './devices'
-
-export * from './devices'
-export * from './projectTags'
+export * from '@/hooks/devices'
+export * from '@/hooks/projectTags'
 
 export type StatisticIcon =
   | 'events'

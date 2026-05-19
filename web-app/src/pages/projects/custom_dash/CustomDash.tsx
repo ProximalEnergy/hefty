@@ -27,6 +27,12 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 // import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2, useGetKPIType, useGetTags } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
+import BarConfigComp from '@/pages/projects/custom_dash/BarConfig'
+import GaugeConfigComp from '@/pages/projects/custom_dash/GaugeConfig'
+import KPIConfigComp from '@/pages/projects/custom_dash/KPIConfig'
+import LineConfigComp from '@/pages/projects/custom_dash/LineConfig'
+import RichTextConfigComp from '@/pages/projects/custom_dash/RichTextConfig'
+import ScatterConfigComp from '@/pages/projects/custom_dash/ScatterConfig'
 // import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
@@ -79,13 +85,6 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router'
-
-import BarConfigComp from './BarConfig'
-import GaugeConfigComp from './GaugeConfig'
-import KPIConfigComp from './KPIConfig'
-import LineConfigComp from './LineConfig'
-import RichTextConfigComp from './RichTextConfig'
-import ScatterConfigComp from './ScatterConfig'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

@@ -1,6 +1,11 @@
 import CustomCard from '@/components/CustomCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { PcsHeatmap } from '@/features/performance/pv-inverter/components/PcsHeatmap'
+import { RingProgressCard } from '@/features/performance/pv-inverter/components/RingProgressCard'
+import { usePvInverterContext } from '@/features/performance/pv-inverter/hooks/use-pv-inverter-context'
+import { usePvInverterDayViewModel } from '@/features/performance/pv-inverter/hooks/use-pv-inverter-day-view-model'
+import { colorFromPercent } from '@/features/performance/pv-inverter/utils/color-from-percent'
 import {
   ActionIcon,
   Button,
@@ -17,18 +22,14 @@ import {
 } from '@tabler/icons-react'
 import { Link } from 'react-router'
 
-import { PcsHeatmap } from '../components/PcsHeatmap'
-import { RingProgressCard } from '../components/RingProgressCard'
-import { usePvInverterContext } from '../hooks/use-pv-inverter-context'
-import { usePvInverterDayViewModel } from '../hooks/use-pv-inverter-day-view-model'
-import { colorFromPercent } from '../utils/color-from-percent'
-
 type PvInverterDayViewProps = {
   context: ReturnType<typeof usePvInverterContext>
 }
 
 export function PvInverterDayView({ context }: PvInverterDayViewProps) {
   const model = usePvInverterDayViewModel({ context })
+  const energyPath = `/projects/${context.projectId}/kpis/type/6`
+  const energyQuery = `start=${model.startLink}&end=${model.endLink}`
 
   return (
     <Stack ref={model.tabPanelRef} gap="md" style={{ flex: 1, minHeight: 0 }}>
@@ -43,7 +44,7 @@ export function PvInverterDayView({ context }: PvInverterDayViewProps) {
           />
           {model.includeEnergy && model.produced?.[0]?.value ? (
             <Link
-              to={`/projects/${context.projectId}/kpis/type/6?start=${model.startLink}&end=${model.endLink}`}
+              to={`${energyPath}?${energyQuery}`}
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               <Button rightSection={<IconExternalLink size={16} />}>

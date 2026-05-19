@@ -1,4 +1,9 @@
 import {
+  ALLOWED_IMAGE_TYPES,
+  MAX_IMAGE_SIZE_BYTES,
+  generateImageId,
+} from '@/components/event-chat/utils'
+import {
   ActionIcon,
   Button,
   Group,
@@ -18,12 +23,6 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { useRef } from 'react'
-
-import {
-  ALLOWED_IMAGE_TYPES,
-  MAX_IMAGE_SIZE_BYTES,
-  generateImageId,
-} from './utils'
 
 interface EditMessageFormProps {
   editMessageValue: string

@@ -1,10 +1,9 @@
 import { useGetWaterfall } from '@/api/v1/operational/project/waterfall'
+import { PageLoader } from '@/components/Loading'
+import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useMantineTheme } from '@mantine/core'
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
-
-import { PageLoader } from '../Loading'
-import PlotlyPlot from './PlotlyPlot'
 
 const LOSS_WATERFALL_BAR_BUDGETED = 'Budgeted'
 const LOSS_WATERFALL_BAR_WEATHER_ADJ = 'Weather adjustment'

@@ -1,10 +1,9 @@
 import { SensorTypeEnum } from '@/api/enumerations'
+import { EnrichedTag } from '@/pages/projects/data_browsing/DataBrowsing'
 import { Checkbox, Group, LoadingOverlay, useMantineTheme } from '@mantine/core'
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useMemo, useRef } from 'react'
-
-import { EnrichedTag } from './DataBrowsing'
 
 interface BySensorProps {
   tags: EnrichedTag[] | undefined

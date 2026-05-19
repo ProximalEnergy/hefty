@@ -1,10 +1,9 @@
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { usePortfolioPlotData } from '@/pages/portfolio/components/PortfolioProjectCard/usePortfolioPlotData'
 import { Center, Text } from '@mantine/core'
 import { Data } from 'plotly.js'
-
-import { usePortfolioPlotData } from './usePortfolioPlotData'
 
 export function PortfolioProjectSparkline({
   project,

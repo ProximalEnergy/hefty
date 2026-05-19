@@ -1,4 +1,5 @@
 import { useGetTagsByRegex } from '@/api/v1/operational/project/project_tags'
+import { EnrichedTag } from '@/pages/projects/data_browsing/DataBrowsing'
 import {
   Checkbox,
   LoadingOverlay,
@@ -9,8 +10,6 @@ import {
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useRef } from 'react'
-
-import { EnrichedTag } from './DataBrowsing'
 
 interface AllTagsProps {
   projectId: string

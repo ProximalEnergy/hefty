@@ -1,13 +1,12 @@
+import Logo from '@/pages/layout/header/Logo'
+import ProjectDropdown from '@/pages/layout/header/ProjectDropdown'
+import { ProjectStatusIcons } from '@/pages/layout/header/ProjectStatusIcons'
+import SpotlightButton from '@/pages/layout/header/SpotlightButton'
+import ThemeToggle from '@/pages/layout/header/ThemeToggle'
+import UserAlerts from '@/pages/layout/header/UserAlerts'
+import UserDropdown from '@/pages/layout/header/UserDropdown'
 import { AppShell, Burger, Group } from '@mantine/core'
 import { Link } from 'react-router'
-
-import Logo from './Logo'
-import ProjectDropdown from './ProjectDropdown'
-import { ProjectStatusIcons } from './ProjectStatusIcons'
-import SpotlightButton from './SpotlightButton'
-import ThemeToggle from './ThemeToggle'
-import UserAlerts from './UserAlerts'
-import UserDropdown from './UserDropdown'
 
 const AppLayoutHeader = ({
   opened,

@@ -1,10 +1,9 @@
 import { DeviceTypeEnum } from '@/api/enumerations'
 import { PageLoader } from '@/components/Loading'
 import { useGetEvents } from '@/hooks/api'
+import DcFieldEventPage from '@/pages/projects/events/DcFieldEventPage'
+import EventPage from '@/pages/projects/events/EventPage'
 import { useParams } from 'react-router'
-
-import DcFieldEventPage from './DcFieldEventPage'
-import EventPage from './EventPage'
 
 const EventRouter = () => {
   const { projectId } = useParams<{ projectId: string }>()

@@ -8,6 +8,16 @@ import {
   useGetProjectKPISummaryTable,
 } from '@/api/v1/protected/web-application/projects/project-kpi-summary-table'
 import { PageTitle } from '@/components/PageTitle'
+import RequestKPIModal from '@/pages/projects/kpis/RequestKPIModal'
+import {
+  filterByStatus,
+  useCreateColumns,
+} from '@/pages/projects/kpis/project-kpi-home/columns-config/ColumnsConfig'
+import {
+  renderSkeletonBody,
+  renderTableBody,
+  renderTableHeader,
+} from '@/pages/projects/kpis/project-kpi-home/table-shell/TableShell'
 import {
   Button,
   Checkbox,
@@ -33,17 +43,6 @@ import {
 } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
-
-import RequestKPIModal from '../RequestKPIModal'
-import {
-  filterByStatus,
-  useCreateColumns,
-} from './columns-config/ColumnsConfig'
-import {
-  renderSkeletonBody,
-  renderTableBody,
-  renderTableHeader,
-} from './table-shell/TableShell'
 
 //
 // This file is in charge of the main page component for the Project KPI Home page.

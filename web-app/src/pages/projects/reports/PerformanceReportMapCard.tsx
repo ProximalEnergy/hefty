@@ -5,15 +5,14 @@ import { ColorBar, MapSettings } from '@/components/GIS'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import type { Device } from '@/hooks/types'
+import { MapHoverCard } from '@/pages/projects/gis/MapHoverCard'
+import type { HoverInfo } from '@/pages/projects/gis/utils'
 import * as gisUtils from '@/utils/GIS'
 import { Box, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import type { FeatureCollection } from 'geojson'
 import { useCallback, useContext, useState } from 'react'
 import type { MapMouseEvent } from 'react-map-gl/mapbox'
 import Map, { Layer, Source } from 'react-map-gl/mapbox'
-
-import { MapHoverCard } from '../gis/MapHoverCard'
-import type { HoverInfo } from '../gis/utils'
 
 type PerformanceReportMapCardProps = {
   data: OperationalKPIData | undefined

@@ -1,5 +1,6 @@
 import { NotificationStateEnum, NotificationTypeEnum } from '@/api/enumerations'
 import type { NotificationPage } from '@/api/v1/admin/notifications'
+import classes from '@/pages/layout/header/NotificationsPanel.module.css'
 import { formatNotification } from '@/utils/notificationFormatters'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import {
@@ -29,8 +30,6 @@ import {
 } from '@tabler/icons-react'
 import type { ElementType } from 'react'
 import { useNavigate } from 'react-router'
-
-import classes from './NotificationsPanel.module.css'
 
 type Notification = NotificationPage['notifications'][number]
 type NotificationTypeId =

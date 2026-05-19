@@ -1,3 +1,4 @@
+import classes from '@/pages/layout/header/ThemeToggle.module.css'
 import {
   ActionIcon,
   Group,
@@ -6,8 +7,6 @@ import {
 } from '@mantine/core'
 import { IconMoon, IconSun } from '@tabler/icons-react'
 import cx from 'clsx'
-
-import classes from './ThemeToggle.module.css'
 
 const ActionToggle = () => {
   const { setColorScheme } = useMantineColorScheme()

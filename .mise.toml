@@ -1024,7 +1024,7 @@ run = "pnpm run knip"
 [tasks."web:check"]
 description = "Run TypeScript, Oxfmt, Knip, and oxlint checks for web-app"
 dir = "web-app"
-depends = ["web:default-query-options-no-explicit-type"]
+depends = ["web:bulletproof-imports"]
 run = "pnpm run check && pnpm run lint"
 
 [tasks."web:lint"]
@@ -1042,10 +1042,41 @@ description = "Warn if staleTime/refetchInterval do not use QUERY_TIME.*"
 dir = "."
 run = "./_scripts/web_query_time_enum_check.sh"
 
+[tasks."web:bulletproof-imports"]
+description = "Run web-app bulletproof import checks"
+dir = "."
+run = """
+WEB_AST_GREP_RULES='^('
+WEB_AST_GREP_RULES="${WEB_AST_GREP_RULES}default-query-options-no-explicit-type|"
+WEB_AST_GREP_RULES="${WEB_AST_GREP_RULES}web-no-relative-internal-imports)$"
+ast-grep scan \
+  --config _scripts/ast-grep/sgconfig.yml \
+  --filter "${WEB_AST_GREP_RULES}" \
+  web-app/src \
+  --globs '!web-app/src/api/schema.d.ts'
+"""
+
 [tasks."web:default-query-options-no-explicit-type"]
 description = "Check for explicit type annotation on defaultQueryOptions"
 dir = "."
-run = "uvx --from ast-grep-cli ast-grep scan --config _scripts/ast-grep/sgconfig.yml --filter \"^default-query-options-no-explicit-type$\" web-app/src"
+run = """
+ast-grep scan \
+  --config _scripts/ast-grep/sgconfig.yml \
+  --filter '^default-query-options-no-explicit-type$' \
+  web-app/src \
+  --globs '!web-app/src/api/schema.d.ts'
+"""
+
+[tasks."web:no-relative-internal-imports"]
+description = "Check web-app src imports use @ paths"
+dir = "."
+run = """
+ast-grep scan \
+  --config _scripts/ast-grep/sgconfig.yml \
+  --filter '^web-no-relative-internal-imports$' \
+  web-app/src \
+  --globs '!web-app/src/api/schema.d.ts'
+"""
 
 [tasks."web:screenshot"]
 description = "Screenshot routes inferred from git diff vs dev into _screenshot/"

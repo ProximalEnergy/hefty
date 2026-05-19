@@ -1,14 +1,13 @@
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
+import { MarketPricesPowerCard } from '@/pages/projects/finances/components/MarketPricesPowerCard'
+import { SppDailyProfileCard } from '@/pages/projects/finances/components/SppDailyProfileCard'
 import { Group, Stack } from '@mantine/core'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router'
-
-import { MarketPricesPowerCard } from './components/MarketPricesPowerCard'
-import { SppDailyProfileCard } from './components/SppDailyProfileCard'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

@@ -8,6 +8,10 @@ import {
   useGetCalendarEventCategories,
   useUpdateCalendarEvent,
 } from '@/api/v1/operational/calendar'
+import {
+  renderAssigneeOption,
+  renderCategoryOption,
+} from '@/pages/projects/calendar/CalendarRenderers'
 import { useUser } from '@clerk/react'
 import {
   Button,
@@ -31,8 +35,6 @@ import { notifications } from '@mantine/notifications'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { ByWeekday, Frequency, Options, RRule, rrulestr } from 'rrule'
-
-import { renderAssigneeOption, renderCategoryOption } from './CalendarRenderers'
 
 // Extended type to include optional category property that may be added by calendar libraries
 type CalendarItem = CalendarEvent & {

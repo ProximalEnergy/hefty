@@ -1,5 +1,7 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { DataStatusContainer } from '@/pages/layout/header/DataStatus'
+import { StatusIconWrapper } from '@/pages/layout/header/StatusIconWrapper'
 import { RealtimeEnergyAvailabilityGauge } from '@/pages/projects/components/RealtimeEnergyAvailabilityGauge'
 import { RealtimePIGauge } from '@/pages/projects/components/RealtimePIGauge'
 import { RealtimePowerAvailabilityGauge } from '@/pages/projects/components/RealtimePowerAvailabilityGauge'
@@ -11,9 +13,6 @@ import { useTrackerStowStatus } from '@/pages/projects/hooks/useTrackerStowStatu
 import { ActionIcon, Group, Tooltip } from '@mantine/core'
 import { IconAlertTriangle, IconWind } from '@tabler/icons-react'
 import { useNavigate, useParams } from 'react-router'
-
-import { DataStatusContainer } from './DataStatus'
-import { StatusIconWrapper } from './StatusIconWrapper'
 
 export const ProjectStatusIcons = () => {
   const { projectId } = useParams()

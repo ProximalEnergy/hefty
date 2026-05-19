@@ -14,6 +14,7 @@ import {
   useUpdateEventMessage,
   useUploadEventMessageImage,
 } from '@/api/v1/operational/event_messages'
+import { MessageInput, MessageList, MuteToggle } from '@/components/event-chat'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import { useUser } from '@clerk/react'
 import {
@@ -30,8 +31,6 @@ import { IconChevronDown } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { MessageInput, MessageList, MuteToggle } from './event-chat'
 
 dayjs.extend(utc)
 

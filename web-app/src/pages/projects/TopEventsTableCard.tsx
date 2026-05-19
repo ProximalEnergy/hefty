@@ -3,6 +3,13 @@ import {
   useGetHomepageSummary,
 } from '@/api/v1/protected/web-application/projects/events/events'
 import CustomCard from '@/components/CustomCard'
+import EventFirstModal from '@/pages/projects/events/components/EventFirstModal'
+import {
+  EventsCmmsHeaderBadges,
+  EventsCmmsTableCell,
+  eventToModalEventForCmms,
+  useProjectEventsCmms,
+} from '@/pages/projects/events/eventsCmmsShared'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
@@ -18,14 +25,6 @@ import {
 import { IconSettings } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
-
-import EventFirstModal from './events/components/EventFirstModal'
-import {
-  EventsCmmsHeaderBadges,
-  EventsCmmsTableCell,
-  eventToModalEventForCmms,
-  useProjectEventsCmms,
-} from './events/eventsCmmsShared'
 
 /** Top Events card for project home (PV and BESS), including CMMS link status. */
 export function TopEventsTableCard({

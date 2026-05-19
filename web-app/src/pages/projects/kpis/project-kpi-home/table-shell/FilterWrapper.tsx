@@ -1,8 +1,7 @@
 // Wrapper component that renders filter components in table header cells.
 // Handles alignment and positioning of filter components based on column configuration.
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import { type Column } from '@tanstack/react-table'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
 
 type FilterWrapperProps = {
   column: Column<EnrichedKPISummaryTableRow, unknown>

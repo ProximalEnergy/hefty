@@ -1,14 +1,13 @@
+import {
+  getDailyLossColor,
+  isProjectEventClusterProperties,
+  isProjectEventPointProperties,
+} from '@/pages/projects/events/ProjectEventOverlayLayers'
 import { HoverInfo } from '@/pages/projects/gis/utils'
 import { Group, Paper, Stack, Text, useMantineTheme } from '@mantine/core'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-
-import {
-  getDailyLossColor,
-  isProjectEventClusterProperties,
-  isProjectEventPointProperties,
-} from './ProjectEventOverlayLayers'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

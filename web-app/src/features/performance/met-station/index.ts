@@ -1,1 +1,1 @@
-export { MetStationRoute } from './routes/MetStationRoute'
+export { MetStationRoute } from '@/features/performance/met-station/routes/MetStationRoute'

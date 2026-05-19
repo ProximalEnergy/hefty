@@ -8,6 +8,7 @@ import {
 } from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
 import EventCard from '@/components/event-ticket-links/EventCard'
 import type { EventFirstModalEvent } from '@/hooks/types'
+import CMMSTicketCard from '@/pages/projects/cmms/CMMSTicketCard'
 import {
   Group,
   Modal,
@@ -20,8 +21,6 @@ import {
 } from '@mantine/core'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
-
-import CMMSTicketCard from '../../cmms/CMMSTicketCard'
 
 /** Cap for "Show all" unlinked list (v2 API default is 50). */
 const SHOW_ALL_UNLINKED_MAX_RESULTS = 250

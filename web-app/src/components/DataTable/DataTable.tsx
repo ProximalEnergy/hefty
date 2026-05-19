@@ -1,4 +1,10 @@
 import {
+  formatDataTableValue,
+  getDataTableAlignment,
+  getDataTableJustify,
+  sortGroupedVisibleRows,
+} from '@/components/DataTable/utils'
+import {
   Box,
   Group,
   Table as MantineTable,
@@ -24,13 +30,6 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
-
-import {
-  formatDataTableValue,
-  getDataTableAlignment,
-  getDataTableJustify,
-  sortGroupedVisibleRows,
-} from './utils'
 
 const ICON_SIZE = 14
 

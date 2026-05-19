@@ -1,6 +1,5 @@
+import { FallbackComponent } from '@/ErrorBoundary.utils'
 import React from 'react'
-
-import { FallbackComponent } from './ErrorBoundary.utils'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode

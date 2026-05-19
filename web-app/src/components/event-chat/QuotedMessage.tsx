@@ -1,6 +1,5 @@
+import { formatMessageBody } from '@/components/event-chat/utils'
 import { Group, MantineTheme, Paper, Stack, Text } from '@mantine/core'
-
-import { formatMessageBody } from './utils'
 
 interface QuotedMessageProps {
   parentMessageBody: string

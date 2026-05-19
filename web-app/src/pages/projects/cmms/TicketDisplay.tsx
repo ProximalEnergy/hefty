@@ -6,6 +6,8 @@ import {
 } from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import CMMSTicketCard from '@/pages/projects/cmms/CMMSTicketCard'
+import PlaceholderTicket from '@/pages/projects/cmms/PlaceholderTicket'
 import {
   Box,
   Button,
@@ -20,9 +22,6 @@ import {
 import { IconPlus } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
-
-import CMMSTicketCard from './CMMSTicketCard'
-import PlaceholderTicket from './PlaceholderTicket'
 
 const TicketDisplayPage = () => {
   const { projectId } = useParams()

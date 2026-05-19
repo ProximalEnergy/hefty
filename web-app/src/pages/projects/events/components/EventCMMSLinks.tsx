@@ -1,11 +1,10 @@
 import { useGetCMMSPermissions } from '@/api/v1/operational/project/cmms_permissions'
 import { useGetEventCMMSTickets } from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
 import { Event } from '@/hooks/types'
+import EventFirstModal from '@/pages/projects/events/components/EventFirstModal'
 import { Badge, Button, Group, Skeleton, Stack, Tooltip } from '@mantine/core'
 import { useState } from 'react'
 import { useParams } from 'react-router'
-
-import EventFirstModal from './EventFirstModal'
 
 const EventCMMSLinks = ({ event }: { event: Event }) => {
   const { projectId } = useParams()

@@ -1,8 +1,7 @@
+import { ThemeContext } from '@/contexts/ThemeContext.utils'
 import { CustomColors } from '@/utils/themes'
 import { DefaultMantineColor } from '@mantine/core'
 import React, { ReactNode, useState } from 'react'
-
-import { ThemeContext } from './ThemeContext.utils'
 
 // Remove the generic string
 type LiteralColorsOnly<T> = T extends string

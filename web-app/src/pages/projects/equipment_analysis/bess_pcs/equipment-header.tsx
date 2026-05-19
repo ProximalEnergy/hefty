@@ -1,14 +1,13 @@
-import { Box, Group, SimpleGrid, Stack } from '@mantine/core'
-
 import {
   EquipmentSummary,
   type EquipmentSummaryStat,
-} from './equipment-summary'
-import { InstallDetails } from './install-details'
-import { ServiceDetails } from './service-details'
-import { useBessPcsStaticData } from './use-bess-pcs-static-data'
-import { useEquipmentHeaderDetails } from './use-equipment-header-details'
-import { useEquipmentSummary } from './use-equipment-summary'
+} from '@/pages/projects/equipment_analysis/bess_pcs/equipment-summary'
+import { InstallDetails } from '@/pages/projects/equipment_analysis/bess_pcs/install-details'
+import { ServiceDetails } from '@/pages/projects/equipment_analysis/bess_pcs/service-details'
+import { useBessPcsStaticData } from '@/pages/projects/equipment_analysis/bess_pcs/use-bess-pcs-static-data'
+import { useEquipmentHeaderDetails } from '@/pages/projects/equipment_analysis/bess_pcs/use-equipment-header-details'
+import { useEquipmentSummary } from '@/pages/projects/equipment_analysis/bess_pcs/use-equipment-summary'
+import { Box, Group, SimpleGrid, Stack } from '@mantine/core'
 
 type EquipmentHeaderProps = {
   projectId?: string

@@ -22,6 +22,8 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { Device } from '@/hooks/types'
+import { MapHoverCard } from '@/pages/projects/gis/MapHoverCard'
+import { HoverInfo } from '@/pages/projects/gis/utils'
 import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
@@ -63,9 +65,6 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router'
-
-import { MapHoverCard } from '../gis/MapHoverCard'
-import { HoverInfo } from '../gis/utils'
 
 const ICON_SIZE = 14
 const MAX_DEVICES = 3000 // Do not render device visualizations for more than this many devices

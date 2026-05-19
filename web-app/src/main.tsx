@@ -1,3 +1,6 @@
+import App from '@/App'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import '@/index.css'
 import { PostHogProvider } from '@posthog/react'
 import * as Sentry from '@sentry/react'
 import '@tanstack/react-query'
@@ -5,10 +8,6 @@ import { AxiosError } from 'axios'
 import type { PostHogConfig } from 'posthog-js'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-
-import App from './App.tsx'
-import { ThemeProvider } from './contexts/ThemeContext.tsx'
-import './index.css'
 
 // Initialize Sentry only in production
 if (import.meta.env.VITE_ENVIRONMENT === 'PRODUCTION') {

@@ -1,5 +1,6 @@
 import { DeviceTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { MapSettings } from '@/components/GIS'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevice, useGetDevicesV2 } from '@/hooks/api'
@@ -15,8 +16,6 @@ import { FeatureCollection, Geometry } from 'geojson'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import MapboxMap, { Layer, MapRef, Marker, Source } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router'
-
-import { MapSettings } from './GIS'
 
 interface EventGISCardProps {
   deviceId: string | number

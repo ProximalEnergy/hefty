@@ -1,5 +1,7 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import { Project } from '@/api/v1/operational/projects'
+import { ForecastSlider } from '@/components/portfolio/ForecastSlider'
+import { WeatherContent } from '@/components/portfolio/WeatherContent'
 import { useProjectWeatherData } from '@/hooks/useProjectWeatherData'
 import {
   type ForecastListItem,
@@ -18,9 +20,6 @@ import {
 import { IconSun, IconTemperature, IconWind } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useState } from 'react'
-
-import { ForecastSlider } from './ForecastSlider'
-import { WeatherContent } from './WeatherContent'
 
 interface WeatherHoverCardProps {
   project: Project

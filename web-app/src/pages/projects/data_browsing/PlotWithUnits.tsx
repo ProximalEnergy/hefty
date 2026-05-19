@@ -1,10 +1,9 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { EnrichedTag } from '@/pages/projects/data_browsing/DataBrowsing'
 import { AxiosError } from 'axios'
 import { Data, Layout } from 'plotly.js'
 import { useMemo } from 'react'
-
-import { EnrichedTag } from './DataBrowsing'
 
 interface PlotWithUnitsProps {
   data?: Data[]

@@ -14,6 +14,18 @@ import { NoData, PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsPersonalPortfolio } from '@/components/Tips'
+import {
+  type BessPcsAvailabilityPeriod,
+  type BessPcsMtdData,
+  computeBessPcsMtdAvailability,
+  getBessPcsMtdKpiType,
+  useBessPcsMtdData,
+} from '@/pages/portfolio/hooks/useBessPcsMtdAvailability'
+import {
+  type PVRevenueData,
+  computePVRevenue,
+  usePVRevenueData,
+} from '@/pages/portfolio/hooks/usePVRevenueSummary'
 import { RealtimePowerAvailabilityGauge } from '@/pages/projects/components/RealtimePowerAvailabilityGauge'
 import SortChevron from '@/pages/projects/kpis/project-kpi-home/table-shell/SortChevron'
 import { formatCurrency } from '@/utils/currency'
@@ -31,19 +43,6 @@ import {
 import { useLocalStorage } from '@mantine/hooks'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'react-router'
-
-import {
-  type BessPcsAvailabilityPeriod,
-  type BessPcsMtdData,
-  computeBessPcsMtdAvailability,
-  getBessPcsMtdKpiType,
-  useBessPcsMtdData,
-} from './hooks/useBessPcsMtdAvailability'
-import {
-  type PVRevenueData,
-  computePVRevenue,
-  usePVRevenueData,
-} from './hooks/usePVRevenueSummary'
 
 const QSE_TOOLTIP =
   'QSE integration and permissions are' + ' not configured for this project'

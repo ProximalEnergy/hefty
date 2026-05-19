@@ -2,6 +2,7 @@ import { ProjectTypeEnum } from '@/api/enumerations'
 import { useUpdateProjectFavorite } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import DataStatus from '@/pages/layout/header/DataStatus'
 import { projectDescription } from '@/utils/projectDescription'
 import { useUser } from '@clerk/react'
 import {
@@ -19,8 +20,6 @@ import {
   IconInfoCircle,
   IconSolarPanel,
 } from '@tabler/icons-react'
-
-import DataStatus from '../../../layout/header/DataStatus'
 
 export function PortfolioProjectCardHeader({
   project,

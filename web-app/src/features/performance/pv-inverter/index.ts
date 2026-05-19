@@ -1,1 +1,1 @@
-export { PvInverterRoute } from './routes/PvInverterRoute'
+export { PvInverterRoute } from '@/features/performance/pv-inverter/routes/PvInverterRoute'

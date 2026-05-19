@@ -1,6 +1,5 @@
 import { useSearchParamTab } from '@/hooks/useSearchParamTab'
-
-import type { MetStationTab } from '../types/met-station'
+import type { MetStationTab } from '@/features/performance/met-station/types/met-station'
 
 const SUPERADMIN_TABS = ['realtime', 'current-day', 'long-term'] as const
 const STANDARD_TABS = ['current-day'] as const

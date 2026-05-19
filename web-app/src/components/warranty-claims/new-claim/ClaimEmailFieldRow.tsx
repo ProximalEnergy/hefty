@@ -1,7 +1,6 @@
+import { CLAIM_EMAIL_LABEL_COL_W } from '@/components/warranty-claims/new-claim/email'
 import { Box, Group, Text, type TextInputProps, Tooltip } from '@mantine/core'
 import { type ReactElement, cloneElement } from 'react'
-
-import { CLAIM_EMAIL_LABEL_COL_W } from './email'
 
 interface Props {
   label: string

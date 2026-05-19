@@ -1,3 +1,4 @@
+import { type DeviceEntry } from '@/components/warranty-claims/new-claim/devices'
 import { type Device } from '@/hooks/types'
 import { mapStyle } from '@/utils/GIS'
 import type { Feature, FeatureCollection, Geometry, Position } from 'geojson'
@@ -12,8 +13,6 @@ import {
   useState,
 } from 'react'
 import MapboxMap, { Layer, type MapRef, Source } from 'react-map-gl/mapbox'
-
-import { type DeviceEntry } from './devices'
 
 const LEGACY_WARRANTY_CLAIM_GIS_MAP_FILENAME = 'warranty-claim-gis-map.pdf'
 const WARRANTY_CLAIM_GIS_MAP_FILENAME_PATTERN =

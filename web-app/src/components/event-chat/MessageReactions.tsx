@@ -1,8 +1,7 @@
 import { EventMessageReaction } from '@/api/v1/operational/event_message_reactions'
+import { getReactionEmoji } from '@/components/event-chat/utils'
 import { Group, MantineTheme, Paper, Text, Tooltip } from '@mantine/core'
 import { useMemo } from 'react'
-
-import { getReactionEmoji } from './utils'
 
 interface MessageReactionsProps {
   messageId: number

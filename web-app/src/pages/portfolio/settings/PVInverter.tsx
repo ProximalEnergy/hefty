@@ -11,6 +11,7 @@ import {
 import EquipmentFilter from '@/components/EquipmentFilter'
 import { PageTitle } from '@/components/PageTitle'
 import ConfirmationModal from '@/components/modals/ConfirmationModal'
+import { formatFieldLabel } from '@/pages/portfolio/settings/fieldLabels'
 import {
   Alert,
   Button,
@@ -39,8 +40,6 @@ import {
 } from '@tabler/icons-react'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
-
-import { formatFieldLabel } from './fieldLabels'
 
 const FIELD_LABELS: Record<string, string> = {
   voltage_mpp_min: 'Minimum MPP Voltage',

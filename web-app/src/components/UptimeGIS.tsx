@@ -1,3 +1,5 @@
+import { ColorBar, MapSettings } from '@/components/GIS'
+import { PageLoader } from '@/components/Loading'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { UptimeData } from '@/hooks/types'
@@ -15,9 +17,6 @@ import Map, {
   Source,
 } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router'
-
-import { ColorBar, MapSettings } from './GIS'
-import { PageLoader } from './Loading'
 
 interface UptimeGISProps {
   deviceTypeId: number

@@ -9,6 +9,7 @@ import {
   useMarkNotificationAsUnread,
 } from '@/api/v1/admin/notifications'
 import { useGetProjects } from '@/api/v1/operational/projects'
+import NotificationsEntry from '@/pages/layout/header/NotificationsEntry'
 import {
   ActionIcon,
   Drawer,
@@ -29,8 +30,6 @@ import {
 } from '@tabler/icons-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
-
-import NotificationsEntry from './NotificationsEntry'
 
 interface NotificationsPanelProps {
   opened: boolean

@@ -1,4 +1,5 @@
 import { KPITypeWithContractInfo } from '@/api/v1/operational/kpi_types'
+import { KPIConfig as KPIConfigType } from '@/pages/projects/custom_dash/CustomDash'
 import {
   Button,
   Group,
@@ -11,8 +12,6 @@ import {
 import { UseQueryResult } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
-
-import { KPIConfig as KPIConfigType } from './CustomDash'
 
 const KPIConfig = ({
   mode,

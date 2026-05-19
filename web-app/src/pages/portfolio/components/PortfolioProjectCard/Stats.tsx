@@ -1,9 +1,8 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
+import { RingProgressStat } from '@/pages/portfolio/components/PortfolioProjectCard/RingProgressStat'
 import { Stack } from '@mantine/core'
-
-import { RingProgressStat } from './RingProgressStat'
 
 export function Stats({
   project,

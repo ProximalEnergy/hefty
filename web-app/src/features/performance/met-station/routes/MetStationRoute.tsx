@@ -1,15 +1,14 @@
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import { Tabs } from '@/features/performance/met-station/components/Tabs'
+import { useMetStationContext } from '@/features/performance/met-station/hooks/use-met-station-context'
+import { useMetStationTab } from '@/features/performance/met-station/hooks/use-met-station-tab'
+import { MetStationDayView } from '@/features/performance/met-station/views/MetStationDayView'
+import { MetStationLongTermView } from '@/features/performance/met-station/views/MetStationLongTermView'
+import { MetStationRealTimeView } from '@/features/performance/met-station/views/MetStationRealTimeView'
 import { Stack } from '@mantine/core'
 import { useParams } from 'react-router'
-
-import { Tabs } from '../components/Tabs'
-import { useMetStationContext } from '../hooks/use-met-station-context'
-import { useMetStationTab } from '../hooks/use-met-station-tab'
-import { MetStationDayView } from '../views/MetStationDayView'
-import { MetStationLongTermView } from '../views/MetStationLongTermView'
-import { MetStationRealTimeView } from '../views/MetStationRealTimeView'
 
 export function MetStationRoute() {
   const { projectId } = useParams()

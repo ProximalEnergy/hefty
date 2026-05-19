@@ -17,6 +17,10 @@ import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import { useCreateFeedbackMutation } from '@/hooks/api'
 import * as types from '@/hooks/types'
+import { HomeLinkWithDashboards } from '@/pages/layout/navbar/HomeLinkWithDashboards'
+import { LinksGroup } from '@/pages/layout/navbar/NavbarLinksGroup'
+import ProjectPicture from '@/pages/layout/navbar/ProjectPicture'
+import * as links from '@/pages/layout/navbar/links'
 import { getCompanyLogoUrl } from '@/utils/cdn'
 import { useUser } from '@clerk/react'
 import {
@@ -43,11 +47,6 @@ import { useDisclosure } from '@mantine/hooks'
 import { IconArrowBackUp, IconMessageChatbot, IconX } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router'
-
-import { HomeLinkWithDashboards } from './HomeLinkWithDashboards'
-import { LinksGroup } from './NavbarLinksGroup'
-import ProjectPicture from './ProjectPicture'
-import * as links from './links'
 
 // Mapping from device_type_id to equipment-analysis tab value
 // Note: Multiple device types can map to the same tab (e.g., BESS_STRING and BESS_BLOCK both map to 'bess')

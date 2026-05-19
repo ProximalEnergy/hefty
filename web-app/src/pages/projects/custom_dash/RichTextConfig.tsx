@@ -1,6 +1,5 @@
+import { RichTextConfig as RichTextConfigType } from '@/pages/projects/custom_dash/CustomDash'
 import { Button, Group, Stack, Title } from '@mantine/core'
-
-import { RichTextConfig as RichTextConfigType } from './CustomDash'
 
 const RichTextConfig = ({
   mode,

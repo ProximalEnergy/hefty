@@ -11,14 +11,13 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
+import { EquipmentHeader } from '@/pages/projects/equipment_analysis/bess_pcs/equipment-header'
+import { Realtime } from '@/pages/projects/equipment_analysis/bess_pcs/realtime/realtime'
+import { useEquipmentAnalysisTab } from '@/pages/projects/equipment_analysis/useEquipmentAnalysisTab'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useRef } from 'react'
 import { useParams } from 'react-router'
-
-import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
-import { EquipmentHeader } from './equipment-header'
-import { Realtime } from './realtime/realtime'
 
 const MAX_DAYS = 7
 const PAGE_INFO_BY_TAB = {

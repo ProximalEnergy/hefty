@@ -2,10 +2,9 @@ import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
+import BESSProjectHome from '@/pages/projects/BESSProjectHome'
+import ProjectHome from '@/pages/projects/ProjectHome'
 import { useParams } from 'react-router'
-
-import BESSProjectHome from './BESSProjectHome'
-import ProjectHome from './ProjectHome'
 
 /**
  * Renders the appropriate project home page based on project type.

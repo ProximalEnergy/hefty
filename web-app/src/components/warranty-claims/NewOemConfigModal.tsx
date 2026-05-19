@@ -1,4 +1,4 @@
-import OemConfigModal from './OemConfigModal'
+import OemConfigModal from '@/components/warranty-claims/OemConfigModal'
 
 interface Props {
   projectId: string

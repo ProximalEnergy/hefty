@@ -1,8 +1,7 @@
 import { PageTitle } from '@/components/PageTitle'
 import ProjectEvents from '@/pages/projects/ProjectEvents'
+import ProjectIssues from '@/pages/projects/events/ProjectIssues'
 import { Stack, Tabs } from '@mantine/core'
-
-import ProjectIssues from './ProjectIssues'
 
 const ProjectImpacts = () => {
   return (

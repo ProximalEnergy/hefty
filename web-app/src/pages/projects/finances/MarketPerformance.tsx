@@ -5,12 +5,11 @@ import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useSearchParamTab } from '@/hooks/useSearchParamTab'
+import { LongTermTab } from '@/pages/projects/finances/LongTermTab'
+import { FinancesRealtimeTab } from '@/pages/projects/finances/RealtimeTab'
+import { WeekViewTab } from '@/pages/projects/finances/WeekViewTab'
 import { Group, Skeleton, Stack, Tabs, Text } from '@mantine/core'
 import { useParams } from 'react-router'
-
-import { LongTermTab } from './LongTermTab'
-import { FinancesRealtimeTab } from './RealtimeTab'
-import { WeekViewTab } from './WeekViewTab'
 
 const MarketPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()

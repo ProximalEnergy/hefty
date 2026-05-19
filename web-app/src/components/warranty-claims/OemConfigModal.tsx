@@ -4,15 +4,14 @@ import {
   useCreateClaimConfig,
   useUpdateClaimConfig,
 } from '@/api/v1/operational/claims'
-import { Button, Group, Modal, Stack, Text } from '@mantine/core'
-import { notifications } from '@mantine/notifications'
-import { useEffect, useState } from 'react'
-
 import OemConfigForm, {
   type OemConfigFormValues,
   getDefaultContactEmailError,
-} from './OemConfigForm'
-import { channelUsesPortalUrl } from './constants'
+} from '@/components/warranty-claims/OemConfigForm'
+import { channelUsesPortalUrl } from '@/components/warranty-claims/constants'
+import { Button, Group, Modal, Stack, Text } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import { useEffect, useState } from 'react'
 
 type CreateProps = {
   mode: 'create'

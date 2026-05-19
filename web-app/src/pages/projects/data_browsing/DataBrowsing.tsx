@@ -19,6 +19,11 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import { useGetDevicesV2, useGetTags } from '@/hooks/api'
 import { Tag } from '@/hooks/projectTags'
+import AllTags from '@/pages/projects/data_browsing/AllTags'
+import ByDevice from '@/pages/projects/data_browsing/ByDevice'
+import BySensor from '@/pages/projects/data_browsing/BySensor'
+import PlotWithUnits from '@/pages/projects/data_browsing/PlotWithUnits'
+import UniquePatterns from '@/pages/projects/data_browsing/UniquePatterns'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Box,
@@ -36,12 +41,6 @@ import {
 } from '@mantine/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
-
-import AllTags from './AllTags'
-import ByDevice from './ByDevice'
-import BySensor from './BySensor'
-import PlotWithUnits from './PlotWithUnits'
-import UniquePatterns from './UniquePatterns'
 
 export interface EnrichedTag extends Tag {
   name_full: string

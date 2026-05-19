@@ -1,7 +1,6 @@
+import { KnownMantineColor } from '@/contexts/ThemeContext'
 import { CustomColors } from '@/utils/themes'
 import { createContext, useContext } from 'react'
-
-import { KnownMantineColor } from './ThemeContext'
 
 interface ThemeContextType {
   primaryColor: KnownMantineColor | CustomColors

@@ -1,10 +1,9 @@
 // Filter component for status columns that allows users to filter by KPI status (normal, warning, critical).
 // Displays colored dots for each status type and a clear button when filters are active.
+import type { EnrichedKPISummaryTableRow } from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHome'
 import { Tooltip } from '@mantine/core'
 import { IconX } from '@tabler/icons-react'
 import { type Column } from '@tanstack/react-table'
-
-import type { EnrichedKPISummaryTableRow } from '../ProjectKPIHome'
 
 type StatusFilterProps = {
   column: Column<EnrichedKPISummaryTableRow, unknown>

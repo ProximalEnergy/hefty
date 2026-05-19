@@ -15,6 +15,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
 import RealTime from '@/pages/projects/device_details/RealTime'
+import { useEquipmentAnalysisTab } from '@/pages/projects/equipment_analysis/useEquipmentAnalysisTab'
 import {
   Alert,
   Group,
@@ -28,8 +29,6 @@ import { IconInfoCircle } from '@tabler/icons-react'
 import { Data } from 'plotly.js'
 import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
-import { useEquipmentAnalysisTab } from '../useEquipmentAnalysisTab'
 
 const MAX_DAYS = 7
 

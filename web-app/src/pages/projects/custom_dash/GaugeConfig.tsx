@@ -1,7 +1,6 @@
+import { GaugeConfig as GaugeConfigType } from '@/pages/projects/custom_dash/CustomDash'
 import { Button, Group, Select, Stack, Title, Tooltip } from '@mantine/core'
 import { useState } from 'react'
-
-import { GaugeConfig as GaugeConfigType } from './CustomDash'
 
 const GaugeConfig = ({
   mode,

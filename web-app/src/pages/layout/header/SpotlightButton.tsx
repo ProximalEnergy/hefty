@@ -1,10 +1,9 @@
 import { searchActions } from '@/components/Spotlight.search.store'
+import classes from '@/pages/layout/header/ThemeToggle.module.css'
 import { ActionIcon, Tooltip } from '@mantine/core'
 import { useOs } from '@mantine/hooks'
 import { IconSearch } from '@tabler/icons-react'
 import cx from 'clsx'
-
-import classes from './ThemeToggle.module.css'
 
 const SpotlightButton = () => {
   // Detect if the user is on macOS

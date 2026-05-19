@@ -9,6 +9,12 @@ import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/pro
 import { StatSparkline } from '@/components/stats/StatSparkline'
 import { StatsGrid } from '@/components/stats/StatsGrid'
 import { Statistic } from '@/hooks/types'
+import { COPDataCard } from '@/pages/projects/finances/components/COPDataCard'
+import { MarketPricesPowerCard } from '@/pages/projects/finances/components/MarketPricesPowerCard'
+import { OutageTicketsValue } from '@/pages/projects/finances/components/OutageTicketsValue'
+import { TBSpreadsCard } from '@/pages/projects/finances/components/TBSpreadsCard'
+import { ThreePartOfferCard } from '@/pages/projects/finances/components/ThreePartOfferCard'
+import { useOutageTicketsDescription } from '@/pages/projects/finances/hooks/useOutageTicketsDescription'
 import { formatCurrency } from '@/utils/currency'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
@@ -23,13 +29,6 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { useMemo, useState } from 'react'
-
-import { COPDataCard } from './components/COPDataCard'
-import { MarketPricesPowerCard } from './components/MarketPricesPowerCard'
-import { OutageTicketsValue } from './components/OutageTicketsValue'
-import { TBSpreadsCard } from './components/TBSpreadsCard'
-import { ThreePartOfferCard } from './components/ThreePartOfferCard'
-import { useOutageTicketsDescription } from './hooks/useOutageTicketsDescription'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
