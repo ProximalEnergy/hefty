@@ -9,6 +9,9 @@ from urllib.parse import urlencode
 
 import httpx
 from app.integrations.token_manager import TokenManager
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 # Safe URL length limit; many servers/proxies use 2048 or 8192.
 # Stay well under to avoid InvalidURL from httpx (query component too long).
@@ -279,7 +282,6 @@ async def get_endpoint_data(
     """
     url = f"https://api.ptp.energy/ptp/{market}/{endpoint}/query"
     headers = {"Authorization": f"Bearer {token}"}
-    logger = logging.getLogger(__name__)
 
     def _base_params() -> dict[str, str | list[str]]:
         p: dict[str, str | list[str]] = {}

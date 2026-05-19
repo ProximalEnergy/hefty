@@ -1,8 +1,10 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.logger import logger
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 
 async def update_user_kpi_type_favorite(

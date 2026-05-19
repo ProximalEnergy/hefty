@@ -25,8 +25,10 @@ from app._crud.operational.report_instances import (
 from app._dependencies import authorization
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
-from app.logger import logger
+from app.logger import get_logger
 from core import enumerations, models
+
+logger = get_logger(name=__name__)
 
 DESCRIPTION_404 = "Project not found"
 

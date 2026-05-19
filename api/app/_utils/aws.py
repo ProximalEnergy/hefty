@@ -5,7 +5,9 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 
 def get_secret(

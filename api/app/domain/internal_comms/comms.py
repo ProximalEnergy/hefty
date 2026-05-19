@@ -3,7 +3,9 @@ from enum import StrEnum
 from core.models import Feedback
 
 from app.domain.internal_comms.comms_gchat import send_google_chat_message
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 
 class CommunicationChannel(StrEnum):

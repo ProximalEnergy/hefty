@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import logging
 from typing import Annotated, Any
 from zoneinfo import ZoneInfo
 
@@ -23,18 +22,19 @@ from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
+from app.logger import get_logger
 from app.v1.protected.web_application.projects.ptp_data.ptp_data import (
     _get_ptp_identifiers,
 )
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/market-performance",
     tags=["market-performance"],
     include_in_schema=utils.get_include_in_schema(),
 )
-
-logger = logging.getLogger(__name__)
 
 
 def _extract_resource_id(*, entry: dict[str, Any]) -> str | None:

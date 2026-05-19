@@ -9,8 +9,10 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.interfaces import CalendarItemCreate, CalendarItemExceptionUpdate
-from app.logger import logger
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 
 async def get_calendar_item_categories(

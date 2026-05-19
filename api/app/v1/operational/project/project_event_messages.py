@@ -1,5 +1,4 @@
 import datetime
-import logging
 import re
 import urllib.parse
 import uuid as uuid_lib
@@ -52,9 +51,10 @@ from app.dependencies import (
     get_project_name_short_async,
 )
 from app.interfaces import UserAuthed
+from app.logger import get_logger
 from core import enumerations, models
 
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/event-messages",

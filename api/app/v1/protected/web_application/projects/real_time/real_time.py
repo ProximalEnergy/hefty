@@ -21,8 +21,10 @@ from sqlalchemy.orm import Session
 
 from app import dependencies, utils
 from app.dependencies import get_project_db
-from app.logger import logger
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/real-time",

@@ -2,8 +2,9 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from app import dependencies, logger
+from app import dependencies
 from app._dependencies import authorization
+from app.logger import get_logger
 from app.utils import get_include_in_schema
 from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
@@ -13,6 +14,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/combiner-swaps",
@@ -185,7 +188,7 @@ async def validate_combiner_data(
         return {"isValid": True, "message": "Data validation successful"}
 
     except Exception as e:
-        logger.logger.error(
+        logger.error(
             f"Error in validate_combiner_data: {str(e)}",
             exc_info=True,
         )  # Add exc_info=True

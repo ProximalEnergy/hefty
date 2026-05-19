@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from app import interfaces
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(prefix="/kpi-types", tags=["project_kpi_types"])
 

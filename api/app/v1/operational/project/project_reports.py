@@ -27,8 +27,10 @@ from app.dependencies import (
     get_project_db,
     get_project_db_async,
 )
-from app.logger import logger
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/reports",

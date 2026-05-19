@@ -1,7 +1,6 @@
 """Email sending for warranty claim submissions."""
 
 import html
-import logging
 
 from core.utils.email_delivery import (
     EmailAttachment,
@@ -9,7 +8,9 @@ from core.utils.email_delivery import (
     send_simple_email,
 )
 
-logger = logging.getLogger(__name__)
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 FROM_ADDRESS = "support@proximal.energy"
 PROXIMAL_BLUE = "#00AEEF"

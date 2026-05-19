@@ -14,8 +14,10 @@ from sqlalchemy.orm import Session, selectinload
 import app.interfaces
 from app import dependencies
 from app._crud.projects import tags as crud_tags
-from app.logger import logger
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 
 def create_tag_pattern(*, name_scada: str) -> str:

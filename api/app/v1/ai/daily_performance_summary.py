@@ -17,7 +17,9 @@ from pydantic import BaseModel, Field
 from app import interfaces
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 try:
     from openai import OpenAI

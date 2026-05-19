@@ -23,7 +23,9 @@ from app.domain.internal_comms.comms import (
     send_project_creation_notification,
 )
 from app.interfaces import ProjectCreate, ProjectInterface
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 
 def _get_operational_and_project_metadata():

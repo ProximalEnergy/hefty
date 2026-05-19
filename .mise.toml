@@ -328,6 +328,14 @@ description = "Run ast-grep check: python-no-dbquery-dataframe-cast"
 dir = "."
 run = "./_scripts/ast_grep_check.sh --rules python-no-dbquery-dataframe-cast"
 
+[tasks."api:no_logger_definitions"]
+description = "Run ast-grep check: api-no-python-logger-definitions-outside-logger"
+dir = "."
+run = """
+./_scripts/ast_grep_check.sh \
+  --rules api-no-python-logger-definitions-outside-logger \
+  api/app
+"""
 
 [tasks."api:project_id_path"]
 description = "Run ast-grep check: api-no-project-id-path-param-outside-project"

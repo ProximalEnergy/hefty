@@ -9,7 +9,9 @@ from sqlalchemy.sql.expression import select
 from app._crud.admin.user_projects import deep_delete_project
 from app._dependencies import authorization
 from app.dependencies import get_async_db, requires_superadmin_async
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 router = APIRouter()
 

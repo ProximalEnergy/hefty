@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import random
 import time
 from collections.abc import Awaitable, Callable
@@ -11,9 +10,10 @@ from typing import TypedDict
 
 import app.integrations.providers.tenaska as tenaska
 import httpx
+from app.logger import get_logger
 from fastapi import HTTPException
 
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__)
 
 _AUTH_SERVICE_UNAVAILABLE_DETAIL = (
     "TPS authentication service is temporarily unavailable"

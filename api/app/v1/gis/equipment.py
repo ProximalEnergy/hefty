@@ -22,10 +22,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import dependencies, interfaces, logger, utils
+from app import dependencies, interfaces, utils
 from app._dependencies import authorization
+from app.logger import get_logger
 from app.v1.operational.kpi_data import get_kpi_data_helper
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/{project_id}",
@@ -574,7 +577,7 @@ async def get_devices_in_viewport(
                 )
                 all_device_extra_data.update(primary_extra_data)
             except Exception as e:  # Catch a broader range of exceptions
-                logger.logger.error(
+                logger.error(
                     "Error fetching primary additional data for type "
                     f"{power_device_type_id}: {e}"
                 )
@@ -600,7 +603,7 @@ async def get_devices_in_viewport(
                 )
                 all_device_extra_data.update(pcs_extra_data)
             except Exception as e:  # Catch a broader range of exceptions
-                logger.logger.error(f"Error fetching supplementary PCS power data: {e}")
+                logger.error(f"Error fetching supplementary PCS power data: {e}")
 
     # 3. Fetch latest data for any Met Station (type 4) devices
     met_station_to_fetch_ids = [
@@ -638,14 +641,14 @@ async def get_devices_in_viewport(
             # Catch HTTP exceptions (like 404 Not Found) specifically.
             # Log as info or warning, not error, as this can be an expected state.
             if e.status_code == 404:
-                logger.logger.info(
+                logger.info(
                     f"Met Station data not found (as expected): {e.detail}"
                 )
             else:
-                logger.logger.warning(f"HTTP error fetching Met Station data: {e}")
+                logger.warning(f"HTTP error fetching Met Station data: {e}")
         except Exception as e:
             # Catch any other unexpected errors.
-            logger.logger.error(
+            logger.error(
                 f"An unexpected error occurred fetching Met Station data: {e}"
             )
 
@@ -779,7 +782,7 @@ async def utility_expected(
             )
 
         except Exception as e:
-            logger.logger.exception(
+            logger.exception(
                 "Tracker viewport latest query failed for device_ids=%s: %s",
                 device_ids,
                 e,
@@ -787,7 +790,7 @@ async def utility_expected(
             return {}
 
         if latest_df.empty:
-            logger.logger.info(
+            logger.info(
                 "Tracker viewport latest query returned no rows for device_ids=%s",
                 device_ids,
             )
@@ -809,7 +812,7 @@ async def utility_expected(
                 "tracker_time": _get_row_timestamp_iso(row=row),
             }
 
-        logger.logger.info(
+        logger.info(
             "Tracker viewport mapped %s tracker rows for %s devices; null_angles=%s",
             len(tracker_results),
             len(device_ids),
@@ -1139,7 +1142,7 @@ async def utility_expected(
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
         if tags_pl.is_empty():
             if project.project_status_type_id == ProjectStatusType.ONBOARDING.value:
-                logger.logger.warning(
+                logger.warning(
                     f"No suitable power tags found for device IDs {device_ids} "
                     f"with sensor types {sensor_type_ids}. "
                     f"This is normal during project onboarding "
@@ -1251,7 +1254,7 @@ async def utility_expected(
         except Exception as e:
             # Handle potential pivot errors (e.g., duplicate index/column entries)
             # Log the error? For now, create empty DF
-            logger.logger.error(f"Error pivoting expected data: {e}")  # Basic logging
+            logger.error(f"Error pivoting expected data: {e}")  # Basic logging
             df_expected_pivot = pd.DataFrame(index=df_actual.index)
             df_expected_all = pd.DataFrame()  # Ensure it's empty if pivot fails
 
@@ -1347,7 +1350,7 @@ async def get_met_station_latest_values(
             schema=project_schema,
         )
         if latest_df.is_empty():
-            logger.logger.info(
+            logger.info(
                 f"No relevant Met Station tags found for devices: {device_ids}"
             )
             return {}
@@ -1374,17 +1377,17 @@ async def get_met_station_latest_values(
 
     except HTTPException as e:
         if e.status_code == 404:
-            logger.logger.info(
+            logger.info(
                 f"No data found for Met Station devices {device_ids}: {e.detail}"
             )
         else:
-            logger.logger.error(
+            logger.error(
                 "HTTP error while fetching Met Station data for devices "
                 f"{device_ids}: {e}"
             )
         return {}
     except Exception as e:
-        logger.logger.error(
+        logger.error(
             "An unexpected error occurred while fetching Met Station data for "
             f"devices {device_ids}: {e}"
         )

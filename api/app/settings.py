@@ -3,7 +3,9 @@ import os
 from dotenv import load_dotenv
 
 from app._utils.aws import get_parameters_by_path
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 # Load environment variables once at module import
 load_dotenv(override=True)

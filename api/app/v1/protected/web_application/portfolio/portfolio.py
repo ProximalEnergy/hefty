@@ -1,5 +1,4 @@
 import datetime
-import logging
 from enum import StrEnum
 from typing import Annotated, Any, cast
 from uuid import UUID
@@ -31,8 +30,9 @@ from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
 from app.interfaces import CalendarItemInterface, UserAuthed
+from app.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/portfolio",

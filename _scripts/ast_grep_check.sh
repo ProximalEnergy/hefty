@@ -29,6 +29,7 @@ ALL_RULES=(
     forbidden-with-async-db-usage
     python-core-require-selective-imports
     python-no-dbquery-dataframe-cast
+    api-no-python-logger-definitions-outside-logger
 )
 
 json_stream=false

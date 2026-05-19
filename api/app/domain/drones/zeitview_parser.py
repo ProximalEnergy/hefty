@@ -3,7 +3,9 @@ from typing import Any
 
 import httpx
 from app._utils.aws import get_secret
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 
 class ZeitviewAPI:

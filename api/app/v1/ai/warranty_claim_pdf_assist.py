@@ -8,11 +8,13 @@ from typing import Any, Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.logger import logger
+from app.logger import get_logger
 from app.v1.ai._openai_helpers import (
     build_openai_responses_client,
     extract_response_tool_json,
 )
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 

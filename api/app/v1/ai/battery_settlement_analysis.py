@@ -1,11 +1,14 @@
 import json
-import logging
 import os
 import statistics
 from typing import Any, TypedDict
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 try:
     from openai import OpenAI
@@ -14,7 +17,6 @@ except Exception:  # pragma: no cover - optional import surface
 
 
 router = APIRouter(prefix="/ai", tags=["ai"])
-logger = logging.getLogger(__name__)
 
 
 class ConversationMessage(BaseModel):

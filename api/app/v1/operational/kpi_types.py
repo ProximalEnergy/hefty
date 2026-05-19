@@ -11,8 +11,10 @@ from app._crud.operational.contracts import (
 )
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import get_async_db
-from app.logger import logger
+from app.logger import get_logger
 from app.v1.operational.project.project_contracts import generate_presigned_url
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(prefix="/kpi-types", tags=["kpi_types"])
 

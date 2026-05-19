@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from typing import Annotated
 from uuid import UUID
 
@@ -31,7 +30,10 @@ from app._crud.operational.documents import (
     get_project_documents as crud_get_project_documents,
 )
 from app._dependencies.authentication import get_user
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 BUCKET_NAME = "proximal-am-documents"
 REGION_NAME = "us-east-2"
@@ -41,8 +43,6 @@ router = APIRouter(
     prefix="/documents",
     tags=["project_documents"],
 )
-
-logger = logging.getLogger(__name__)
 
 
 def generate_presigned_url(*, file_key: str) -> str:

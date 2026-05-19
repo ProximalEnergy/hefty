@@ -1,0 +1,14 @@
+id: api-no-python-logger-definitions-outside-logger
+message: >-
+  Define Python loggers only in api/app/logger.py. Import the shared
+  `logger` from app.logger instead of calling logging.getLogger.
+severity: error
+language: Python
+files:
+  - "api/app/**/*.py"
+ignores:
+  - "api/app/logger.py"
+rule:
+  any:
+    - pattern: "$LOGGER = logging.getLogger($$$ARGS)"
+    - pattern: "$LOGGER: $TYPE = logging.getLogger($$$ARGS)"

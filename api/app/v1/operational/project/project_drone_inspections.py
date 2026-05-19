@@ -32,7 +32,9 @@ from app.interfaces import (
     DroneInspectionInterface,
     ZeitviewInspection,
 )
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/drone-inspections",

@@ -1532,6 +1532,10 @@ if [ "${RUN_ROOT}" = "true" ] \
         "dbquery-dataframe-cast" \
         "mise run root:no_dbquery_dataframe_cast" \
         "python-no-dbquery-dataframe-cast"
+    add_batched_ast_grep_check \
+        "api-logger-definitions" \
+        "mise run api:no_logger_definitions" \
+        "api-no-python-logger-definitions-outside-logger"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
     add_check "Global: Ruff Linting" "mise run root:ruff"
 fi

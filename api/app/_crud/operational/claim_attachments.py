@@ -1,6 +1,5 @@
 """S3-backed file storage with DB-backed claim attachment metadata."""
 
-import logging
 from typing import Any, cast
 
 import boto3
@@ -9,12 +8,13 @@ from core.crud.project import claim_attachments as claim_attachment_queries
 from core.db_query import OutputType
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 BUCKET_NAME = "proximal-am-documents"
 REGION_NAME = "us-east-2"
-
-logger = logging.getLogger(__name__)
 
 
 def _attachment_key(

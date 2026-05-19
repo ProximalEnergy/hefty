@@ -19,8 +19,10 @@ from app._dependencies import authorization
 from app._utils.arrow import polars_to_arrow_response
 from app.custom_types import AnnotatedDeep
 from app.dependencies import get_project_db, get_project_db_async
-from app.logger import logger
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 DESCRIPTION_404 = "Device not found"
 

@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Literal
 
 import sentry_sdk
@@ -14,8 +13,9 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from app import settings
 from app.dependencies import get_async_db
 from app.interfaces import UserAuthed
+from app.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__)
 
 
 async def get_user(

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime
-import logging
 from typing import Annotated, TypedDict
 
 from core.crud.operational import qse_integrations as operational_qse_integrations
@@ -16,15 +15,16 @@ from app._dependencies.authentication import get_user
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
+from app.logger import get_logger
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/ptp-data",
     tags=["ptp-data"],
     include_in_schema=utils.get_include_in_schema(),
 )
-
-logger = logging.getLogger(__name__)
 
 _REQUIRED_PTP_KEYS = (
     "cop_id",

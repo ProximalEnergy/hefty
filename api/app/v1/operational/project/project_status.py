@@ -15,8 +15,10 @@ from sqlalchemy.orm import Session
 
 from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.dependencies import get_project_api, get_project_db
-from app.logger import logger
+from app.logger import get_logger
 from core import database, models
+
+logger = get_logger(name=__name__)
 
 DESCRIPTION_404 = "Status not found"
 

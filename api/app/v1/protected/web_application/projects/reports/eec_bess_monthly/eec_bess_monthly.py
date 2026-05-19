@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from app.integrations.providers import ptp_explorer
-from app.logger import logger
+from app.logger import get_logger
 from core.crud.operational.contract_kpis import (
     get_contract_kpis as crud_get_contract_kpis,
 )
@@ -79,6 +79,8 @@ from .report_utils import (
     load_image_from_source,
     tstyle_gridded_table,
 )
+
+logger = get_logger(name=__name__)
 
 
 class BESSMonthlyReportStrategy(BaseModel):

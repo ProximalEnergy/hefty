@@ -6,7 +6,9 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from app.logger import logger
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 OpenAIClient: Any
 try:

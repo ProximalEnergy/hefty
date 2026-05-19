@@ -1,5 +1,4 @@
 import base64
-import logging
 from typing import Annotated
 
 from core.crud.admin.users import get_user_by_id
@@ -12,9 +11,10 @@ from app.domain.internal_comms.comms import (
     send_feedback_notification,
 )
 from app.domain.linear_integration import create_linear_issue
+from app.logger import get_logger
 from core import models
 
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/feedback",

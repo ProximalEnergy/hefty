@@ -5,11 +5,13 @@ from typing import Annotated
 
 import boto3
 from app import dependencies, utils
-from app.logger import logger
+from app.logger import get_logger
 from botocore.config import Config
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from core import models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/combiner-correlation-analysis",

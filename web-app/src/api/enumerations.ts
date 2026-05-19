@@ -640,6 +640,7 @@ export const ReportTypeEnum = {
   WIND_STOW: 12,
   MONTHLY_PERFORMANCE: 13,
   PV_PERFORMANCE_WEEKLY: 14,
+  SCOPE_2_EMISSIONS: 15,
 } as const;
 
 export const SensorTypeEnum = {

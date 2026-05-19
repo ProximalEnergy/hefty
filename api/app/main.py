@@ -12,9 +12,11 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import settings
-from app.logger import logger
+from app.logger import get_logger
 from app.responses import NaNSafeJSONResponse
 from app.v1 import v1
+
+logger = get_logger(name=__name__)
 
 warnings.simplefilter("always", DeprecationWarning)
 warnings.filterwarnings("error", category=PydanticJsonSchemaWarning)

@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import Annotated, Any
 
@@ -22,10 +21,11 @@ from app._crud.operational.pv_modules import (
 )
 from app._dependencies.authorization import require_user_company
 from app.domain.equipment.pv_module.parse_pan.c_parse_pan import parse_pan
+from app.logger import get_logger
+
+logger = get_logger(name=__name__)
 
 # --- Routes ---
-logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/pv-modules", tags=["pv_modules"])
 
 

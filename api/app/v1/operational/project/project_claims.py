@@ -1,7 +1,6 @@
 """API routes for warranty claims."""
 
 import datetime
-import logging
 import re
 from io import StringIO
 from typing import Annotated, Any, cast
@@ -40,14 +39,15 @@ from app._utils.claim_emails import (
     build_claim_submission_email_html,
     send_claim_submission_email,
 )
+from app.logger import get_logger
 from core import enumerations, models
+
+logger = get_logger(name=__name__)
 
 router = APIRouter(
     prefix="/claims",
     tags=["project_claims"],
 )
-
-logger = logging.getLogger(__name__)
 
 EVENT_DATA_WINDOW = datetime.timedelta(minutes=30)
 EVENT_DATA_INTERVAL = enumerations.TimeInterval.ONE_MINUTE
