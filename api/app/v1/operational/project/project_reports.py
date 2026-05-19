@@ -22,11 +22,7 @@ from app import utils
 from app._crud.operational.cec_pv_inverters import get_cec_pv_inverters
 from app._crud.operational.cec_pv_modules import get_cec_pv_modules
 from app._crud.operational.pv_modules import get_pv_modules
-from app.dependencies import (
-    get_project_api,
-    get_project_db,
-    get_project_db_async,
-)
+from app.dependencies import get_project_api, get_project_db, get_project_db_async
 from app.logger import get_logger
 from core import models
 
@@ -712,7 +708,11 @@ async def dc_amperage_report_v2(
             for idx, col in enumerate(dataframe.columns):
                 series = dataframe[col]
                 max_len = (
-                    max(series.astype(str).map(len).max(), len(str(series.name))) + 2
+                    max(
+                        series.fillna("").astype(str).map(len).max(),
+                        len(str(series.name)),
+                    )
+                    + 2
                 )
                 worksheet.set_column(idx, idx, max_len)
 
