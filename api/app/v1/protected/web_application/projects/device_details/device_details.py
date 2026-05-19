@@ -101,7 +101,6 @@ async def get_horizontal_bess(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
-    # Determine what is the "highest" level of battery storage data
     """todo
 
     Args:
@@ -110,8 +109,12 @@ async def get_horizontal_bess(
         project: Description for project.
         project_db: Description for project_db.
     """
+
+    # Determine what is the "highest" level of battery storage data
     used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore
-    if SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT in used_sensor_type_ids:
+    if SensorTypeEnum.BESS_PCS_SOC_PERCENT in used_sensor_type_ids:
+        bess_sensor_type_id = SensorTypeEnum.BESS_PCS_SOC_PERCENT
+    elif SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT in used_sensor_type_ids:
         bess_sensor_type_id = SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT
     elif SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT in used_sensor_type_ids:
         bess_sensor_type_id = SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT
@@ -138,11 +141,12 @@ async def get_horizontal_bess(
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     category_mapping: dict[int, str] = {
-        SensorTypeEnum.BESS_PCS_AC_POWER: "pcs",
-        SensorTypeEnum.PROJECT_SOC_PERCENT: "meter_soc",
         SensorTypeEnum.METER_ACTIVE_POWER: "meter_power",
-        SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT: "battery",
+        SensorTypeEnum.PROJECT_SOC_PERCENT: "meter_soc",
+        SensorTypeEnum.BESS_PCS_AC_POWER: "pcs",
+        SensorTypeEnum.BESS_PCS_SOC_PERCENT: "battery",
         SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT: "battery",
+        SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT: "battery",
         SensorTypeEnum.BESS_BANK_SOC_PERCENT: "battery",
         SensorTypeEnum.BESS_STRING_SOC_PERCENT: "battery",
     }
