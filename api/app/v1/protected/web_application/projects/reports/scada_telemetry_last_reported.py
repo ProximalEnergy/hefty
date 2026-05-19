@@ -160,7 +160,10 @@ async def get_scada_telemetry_last_reported(
         """
         for idx, col in enumerate(dataframe.columns):
             series = dataframe[col]
-            max_len = max(series.astype(str).map(len).max(), len(str(series.name))) + 2
+            max_len = (
+                max(series.fillna("").astype(str).map(len).max(), len(str(series.name)))
+                + 2
+            )
             worksheet.set_column(idx, idx, max_len)
 
     with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
