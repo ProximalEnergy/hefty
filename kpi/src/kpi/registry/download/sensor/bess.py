@@ -100,6 +100,16 @@ class DownloadSensorBess(FieldRegistry[SensorProtocol]):
         scale=1000,
     )
 
+    pcs_available_charge_power_raw_kw_5m = sensor_field(
+        sensor_type=SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER,
+        scale=1000,
+    )
+
+    pcs_available_discharge_power_raw_kw_5m = sensor_field(
+        sensor_type=SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+        scale=1000,
+    )
+
     # string
 
     string_power_raw_kw_5m = sensor_field(

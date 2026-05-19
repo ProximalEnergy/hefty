@@ -1,4 +1,3 @@
-import xarray as xr
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import (
     clean_cell_voltage,
@@ -7,10 +6,10 @@ from kpi.domain.bess import (
     clean_soh,
     clean_temperature,
 )
-from kpi.domain.util import filter_mask
+from kpi.domain.general import filter_by_value
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Required
-from kpi.op.transform.method import calc_field, method_calc
+from kpi.op.transform.arg import Constant, Required
+from kpi.op.transform.method import calc_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess as Sensor
 from kpi.registry.transform.bess.clean.device_attribute import (
     TransformBessCleanDeviceAttribute as Device,
@@ -37,6 +36,16 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
     pcs_power_kw_5m = calc_field(clean_power)(
         power=Required(Sensor.pcs_power_raw_kw_5m),
         capacity=Required(Device.pcs_power_capacity_kw),
+    )
+
+    pcs_available_charge_power_kw_5m = calc_field(filter_by_value)(
+        Required(Sensor.pcs_available_charge_power_raw_kw_5m),
+        min_value=Constant(0),
+    )
+
+    pcs_available_discharge_power_kw_5m = calc_field(filter_by_value)(
+        Required(Sensor.pcs_available_discharge_power_raw_kw_5m),
+        min_value=Constant(0),
     )
 
     # string
@@ -81,15 +90,11 @@ class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
     # Current
     # =======================================================
 
-    @method_calc(
-        current=Required(Sensor.string_current_raw_amps_5m),
+    string_current_amps_5m = calc_field(filter_by_value)(
+        Required(Sensor.string_current_raw_amps_5m),
+        min_value=Constant(-1000),
+        max_value=Constant(1000),
     )
-    def string_current_amps_5m(
-        current: xr.DataArray,
-    ) -> xr.DataArray:
-        return current.where(
-            filter_mask(filter_by=current, min_value=-1000, max_value=1000)
-        )
 
     # =======================================================
     # Temperature

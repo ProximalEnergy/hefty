@@ -75,7 +75,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
     )
 
     @method_calc(
-        availability_5m=Required(Eval.project_system_availability_5m),
+        availability_5m=Required(Eval.project_energy_availability_5m),
         date_local_5m=Grouper(Eval.date_local_5m),
     )
     def project_ner_availability_d(
@@ -100,3 +100,8 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
             xr.where(availability_5m < 1 - epsilon, 0.0, np.nan),
         )
         return perfect_availability.groupby(date_local_5m).mean()
+
+    project_poi_power_availability_d = calc_field(resample_mean)(
+        x=Required(Eval.project_poi_power_availability_5m),
+        grouper=Grouper(Eval.date_local_5m),
+    )

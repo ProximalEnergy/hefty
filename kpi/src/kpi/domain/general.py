@@ -25,3 +25,12 @@ def filter_energy_5m(
             max_value=1 / 12 + epsilon,
         )
     )
+
+
+def filter_by_value(
+    x: xr.DataArray,
+    *,
+    min_value: float | None = None,
+    max_value: float | None = None,
+) -> xr.DataArray:
+    return x.where(filter_mask(filter_by=x, min_value=min_value, max_value=max_value))

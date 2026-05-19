@@ -44,7 +44,11 @@ models: list[UploadModel] = [
         version="2.0.0",
         project_var=Summarize.project_avg_c_rate_d.name,
     ),
-    # PROJECT_SOH (52) not implemented — no project-level state of health variable
+    UploadModel(
+        kpi_type=KPITypeEnum.PROJECT_SOH,
+        version="2.0.0",
+        project_var=Summarize.project_soh_d.name,
+    ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_AVERAGE_C_RATE_WHILE_CHARGING,
         version="2.0.0",
@@ -124,18 +128,21 @@ models: list[UploadModel] = [
         kpi_type=KPITypeEnum.BESS_PROJECT_POWER_AVAILABILITY,
         version="2.0.0",
         project_var=Summarize.project_power_availability_d.name,
-        scale=0.001,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_ENERGY_AVAILABILITY,
         version="2.0.0",
         project_var=Summarize.project_energy_availability_d.name,
-        scale=0.001,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_NER_AVAILABILITY,
         version="2.0.0",
         project_var=Summarize.project_ner_availability_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPITypeEnum.BESS_PROJECT_POI_POWER_AVAILABILITY,
+        version="2.0.0",
+        project_var=Summarize.project_poi_power_availability_d.name,
     ),
 ]
 

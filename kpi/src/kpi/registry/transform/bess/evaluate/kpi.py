@@ -346,7 +346,7 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
         project_pcs_availability=Required(project_pcs_availability_5m),
         project_available=Required(project_available_5m),
     )
-    def project_system_availability_5m(
+    def project_energy_availability_5m(
         project_pcs_availability: xr.DataArray,
         project_available: xr.DataArray,
     ) -> xr.DataArray:
@@ -357,40 +357,68 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
         """
         return project_pcs_availability * project_available
 
-    @method_calc(
-        availability=Required(project_system_availability_5m),
-        soh=Required(project_soh_5m),
-        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+    pcs_available_charge_power_clipped_kw_5m = calc_field(np.minimum)(
+        Required(Clean.pcs_available_charge_power_kw_5m),
+        Required(Clean.pcs_power_capacity_kw),
     )
-    def project_energy_availability_5m(
-        availability: xr.DataArray,
-        soh: xr.DataArray,
-        energy_capacity: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Project Energy Availability Per 5-Minute Interval
-        system availability multiplied by project SOH and energy capacity.
-        """
-        return availability * soh * energy_capacity
+
+    pcs_available_discharge_power_clipped_kw_5m = calc_field(np.minimum)(
+        Required(Clean.pcs_available_discharge_power_kw_5m),
+        Required(Clean.pcs_power_capacity_kw),
+    )
 
     @method_calc(
-        availability=Required(project_system_availability_5m),
-        power_capacity=Required(Clean.project_power_capacity_kw),
-        poi_capacity=Required(Clean.project_poi_limit_kw),
+        available_charge=Required(pcs_available_charge_power_clipped_kw_5m),
+        available_discharge=Required(pcs_available_discharge_power_clipped_kw_5m),
+    )
+    def project_available_power_5m(
+        available_charge: xr.DataArray,
+        available_discharge: xr.DataArray,
+    ) -> xr.DataArray:
+        """
+        The maximum of available charge and discharge power per PCS,
+        ignoring NaN on the missing stream, summed across all PCS devices.
+        """
+        available_power = xr.apply_ufunc(
+            np.fmax,
+            available_charge,
+            available_discharge,
+        )
+        return sum_across_devices(available_power, device_type=DeviceTypeEnum.BESS_PCS)
+
+    @method_calc(
+        available_power=Required(project_available_power_5m),
+        pcs_capacity=Required(Clean.pcs_power_capacity_kw),
     )
     def project_power_availability_5m(
-        availability: xr.DataArray,
-        power_capacity: xr.DataArray,
+        available_power: xr.DataArray,
+        pcs_capacity: xr.DataArray,
+    ) -> xr.DataArray:
+        """
+        project available power normalized by the sum of all
+        pcs capacities.
+        """
+        total_capacity = sum_across_devices(
+            pcs_capacity, device_type=DeviceTypeEnum.BESS_PCS
+        )
+        return available_power / total_capacity
+
+    @method_calc(
+        available_power=Required(project_available_power_5m),
+        poi_capacity=Required(Clean.project_poi_limit_kw),
+    )
+    def project_poi_power_availability_5m(
+        available_power: xr.DataArray,
         poi_capacity: xr.DataArray,
     ) -> xr.DataArray:
         """
-        Project Power Availability Per 5-Minute Interval
-        availability times power capacity, clipped at POI capacity
+        Available power clipped then normalized by the POI limit.
         """
-        return (availability * power_capacity).clip(max=poi_capacity)
+        clipped = available_power.clip(max=poi_capacity)
+        return clipped / poi_capacity
 
     @method_calc(
-        availability_5m=Required(project_system_availability_5m),
+        availability_5m=Required(project_energy_availability_5m),
         hour_utc_5m=Grouper(hour_utc_5m),
     )
     def project_ner_availability_h(

@@ -31,14 +31,18 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     # SoH
     # =======================================================
 
+    project_soh_d = calc_field(resample_first)(
+        Required(Eval.project_soh_5m), grouper=Grouper(Eval.date_local_5m)
+    )
+
     # BESS_BANK_SOH (53)
     bank_soh_d = calc_field(resample_first)(
-        x=Required(Clean.bank_soh_5m),
+        Required(Clean.bank_soh_5m),
         grouper=Grouper(Eval.date_local_5m),
     )
 
     project_bank_soh_d = calc_field(mean_across_devices)(
-        x=Required(bank_soh_d),
+        Required(bank_soh_d),
         device_type=Constant(DeviceTypeEnum.BESS_BANK),
     )
 
@@ -49,7 +53,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     )
 
     project_string_soh_d = calc_field(mean_across_devices)(
-        x=Required(string_soh_d),
+        Required(string_soh_d),
         device_type=Constant(DeviceTypeEnum.BESS_STRING),
     )
 
@@ -256,9 +260,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
         c_rate: xr.DataArray,
         date_local_5m: xr.DataArray,
     ) -> xr.DataArray:
-        return (
-            current.where(is_discharging(c_rate)).groupby(date_local_5m).mean()
-        )
+        return current.where(is_discharging(c_rate)).groupby(date_local_5m).mean()
 
     @method_calc(
         current=Required(Clean.string_current_amps_5m),
