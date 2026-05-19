@@ -63,6 +63,39 @@ PROJECT_NAME_NOUNS = [
 ]
 
 
+ANONYMIZED_NODE_ADJECTIVES = [
+    "North",
+    "South",
+    "East",
+    "West",
+    "Central",
+]
+
+ANONYMIZED_NODE_NOUNS = [
+    "Node",
+    "Hub",
+    "Junction",
+    "Substation",
+    "Intertie",
+]
+
+ANONYMIZED_ADDRESS_STREETS = [
+    "Oak",
+    "Maple",
+    "Pine",
+    "Cedar",
+    "Willow",
+]
+
+ANONYMIZED_ADDRESS_SUFFIXES = [
+    "Rd",
+    "Ave",
+    "Blvd",
+    "Ln",
+    "Dr",
+]
+
+
 def get_include_in_schema() -> bool:
     """
     Get whether to include endpoints in the Swagger UI based on the environment.
@@ -133,32 +166,168 @@ def anonymize_projects(
     *,
     projects: list[models.Project | dict[str, Any]],
 ) -> list[models.Project | dict[str, Any]]:
-    """Handle anonymize projects.
+    """Anonymize project fields for demo mode output.
 
     Args:
-        projects: Projects or dicts to anonymize in place.
+        projects: Projects to anonymize.
     """
     for project in projects:
         if isinstance(project, dict):
-            name_long = project.get("name_long")
-            if not name_long:
-                continue
-            seed_from_project_name(name=name_long)
-            name = generate_random_name()
-            name_short = name.lower().replace(" ", "_")
-            project["name_short"] = name_short
-            project["name_long"] = name
+            anonymize_project_dict_fields(project=project)
             continue
 
-        seed_from_project_name(name=project.name_long)
-        name = generate_random_name()
-        name_short = name.lower().replace(" ", "_")
-        name_long = name
-
-        project.name_short = name_short
-        project.name_long = name_long
+        anonymize_project_model_fields(project=project)
 
     return projects
+
+
+def anonymize_project_dict_fields(*, project: dict[str, Any]) -> None:
+    """Anonymize dictionary-backed project fields in-place.
+
+    Args:
+        project: Dictionary-backed project to anonymize.
+    """
+    name_long = project.get("name_long")
+    if not name_long:
+        return
+
+    seed_from_project_name(name=name_long)
+    anonymized_name = generate_random_name()
+    project["name_short"] = anonymized_name.lower().replace(" ", "_")
+    project["name_long"] = anonymized_name
+
+    randomize_project_capacities(
+        project=project,
+        capacity_dc_key="capacity_dc",
+        capacity_ac_key="capacity_ac",
+    )
+
+    if "interconnecting_node_code" in project:
+        project["interconnecting_node_code"] = generate_random_node_name()
+    if "address" in project:
+        project["address"] = generate_random_address()
+    if "poi" in project:
+        randomize_project_capacity(
+            project=project,
+            capacity_key="poi",
+            min_ratio=0.8,
+            max_ratio=1.2,
+        )
+    if "interconnecting_substation" in project:
+        project["interconnecting_substation"] = generate_random_node_name()
+
+
+def anonymize_project_model_fields(*, project: models.Project) -> None:
+    """Anonymize ORM-backed project fields in-place.
+
+    Args:
+        project: ORM-backed project to anonymize.
+    """
+    seed_from_project_name(name=project.name_long)
+    anonymized_name = generate_random_name()
+    project.name_short = anonymized_name.lower().replace(" ", "_")
+    project.name_long = anonymized_name
+
+    randomized_capacity_dc, randomized_capacity_ac = get_randomized_capacities(
+        capacity_dc=project.capacity_dc,
+        capacity_ac=project.capacity_ac,
+    )
+    project.capacity_dc = randomized_capacity_dc
+    project.capacity_ac = randomized_capacity_ac
+
+    project.interconnecting_node_code = generate_random_node_name()
+    project.address = generate_random_address()
+    project.poi = randomize_capacity(
+        value=project.poi,
+        min_ratio=0.8,
+        max_ratio=1.2,
+    )
+    project.interconnecting_substation = generate_random_node_name()
+
+
+def randomize_capacity(
+    *,
+    value: float,
+    min_ratio: float = 0.9,
+    max_ratio: float = 1.1,
+) -> float:
+    """Return a randomized capacity, preserving zero values.
+
+    Args:
+        value: Original capacity.
+        min_ratio: Minimum multiplier to apply to value.
+        max_ratio: Maximum multiplier to apply to value.
+    """
+    if value == 0:
+        return value
+
+    min_value = value * min_ratio
+    max_value = value * max_ratio
+    for _ in range(10):
+        randomized_value = round(random.uniform(min_value, max_value), 3)
+        if randomized_value != value:
+            return randomized_value
+
+    return value
+
+
+def randomize_project_capacities(
+    *,
+    project: dict[str, Any],
+    capacity_dc_key: str,
+    capacity_ac_key: str,
+) -> None:
+    """Randomize project DC/AC capacities when present and valid.
+
+    Args:
+        project: Project dictionary to update.
+        capacity_dc_key: Key containing DC capacity.
+        capacity_ac_key: Key containing AC capacity.
+    """
+    randomize_project_capacity(
+        project=project,
+        capacity_key=capacity_dc_key,
+    )
+    randomize_project_capacity(
+        project=project,
+        capacity_key=capacity_ac_key,
+    )
+
+
+def randomize_project_capacity(
+    *,
+    project: dict[str, Any],
+    capacity_key: str,
+    min_ratio: float = 0.9,
+    max_ratio: float = 1.1,
+) -> None:
+    """Randomize a project capacity dictionary value when present and valid.
+
+    Args:
+        project: Project dictionary to update.
+        capacity_key: Key containing a capacity value.
+        min_ratio: Minimum multiplier to apply to value.
+        max_ratio: Maximum multiplier to apply to value.
+    """
+    capacity = project.get(capacity_key)
+    if isinstance(capacity, int | float) and capacity != 0:
+        project[capacity_key] = randomize_capacity(
+            value=float(capacity),
+            min_ratio=min_ratio,
+            max_ratio=max_ratio,
+        )
+
+
+def get_randomized_capacities(
+    *, capacity_dc: float, capacity_ac: float
+) -> tuple[float, float]:
+    """Return capacities within +/-10% and distinct from originals when possible.
+
+    Args:
+        capacity_dc: Original DC capacity.
+        capacity_ac: Original AC capacity.
+    """
+    return randomize_capacity(value=capacity_dc), randomize_capacity(value=capacity_ac)
 
 
 def generate_random_name() -> str:
@@ -166,6 +335,22 @@ def generate_random_name() -> str:
     adjective = random.choice(PROJECT_NAME_ADJECTIVES)
     noun = random.choice(PROJECT_NAME_NOUNS)
     return f"{adjective} {noun}"
+
+
+def generate_random_node_name() -> str:
+    """Generate an anonymized interconnection node name."""
+    adjective = random.choice(ANONYMIZED_NODE_ADJECTIVES)
+    noun = random.choice(ANONYMIZED_NODE_NOUNS)
+    suffix = random.randint(100, 999)
+    return f"{adjective}-{noun}-{suffix}"
+
+
+def generate_random_address() -> str:
+    """Generate an anonymized mailing address."""
+    street_number = random.randint(100, 9999)
+    street_name = random.choice(ANONYMIZED_ADDRESS_STREETS)
+    street_suffix = random.choice(ANONYMIZED_ADDRESS_SUFFIXES)
+    return f"{street_number} {street_name} {street_suffix}"
 
 
 def generate_random_location() -> tuple[float, float]:
