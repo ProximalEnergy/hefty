@@ -57,10 +57,13 @@ class DbIssueRepository:
         project_id: str,
         run_time: datetime.datetime,
         candidates: list[IssueCandidate],
+        project_name_short: str | None = None,
         reconciliation_window_minutes: int | None = None,
     ) -> IssuePersistenceResult:
         """Create, match, and resolve issue episodes for one project run."""
-        project_schema = _resolve_project_schema_from_id(project_id=project_id)
+        project_schema = project_name_short or _resolve_project_schema_from_id(
+            project_id=project_id
+        )
         LOGGER.info(
             "\t\tApplying issue candidates for project_id=%s schema=%s run_time=%s "
             "candidate_count=%s",

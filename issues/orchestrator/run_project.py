@@ -70,6 +70,7 @@ def run_project_issues(
     config: IssueDetectorConfig | None = None,
     issue_category_ids: list[int] | None = None,
     evaluation_window_minutes_override: int | None = None,
+    project_name_short: str | None = None,
     project_coordinates: tuple[float | None, float | None] | None = None,
 ) -> ProjectIssueRunSummary:
     """Run issue detectors, rectify candidates, and persist lifecycle changes.
@@ -81,6 +82,8 @@ def run_project_issues(
         issue_category_ids: Optional filter for supported categories.
         evaluation_window_minutes_override: When set, overrides met-station
             evaluation and telemetry window minutes (e.g. 1440 for backfill).
+        project_name_short: Pre-resolved project schema. Falls back to resolving
+            from ``project_id`` when omitted.
         project_coordinates: Pre-fetched project centroid; when omitted the
             context builder loads coordinates from operational.projects.
     """
@@ -103,7 +106,9 @@ def run_project_issues(
         )
     now = run_time or datetime.datetime.now(datetime.UTC)
     logger.info("\tStarting issues project run for project_id=%s", project_id)
-    project_name_short = resolve_project_name_short(project_id=project_id)
+    project_name_short = project_name_short or resolve_project_name_short(
+        project_id=project_id
+    )
     repository = build_issue_repository(
         project_name_short=project_name_short,
     )
@@ -157,6 +162,7 @@ def run_project_issues(
         project_id=project_id,
         run_time=now,
         candidates=final_candidates,
+        project_name_short=project_name_short,
         reconciliation_window_minutes=evaluation_window_minutes_override,
     )
     logger.info(
