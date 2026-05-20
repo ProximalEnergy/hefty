@@ -6,6 +6,9 @@ import dayjs from 'dayjs'
 const formatStartedDate = (timeStart: string) =>
   `Started ${dayjs(timeStart).format('M/D/YY')}`
 
+const getIssueName = (issue: ProjectIssue) =>
+  issue.tag_name_full ?? issue.device_name_full ?? ''
+
 type MetStationIssuesTableProps = {
   title: string
   flex: number
@@ -20,15 +23,15 @@ export function MetStationIssuesTable({
   data,
 }: MetStationIssuesTableProps) {
   const issues = [...data].sort((left, right) => {
-    return dayjs(right.time_start).valueOf() - dayjs(left.time_start).valueOf()
+    return getIssueName(left).localeCompare(getIssueName(right))
   })
 
   return (
-    <CustomCard title={title} style={{ flex: flex }}>
+    <CustomCard title={title} style={{ flex, height: '100%' }}>
       {isLoading ? (
         <Skeleton h="100%" />
       ) : (
-        <ScrollArea h="100%">
+        <ScrollArea h="100%" type="auto">
           <Stack gap="xs">
             {issues.length === 0 ? (
               <Text c="dimmed" size="sm">
@@ -36,9 +39,9 @@ export function MetStationIssuesTable({
               </Text>
             ) : (
               issues.map((issue) => (
-                <Stack key={issue.issue_id} gap={0} style={{ minWidth: 0 }}>
+                <Stack key={issue.issue_id} gap={0}>
                   <Text fw={500} size="sm" truncate>
-                    {issue.tag_name_full ?? issue.device_name_full}
+                    {getIssueName(issue)}
                   </Text>
                   <Text c="dimmed" size="xs" truncate>
                     {issue.issue_category}

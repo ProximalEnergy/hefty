@@ -85,7 +85,7 @@ export function MetStationTimeseries({
   }, [average, colorScheme, data, theme.colors, theme.primaryColor])
 
   return (
-    <CustomCard title={title} style={{ flex: flex }}>
+    <CustomCard title={title} style={{ flex }}>
       <Stack h="100%">
         {isLoading ? (
           <Skeleton h="100%">

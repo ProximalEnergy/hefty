@@ -60,7 +60,7 @@ export function MetStationDayView({ context }: DayViewProps) {
           isLoading={data.timeseriesLoading}
         />
       </Group>
-      <Group flex={1} align="stretch">
+      <Group flex={1} align="stretch" style={{ minHeight: 0 }}>
         <MetStationTimeseries
           title={'GHI'}
           flex={2}
