@@ -1,5 +1,7 @@
+from typing import Any
 from uuid import UUID
 
+from core.db_query import DbQuery, OutputType
 from openai import OpenAI
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,12 +30,16 @@ async def create_company_project(
         The newly created CompanyProject object.
     """
     # Check if company project already exists
-    existing_query = select(models.CompanyProject).where(
-        models.CompanyProject.company_id == company_id,
-        models.CompanyProject.project_id == project_id,
+    existing_company_project = await DbQuery(
+        query=select(models.CompanyProject).where(
+            models.CompanyProject.company_id == company_id,
+            models.CompanyProject.project_id == project_id,
+        ),
+        is_scalar=True,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
     )
-    existing_result = await db.execute(existing_query)
-    existing_company_project = existing_result.scalar_one_or_none()
 
     if existing_company_project:
         logger.info(f"Company project {company_id}|{project_id} already exists")
@@ -43,23 +49,24 @@ async def create_company_project(
     try:
         client = OpenAI()
         # Get company and project names for vector store naming
-        company_query = select(models.Company).where(
-            models.Company.company_id == company_id
+        row = await DbQuery[Any, Any](
+            query=select(
+                models.Company.name_short.label("company_name_short"),
+                models.Project.name_short.label("project_name_short"),
+            ).where(
+                models.Company.company_id == company_id,
+                models.Project.project_id == project_id,
+            ),
+            is_scalar=True,
+        ).get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
         )
-        project_query = select(models.Project).where(
-            models.Project.project_id == project_id
-        )
 
-        company_result = await db.execute(company_query)
-        project_result = await db.execute(project_query)
-
-        company = company_result.scalar_one_or_none()
-        project = project_result.scalar_one_or_none()
-
-        if not company or not project:
+        if row is None:
             raise ValueError("Company or project not found")
 
-        vector_store_name = f"{company.name_short}-{project.name_short}"
+        vector_store_name = f"{row['company_name_short']}-{row['project_name_short']}"
         vector_store = client.vector_stores.create(name=vector_store_name)
         vector_store_id = vector_store.id
 
