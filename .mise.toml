@@ -165,6 +165,8 @@ usage = '''
   flag "--all-warnings" help="Run warning checks for all areas"
   flag "--quiet" help="Keep reduced output (default behavior)"
   flag "--verbose" help="Show full output for successful checks"
+  flag "-f --fast-fail" help="Exit after the first failed check"
+  flag "--ff" help="Exit after the first failed check"
 '''
 run = """
 ALL_ARGS=""
@@ -188,6 +190,12 @@ if [ "${usage_quiet:-false}" = "true" ]; then
 fi
 if [ "${usage_verbose:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --verbose"
+fi
+if [ "${usage_fast_fail:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --fast-fail"
+fi
+if [ "${usage_ff:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --fast-fail"
 fi
 
 ./_scripts/run_checks.sh ${ALL_ARGS}

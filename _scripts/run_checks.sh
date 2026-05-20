@@ -11,6 +11,7 @@ REQUESTED_DIFF_ONLY=true
 OFFLINE=false
 QUIET=true
 ALL_WARNINGS=false
+FAST_FAIL=false
 ASYNC_OFFLINE=false
 CODEX_CONTEXT_MODE="none"
 CODEX_PROMPT="Fix the selected failed checks in this repo. Apply the "\
@@ -49,6 +50,10 @@ while [ "$#" -gt 0 ]; do
             ;;
         --verbose)
             QUIET=false
+            shift
+            ;;
+        -ff|--ff|--fast-fail)
+            FAST_FAIL=true
             shift
             ;;
         --codex-context)
@@ -683,6 +688,29 @@ print_passed_checks() {
     echo ""
 }
 
+print_failed_check_summary() {
+    local i
+
+    if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+        echo -e "${RED}Failed checks:${NC}"
+        echo ""
+        for i in "${failed_error_indices[@]}"; do
+            echo -e "${BOLD}${RED}✗ $(get_timed_check_ui_label "$i")${NC}"
+        done
+    fi
+
+    if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
+        if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+            echo ""
+        fi
+        echo -e "${PURPLE}Warning checks:${NC}"
+        echo ""
+        for i in "${failed_warning_indices[@]}"; do
+            echo -e "${BOLD}${PURPLE}✗ $(get_timed_check_ui_label "$i")${NC}"
+        done
+    fi
+}
+
 CHECK_EXECUTION_STATUS=0
 CHECK_EXECUTION_ELAPSED_SECONDS=0
 
@@ -757,6 +785,22 @@ run_sync_check() {
         "$check_index" \
         "$CHECK_EXECUTION_STATUS" \
         "$CHECK_EXECUTION_ELAPSED_SECONDS"
+}
+
+run_fast_fail_checks() {
+    local i
+
+    for i in "${!CHECKS_CMD[@]}"; do
+        if is_check_skipped "$i"; then
+            continue
+        fi
+
+        update_check_ui_running "$i"
+        run_sync_check "$i"
+        if [ "${CHECKS_RESULT_STATUS[$i]:-0}" -ne 0 ]; then
+            break
+        fi
+    done
 }
 
 is_root_ast_grep_batch_check() {
@@ -1008,124 +1052,129 @@ run_all_checks() {
         fi
     done
 
-    # Phase 0: Run initial checks before any parallel work starts.
-    for i in "${!CHECKS_CMD[@]}"; do
-        if is_check_skipped "$i"; then
-            continue
-        fi
-        if [ "${CHECKS_IS_PARALLEL[$i]}" = "initial" ]; then
-            update_check_ui_running "$i"
-            run_sync_check "$i"
-        fi
-    done
-
-    # Phase 1: Kick off all parallel checks in the background.
-    for i in "${!CHECKS_CMD[@]}"; do
-        if is_check_skipped "$i"; then
-            continue
-        fi
-        if [ "${CHECKS_IS_PARALLEL[$i]}" = "true" ]; then
-            if is_root_ast_grep_batch_check "$i"; then
-                root_ast_grep_indices+=("$i")
+    if [ "${FAST_FAIL}" = "true" ]; then
+        run_fast_fail_checks
+    else
+        # Phase 0: Run initial checks before any parallel work starts.
+        for i in "${!CHECKS_CMD[@]}"; do
+            if is_check_skipped "$i"; then
                 continue
             fi
-
-            log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
-            status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
-            parallel_indices+=("$i")
-            check_start_seconds_by_index[$i]="$SECONDS"
-            update_check_ui_running "$i"
-            (
-                execute_check_to_log "$i" "$log_file" "$status_file"
-            ) &
-        fi
-    done
-
-    if [ "${#root_ast_grep_indices[@]}" -gt 0 ]; then
-        for i in "${root_ast_grep_indices[@]}"; do
-            update_check_ui_running "$i"
+            if [ "${CHECKS_IS_PARALLEL[$i]}" = "initial" ]; then
+                update_check_ui_running "$i"
+                run_sync_check "$i"
+            fi
         done
-        root_ast_grep_status_file="${RUN_CHECKS_LOG_DIR}/root_ast_grep_batch.status"
-        (
-            execute_root_ast_grep_batch_to_logs "$root_ast_grep_status_file"
-        ) &
-    fi
 
-    # Poll status files and update the live summary for each completed check.
-    parallel_total=$(( \
-        ${#parallel_indices[@]} + ${#root_ast_grep_indices[@]} \
-    ))
-    while [ "$parallel_done" -lt "$parallel_total" ]; do
-        for i in "${parallel_indices[@]}"; do
-            if [ "${parallel_done_by_index[$i]:-0}" -eq 1 ]; then
+        # Phase 1: Kick off all parallel checks in the background.
+        for i in "${!CHECKS_CMD[@]}"; do
+            if is_check_skipped "$i"; then
                 continue
             fi
-
-            status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
-            if [ -f "$status_file" ]; then
-                status_payload=$(cat "$status_file")
-                status="${status_payload%%:*}"
-                elapsed_seconds="${status_payload#*:}"
-                if ! [[ "$status" =~ ^[0-9]+$ ]]; then
+            if [ "${CHECKS_IS_PARALLEL[$i]}" = "true" ]; then
+                if is_root_ast_grep_batch_check "$i"; then
+                    root_ast_grep_indices+=("$i")
                     continue
                 fi
-                if [ "$status_payload" = "$status" ]; then
-                    check_started_at="${check_start_seconds_by_index[$i]:-0}"
-                    elapsed_seconds=$((SECONDS - check_started_at))
+
+                log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+                status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
+                parallel_indices+=("$i")
+                check_start_seconds_by_index[$i]="$SECONDS"
+                update_check_ui_running "$i"
+                (
+                    execute_check_to_log "$i" "$log_file" "$status_file"
+                ) &
+            fi
+        done
+
+        if [ "${#root_ast_grep_indices[@]}" -gt 0 ]; then
+            for i in "${root_ast_grep_indices[@]}"; do
+                update_check_ui_running "$i"
+            done
+            root_ast_grep_status_file="${RUN_CHECKS_LOG_DIR}/root_ast_grep_batch.status"
+            (
+                execute_root_ast_grep_batch_to_logs \
+                    "$root_ast_grep_status_file"
+            ) &
+        fi
+
+        # Poll status files and update the live summary for each completed check.
+        parallel_total=$(( \
+            ${#parallel_indices[@]} + ${#root_ast_grep_indices[@]} \
+        ))
+        while [ "$parallel_done" -lt "$parallel_total" ]; do
+            for i in "${parallel_indices[@]}"; do
+                if [ "${parallel_done_by_index[$i]:-0}" -eq 1 ]; then
+                    continue
+                fi
+
+                status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
+                if [ -f "$status_file" ]; then
+                    status_payload=$(cat "$status_file")
+                    status="${status_payload%%:*}"
+                    elapsed_seconds="${status_payload#*:}"
+                    if ! [[ "$status" =~ ^[0-9]+$ ]]; then
+                        continue
+                    fi
+                    if [ "$status_payload" = "$status" ]; then
+                        check_started_at="${check_start_seconds_by_index[$i]:-0}"
+                        elapsed_seconds=$((SECONDS - check_started_at))
+                    fi
+                    if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+                        elapsed_seconds=0
+                    fi
+                    parallel_done_by_index[$i]=1
+                    parallel_done=$((parallel_done + 1))
+
+                    record_check_result "$i" "$status" "$elapsed_seconds"
+                fi
+            done
+
+            if [ "${#root_ast_grep_indices[@]}" -gt 0 ] \
+                && [ "$root_ast_grep_done" -eq 0 ] \
+                && [ -f "$root_ast_grep_status_file" ]; then
+                status_payload=$(cat "$root_ast_grep_status_file")
+                status="${status_payload%%:*}"
+                status_payload="${status_payload#*:}"
+                elapsed_seconds="${status_payload%%:*}"
+                total_findings="${status_payload#*:}"
+
+                if ! [[ "$status" =~ ^[0-9]+$ ]]; then
+                    status=1
                 fi
                 if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
                     elapsed_seconds=0
                 fi
-                parallel_done_by_index[$i]=1
-                parallel_done=$((parallel_done + 1))
+                if ! [[ "$total_findings" =~ ^[0-9]+$ ]]; then
+                    total_findings=0
+                fi
 
-                record_check_result "$i" "$status" "$elapsed_seconds"
+                root_ast_grep_done=1
+                parallel_done=$((parallel_done + ${#root_ast_grep_indices[@]}))
+                record_root_ast_grep_batch_results \
+                    "$status" \
+                    "$elapsed_seconds" \
+                    "$total_findings" \
+                    "${root_ast_grep_indices[@]}"
+            fi
+
+            if [ "$parallel_done" -lt "$parallel_total" ]; then
+                sleep 0.1
             fi
         done
 
-        if [ "${#root_ast_grep_indices[@]}" -gt 0 ] \
-            && [ "$root_ast_grep_done" -eq 0 ] \
-            && [ -f "$root_ast_grep_status_file" ]; then
-            status_payload=$(cat "$root_ast_grep_status_file")
-            status="${status_payload%%:*}"
-            status_payload="${status_payload#*:}"
-            elapsed_seconds="${status_payload%%:*}"
-            total_findings="${status_payload#*:}"
-
-            if ! [[ "$status" =~ ^[0-9]+$ ]]; then
-                status=1
+        # Phase 2: Run sequential checks one at a time, then update in-place.
+        for i in "${!CHECKS_CMD[@]}"; do
+            if is_check_skipped "$i"; then
+                continue
             fi
-            if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
-                elapsed_seconds=0
+            if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
+                update_check_ui_running "$i"
+                run_sync_check "$i"
             fi
-            if ! [[ "$total_findings" =~ ^[0-9]+$ ]]; then
-                total_findings=0
-            fi
-
-            root_ast_grep_done=1
-            parallel_done=$((parallel_done + ${#root_ast_grep_indices[@]}))
-            record_root_ast_grep_batch_results \
-                "$status" \
-                "$elapsed_seconds" \
-                "$total_findings" \
-                "${root_ast_grep_indices[@]}"
-        fi
-
-        if [ "$parallel_done" -lt "$parallel_total" ]; then
-            sleep 0.1
-        fi
-    done
-
-    # Phase 2: Run sequential checks one at a time, then update in-place.
-    for i in "${!CHECKS_CMD[@]}"; do
-        if is_check_skipped "$i"; then
-            continue
-        fi
-        if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
-            update_check_ui_running "$i"
-            run_sync_check "$i"
-        fi
-    done
+        done
+    fi
 
     finish_live_summary
     if [ "${#failed_error_indices[@]}" -eq 0 ] \
@@ -1141,26 +1190,18 @@ run_all_checks() {
         exit 0
     fi
 
-    if [ ! -t 1 ]; then
+    if [ "${FAST_FAIL}" = "true" ]; then
+        print_failed_check_summary
         if [ "${#failed_error_indices[@]}" -gt 0 ]; then
-            echo -e "${RED}Failed checks:${NC}"
-            echo ""
-            for i in "${failed_error_indices[@]}"; do
-                echo -e "${BOLD}${RED}✗ $(get_timed_check_ui_label "$i")${NC}"
-            done
+            exit 1
         fi
+        echo ""
+        echo -e "${PURPLE}Warning checks failed, but error checks passed.${NC}"
+        exit 0
+    fi
 
-        if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
-            if [ "${#failed_error_indices[@]}" -gt 0 ]; then
-                echo ""
-            fi
-            echo -e "${PURPLE}Warning checks:${NC}"
-            echo ""
-            for i in "${failed_warning_indices[@]}"; do
-                echo -e \
-                    "${BOLD}${PURPLE}✗ $(get_timed_check_ui_label "$i")${NC}"
-            done
-        fi
+    if [ ! -t 1 ]; then
+        print_failed_check_summary
     fi
 
     if [ -t 0 ]; then
