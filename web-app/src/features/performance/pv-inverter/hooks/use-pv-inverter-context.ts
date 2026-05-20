@@ -5,7 +5,7 @@ import { useGetOMContractorScopes } from '@/api/v1/operational/project/om_contra
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetInverters } from '@/api/v1/operational/pv_inverters'
 import { useGetDevicesV2 } from '@/hooks/api'
-import type { Device } from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
 import {
   getDeviceModelImagePublicUrl,
   getDeviceModelImageUrl,

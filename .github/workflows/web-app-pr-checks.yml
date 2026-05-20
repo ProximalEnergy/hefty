@@ -65,6 +65,18 @@ jobs:
       - name: Run ast-grep query-time-enum check
         run: ./_scripts/web_query_time_enum_check.sh --all-files
 
+  barrel-files:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+      - name: Install ast-grep
+        run: mise install ast-grep
+      - name: Check for barrel files
+        run: mise run web:barrel
+
   typescript_checker:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest

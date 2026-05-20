@@ -1,5 +1,5 @@
 import { CMMSTicket } from '@/api/v1/operational/project/cmms_tickets'
-import * as types from '@/hooks/types'
+import type { Event, FailureMode } from '@/hooks/types'
 import CMMSTicketCard from '@/pages/projects/cmms/CMMSTicketCard'
 import {
   Badge,
@@ -19,7 +19,7 @@ import { Link } from 'react-router'
 
 interface EventOrTicket {
   type: string
-  event?: types.Event
+  event?: Event
   ticket?: CMMSTicket
 }
 
@@ -32,10 +32,10 @@ const DeviceEventsTimeline = ({
   tickets,
 }: {
   isLoading: boolean
-  events: types.Event[]
-  failureModes: types.FailureMode[]
+  events: Event[]
+  failureModes: FailureMode[]
   projectId: string
-  selectedEvent: types.Event
+  selectedEvent: Event
   tickets: CMMSTicket[] | undefined
 }) => {
   const [eventsAndTickets, setEventsAndTickets] = useState<EventOrTicket[]>([])

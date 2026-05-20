@@ -10,7 +10,7 @@ import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
-import type { Device } from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
 import * as gisUtils from '@/utils/GIS'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {

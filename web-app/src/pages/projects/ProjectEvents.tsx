@@ -4,7 +4,7 @@ import {
   useGetEventsSummary,
 } from '@/api/v1/operational/project/events'
 import { type Project, useSelectProject } from '@/api/v1/operational/projects'
-import { DataTable } from '@/components/DataTable'
+import { DataTable } from '@/components/DataTable/DataTable'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsEventsTable } from '@/components/Tips'

@@ -3,9 +3,8 @@
 This directory holds **feature slices** aligned with
 [Bulletproof React](https://github.com/alan2207/bulletproof-react): colocate
 code by domain, keep features self-contained, and expose a small public API
-through barrel files. Prefer importing from a feature's `index.ts` (or
-paths under `@/features/...`) instead of reaching deep into subfolders from
-outside the feature.
+through route entry files. Do not add barrel files. Outside the feature, import
+only route entry components from `@/features/<group>/<feature>/routes/...`.
 
 ## Domain groups
 
@@ -30,9 +29,9 @@ it, use only the subfolders you need. Allowed subfolders (do not add others):
 
 ## Public API
 
-Every feature **must** include an `index.ts` that re-exports what other parts of
-the app may import (often the main route). Do not export internals unless there
-is a deliberate, documented need.
+Feature root `index.ts` barrels are not allowed. Other parts of the app may
+import only route entry components from `routes/<Feature>Route.tsx`. Do not
+import feature internals unless there is a deliberate, documented exception.
 
 ## Deviations from Bulletproof React
 
@@ -50,7 +49,7 @@ A few documented departures from
 - **Routes are co-located inside features.** Upstream BR puts route components
   under `src/app/routes/`; we keep them in the feature at
   `features/<group>/<feature>/routes/`. The app-level `App.tsx` still owns the
-  route _paths_ — features only export the route component.
+  route _paths_.
 - **The subfolder list is closed and enforced.** Allowed: `components`,
   `hooks`, `queries`, `routes`, `types`, `utils`, `views`. We do not use
   `api/`, `assets/`, or `stores/` — assets live in `src/assets/`, API hooks in

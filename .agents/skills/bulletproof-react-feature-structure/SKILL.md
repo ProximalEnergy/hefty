@@ -25,14 +25,11 @@ Inside a feature, use only the subfolders you need. Do NOT add `api/`, `assets/`
 
 # Public API
 
-Every feature exports its public surface through `index.ts` — typically the route component only:
-
-```ts
-// web-app/src/features/performance/met-station/index.ts
-export { MetStationRoute } from './routes/MetStationRoute'
-```
-
-Outside callers import from `@/features/<group>/<feature>` (which resolves to `index.ts`). Never reach into a deep subpath of another feature, in any form (absolute `@/features/<g>/<f>/<sub>` or relative `../../<f>/<sub>`). Both are flagged by the conformance script.
+Feature root `index.ts` barrels are not allowed. Outside callers may import only
+route entry components from
+`@/features/<group>/<feature>/routes/<Feature>Route`. Never reach into another
+feature's internals, in any form (absolute `@/features/<g>/<f>/<sub>` or
+relative `../../<f>/<sub>`). The conformance script flags those imports.
 
 # File naming
 
@@ -45,6 +42,8 @@ Outside callers import from `@/features/<group>/<feature>` (which resolves to `i
 
 - Within a feature: relative paths (`../components/Tabs`, `../hooks/use-met-station-tab`).
 - Across features or to shared code: absolute via `@/` (`@/components/PageTitle`, `@/api/enumerations`).
+- Outside a feature, route shims may import route entry components from
+  `@/features/<group>/<feature>/routes/<Feature>Route`.
 - Features never import from other features in any form. This includes:
   - Absolute: `import x from '@/features/<other>/...'`
   - Relative: `import x from '../../<other-feature>/...'`
@@ -90,19 +89,19 @@ Reference: `web-app/src/features/performance/met-station/hooks/use-met-station-c
 # Routes and app wiring
 
 - Route components live at `routes/<Feature>Route.tsx` inside the feature.
-- `App.tsx` (or an existing `pages/.../page.tsx`) imports the route from the feature's barrel:
-  `import { MetStationRoute } from '@/features/performance/met-station'`
+- `App.tsx` (or an existing `pages/.../page.tsx`) imports the route entry file:
+  `import { MetStationRoute } from '@/features/performance/met-station/routes/MetStationRoute'`
 - During migration, the existing `pages/.../page.tsx` becomes a one-line shim so router definitions in `App.tsx` don't move:
 
 ```tsx
-import { MetStationRoute } from '@/features/performance/met-station'
+import { MetStationRoute } from '@/features/performance/met-station/routes/MetStationRoute'
 
 export default function Page() {
   return <MetStationRoute />
 }
 ```
 
-Route paths themselves live in `App.tsx`. Features only export the route component.
+Route paths themselves live in `App.tsx`.
 
 # Loading and errors
 
@@ -126,7 +125,7 @@ export function DayView({ context }: DayViewProps) { ... }
 # Red Flags
 
 - Cross-feature imports of any form (absolute, relative, or side-effect).
-- Reaching into another feature's internals instead of importing from its `index.ts`.
+- Reaching into another feature's internals, except route entry imports from route shims.
 - Adding subfolders other than the seven listed above (no `api/`, `assets/`, `stores/`).
 - Putting fetcher functions inline in components — go through `@/hooks/api` or `@/api/v1/...`.
 - Defining route paths inside a feature — paths live in `App.tsx`.
@@ -137,8 +136,8 @@ export function DayView({ context }: DayViewProps) { ... }
 | Excuse | Rebuttal |
 | --- | --- |
 | "I just need a `stores/` (or `api/`, or `assets/`) folder for this one feature." | Folders outside the allowed seven are not permitted. State goes through React Query or context; assets live in `web-app/src/assets/`; API hooks in `@/api/v1/...`. The conformance script blocks unknown subfolders. |
-| "I'll inline the route path in `routes/Route.tsx` so the feature is self-contained." | Route paths live in `App.tsx`. Features only export the route component. Splitting the path from the feature limits blast radius when routing changes. |
-| "Within my own feature it's clearer to absolute-import via `@/features/<self>/...`." | Within a feature, use relative paths. Absolute `@/features/<self>/...` imports trigger a warning (`self-deep-absolute-import`). The barrel is for *external* callers only. |
+| "I'll inline the route path in `routes/Route.tsx` so the feature is self-contained." | Route paths live in `App.tsx`. Splitting the path from the feature limits blast radius when routing changes. |
+| "Within my own feature it's clearer to absolute-import via `@/features/<self>/...`." | Within a feature, use relative paths. Absolute `@/features/<self>/...` imports trigger a warning (`self-deep-absolute-import`). |
 | "The view can call `useQuery` directly — wrapping in a view-model hook is ceremony." | View-model hooks isolate query composition from rendering. Calling `useQuery` inline couples the view to API shape and re-fetch logic. Compose hooks in `hooks/use-<feature>-<view>-view-model.ts`. |
 | "I'll throw an `axios` call in the view-model for a one-off endpoint." | View-models compose shared API hooks only. Raw axios calls belong in `@/api/v1/...` or `@/hooks/api`. The view-model wires those hooks to view-shaped data. |
 
@@ -146,9 +145,9 @@ export function DayView({ context }: DayViewProps) { ... }
 
 The conformance script issues warnings — not blocking failures — for the following. They're still wrong; the script just keeps the gate clean for the worse offenses.
 
-- **`self-barrel-absolute-import`** — Importing your own feature's barrel (`@/features/<g>/<f>`) from inside the feature. Use relative imports within a feature.
+- **`self-feature-root-absolute-import`** — Importing your own feature root from inside the feature. Use relative imports within a feature.
 - **`self-deep-absolute-import`** — Absolute deep imports into your own feature (`@/features/<g>/<f>/components/Foo`) from inside the feature. Use relative.
-- **`feature-root-stray-file`** — Any file at the feature root other than `index.ts` (or `README.md`). Move it into one of the allowed subfolders.
+- **`feature-root-stray-file`** — Any file at the feature root other than `README.md`. Move it into one of the allowed subfolders.
 
 # Migrating a legacy page into a feature
 

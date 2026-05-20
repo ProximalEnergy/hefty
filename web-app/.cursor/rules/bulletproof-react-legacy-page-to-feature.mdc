@@ -27,11 +27,11 @@ Companion to `bulletproof-react-feature-structure`. That rule covers the **targe
    - `views/<View>.tsx` — receives `{ context }` (and other props), calls the view-model hook, renders. PascalCase filename matches the exported component.
 5. **Relocate the rest.** Sub-components used only inside the feature → `components/`. Pure helpers → `utils/` (kebab-case). Types → `types/<feature>.ts`.
 6. **Wire the route.** Create `routes/<Feature>Route.tsx`. It owns: context hook, loading/error gates, tab state (via `use<Feature>Tab` if applicable), and the conditional view rendering.
-7. **Public API.** Add `index.ts` that re-exports only the route component:
-   `export { <Feature>Route } from './routes/<Feature>Route'`
+7. **Public API.** Do not add `index.ts`. The route entry file is the only
+   importable feature surface.
 8. **Shim the legacy page.** Replace the body of the original `pages/.../page.tsx` with:
    ```tsx
-   import { <Feature>Route } from '@/features/<group>/<feature>'
+   import { <Feature>Route } from '@/features/<group>/<feature>/routes/<Feature>Route'
 
    export default function Page() {
      return <<Feature>Route />
@@ -47,7 +47,7 @@ Companion to `bulletproof-react-feature-structure`. That rule covers the **targe
 | "The legacy page is small — just move it as one component." | If it has tabs or distinct visual sections, it has views. The pattern is the same regardless of size. |
 | "I'll inline the fetcher just for now." | The fetcher belongs in `@/api/v1/...` or `@/hooks/api`. Inlining now means another refactor later. Do it once. |
 | "The page imports from another feature — I'll keep that import." | No cross-feature imports. Lift the shared piece up to `src/components/` or `src/hooks/` first, then migrate. |
-| "Adding `index.ts` is overhead." | The barrel is the only public boundary. Without it, callers reach into internals and the boundary erodes. |
+| "Adding `index.ts` makes imports shorter." | Feature root barrels are not allowed. Route shims import the route entry file directly. |
 | "I'll skip the shim and update `App.tsx` instead." | The shim limits the blast radius. Router edits change every reviewer's mental map of routing; shim edits don't. |
 | "I'll just use a side-effect import for the cross-feature dependency." | Any cross-feature import is a no-go (absolute, relative, side-effect). Lift the shared piece to `src/`. |
 | "The view is loading-heavy — I'll gate the whole view on `isLoading`." | Per-card `<Skeleton>` keeps the layout stable and shows partial data sooner. Gate the route, not the view. |
@@ -57,7 +57,7 @@ Companion to `bulletproof-react-feature-structure`. That rule covers the **targe
 - `mise exec -- pnpm run check:bulletproof-react` outputs "✓ ... no violations".
 - `mise exec -- pnpm run check` passes (typecheck + prettier + knip + bulletproof).
 - The legacy `pages/.../page.tsx` is the one-line shim.
-- The new feature has `index.ts` exporting only the route.
+- The new feature has no `index.ts` barrel.
 - No subfolders outside the allowed seven.
 - No imports from other features in any form (absolute, relative, side-effect). The conformance script catches all three.
 - Manual smoke-test: each tab/view renders; loading and error states display correctly.

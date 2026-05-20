@@ -1586,6 +1586,7 @@ if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Oxfmt" "mise run web:format"
     add_check "Web-App: Knip" "mise run web:knip"
     add_check "Web-App: Linting" "mise run web:lint"
+    add_check "Web-App: Barrel Files" "mise run web:barrel"
     add_check "Web-App: Bulletproof Imports" \
         "mise run web:bulletproof-imports"
 fi

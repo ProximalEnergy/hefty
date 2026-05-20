@@ -5,7 +5,7 @@ import {
   useGetProjectContractKPIs,
 } from '@/api/v1/operational/project/contracts'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { VoiceChatModal } from '@/components/VoiceChat'
+import VoiceChatModal from '@/components/VoiceChat/VoiceChatModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {

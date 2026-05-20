@@ -13,7 +13,7 @@ import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
-import { VoiceChatModal } from '@/components/VoiceChat'
+import VoiceChatModal from '@/components/VoiceChat/VoiceChatModal'
 import CreateContractModal from '@/pages/projects/contracts/CreateContractModal'
 import {
   ActionIcon,

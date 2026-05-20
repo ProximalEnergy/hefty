@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Conformance checker for the Bulletproof React (Proximal variant).
-// Source of truth for the rules: .claude/skills/bulletproof-react-feature-structure/SKILL.md (canonical).
+// Source of truth:
+// .claude/skills/bulletproof-react-feature-structure/SKILL.md (canonical).
 // Mirrored at:
 //   - .agents/skills/bulletproof-react-feature-structure/SKILL.md (Codex CLI)
 //   - web-app/.cursor/rules/bulletproof-react-feature-structure.mdc (Cursor)
@@ -10,11 +11,10 @@
 //   2. Group folder is kebab-case.
 //   3. Subfolders are limited to the allowed set.
 //   4. Subfolder names are kebab-case.
-//   5. index.ts exists at the feature root.
+//   5. Feature roots do not contain barrel files.
 //   6. File naming matches the convention per subfolder.
 //   7. Inside a feature, no @/features/<other>/... cross-feature imports.
-//   8. From outside features, no deep @/features/<g>/<f>/<sub>/... imports
-//      (only the barrel @/features/<g>/<f> may be imported externally).
+//   8. From outside features, imports may reach only route entry files.
 //
 // Tool-agnostic: cares about code, not which agent wrote it.
 // Exit codes: 0 = pass, 1 = violations, 2 = script error.
@@ -139,7 +139,8 @@ async function checkFeatureShape(feature) {
       push(
         'subfolder-allowlist',
         join(feature.path, d),
-        `subfolder "${d}" is not in the allowed set { ${[...ALLOWED_SUBFOLDERS].join(', ')} }`,
+        `subfolder "${d}" is not in the allowed set ` +
+          `{ ${[...ALLOWED_SUBFOLDERS].join(', ')} }`,
       )
     }
     if (!KEBAB.test(d)) {
@@ -151,21 +152,22 @@ async function checkFeatureShape(feature) {
     }
   }
 
-  if (!fileNames.includes('index.ts')) {
-    push(
-      'public-api-barrel',
-      feature.path,
-      `missing index.ts (every feature must export its public API through index.ts)`,
-    )
-  }
-
-  // Stray top-level files: only index.ts (and optional README.md) belong at the feature root.
+  // Stray top-level files: only optional README.md belongs at the feature root.
   for (const f of fileNames) {
-    if (f === 'index.ts' || f === 'README.md') continue
+    if (f === 'README.md') continue
+    if (f === 'index.ts') {
+      push(
+        'no-feature-root-barrel',
+        join(feature.path, f),
+        `feature root index.ts barrels are not allowed`,
+      )
+      continue
+    }
     warn(
       'feature-root-stray-file',
       join(feature.path, f),
-      `unexpected file at feature root; consider moving into one of the allowed subfolders`,
+      `unexpected file at feature root; consider moving into one of ` +
+        `the allowed subfolders`,
     )
   }
 }
@@ -239,9 +241,10 @@ async function checkInternalImports(feature, allFeatures) {
       if (spec.startsWith('@/features/')) {
         if (spec === feature.importRoot) {
           warn(
-            'self-barrel-absolute-import',
+            'self-feature-root-absolute-import',
             filePath,
-            `absolute import of own feature barrel "${spec}"; prefer relative imports inside the feature`,
+            `absolute import of own feature root "${spec}"; ` +
+              `prefer relative imports inside the feature`,
           )
           continue
         }
@@ -256,12 +259,13 @@ async function checkInternalImports(feature, allFeatures) {
         push(
           'no-cross-feature-import',
           filePath,
-          `cross-feature import "${spec}" — features must not import from other features`,
+          `cross-feature import "${spec}" — features must not import ` +
+            `from other features`,
         )
         continue
       }
 
-      // ----- Relative imports (./ or ../) — verify they don't escape into another feature -----
+      // Relative imports must not escape into another feature.
       if (spec.startsWith('./') || spec.startsWith('../')) {
         const resolved = resolve(dirname(filePath), spec)
         const otherFeature = isInsideFeature(resolved, allFeatures)
@@ -269,7 +273,9 @@ async function checkInternalImports(feature, allFeatures) {
           push(
             'no-cross-feature-import-relative',
             filePath,
-            `relative import "${spec}" resolves into feature "${otherFeature.group}/${otherFeature.name}" — features must not import from other features`,
+            `relative import "${spec}" resolves into feature ` +
+              `"${otherFeature.group}/${otherFeature.name}" — features ` +
+              `must not import from other features`,
           )
         }
       }
@@ -278,13 +284,14 @@ async function checkInternalImports(feature, allFeatures) {
 }
 
 async function checkExternalDeepImports(features) {
-  // Build a set of valid barrel import roots and a set of feature subpath prefixes to forbid.
-  const barrels = new Set(features.map((f) => f.importRoot))
   const featureRoots = features.map((f) => ({
     root: f.importRoot,
     prefix: f.importRoot + '/',
     path: f.path,
   }))
+
+  const isRouteEntryImport = (importPath) =>
+    /^routes\/[A-Z][A-Za-z0-9]*Route$/.test(importPath)
 
   // Walk the whole src/ tree EXCEPT each feature's own internals.
   const featurePaths = new Set(features.map((f) => f.path))
@@ -295,7 +302,7 @@ async function checkExternalDeepImports(features) {
     for (const e of entries) {
       const p = join(dir, e.name)
       if (e.isDirectory()) {
-        if (featurePaths.has(p)) continue // skip features (handled by checkInternalImports)
+        if (featurePaths.has(p)) continue
         await walk(p)
       } else if (
         e.isFile() &&
@@ -306,30 +313,48 @@ async function checkExternalDeepImports(features) {
         for (const spec of extractImports(source)) {
           // ----- Absolute @/features/... -----
           if (spec.startsWith('@/features/')) {
-            if (barrels.has(spec)) continue
-            for (const { prefix } of featureRoots) {
+            for (const { root, prefix } of featureRoots) {
+              if (spec === root) {
+                push(
+                  'no-feature-barrel-import',
+                  p,
+                  `feature root import "${spec}" resolves to a barrel`,
+                )
+                break
+              }
               if (spec.startsWith(prefix)) {
+                if (isRouteEntryImport(spec.slice(prefix.length))) break
                 push(
                   'no-deep-feature-import',
                   p,
-                  `deep import "${spec}" reaches into a feature's internals; import from the feature barrel only`,
+                  `deep import "${spec}" reaches into feature internals; ` +
+                    `import route entry files only`,
                 )
                 break
               }
             }
             continue
           }
-          // ----- Relative ./ or ../ — flag if it lands inside a feature's internals -----
+          // Relative imports must not land inside feature internals.
           if (spec.startsWith('./') || spec.startsWith('../')) {
             const resolved = resolve(dirname(p), spec)
             for (const { path: fpath } of featureRoots) {
-              // Importing the feature directory itself (resolves to the barrel) is fine.
-              // Anything DEEPER is reaching into internals.
+              if (resolved === fpath) {
+                push(
+                  'no-feature-barrel-import-relative',
+                  p,
+                  `relative import "${spec}" resolves to a feature barrel`,
+                )
+                break
+              }
               if (resolved.startsWith(fpath + '/')) {
+                const featureRelative = relative(fpath, resolved)
+                if (isRouteEntryImport(featureRelative)) break
                 push(
                   'no-deep-feature-import-relative',
                   p,
-                  `relative import "${spec}" reaches into feature internals — import from the feature barrel only`,
+                  `relative import "${spec}" reaches into feature ` +
+                    `internals — import route entry files only`,
                 )
                 break
               }
@@ -358,7 +383,8 @@ function report() {
 
   if (errCount === 0 && warnCount === 0) {
     console.log(
-      `✓ Bulletproof React conformance: ${featureCount} feature(s) checked, no violations.`,
+      `✓ Bulletproof React conformance: ` +
+        `${featureCount} feature(s) checked, no violations.`,
     )
     return 0
   }

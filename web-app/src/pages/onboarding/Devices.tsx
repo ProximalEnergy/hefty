@@ -1,8 +1,6 @@
-import {
-  DeviceListTable,
-  DeviceTypeSummaryTable,
-  OnboardingPageHeader,
-} from '@/pages/onboarding/components'
+import { DeviceListTable } from '@/pages/onboarding/components/DeviceListTable'
+import { DeviceTypeSummaryTable } from '@/pages/onboarding/components/DeviceTypeSummaryTable'
+import { OnboardingPageHeader } from '@/pages/onboarding/components/OnboardingPageHeader'
 import { AppShell, Container, Paper, Stack, Text, Title } from '@mantine/core'
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone'
 import { IconUpload, IconX } from '@tabler/icons-react'

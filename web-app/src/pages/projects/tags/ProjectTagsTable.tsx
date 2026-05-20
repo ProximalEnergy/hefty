@@ -1,4 +1,4 @@
-import { DataTable } from '@/components/DataTable'
+import { DataTable } from '@/components/DataTable/DataTable'
 import { Tag } from '@/hooks/projectTags'
 import { columns } from '@/pages/projects/tags/ProjectTagsColumns'
 import {

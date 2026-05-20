@@ -4,7 +4,7 @@ import {
 } from '@/api/v1/operational/project/issues'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
-import { DataTable } from '@/components/DataTable'
+import { DataTable } from '@/components/DataTable/DataTable'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { getQueryParamDateRange } from '@/components/datepicker/utils'

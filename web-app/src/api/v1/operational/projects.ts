@@ -1,7 +1,7 @@
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { ProjectType } from '@/api/v1/operational/project_types'
 import { useCustomQuery } from '@/hooks/api'
-import { MultiPolygon, Point } from '@/hooks/types'
+import { MultiPolygon, Point } from '@/hooks/devices'
 import { baseURL } from '@/urlConfig'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'

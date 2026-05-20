@@ -1,9 +1,9 @@
 import { useCustomQuery } from '@/hooks/api'
-import * as types from '@/hooks/types'
+import type { Event } from '@/hooks/types'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface EnrichedEvent extends types.Event {
+export interface EnrichedEvent extends Event {
   loss_daily_financial: number | null
 }
 
@@ -81,7 +81,9 @@ export const useGetHomepageSummary = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/events/home-page-summary`,
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      '/events/home-page-summary',
   }
 
   const defaultQueryOptions = {}

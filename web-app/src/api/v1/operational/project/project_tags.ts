@@ -1,5 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
-import * as types from '@/hooks/types'
+import type { Tag } from '@/hooks/projectTags'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
@@ -29,7 +29,7 @@ export const useGetTagsByRegex = ({
     staleTime: QUERY_TIME.NEVER,
   }
 
-  return useCustomQuery<types.Tag[]>({
+  return useCustomQuery<Tag[]>({
     axiosConfig,
     queryName: 'getTagsByRegex',
     pathParams,

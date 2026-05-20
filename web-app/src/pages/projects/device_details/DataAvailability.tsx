@@ -8,7 +8,7 @@ import {
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useGetDevicesV2 } from '@/hooks/api'
-import * as types from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
 import {
   Badge,
   Box,
@@ -82,11 +82,11 @@ const DataAvailabilityPage = () => {
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false)
   const [prefetchIndex, setPrefetchIndex] = useState(0)
   const [devicesOffset, setDevicesOffset] = useState(0)
-  const [allDevices, setAllDevices] = useState<types.Device[]>([])
+  const [allDevices, setAllDevices] = useState<Device[]>([])
   const [hasMoreDevices, setHasMoreDevices] = useState(true)
-  const [devicesByType, setDevicesByType] = useState<
-    Record<string, types.Device[]>
-  >({})
+  const [devicesByType, setDevicesByType] = useState<Record<string, Device[]>>(
+    {},
+  )
   const [hasMoreDevicesByType, setHasMoreDevicesByType] = useState<
     Record<string, boolean>
   >({})
@@ -129,7 +129,7 @@ const DataAvailabilityPage = () => {
   // Update devices when new data comes in
   useEffect(() => {
     if (devicesQuery.data && devicesQuery.isSuccess && selectedDeviceType) {
-      const devices = devicesQuery.data as types.Device[]
+      const devices = devicesQuery.data as Device[]
 
       queueMicrotask(() =>
         setDevicesByType((prev) => {

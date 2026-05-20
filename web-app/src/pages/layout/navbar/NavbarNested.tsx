@@ -16,7 +16,7 @@ import {
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import { useCreateFeedbackMutation } from '@/hooks/api'
-import * as types from '@/hooks/types'
+import type { FeedbackFormData } from '@/hooks/types'
 import { HomeLinkWithDashboards } from '@/pages/layout/navbar/HomeLinkWithDashboards'
 import { LinksGroup } from '@/pages/layout/navbar/NavbarLinksGroup'
 import ProjectPicture from '@/pages/layout/navbar/ProjectPicture'
@@ -628,7 +628,7 @@ const FeedbackForm = ({
   const MAX_CHARS_SUBJECT = 100
   const MAX_CHARS_COMMENT = 250
 
-  const form = useForm<types.FeedbackFormData>({
+  const form = useForm<FeedbackFormData>({
     validateInputOnChange: true,
     initialValues: {
       subject: '',
@@ -691,7 +691,7 @@ const FeedbackForm = ({
 
   const { user } = useUser()
 
-  const handleNavbarNestedSubmit = async (values: types.FeedbackFormData) => {
+  const handleNavbarNestedSubmit = async (values: FeedbackFormData) => {
     const formData = new FormData()
 
     formData.append('user_id', userId)

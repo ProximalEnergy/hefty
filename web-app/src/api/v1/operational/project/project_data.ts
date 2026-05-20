@@ -1,6 +1,6 @@
 import { paths } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
-import * as types from '@/hooks/types'
+import type { DataTimeSeries } from '@/hooks/types'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
@@ -37,7 +37,7 @@ export const useGetTimeSeries = ({
     ...queryOptions,
   }
 
-  return useCustomQuery<types.DataTimeSeries[]>({
+  return useCustomQuery<DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getTimeSeries',
     pathParams,
@@ -77,7 +77,7 @@ export const useGetDataTimeSeriesV3 = ({
     ...queryOptions,
   }
 
-  return useCustomQuery<types.DataTimeSeries[]>({
+  return useCustomQuery<DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getTimeSeries',
     pathParams,

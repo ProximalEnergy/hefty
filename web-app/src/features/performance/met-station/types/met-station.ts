@@ -1,5 +1,5 @@
 import type { Project } from '@/api/v1/operational/projects'
-import type { Device } from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
 
 export type MetStationTab = 'realtime' | 'current-day' | 'long-term'
 

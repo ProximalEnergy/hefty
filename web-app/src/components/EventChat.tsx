@@ -14,7 +14,9 @@ import {
   useUpdateEventMessage,
   useUploadEventMessageImage,
 } from '@/api/v1/operational/event_messages'
-import { MessageInput, MessageList, MuteToggle } from '@/components/event-chat'
+import { MessageInput } from '@/components/event-chat/MessageInput'
+import { MessageList } from '@/components/event-chat/MessageList'
+import { MuteToggle } from '@/components/event-chat/MuteToggle'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import { useUser } from '@clerk/react'
 import {

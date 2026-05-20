@@ -1,7 +1,7 @@
 import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { Tag } from '@/hooks/projectTags'
-import * as types from '@/hooks/types'
+import type { EventDeviceInfo } from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
@@ -158,7 +158,7 @@ export const useGetEventDevices = ({
     staleTime: QUERY_TIME.NEVER,
   }
 
-  return useCustomQuery<types.EventDeviceInfo>({
+  return useCustomQuery<EventDeviceInfo>({
     axiosConfig,
     queryName: 'getEventDevices',
     pathParams,
@@ -200,7 +200,9 @@ export const useGetEventAnomalies = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events/${pathParams.eventId}/anomalies`,
+    url:
+      `/v1/operational/projects/${pathParams.projectId}` +
+      `/events/${pathParams.eventId}/anomalies`,
   }
 
   const defaultQueryOptions = {}
@@ -322,7 +324,9 @@ export const useGetEventLosses5MinSingle = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events/5min-event-losses-single`,
+    url:
+      `/v1/operational/projects/${pathParams.projectId}` +
+      '/events/5min-event-losses-single',
   }
 
   const defaultQueryOptions = {}

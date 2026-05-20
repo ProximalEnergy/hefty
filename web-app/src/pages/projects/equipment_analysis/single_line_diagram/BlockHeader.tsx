@@ -1,6 +1,6 @@
 import { TimestampPicker } from '@/components/datepicker/TimestampPicker'
 import { StatsGrid } from '@/components/stats/StatsGrid'
-import { Device } from '@/hooks/types'
+import { Device } from '@/hooks/devices'
 import {
   Box,
   Button,

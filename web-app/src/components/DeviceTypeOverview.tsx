@@ -13,7 +13,7 @@ import type { DataTimeSeriesLast } from '@/api/v1/protected/web-application/proj
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import { useGetDevicesV2, useGetPaginatedEvents, useGetTags } from '@/hooks/api'
 import type { Tag } from '@/hooks/projectTags'
-import type { Device } from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Badge,

@@ -1,6 +1,21 @@
 import type { operations } from '@/api/schema'
 import { KPIType } from '@/api/v1/operational/kpi_types'
-import * as types from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
+import type { Tag } from '@/hooks/projectTags'
+import type {
+  DataHeatmap,
+  DataTimeSeries,
+  DegradationPOA,
+  Event,
+  ForecastResponse,
+  PaginatedEvent,
+  Resource,
+  RootCause,
+  SunburstProps,
+  UptimeData,
+  UserSubscription,
+  WeatherResponse,
+} from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
 import {
   QUERY_TIME,
@@ -31,6 +46,8 @@ axios.interceptors.request.use((config) => {
 })
 
 type PathParams = Record<string, string | number | boolean | null | undefined>
+type GetProjectTagsParams =
+  operations['get_project_tags_v1_operational_projects__project_id__tags__get']['parameters']['query']
 
 function interpolatePath(url: string, pathParams: object): string {
   if (!pathParams || Object.keys(pathParams).length === 0) return url
@@ -229,13 +246,13 @@ export const useUpdateReportSubscription = () => {
 
       // Snapshot the previous value
       const previousSubscriptions = queryClient.getQueryData<
-        types.UserSubscription[]
+        UserSubscription[]
       >(['getSubscriptions'])
 
       // Optimistically update the new value
       queryClient.setQueryData(
         ['getSubscriptions'],
-        (oldSubscriptions: types.UserSubscription[]) => {
+        (oldSubscriptions: UserSubscription[]) => {
           return oldSubscriptions?.map((subscription) => {
             if (
               subscription.operational_project_id === newSubscription.project_id
@@ -285,7 +302,7 @@ export const useGetDevice = ({
     staleTime: QUERY_TIME.NEVER,
   }
 
-  return useCustomQuery<types.Device>({
+  return useCustomQuery<Device>({
     axiosConfig,
     queryName: 'getDevice',
     pathParams,
@@ -315,13 +332,13 @@ export const useGetDevicesV2 = ({
     format?: string
     fields?: string[]
   }
-  queryOptions?: Partial<UseQueryOptions<types.Device[]>>
+  queryOptions?: Partial<UseQueryOptions<Device[]>>
 }) => {
   const { getToken } = useAuth()
 
   const queryKey = ['getDevicesV2', pathParams, filters]
 
-  const queryFn = async (): Promise<types.Device[]> => {
+  const queryFn = async (): Promise<Device[]> => {
     const token = await getToken({ template: 'default' })
     const response = await axios({
       method: 'post',
@@ -390,7 +407,7 @@ export const useGetTags = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string }
-  queryParams?: operations['get_project_tags_v1_operational_projects__project_id__tags__get']['parameters']['query']
+  queryParams?: GetProjectTagsParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
@@ -402,7 +419,7 @@ export const useGetTags = ({
     staleTime: QUERY_TIME.NEVER,
   }
 
-  return useCustomQuery<types.Tag[]>({
+  return useCustomQuery<Tag[]>({
     axiosConfig,
     queryName: 'getTags',
     pathParams,
@@ -430,7 +447,7 @@ export const useGetEvents = ({
 
   const defaultQueryOptions = {}
 
-  return useCustomQuery<types.Event[]>({
+  return useCustomQuery<Event[]>({
     axiosConfig,
     queryName: 'getEvents',
     pathParams,
@@ -464,7 +481,7 @@ export const useGetPaginatedEvents = ({
 
   const defaultQueryOptions = {}
 
-  return useCustomQuery<types.PaginatedEvent[]>({
+  return useCustomQuery<PaginatedEvent[]>({
     axiosConfig,
     queryName: 'getPaginatedEvents',
     pathParams,
@@ -496,7 +513,7 @@ export const useGetUptimeTable = ({
 
   const defaultQueryOptions = {}
 
-  return useCustomQuery<types.UptimeData[]>({
+  return useCustomQuery<UptimeData[]>({
     axiosConfig,
     queryName: 'getUptimeTable',
     pathParams,
@@ -538,7 +555,7 @@ export const useUpdateRootCause = () => {
       await queryClient.cancelQueries({ queryKey: ['getEvents'] })
 
       // Snapshot the previous values
-      const previousRootCauses = queryClient.getQueryData<types.RootCause[]>([
+      const previousRootCauses = queryClient.getQueryData<RootCause[]>([
         'getRootCauses',
       ])
       const previousEvents = queryClient.getQueriesData({
@@ -548,7 +565,7 @@ export const useUpdateRootCause = () => {
       // Optimistically update the root causes
       queryClient.setQueryData(
         ['getRootCauses'],
-        (oldRootCauses: types.RootCause[]) => {
+        (oldRootCauses: RootCause[]) => {
           return oldRootCauses?.map((rootCause) => {
             if (rootCause.root_cause_id === newRootCause.root_cause_id) {
               return {
@@ -564,7 +581,7 @@ export const useUpdateRootCause = () => {
       // Optimistically update the events data
       queryClient.setQueriesData(
         { queryKey: ['getEvents'] },
-        (oldEvents: types.Event[] | undefined) => {
+        (oldEvents: Event[] | undefined) => {
           if (!oldEvents) return oldEvents
           return oldEvents.map((event) => {
             if (event.event_id === newRootCause.event_id) {
@@ -612,7 +629,7 @@ export const useGetWeather = ({
     staleTime: QUERY_TIME.FIFTEEN_MINUTES, // 15 minutes
   }
 
-  return useCustomQuery<types.WeatherResponse>({
+  return useCustomQuery<WeatherResponse>({
     axiosConfig,
     queryName: 'getWeather',
     pathParams,
@@ -636,7 +653,7 @@ export const useGetForecast = ({
     staleTime: QUERY_TIME.FIFTEEN_MINUTES, // 15 minutes
   }
 
-  return useCustomQuery<types.ForecastResponse>({
+  return useCustomQuery<ForecastResponse>({
     axiosConfig,
     queryName: 'getForecast',
     pathParams,
@@ -661,7 +678,7 @@ export const useGetHeatmap = ({
 
   const defaultQueryOptions = {}
 
-  return useCustomQuery<types.DataHeatmap>({
+  return useCustomQuery<DataHeatmap>({
     axiosConfig,
     queryName: 'getHeatmap',
     pathParams,
@@ -737,7 +754,7 @@ export const useGetResources = ({
     staleTime: QUERY_TIME.NEVER,
   }
 
-  return useCustomQuery<types.Resource[]>({
+  return useCustomQuery<Resource[]>({
     axiosConfig,
     queryName: 'getResources',
     queryParams,
@@ -763,7 +780,7 @@ export const useGetResource = ({
     staleTime: QUERY_TIME.NEVER,
   }
 
-  return useCustomQuery<types.Resource>({
+  return useCustomQuery<Resource>({
     axiosConfig,
     queryName: 'getResource',
     pathParams,
@@ -785,7 +802,7 @@ export const useGetResourceNetPower = ({
 
   const defaultQueryOptions = {}
 
-  return useCustomQuery<types.DataTimeSeries[]>({
+  return useCustomQuery<DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getResourceNetPower',
     pathParams,
@@ -834,7 +851,7 @@ export const useGetSunburstData = ({
     staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
-  return useCustomQuery<types.SunburstProps>({
+  return useCustomQuery<SunburstProps>({
     axiosConfig,
     queryName: 'getSunburstData',
     pathParams,
@@ -864,7 +881,7 @@ export const useGetClearskyPOA = ({
     staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
-  return useCustomQuery<types.DataTimeSeries[]>({
+  return useCustomQuery<DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getClearskyPOA',
     pathParams,
@@ -894,7 +911,7 @@ export const useGetDegradationPOA = ({
     staleTime: QUERY_TIME.FIVE_MINUTES,
   }
 
-  return useCustomQuery<types.DegradationPOA>({
+  return useCustomQuery<DegradationPOA>({
     axiosConfig,
     queryName: 'getDegradationPOA',
     pathParams,

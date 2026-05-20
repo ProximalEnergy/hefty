@@ -1032,7 +1032,7 @@ run = "pnpm run knip"
 [tasks."web:check"]
 description = "Run TypeScript, Oxfmt, Knip, and oxlint checks for web-app"
 dir = "web-app"
-depends = ["web:bulletproof-imports"]
+depends = ["web:barrel", "web:bulletproof-imports"]
 run = "pnpm run check && pnpm run lint"
 
 [tasks."web:lint"]
@@ -1049,6 +1049,17 @@ run = "./_scripts/web_jsx_calcs_check.sh"
 description = "Warn if staleTime/refetchInterval do not use QUERY_TIME.*"
 dir = "."
 run = "./_scripts/web_query_time_enum_check.sh"
+
+[tasks."web:barrel"]
+description = "Fail if web-app src barrel files exist"
+dir = "."
+run = """
+ast-grep scan \
+  --config _scripts/ast-grep/sgconfig.yml \
+  --filter '^web-no-barrel-files$' \
+  web-app/src \
+  --globs 'web-app/src/**/index.ts'
+"""
 
 [tasks."web:bulletproof-imports"]
 description = "Run web-app bulletproof import checks"

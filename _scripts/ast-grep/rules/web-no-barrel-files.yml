@@ -1,0 +1,6 @@
+id: web-no-barrel-files
+message: "Barrel files are not allowed in web-app/src."
+language: TypeScript
+severity: error
+rule:
+  kind: program

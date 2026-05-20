@@ -1,5 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
-import { Device } from '@/hooks/types'
+import { Device } from '@/hooks/devices'
 import { QUERY_TIME } from '@/utils/queryTiming'
 // Assuming a base Device type exists
 import { UseQueryOptions } from '@tanstack/react-query'

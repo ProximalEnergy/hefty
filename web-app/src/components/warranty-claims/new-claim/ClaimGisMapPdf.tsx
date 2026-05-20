@@ -1,5 +1,5 @@
 import { type DeviceEntry } from '@/components/warranty-claims/new-claim/devices'
-import { type Device } from '@/hooks/types'
+import { type Device } from '@/hooks/devices'
 import { mapStyle } from '@/utils/GIS'
 import type { Feature, FeatureCollection, Geometry, Position } from 'geojson'
 import html2canvas from 'html2canvas-pro'

@@ -2,7 +2,7 @@ import { DeviceTypeEnum } from '@/api/enumerations'
 import type { components } from '@/api/schema'
 import { useGetDeviceModels } from '@/api/v1/operational/device_models'
 import { useGetDevicesV2 } from '@/hooks/api'
-import type { Device } from '@/hooks/types'
+import type { Device } from '@/hooks/devices'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useMemo } from 'react'
 
