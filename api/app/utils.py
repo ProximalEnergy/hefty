@@ -201,6 +201,11 @@ def anonymize_project_dict_fields(*, project: dict[str, Any]) -> None:
         capacity_dc_key="capacity_dc",
         capacity_ac_key="capacity_ac",
     )
+    randomize_project_capacities(
+        project=project,
+        capacity_dc_key="capacity_bess_energy_bol_dc",
+        capacity_ac_key="capacity_bess_power_ac",
+    )
 
     if "interconnecting_node_code" in project:
         project["interconnecting_node_code"] = generate_random_node_name()
@@ -234,6 +239,13 @@ def anonymize_project_model_fields(*, project: models.Project) -> None:
     )
     project.capacity_dc = randomized_capacity_dc
     project.capacity_ac = randomized_capacity_ac
+
+    randomized_bess_energy, randomized_bess_power = get_randomized_capacities(
+        capacity_dc=project.capacity_bess_energy_bol_dc,
+        capacity_ac=project.capacity_bess_power_ac,
+    )
+    project.capacity_bess_energy_bol_dc = randomized_bess_energy
+    project.capacity_bess_power_ac = randomized_bess_power
 
     project.interconnecting_node_code = generate_random_node_name()
     project.address = generate_random_address()
