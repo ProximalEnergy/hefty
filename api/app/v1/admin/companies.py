@@ -36,6 +36,7 @@ async def create_company_route(
 
 @router.get(
     "",
+    response_model=list[interfaces.CompanyInterface],
     operation_id="get_companies",
 )
 async def get_companies_route(
@@ -51,12 +52,11 @@ async def get_companies_route(
         company_ids: Optional company UUID filters.
         name_shorts: Optional short name filters.
     """
-    companies = await crud_get_companies(
+    return await crud_get_companies(
         db=db,
         company_ids=company_ids,
         name_shorts=name_shorts,
     )
-    return companies
 
 
 @router.get(

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from core.db_query import DbQuery, OutputType
@@ -8,6 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
 from core import models
+
+_COMPANY_INTERFACE_FIELD_NAMES = tuple(interfaces.CompanyInterface.model_fields)
+_COMPANY_INTERFACE_COLUMNS = tuple(
+    getattr(models.Company, field_name).label(field_name)
+    for field_name in _COMPANY_INTERFACE_FIELD_NAMES
+)
 
 
 def query_companies_with_projects(*, user_id: str) -> DbQuery:
@@ -52,14 +58,14 @@ def query_companies(
     *,
     company_ids: list[UUID] | None = None,
     name_shorts: list[str] | None = None,
-) -> DbQuery[models.Company, Literal[False]]:
+) -> DbQuery[Any, Literal[False]]:
     """Build company query filtered by IDs or short names.
 
     Args:
         company_ids: Optional company UUID filters.
         name_shorts: Optional short name filters.
     """
-    query = select(models.Company)
+    query = select(*_COMPANY_INTERFACE_COLUMNS)
 
     if company_ids:
         query = query.where(models.Company.company_id.in_(company_ids))
@@ -114,7 +120,7 @@ async def get_companies(
     db: AsyncSession,
     company_ids: list[UUID] | None = None,
     name_shorts: list[str] | None = None,
-):
+) -> list[interfaces.CompanyInterface]:
     """Return companies filtered by IDs or short names.
 
     Args:
@@ -122,13 +128,20 @@ async def get_companies(
         company_ids: Optional company UUID filters.
         name_shorts: Optional short name filters.
     """
-    return await query_companies(
+    company_df = await query_companies(
         company_ids=company_ids,
         name_shorts=name_shorts,
     ).get_async(
         executor=db,
-        output_type=OutputType.SQLALCHEMY,
+        output_type=OutputType.PANDAS,
     )
+    company_df = company_df.loc[:, list(_COMPANY_INTERFACE_FIELD_NAMES)]
+    return [
+        interfaces.CompanyInterface(
+            **dict(zip(_COMPANY_INTERFACE_FIELD_NAMES, row, strict=True))
+        )
+        for row in company_df.itertuples(index=False, name=None)
+    ]
 
 
 async def create_company(
