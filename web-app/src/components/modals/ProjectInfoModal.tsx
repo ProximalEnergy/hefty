@@ -87,6 +87,13 @@ export default function ProjectInfoModal({
     return `$${ppa.rate.toFixed(2)}/MWh (${ppa.type || 'flat_rate'})`
   }
 
+  const formatCapacity = (value?: number | null, unit?: string) => {
+    if (value == null) return 'Not set'
+    return unit
+      ? `${Number(value).toFixed(1)} ${unit}`
+      : Number(value).toFixed(1)
+  }
+
   // Helper to convert device type IDs to names
   const formatDeviceTypeIds = (deviceTypeIds: number[]) => {
     if (!deviceTypes || deviceTypeIds.length === 0) return 'None'
@@ -354,9 +361,7 @@ export default function ProjectInfoModal({
                             POI Capacity:
                           </Text>
                           <Text size="sm" fw={500}>
-                            {projectData?.poi
-                              ? `${projectData.poi} MW`
-                              : 'Not set'}
+                            {formatCapacity(projectData?.poi, 'MW')}
                           </Text>
                         </Group>
                         {(projectData?.project_type_id === ProjectTypeEnum.PV ||
@@ -368,9 +373,7 @@ export default function ProjectInfoModal({
                                 PV DC Capacity:
                               </Text>
                               <Text size="sm" fw={500}>
-                                {projectData?.capacity_dc
-                                  ? `${projectData.capacity_dc} MW`
-                                  : 'Not set'}
+                                {formatCapacity(projectData?.capacity_dc, 'MW')}
                               </Text>
                             </Group>
                             <Group justify="space-between">
@@ -378,9 +381,7 @@ export default function ProjectInfoModal({
                                 PV AC Capacity:
                               </Text>
                               <Text size="sm" fw={500}>
-                                {projectData?.capacity_ac
-                                  ? `${projectData.capacity_ac} MW`
-                                  : 'Not set'}
+                                {formatCapacity(projectData?.capacity_ac, 'MW')}
                               </Text>
                             </Group>
                           </>
@@ -395,9 +396,10 @@ export default function ProjectInfoModal({
                                 BESS Power AC:
                               </Text>
                               <Text size="sm" fw={500}>
-                                {projectData?.capacity_bess_power_ac
-                                  ? `${projectData.capacity_bess_power_ac} MW`
-                                  : 'Not set'}
+                                {formatCapacity(
+                                  projectData?.capacity_bess_power_ac,
+                                  'MW',
+                                )}
                               </Text>
                             </Group>
                             <Group justify="space-between">
@@ -405,9 +407,10 @@ export default function ProjectInfoModal({
                                 BESS Energy BOL DC:
                               </Text>
                               <Text size="sm" fw={500}>
-                                {projectData?.capacity_bess_energy_bol_dc
-                                  ? `${projectData.capacity_bess_energy_bol_dc} MWh`
-                                  : 'Not set'}
+                                {formatCapacity(
+                                  projectData?.capacity_bess_energy_bol_dc,
+                                  'MWh',
+                                )}
                               </Text>
                             </Group>
                           </>
