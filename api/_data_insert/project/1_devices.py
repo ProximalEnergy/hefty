@@ -5,6 +5,8 @@ from io import StringIO
 
 import pandas as pd
 import psycopg2
+from _scripts.roll_up_capacities import run_roll_up_capacities
+from core.enumerations import ProjectID
 
 from .. import utils
 
@@ -172,3 +174,6 @@ if update_devices:
                 )
 
             conn.commit()
+
+
+run_roll_up_capacities(project_ids=[ProjectID[project_name_short.upper()]])
