@@ -76,5 +76,6 @@ fi
 
 uvx --from ast-grep-cli ast-grep scan \
     --config "${SCRIPT_DIR}/ast-grep/sgconfig.yml" \
+    --filter '^jsx-inline-calculation$' \
     --error=jsx-inline-calculation \
     "${targets[@]}"
