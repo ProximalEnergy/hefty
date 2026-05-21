@@ -1,15 +1,15 @@
-from typing import Annotated
+from typing import Annotated, Any, cast
 from uuid import UUID
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, utils
 from app._crud.admin.notification_preferences import (
     bulk_update_user_notification_preferences,
-)
-from app._crud.admin.notification_preferences import (
-    get_user_notification_preferences as crud_get_user_notification_preferences,
+    get_user_notification_preferences_query,
+    normalize_notification_preference_records,
 )
 from app._crud.admin.notification_preferences import (
     update_notification_preference as crud_update_notification_preference,
@@ -41,12 +41,19 @@ async def get_user_notification_preferences_route(
         project_ids: Optional list of project IDs to filter by.
     """
     try:
-        preferences = await crud_get_user_notification_preferences(
-            db=db,
+        db_query = get_user_notification_preferences_query(
             user_id=user_data.user_id,
             project_ids=project_ids,
         )
-        return preferences
+        preferences = await db_query.get_async(
+            executor=db,
+            output_type=OutputType.PANDAS,
+        )
+        records = cast(
+            list[dict[str, Any]],
+            preferences.to_dict(orient="records"),
+        )
+        return normalize_notification_preference_records(records=records)
     except Exception as e:
         raise HTTPException(
             status_code=500,
