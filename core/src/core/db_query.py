@@ -29,14 +29,15 @@ S = TypeVar(
     bound=Literal[True] | Literal[False],
 )
 _SQL_TO_MODEL_COL_MAP: Mapping[str, str] = {"time_bucket": "time"}
-_SQLALCHEMY_ROW_LIMIT = 101
 _SQLALCHEMY_ROW_THRESHOLD = 100
 
 
-def _raise_for_large_sqlalchemy_result(*, count: int) -> None:
+def _warn_for_large_sqlalchemy_result(*, count: int) -> None:
     if count >= _SQLALCHEMY_ROW_THRESHOLD:
-        raise ValueError(
-            "Too many SQLAlchemy rows (>=100). Use pandas or polars instead."
+        warnings.warn(
+            "Too many SQLAlchemy rows (>=100). Use pandas or polars instead.",
+            category=RuntimeWarning,
+            stacklevel=2,
         )
 
 
@@ -230,13 +231,13 @@ class DbQuery[T, S]:
                     return result.mappings().one_or_none()
                 return result.scalars().unique().one_or_none()
 
-            result = executor.execute(self.query.limit(_SQLALCHEMY_ROW_LIMIT))
+            result = executor.execute(self.query)
             if self._select_returns_rows():
                 items = result.all()  # Row return
             else:
                 items = result.scalars().all()  # ORM or scalar return
 
-            _raise_for_large_sqlalchemy_result(count=len(items))
+            _warn_for_large_sqlalchemy_result(count=len(items))
             return items
 
         result = executor.execute(self.query)
@@ -247,8 +248,8 @@ class DbQuery[T, S]:
         if self.is_scalar:
             return result.mappings().one_or_none()
 
-        items = result.mappings().fetchmany(_SQLALCHEMY_ROW_LIMIT)
-        _raise_for_large_sqlalchemy_result(count=len(items))
+        items = result.mappings().all()
+        _warn_for_large_sqlalchemy_result(count=len(items))
         return items
 
     def _select_returns_rows(self) -> bool:
