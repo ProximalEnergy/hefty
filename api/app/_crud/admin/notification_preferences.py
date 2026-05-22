@@ -209,6 +209,14 @@ def upsert_bulk_user_notification_preferences_query(
         )
         .alias()
     )
+    requested_project_id = sa.cast(
+        requested_preferences.c.project_id,
+        preferences_table.c.project_id.type,
+    )
+    requested_notification_type_id = sa.cast(
+        requested_preferences.c.notification_type_id,
+        preferences_table.c.notification_type_id.type,
+    )
 
     default_severity = sa.literal(
         enumerations.NotificationSeverity.INFO,
@@ -217,8 +225,8 @@ def upsert_bulk_user_notification_preferences_query(
     insert_select = (
         select(
             sa.literal(user_id).label("user_id"),
-            requested_preferences.c.project_id,
-            requested_preferences.c.notification_type_id,
+            requested_project_id.label("project_id"),
+            requested_notification_type_id.label("notification_type_id"),
             (
                 sa.literal(in_app_enabled)
                 if in_app_enabled is not None
@@ -256,7 +264,7 @@ def upsert_bulk_user_notification_preferences_query(
         .join(
             models.NotificationType,
             models.NotificationType.notification_type_id
-            == requested_preferences.c.notification_type_id,
+            == requested_notification_type_id,
         )
     )
 
