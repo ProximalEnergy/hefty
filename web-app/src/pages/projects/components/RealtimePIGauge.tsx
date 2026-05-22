@@ -1,5 +1,6 @@
+import { RealtimeGaugeValue } from '@/pages/projects/components/RealtimeGaugeValue'
 import { getRealtimeGaugeColor } from '@/pages/projects/components/realtimeGaugeUtils'
-import { RingProgress, Text, Tooltip } from '@mantine/core'
+import { RingProgress, Tooltip } from '@mantine/core'
 
 const DASH = 8
 const GAP = 1
@@ -63,19 +64,7 @@ export const RealtimePIGauge = ({
           } as React.CSSProperties
         }
         label={
-          <Text
-            size="11px"
-            fw={600}
-            ta="center"
-            c={value != null ? 'inherit' : 'dimmed'}
-            style={{ lineHeight: 1, fontSize: 11 }}
-          >
-            {isLoading
-              ? '…'
-              : cappedValue != null
-                ? `${cappedValue.toFixed(0)}`
-                : '—'}
-          </Text>
+          <RealtimeGaugeValue value={cappedValue} isLoading={isLoading} />
         }
         sections={sections}
       />

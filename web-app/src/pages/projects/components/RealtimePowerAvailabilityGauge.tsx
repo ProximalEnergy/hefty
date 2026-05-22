@@ -1,5 +1,6 @@
+import { RealtimeGaugeValue } from '@/pages/projects/components/RealtimeGaugeValue'
 import { getRealtimeGaugeColor } from '@/pages/projects/components/realtimeGaugeUtils'
-import { RingProgress, Text, Tooltip } from '@mantine/core'
+import { RingProgress, Tooltip } from '@mantine/core'
 
 export const RealtimePowerAvailabilityGauge = ({
   value,
@@ -62,17 +63,7 @@ export const RealtimePowerAvailabilityGauge = ({
             cursor: onClick ? 'pointer' : 'default',
           } as React.CSSProperties
         }
-        label={
-          <Text
-            size="11px"
-            fw={600}
-            ta="center"
-            c={value != null ? 'inherit' : 'dimmed'}
-            style={{ lineHeight: 1, fontSize: 11 }}
-          >
-            {isLoading ? '…' : value != null ? `${value.toFixed(0)}` : '—'}
-          </Text>
-        }
+        label={<RealtimeGaugeValue value={value} isLoading={isLoading} />}
         sections={[{ value: sectionValue, color }]}
       />
     </Tooltip>
