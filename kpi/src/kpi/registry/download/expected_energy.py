@@ -1,4 +1,5 @@
 from core.enumerations import DeviceTypeEnum
+
 from kpi.op.download.expected_energy import (
     ExpectedEnergyModel,
 )

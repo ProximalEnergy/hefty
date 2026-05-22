@@ -22,14 +22,18 @@ class ArgType(ABC):
 
 class _DataArrayArgType:
     def __init__(self, field: Field[Any]) -> None:
-        self.input_name = field.name
+        self.field = field
+
+    @property
+    def input_name(self) -> str:
+        return self.field.name
 
 
 @arg_protocol
 class Required(_DataArrayArgType, ArgType):
     def extract(self, dataset: xr.Dataset) -> xr.DataArray:
         try:
-            return dataset[self.input_name]
+            return dataset[self.field.name]
         except KeyError as e:
             raise DatasetAccessError(str(e)) from e
 
@@ -38,7 +42,7 @@ class Required(_DataArrayArgType, ArgType):
 class Optional(_DataArrayArgType, ArgType):
     def extract(self, dataset: xr.Dataset) -> xr.DataArray | None:
         try:
-            return dataset[self.input_name]
+            return dataset[self.field.name]
         except KeyError:
             return None
 

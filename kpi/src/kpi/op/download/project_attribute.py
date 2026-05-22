@@ -9,19 +9,19 @@ from kpi.base.protocol import (
 )
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
-from kpi.op.field import Field, NoInputs
+from kpi.op.download.util import MarkdownDocModel
+from kpi.op.field import Field
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
-from pydantic import BaseModel
 from shapely import wkb  # type: ignore
 
 from core import models
 
 
 @project_attribute_protocol
-class ProjectAttributeModel(BaseModel, NoInputs):
+class ProjectAttributeModel(MarkdownDocModel):
     source_field_name: str
     scale: float | None
     offset: float | None
@@ -66,16 +66,22 @@ class ProjectAttributeSchema(SchemaAbstract[ProjectAttributeProtocol]):
 
 
 @project_attribute_protocol
-class Latitude(NoInputs):
+class Latitude:
     def run(self, project: models.Project) -> xr.DataArray:
         geometry = wkb.loads(project.point.desc)  # type: ignore
         latitude = geometry.y
         return xr.DataArray(data=latitude)
 
+    def inputs(self) -> set[str]:
+        return set[str]()
+
 
 @project_attribute_protocol
-class Longitude(NoInputs):
+class Longitude:
     def run(self, project: models.Project) -> xr.DataArray:
         geometry = wkb.loads(project.point.desc)  # type: ignore
         longitude = geometry.x
         return xr.DataArray(data=longitude)
+
+    def inputs(self) -> set[str]:
+        return set[str]()

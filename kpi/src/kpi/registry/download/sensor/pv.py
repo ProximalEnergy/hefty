@@ -1,4 +1,5 @@
 from core.enumerations import SensorTypeEnum
+
 from kpi.base.protocol import SensorProtocol
 from kpi.op.download.sensor import SensorMax, sensor_field
 from kpi.op.field import Field

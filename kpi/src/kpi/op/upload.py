@@ -3,7 +3,7 @@ import warnings
 import xarray as xr
 from core.enumerations import KPITypeEnum
 from kpi.base.context import get_context
-from kpi.base.protocol import node_protocol, schema_protocol
+from kpi.base.protocol import NodeProtocol, node_protocol, schema_protocol
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
@@ -14,27 +14,31 @@ from kpi.infra.write_kpi import (
 from kpi.infra.write_kpi import (
     kpi_get_kpi_instances as get_kpi_instances,
 )
+from kpi.op.download.util import MarkdownDocModel
+from kpi.op.field import Field
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import select_optional, select_var
-from pydantic import BaseModel
+from pydantic import ConfigDict
 
 
 @node_protocol
-class UploadModel(BaseModel):
+class UploadModel(MarkdownDocModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     kpi_type: KPITypeEnum
     version: str
-    project_var: str
-    device_var: str | None = None
+    project_var: Field[NodeProtocol]
+    device_var: Field[NodeProtocol] | None = None
     scale: float | None = None
     offset: float | None = None
 
     def inputs(self) -> set[str]:
         return (
-            {self.project_var, self.device_var}
+            {self.project_var.name, self.device_var.name}
             if self.device_var is not None
-            else {self.project_var}
+            else {self.project_var.name}
         )
 
 
@@ -74,7 +78,7 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                     continue
                 device_data = None
                 if model.device_var is not None:
-                    device_data = select_optional(dataset, model.device_var)
+                    device_data = select_optional(dataset, model.device_var.name)
                     if device_data is not None:
                         device_data = scale_offset(
                             device_data, scale=model.scale, offset=model.offset
@@ -82,7 +86,7 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                 data_rows.extend(
                     arrays_to_rows(
                         project_data=scale_offset(
-                            select_var(dataset, model.project_var),
+                            select_var(dataset, model.project_var.name),
                             scale=model.scale,
                             offset=model.offset,
                         ),

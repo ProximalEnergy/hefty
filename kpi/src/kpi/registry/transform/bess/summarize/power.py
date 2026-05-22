@@ -3,6 +3,7 @@ power-based computations including C-rates and hours charging/discharging.
 """
 
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import mean_across_devices
 from kpi.domain.agg.other import daily_mean_across_devices

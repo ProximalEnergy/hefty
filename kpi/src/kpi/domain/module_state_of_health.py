@@ -1,5 +1,6 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.enumeration import TimeCoord
 from kpi.base.util import coord
 from kpi.domain.util import diff
@@ -34,8 +35,44 @@ def pv_dc_combiner_module_excess_degradation(
     max_poa_std: float = 7.5,
     max_poa_std_1d: float = 2.5,
 ) -> xr.DataArray:
-    """
-    Result is daily kpi for id 17 which is at the pv dc combiner level.
+    """Daily module degradation ratio at each PV DC combiner (KPI id 17).
+
+    Compares combiner actual energy from measured current and inferred PCS
+    voltage to expected combiner energy, after multi-level quality masks
+    (met stations, trackers, combiner field health, inverter PCS windows).
+
+    Args:
+        met_station_irradiance_poa_w_m2_5m: Met station POA irradiance.
+        project_theoretical_poa_irradiance_w_m2_5m: Clear-sky or theoretical POA.
+        project_meter_power_kw_5m: Project meter AC power.
+        project_poi_limit_kw: POI export limit for clipping checks.
+        pv_inverter_ac_power_kw_5m: Inverter AC power.
+        pv_inverter_ac_power_capacity_kw: Inverter AC nameplate capacity.
+        pv_inverter_reactive_power_kvar_5m: Inverter reactive power.
+        pv_inverter_module_voltage_v_5m: Per-string module voltages.
+        pv_inverter_module_power_kw_5m: Per-string module AC power.
+        pv_inverter_module_power_capacity_kw: Per-string module capacity.
+        block_tracker_row_deviation_from_setpoint_deg_d: Daily tracker error vs
+            setpoint by block.
+        block_tracker_row_setpoint_deviation_from_median_deg_d: Daily tracker
+            setpoint spread vs block median.
+        pv_dc_combiner_field_health_d: Daily combiner fuse/field health scores.
+        pv_dc_combiner_current_amps_5m: Combiner DC current.
+        pv_dc_combiner_expected_energy_kwh_5m: Expected combiner energy per step.
+        date_local_5m: Local date aligned to the 5-minute grid.
+        combiner_to_inverter: Map from combiner to parent inverter.
+        combiner_to_block: Map from combiner to parent block.
+        inverter_module_to_inverter: Map from module strings to inverter.
+        pv_inverter_ac_power_setpoint_kw_5m: Optional AC setpoint for PCS gating.
+        pv_inverter_voltage_v_5m: Optional inverter voltage (reserved; unused).
+        min_poa: Minimum median POA (W/m²) for a ``good_irr`` timestep.
+        max_poa_1d: Max mean absolute 1-step POA change across met stations.
+        max_poa_std: Max rolling mean of cross-device POA std (W/m²).
+        max_poa_std_1d: Max mean absolute 1-step change of that rolling std.
+
+    Returns:
+        Daily ratio ``actual / expected`` per combiner, masked when fewer than
+        15% of combiners report on that day.
     """
 
     _ = pv_inverter_voltage_v_5m
@@ -47,6 +84,11 @@ def pv_dc_combiner_module_excess_degradation(
     date = date_local_5m
 
     def _met_station_clean_poa_5m() -> xr.DataArray:
+        """POA per met station with outlier trackers removed using peer scores.
+
+        Returns:
+            Met station POA masked where trackers underperform vs fleet mean.
+        """
         # Filter values > min_poa
         met_station_poa = met_station_irradiance_poa_w_m2_5m.where(
             met_station_irradiance_poa_w_m2_5m > 10.0
@@ -71,8 +113,15 @@ def pv_dc_combiner_module_excess_degradation(
     def _project_good_poa_indices_5m(
         met_station_clean_poa_5m: xr.DataArray,
     ) -> xr.DataArray:
-        """
-        Filter irradiance data by removing bad trackers and invalid time periods.
+        """Timestep mask for stable, high-irradiance POA across cleaned met data.
+
+        Args:
+            met_station_clean_poa_5m: POA after tracker cleaning.
+
+        Returns:
+            Boolean index true where median POA, variability, and smoothness
+            checks all pass (composite of ``good_irr``, ``good_der``, and std
+            rules).
         """
 
         # generic clear sky check
@@ -130,9 +179,10 @@ def pv_dc_combiner_module_excess_degradation(
         return good_idx
 
     def _combiner_good_indices_d() -> xr.DataArray:
-        """
-        If DC field health is below 0.975 times the mean across combiners (capped
-        at 0.975), skip SOH for that combiner that day.
+        """Daily mask: combiner field health above a capped fleet-relative floor.
+
+        Returns:
+            Booleans true where a combiner is eligible for SOH that day.
         """
         # Calculate the mean DC field health across all combiners for each day
         mean_dc_field_health = pv_dc_combiner_field_health_d.mean(
@@ -148,9 +198,10 @@ def pv_dc_combiner_module_excess_degradation(
         return good_fuse_health
 
     def _pcs_good_indices_inverter_itself_5m() -> xr.DataArray:
-        """
-        Keep intervals where inverter power is 5–95% of capacity, setpoint (if
-        present) is at least 98% of capacity, and power factor is at least 0.98.
+        """PCS operating window: load, setpoint, and power factor gates.
+
+        Returns:
+            Boolean mask on the 5-minute grid per inverter.
         """
         power_good_idx = (
             pv_inverter_ac_power_kw_5m <= (0.95 * pv_inverter_ac_power_capacity_kw)
@@ -177,9 +228,10 @@ def pv_dc_combiner_module_excess_degradation(
     inverter = inverter_module_to_inverter.rename(coord(DeviceTypeEnum.PV_INVERTER))
 
     def _pcs_from_child_module_good_indices_5m() -> xr.DataArray:
-        """
-        PCS module voltages must span less than 5 V; each child module AC power
-        must exceed 5% of operating capacity.
+        """String-level PCS checks: voltage spread and minimum module power.
+
+        Returns:
+            Boolean mask grouped to inverter alignment.
         """
         voltage_good_idx = (
             pv_inverter_module_voltage_v_5m.groupby(inverter).max()
@@ -199,6 +251,11 @@ def pv_dc_combiner_module_excess_degradation(
         return voltage_good_idx & power_good_idx
 
     def _pv_dc_combiner_filtered_current_amp_5m() -> xr.DataArray:
+        """Combiner DC current after project-, block-, and combiner-level masks.
+
+        Returns:
+            ``pv_dc_combiner_current_amps_5m`` with failing timesteps set NaN.
+        """
         # 5 minute level
 
         clean_poa_5m = _met_station_clean_poa_5m()
@@ -248,6 +305,11 @@ def pv_dc_combiner_module_excess_degradation(
         return pv_dc_combiner_current_amps_5m.where(combiner_good_indices_5m)
 
     def _pcs_filtered_voltage_v_5m() -> xr.DataArray:
+        """Mean module voltage per inverter under PCS quality masks.
+
+        Returns:
+            Inverter voltage estimate suitable for combiner power reconstruction.
+        """
         pcs_good_indices_inverter_itself_5m = _pcs_good_indices_inverter_itself_5m()
 
         pcs_from_child_module_good_indices_5m = _pcs_from_child_module_good_indices_5m()
@@ -266,6 +328,16 @@ def pv_dc_combiner_module_excess_degradation(
         combiner_current_amps_5m: xr.DataArray,
         pv_inverter_voltage_v_5m: xr.DataArray,
     ) -> xr.DataArray:
+        """Daily actual over expected energy ratio before cross-combiner validity.
+
+        Args:
+            combiner_current_amps_5m: Filtered combiner DC current.
+            pv_inverter_voltage_v_5m: Filtered inverter voltage aligned to
+                combiners via ``combiner_to_inverter``.
+
+        Returns:
+            Daily ``sum(actual_kwh) / sum(expected_kwh)`` per combiner.
+        """
         # / 1000 converts watts to kilowatts
         combiner_actual_power_5m = (
             combiner_current_amps_5m

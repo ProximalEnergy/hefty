@@ -1,0 +1,5 @@
+nav:
+  - Device Attribute: device_attribute/index.md
+  - Event: event/index.md
+  - Project Attribute: project_attribute/index.md
+  - Sensor: sensor/index.md

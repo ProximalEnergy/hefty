@@ -1,5 +1,6 @@
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.enumeration import TimeCoord
 
 
@@ -7,6 +8,14 @@ def solv_is_sunny(
     *,
     irradiance: xr.DataArray,
 ) -> xr.DataArray:
+    """Return whether plane-of-array irradiance exceeds a sunny threshold.
+
+    Args:
+        irradiance: POA irradiance in W/m².
+
+    Returns:
+        Boolean mask, true where irradiance exceeds 85 W/m².
+    """
     SOLAR_IRRADIANCE_POA_THRESHOLD_W_M2 = 85
     return irradiance > SOLAR_IRRADIANCE_POA_THRESHOLD_W_M2
 
@@ -17,12 +26,24 @@ def solv_period_produced(
     power: xr.DataArray,
     date_local_5m: xr.DataArray,
 ) -> xr.DataArray:
+    """Sum project-meter energy (MWh) over sunny 5-minute intervals per local day.
+
+    Energy per step is ``power / 12`` (kW assumed, yielding kWh per 5 minutes,
+    labeled MWh in legacy naming). Only intervals passing :func:`solv_is_sunny`
+    contribute.
+
+    Args:
+        irradiance: POA irradiance for sunny detection.
+        power: Project-level meter power (kW).
+        date_local_5m: Local date coordinate for daily grouping.
+
+    Returns:
+        Daily sum of masked interval energy with ``min_count=1``.
+    """
     is_sunny = solv_is_sunny(irradiance=irradiance)
     project_meter_energy_mwh = power / 12
     return (
-        project_meter_energy_mwh.where(is_sunny)
-        .groupby(date_local_5m)
-        .sum(min_count=1)
+        project_meter_energy_mwh.where(is_sunny).groupby(date_local_5m).sum(min_count=1)
     )
 
 
@@ -37,6 +58,27 @@ def solv_lost_period(
     expected_energy: xr.DataArray,
     date_local_5m: xr.DataArray,
 ) -> xr.DataArray:
+    """Estimate contract-style energy lost (kWh) per local day from PV behavior.
+
+    Implements a multi-step loss model: per-inverter offline and derated losses
+    from normalized power vs peers, facility-wide offline replacement with
+    expected energy, and zero loss when not sunny. Clipping uses unit AC vs
+    setpoint; ``is_excuse_event`` is currently a placeholder (always false).
+
+    Args:
+        irradiance: POA irradiance for sunny gating.
+        unit_ac_power: Inverter AC power with a PV inverter device dimension.
+        unit_power_setpoint: AC power setpoint per inverter.
+        power: Project meter power used to rescale unit powers.
+        unit_ac_capacity: Nameplate AC capacity per inverter (kW).
+        unit_dc_capacity: Nameplate DC capacity per inverter (kW).
+        expected_energy: Facility expected energy when fully offline (kWh per
+            5-minute step, aligned to loss grid).
+        date_local_5m: Local date for daily aggregation.
+
+    Returns:
+        Daily sum of 5-minute ``project_energy_lost_kwh_5m`` (kWh).
+    """
     ##
     # Define constants
     #
@@ -162,8 +204,6 @@ def solv_lost_period(
 
     # The sum result
 
-    period_kwh_lost = project_energy_lost_kwh_5m.groupby(date_local_5m).sum(
-        min_count=1
-    )
+    period_kwh_lost = project_energy_lost_kwh_5m.groupby(date_local_5m).sum(min_count=1)
 
     return period_kwh_lost

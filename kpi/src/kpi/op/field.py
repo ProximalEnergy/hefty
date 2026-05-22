@@ -1,26 +1,23 @@
-from kpi.base.protocol import NodeProtocol, node_protocol
+from kpi.base.protocol import NodeProtocol
 
 
 class Field[F: NodeProtocol]:
-    def __init__(self, value: F, doc: str | None = None) -> None:
+    def __init__(self, value: F, doc_header: str | None = None) -> None:
         self.value = value
         self._name: str | None = None
-        self.doc = doc or getattr(value, "__doc__", None) or ""
+        self.doc_header = doc_header
+        self._owner_module: str = ""
+        self._owner_qualname: str = ""
 
-    def __set_field_name__(self, name: str) -> None:
-        """
-        Called by `SetFieldNameDict` in `FieldRegistry`'s metaclass.
-        """
+    def __set_name__(self, owner: type, name: str) -> None:
+        # should have already been set by the FieldRegistry metaclass,
+        # but just in case, it's here too
         self._name = name
+        self._owner_module = owner.__module__
+        self._owner_qualname = owner.__qualname__
 
     @property
     def name(self) -> str:
         if self._name is None:
-            raise AttributeError("name not set yet (__set_field_name__ not called)")
+            raise AttributeError("name not set yet (__set_name__ not called)")
         return self._name
-
-
-@node_protocol
-class NoInputs:
-    def inputs(self) -> set[str]:
-        return set[str]()

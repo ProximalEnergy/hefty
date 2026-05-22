@@ -4,6 +4,7 @@ SoH, Temperature, voltage, and other miscellaneous kpis.
 
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import (
@@ -18,12 +19,97 @@ from kpi.domain.agg.resample import (
     resample_mean,
     resample_min,
 )
-from kpi.domain.bess import diff, is_charging, is_discharging
+from kpi.domain.bess import is_charging, is_discharging
+from kpi.domain.util import diff
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, Grouper, Required
-from kpi.op.transform.method import calc_field, method_calc
+from kpi.op.transform.method import calc_field
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
+
+
+def string_avg_current_while_charging_amps_d(
+    *,
+    current: xr.DataArray,
+    c_rate: xr.DataArray,
+    date_local_5m: xr.DataArray,
+) -> xr.DataArray:
+    """Daily mean string current during charging.
+
+    Args:
+        current: String current at 5-minute resolution.
+        c_rate: String C-rate at 5-minute resolution.
+        date_local_5m: Local date grouper aligned to the time dimension.
+
+    Returns:
+        Daily mean current while charging.
+    """
+    return current.where(is_charging(c_rate)).groupby(date_local_5m).mean()
+
+
+def project_avg_string_current_while_charging_amps_d(
+    *,
+    current: xr.DataArray,
+    c_rate: xr.DataArray,
+    date_local_5m: xr.DataArray,
+) -> xr.DataArray:
+    """Project daily mean string current while charging.
+
+    Args:
+        current: String current at 5-minute resolution.
+        c_rate: String C-rate at 5-minute resolution.
+        date_local_5m: Local date grouper aligned to the time dimension.
+
+    Returns:
+        Daily mean across strings of charging current.
+    """
+    return daily_mean_across_devices(
+        value=current.where(is_charging(c_rate)),
+        device_type=DeviceTypeEnum.BESS_STRING,
+        date_local_5m=date_local_5m,
+    )
+
+
+def string_avg_current_while_discharging_amps_d(
+    *,
+    current: xr.DataArray,
+    c_rate: xr.DataArray,
+    date_local_5m: xr.DataArray,
+) -> xr.DataArray:
+    """Daily mean string current during discharging.
+
+    Args:
+        current: String current at 5-minute resolution.
+        c_rate: String C-rate at 5-minute resolution.
+        date_local_5m: Local date grouper aligned to the time dimension.
+
+    Returns:
+        Daily mean current while discharging.
+    """
+    return current.where(is_discharging(c_rate)).groupby(date_local_5m).mean()
+
+
+def project_avg_string_current_while_discharging_amps_d(
+    *,
+    current: xr.DataArray,
+    c_rate: xr.DataArray,
+    date_local_5m: xr.DataArray,
+) -> xr.DataArray:
+    """Project daily mean string current while discharging.
+
+    Args:
+        current: String current at 5-minute resolution.
+        c_rate: String C-rate at 5-minute resolution.
+        date_local_5m: Local date grouper aligned to the time dimension.
+
+    Returns:
+        Daily mean across strings of discharging current.
+    """
+    return daily_mean_across_devices(
+        value=current.where(is_discharging(c_rate)),
+        device_type=DeviceTypeEnum.BESS_STRING,
+        date_local_5m=date_local_5m,
+    )
 
 
 class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
@@ -221,59 +307,35 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     )
 
     # BESS_STRING_AVG_CURRENT_WHILE_CHARGING (70)
-    @method_calc(
+    string_avg_current_while_charging_amps_d = calc_field(
+        string_avg_current_while_charging_amps_d
+    )(
         current=Required(Clean.string_current_amps_5m),
         c_rate=Required(Eval.string_c_rate_5m),
         date_local_5m=Grouper(Eval.date_local_5m),
     )
-    def string_avg_current_while_charging_amps_d(
-        current: xr.DataArray,
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return current.where(is_charging(c_rate)).groupby(date_local_5m).mean()
 
-    @method_calc(
+    project_avg_string_current_while_charging_amps_d = calc_field(
+        project_avg_string_current_while_charging_amps_d
+    )(
         current=Required(Clean.string_current_amps_5m),
         c_rate=Required(Eval.string_c_rate_5m),
         date_local_5m=Grouper(Eval.date_local_5m),
     )
-    def project_avg_string_current_while_charging_amps_d(
-        current: xr.DataArray,
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=current.where(is_charging(c_rate)),
-            device_type=DeviceTypeEnum.BESS_STRING,
-            date_local_5m=date_local_5m,
-        )
 
     # BESS_STRING_AVG_CURRENT_WHILE_DISCHARGING (71)
-    @method_calc(
+    string_avg_current_while_discharging_amps_d = calc_field(
+        string_avg_current_while_discharging_amps_d
+    )(
         current=Required(Clean.string_current_amps_5m),
         c_rate=Required(Eval.string_c_rate_5m),
         date_local_5m=Grouper(Eval.date_local_5m),
     )
-    def string_avg_current_while_discharging_amps_d(
-        current: xr.DataArray,
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return current.where(is_discharging(c_rate)).groupby(date_local_5m).mean()
 
-    @method_calc(
+    project_avg_string_current_while_discharging_amps_d = calc_field(
+        project_avg_string_current_while_discharging_amps_d
+    )(
         current=Required(Clean.string_current_amps_5m),
         c_rate=Required(Eval.string_c_rate_5m),
         date_local_5m=Grouper(Eval.date_local_5m),
     )
-    def project_avg_string_current_while_discharging_amps_d(
-        current: xr.DataArray,
-        c_rate: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        return daily_mean_across_devices(
-            value=current.where(is_discharging(c_rate)),
-            device_type=DeviceTypeEnum.BESS_STRING,
-            date_local_5m=date_local_5m,
-        )

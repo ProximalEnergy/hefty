@@ -180,7 +180,7 @@ NF >= 4 {
         next
     }
 
-    if (name ~ /^__.*__$/ || name == "lambda_handler" || name == "health_check") {
+    if (name ~ /^__.*__$/ || name == "_" || name == "lambda_handler" || name == "health_check") {
         next
     }
 

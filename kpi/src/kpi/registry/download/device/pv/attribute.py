@@ -1,11 +1,11 @@
 from core.enumerations import DeviceTypeEnum
+
+from core import models
 from kpi.base.protocol import DeviceProtocol
 from kpi.op.download.device.attribute import (
     device_attribute_field,
 )
 from kpi.op.field_registry import FieldRegistry
-
-from core import models
 
 
 class DownloadDevicePvAttribute(FieldRegistry[DeviceProtocol]):

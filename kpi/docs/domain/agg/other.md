@@ -1,0 +1,1 @@
+::: kpi.domain.agg.other

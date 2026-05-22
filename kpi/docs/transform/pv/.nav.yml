@@ -1,0 +1,4 @@
+nav:
+  - Clean: clean/index.md
+  - Evaluate: evaluate/index.md
+  - Summarize: summarize/index.md

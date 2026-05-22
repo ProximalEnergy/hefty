@@ -1,4 +1,5 @@
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.protocol import DeviceProtocol
 from kpi.op.download.device.hierarchy import (
     DeviceHierarchyModel,

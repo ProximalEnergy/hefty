@@ -1,0 +1,32 @@
+site_name: KPI Pipeline Docs
+site_description: Documentation for the KPI workflow pipeline.
+# Use `mkdocs build --strict` (or set strict: true) so warnings fail the build,
+# including KPI field docstrings that fail Google-style parsing and autoref
+# warnings from mkdocs_autorefs.
+hooks:
+  - mkdocs_hooks.py
+theme:
+  name: material
+  logo: assets/proximal_logo.svg
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - generated/field_dependency_graph.js
+plugins:
+  - search
+  - awesome-nav
+  - mkdocstrings:
+      custom_templates: templates
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_signature: false
+            show_if_no_docstring: true
+            show_root_full_path: false
+            show_root_heading: true
+            show_source: true
+watch:
+  - docs/.nav.yml
+  - src

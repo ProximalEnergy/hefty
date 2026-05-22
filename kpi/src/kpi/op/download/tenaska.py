@@ -7,16 +7,16 @@ from kpi.infra.download.tenaska import (
     download_tenaska_data,
     time_array_from_data,
 )
-from kpi.op.field import Field, NoInputs
+from kpi.op.download.util import MarkdownDocModel
+from kpi.op.field import Field
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
-from pydantic import BaseModel
 
 
 @node_protocol
-class TenaskaModel(BaseModel, NoInputs):
+class TenaskaModel(MarkdownDocModel):
     column_name: str
     scale: float | None
     offset: float | None

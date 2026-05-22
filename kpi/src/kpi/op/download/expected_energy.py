@@ -7,18 +7,17 @@ from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.field import NoInputs
+from kpi.op.download.util import MarkdownDocModel
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
-from pydantic import BaseModel
 
 from core import models
 
 
 @node_protocol
-class ExpectedEnergyModel(BaseModel, NoInputs):
+class ExpectedEnergyModel(MarkdownDocModel):
     expected_metric_id: int
     device_type: DeviceTypeEnum
     project_level: bool = False

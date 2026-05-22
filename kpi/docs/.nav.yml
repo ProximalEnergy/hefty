@@ -1,0 +1,7 @@
+nav:
+  - Home: index.md
+  - Domain Functions: domain
+  - Download: download
+  - Transform: transform
+  - KPIs: generated/kpi_type_metadata.md
+  - Field DAG: field_dependency_dag.md

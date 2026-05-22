@@ -4,12 +4,12 @@ from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import DeviceProtocol, device_protocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
-from kpi.op.field import Field, NoInputs
-from pydantic import BaseModel
+from kpi.op.download.util import MarkdownDocModel
+from kpi.op.field import Field
 
 
 @device_protocol
-class DeviceAttributeModel(BaseModel, NoInputs):
+class DeviceAttributeModel(MarkdownDocModel):
     device_type: DeviceTypeEnum
     source_field_name: str
     scale: float | None

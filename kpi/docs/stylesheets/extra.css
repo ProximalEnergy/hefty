@@ -1,0 +1,18 @@
+.md-header {
+  background-color: #00AEEF;
+}
+
+.md-typeset__scrollwrap {
+  width: 100%;
+}
+
+.md-typeset .md-typeset__table {
+  display: block !important;
+  width: 100% !important;
+}
+
+.md-typeset .md-typeset__table table {
+  display: table !important;
+  table-layout: fixed;
+  width: 100% !important;
+}

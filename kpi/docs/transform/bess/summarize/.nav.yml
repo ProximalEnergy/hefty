@@ -1,0 +1,6 @@
+nav:
+  - Availability: availability/index.md
+  - Energy: energy/index.md
+  - Other: other/index.md
+  - Power: power/index.md
+  - SOC: soc/index.md

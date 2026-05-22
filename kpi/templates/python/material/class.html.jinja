@@ -1,0 +1,72 @@
+{% extends "_base/class.html.jinja" %}
+
+{% block contents %}
+  {% set ns = namespace(is_field_registry=false) %}
+  {% for base in class.bases %}
+    {% if "FieldRegistry" in (base | string) %}
+      {% set ns.is_field_registry = true %}
+    {% endif %}
+  {% endfor %}
+
+  {% if not ns.is_field_registry %}
+    {{ super() }}
+  {% else %}
+    {% set registry_cls = runtime_object(griffe_obj=class) %}
+    <div class="doc doc-contents">
+      {% if class.docstring %}
+        {% with docstring_sections = class.docstring.parsed %}
+          {% include "docstring.html.jinja" %}
+        {% endwith %}
+      {% endif %}
+
+      <h3>Fields</h3>
+      {% if registry_cls %}
+        {% with autoref_hook = AutorefsHook(class, config) %}
+          {% for name, field in registry_cls.field_map().items() %}
+            <div class="doc doc-object doc-attribute">
+              {% filter heading(
+                  heading_level + 2,
+                  role="attr",
+                  id=class.path ~ '.' ~ name,
+                  class="doc doc-heading",
+                  toc_label=name,
+                  skip_inventory=config.skip_local_inventory,
+                ) %}<code>{{ name }}</code>{% endfilter %}
+              <div class="doc doc-contents">
+                <p>
+                  <a href="#" data-field-dag-focus="{{ name }}"
+                    >View in DAG</a
+                  >
+                </p>
+                {{ doc_markdown_field(field)
+                   | convert_markdown(
+                     heading_level,
+                     class.path ~ '.' ~ name,
+                     autoref_hook=autoref_hook,
+                   ) }}
+              </div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      {% endif %}
+    </div>
+    <script>
+      (() => {
+        const docsBasePath =
+          typeof __md_scope !== "undefined"
+            ? __md_scope.pathname.replace(/\/$/, "")
+            : "";
+
+        for (const link of document.querySelectorAll("[data-field-dag-focus]")) {
+          const focus = link.getAttribute("data-field-dag-focus");
+          if (!focus) {
+            continue;
+          }
+          link.href =
+            `${docsBasePath}/field_dependency_dag/` +
+            `?focus=${encodeURIComponent(focus)}`;
+        }
+      })();
+    </script>
+  {% endif %}
+{% endblock contents %}

@@ -5,16 +5,15 @@ from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.infra.download.sensor import get_existing_columns_df
 from kpi.infra.download.status import download_status_df, get_tag_df
 from kpi.infra.pandas_to_xarray import pandas_device_time_series_to_xarray
-from kpi.op.field import NoInputs
+from kpi.op.download.util import MarkdownDocModel
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
-from pydantic import BaseModel
 
 
 @node_protocol
-class StatusModel(BaseModel, NoInputs):
+class StatusModel(MarkdownDocModel):
     sensor_type: SensorTypeEnum
     device_type: DeviceTypeEnum
     failure_modes: list[int]

@@ -1,3 +1,4 @@
+from core import models
 from kpi.base.protocol import ProjectAttributeProtocol
 from kpi.op.download.project_attribute import (
     Latitude,
@@ -6,8 +7,6 @@ from kpi.op.download.project_attribute import (
 )
 from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry
-
-from core import models
 
 
 class DownloadProjectAttributePv(FieldRegistry[ProjectAttributeProtocol]):

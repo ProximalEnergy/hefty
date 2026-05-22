@@ -2,10 +2,12 @@
 Energy-based kpis including energy charged, energy discharged, aux, and RTE
 """
 
-import xarray as xr
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import sum_across_devices
+import xarray as xr
+
 from kpi.domain.bess import (
     bess_filter_daily_energy,
     energy_efficiency,
@@ -14,9 +16,55 @@ from kpi.domain.bess import (
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, Grouper, Optional, Required
-from kpi.op.transform.method import calc_field, method_calc
+from kpi.op.transform.method import calc_field
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
+
+
+def project_aux_energy_kwh_d(
+    *,
+    energy_unfiltered_d: xr.DataArray,
+    power_capacity: xr.DataArray,
+    max_aux_specific_yield: float = 24 * 0.1,
+) -> xr.DataArray:
+    """Filter daily auxiliary energy to plausible bounds.
+
+    Filters negative values and days where aux energy exceeds
+    ``max_aux_specific_yield`` times power capacity.
+
+    Args:
+        energy_unfiltered_d: Unfiltered daily auxiliary energy.
+        power_capacity: Project power capacity for normalization.
+        max_aux_specific_yield: Upper bound on aux energy per unit capacity.
+
+    Returns:
+        Filtered daily auxiliary energy.
+    """
+    epsilon = 1e-6
+    return energy_unfiltered_d.where(
+        filter_mask(
+            filter_by=energy_unfiltered_d / power_capacity,
+            min_value=-epsilon,
+            max_value=max_aux_specific_yield,
+        ),
+    )
+
+
+def project_energy_charged_no_aux_kwh_d(
+    *,
+    energy_charged: xr.DataArray,
+    aux_energy: xr.DataArray,
+) -> xr.DataArray:
+    """Daily charged energy excluding auxiliary consumption.
+
+    Args:
+        energy_charged: Daily energy charged.
+        aux_energy: Daily auxiliary energy.
+
+    Returns:
+        ``energy_charged - aux_energy``.
+    """
+    return energy_charged - aux_energy
 
 
 class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
@@ -164,38 +212,16 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     )
 
     # BESS_MV_AUX_METER_ENERGY (93)
-    @method_calc(
+    project_aux_energy_kwh_d = calc_field(project_aux_energy_kwh_d)(
         energy_unfiltered_d=Required(Eval.project_aux_energy_unfiltered_kwh_d),
         power_capacity=Required(Clean.project_power_capacity_kw),
     )
-    def project_aux_energy_kwh_d(
-        energy_unfiltered_d: xr.DataArray,
-        power_capacity: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Project Auxiliary Energy Per Day
-        Filters out any negative values or days where the aux energy is greater
-        than the equivalent of 24 hours of 10% of the project's power capacity.
-        """
-        epsilon = 1e-6
-        return energy_unfiltered_d.where(
-            filter_mask(
-                filter_by=energy_unfiltered_d / power_capacity,
-                min_value=-epsilon,
-                max_value=24 * 0.1,
-            ),
-        )
 
     # BESS_PROJECT_ENERGY_CHARGED_NO_AUX (115)
-    @method_calc(
+    project_energy_charged_no_aux_kwh_d = calc_field(project_energy_charged_no_aux_kwh_d)(
         energy_charged=Required(project_energy_charged_kwh_d),
         aux_energy=Required(project_aux_energy_kwh_d),
     )
-    def project_energy_charged_no_aux_kwh_d(
-        energy_charged: xr.DataArray,
-        aux_energy: xr.DataArray,
-    ) -> xr.DataArray:
-        return energy_charged - aux_energy
 
     project_pcs_module_charge_efficiency_d = calc_field(energy_efficiency)(
         source=Required(project_energy_charged_kwh_d),

@@ -1,4 +1,5 @@
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
+
 from kpi.op.download.status import StatusModel
 from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry

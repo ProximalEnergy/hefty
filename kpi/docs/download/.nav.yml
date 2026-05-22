@@ -1,0 +1,8 @@
+nav:
+  - Device: device
+  - Event: event/index.md
+  - Expected energy: expected_energy/index.md
+  - Project attribute: project_attribute
+  - Sensor: sensor
+  - Status: status/index.md
+  - Tenaska: tenaska

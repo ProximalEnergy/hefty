@@ -1,10 +1,9 @@
+from core import models
 from kpi.base.protocol import ProjectAttributeProtocol
 from kpi.op.download.project_attribute import (
     project_attribute_field,
 )
 from kpi.op.field_registry import FieldRegistry
-
-from core import models
 
 
 class DownloadProjectAttributeBess(FieldRegistry[ProjectAttributeProtocol]):

@@ -2,17 +2,41 @@
 Status and event-based kpis, namely availability
 """
 
-import numpy as np
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.other import daily_mean_across_devices
 from kpi.domain.agg.resample import resample_mean
+from kpi.domain.bess import perfect_availability_intervals
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, Grouper, Required
-from kpi.op.transform.method import calc_field, method_calc
+from kpi.op.transform.method import calc_field
 from kpi.registry.download.status import DownloadStatus
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
+
+
+def project_ner_availability_d(
+    *,
+    availability_5m: xr.DataArray,
+    date_local_5m: xr.DataArray,
+    epsilon: float = 1e-6,
+) -> xr.DataArray:
+    """Daily NER availability as mean perfect-interval fraction.
+
+    Used for BESS_PROJECT_NER_AVAILABILITY (125). Periods below nameplate-equivalent
+    availability count as imperfect; missing data is excluded from the mean.
+
+    Args:
+        availability_5m: Project energy availability at 5-minute resolution.
+        date_local_5m: Local date grouper aligned to the time dimension.
+        epsilon: Tolerance for perfect availability intervals.
+
+    Returns:
+        Daily mean of perfect availability intervals.
+    """
+    perfect = perfect_availability_intervals(availability_5m, epsilon=epsilon)
+    return perfect.groupby(date_local_5m).mean()
 
 
 class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
@@ -74,32 +98,10 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
         grouper=Grouper(Eval.date_local_5m),
     )
 
-    @method_calc(
+    project_ner_availability_d = calc_field(project_ner_availability_d)(
         availability_5m=Required(Eval.project_energy_availability_5m),
         date_local_5m=Grouper(Eval.date_local_5m),
     )
-    def project_ner_availability_d(
-        availability_5m: xr.DataArray,
-        date_local_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Project NER Availability Per Day
-        Used to calculate BESS_PROJECT_NER_AVAILABILITY (125).
-        Percentage of day where availability is 100%.
-        Any offline underperformance event prevents the project
-        from discharging at nameplate power (required by
-        Technical Performance Metrics in Exhibit 7) making it
-        an exclusion. See Section III bb.
-        Periods with missing availability data are excluded
-        from the calculation.
-        """
-        epsilon = 1e-6
-        perfect_availability = xr.where(
-            availability_5m >= 1 - epsilon,
-            1.0,
-            xr.where(availability_5m < 1 - epsilon, 0.0, np.nan),
-        )
-        return perfect_availability.groupby(date_local_5m).mean()
 
     project_poi_power_availability_d = calc_field(resample_mean)(
         x=Required(Eval.project_poi_power_availability_5m),

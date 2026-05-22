@@ -12,16 +12,16 @@ from kpi.infra.download.sensor import (
     tag_df_from_tags_polars,
 )
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.field import Field, NoInputs
+from kpi.op.download.util import MarkdownDocModel
+from kpi.op.field import Field
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
-from pydantic import BaseModel
 
 
 @sensor_protocol
-class SensorModel(BaseModel, NoInputs):
+class SensorModel(MarkdownDocModel):
     sensor_type: SensorTypeEnum
     project_level: bool
     scale: float | None
@@ -103,7 +103,7 @@ class SensorSchema(SchemaAbstract[SensorProtocol]):
 
 
 @sensor_protocol
-class SensorMax(BaseModel, NoInputs):
+class SensorMax(MarkdownDocModel):
     sensor_type: SensorTypeEnum
     project_level: bool = False
 

@@ -1,4 +1,5 @@
 from core.enumerations import DeviceTypeEnum
+
 from kpi.op.download.event import EventsModel
 from kpi.op.field import Field
 from kpi.op.field_registry import FieldRegistry

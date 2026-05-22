@@ -1,0 +1,8 @@
+nav:
+  - BESS: bess.md
+  - General: general.md
+  - Module state of health: module_state_of_health.md
+  - PV: pv.md
+  - SOLV contract: solv_contract.md
+  - Util: util.md
+  - Aggregation: agg

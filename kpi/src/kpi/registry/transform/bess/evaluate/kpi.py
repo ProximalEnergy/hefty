@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
+
 from kpi.base.enumeration import TimeCoord
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import mean_across_devices, sum_across_devices
@@ -12,6 +13,7 @@ from kpi.domain.bess import (
     is_charging,
     is_discharging,
     is_idling,
+    perfect_availability_intervals,
     resting_soc,
 )
 from kpi.domain.general import filter_energy_5m
@@ -24,13 +26,123 @@ from kpi.domain.util import (
 )
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, Grouper, Required, TimeCoordArg, TimeZone
-from kpi.op.transform.method import calc_field, method_calc
+from kpi.op.transform.method import calc_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 
 
+def project_energy_availability_5m(
+    *,
+    project_pcs_availability: xr.DataArray,
+    project_available: xr.DataArray,
+) -> xr.DataArray:
+    """Project energy availability from PCS availability and project online state.
+
+    Args:
+        project_pcs_availability: Mean PCS availability at 5-minute resolution.
+        project_available: Project online flag at 5-minute resolution.
+
+    Returns:
+        Zero when offline; otherwise PCS availability.
+    """
+    return project_pcs_availability * project_available
+
+
+def project_available_power_5m(
+    *,
+    available_charge: xr.DataArray,
+    available_discharge: xr.DataArray,
+) -> xr.DataArray:
+    """Project available power as sum of per-PCS max charge/discharge.
+
+    Args:
+        available_charge: Clipped available charge power per PCS.
+        available_discharge: Clipped available discharge power per PCS.
+
+    Returns:
+        Sum across PCS of ``fmax(charge, discharge)`` per interval.
+    """
+    available_power = xr.apply_ufunc(
+        np.fmax,
+        available_charge,
+        available_discharge,
+    )
+    return sum_across_devices(available_power, device_type=DeviceTypeEnum.BESS_PCS)
+
+
+def project_power_availability_5m(
+    *,
+    available_power: xr.DataArray,
+    pcs_capacity: xr.DataArray,
+) -> xr.DataArray:
+    """Normalize project available power by total PCS capacity.
+
+    Args:
+        available_power: Project available power at 5-minute resolution.
+        pcs_capacity: Per-PCS nameplate power capacity.
+
+    Returns:
+        ``available_power / sum(pcs_capacity)``.
+    """
+    total_capacity = sum_across_devices(
+        pcs_capacity, device_type=DeviceTypeEnum.BESS_PCS
+    )
+    return available_power / total_capacity
+
+
+def project_poi_power_availability_5m(
+    *,
+    available_power: xr.DataArray,
+    poi_capacity: xr.DataArray,
+) -> xr.DataArray:
+    """Normalize POI-clipped available power by the POI limit.
+
+    Args:
+        available_power: Project available power at 5-minute resolution.
+        poi_capacity: Point-of-interconnection power limit.
+
+    Returns:
+        ``clip(available_power, max=poi_capacity) / poi_capacity``.
+    """
+    clipped = available_power.clip(max=poi_capacity)
+    return clipped / poi_capacity
+
+
+def project_ner_availability_h(
+    *,
+    availability_5m: xr.DataArray,
+    hour_utc_5m: xr.DataArray,
+    min_perfect_intervals: int = 6,
+    epsilon: float = 1e-6,
+) -> xr.DataArray:
+    """Hourly project NER availability (0/1) for Excel reporting.
+
+    Flags hours with at least six perfect 5-minute intervals at availability
+    ``>= 1 - epsilon``; otherwise ``0.0``. Missing availability yields NaN when
+    no finite intervals remain.
+
+    Args:
+        availability_5m: Project energy availability at 5-minute resolution.
+        hour_utc_5m: UTC hour grouper aligned to the time dimension.
+        min_perfect_intervals: Minimum perfect intervals for an available hour.
+        epsilon: Tolerance for perfect availability intervals.
+
+    Returns:
+        ``1.0``, ``0.0``, or NaN per UTC hour.
+    """
+    perfect = perfect_availability_intervals(availability_5m, epsilon=epsilon)
+    num_perfect_intervals = resample_sum(perfect, grouper=hour_utc_5m)
+    return xr.where(
+        num_perfect_intervals >= min_perfect_intervals,
+        1.0,
+        xr.where(num_perfect_intervals < min_perfect_intervals, 0.0, np.nan),
+    )
+
+
 class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
-    date_local_5m = calc_field(time_grouper)(
+    date_local_5m = calc_field(
+        time_grouper, doc_header="Convert 5-minute UTC time to local date"
+    )(
         from_time=TimeCoordArg(TimeCoord.TIME_5MIN_UTC),
         from_time_coord=Constant(TimeCoord.TIME_5MIN_UTC),
         to_time_coord=Constant(TimeCoord.DATE_LOCAL),
@@ -342,20 +454,10 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
         device_type=Constant(DeviceTypeEnum.BESS_PCS),
     )
 
-    @method_calc(
+    project_energy_availability_5m = calc_field(project_energy_availability_5m)(
         project_pcs_availability=Required(project_pcs_availability_5m),
         project_available=Required(project_available_5m),
     )
-    def project_energy_availability_5m(
-        project_pcs_availability: xr.DataArray,
-        project_available: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Project System Availability Per 5-Minute Interval
-        If the project is offline, then the system availability is 0.
-        Otherwise, the system availability is project level pcs availability
-        """
-        return project_pcs_availability * project_available
 
     pcs_available_charge_power_clipped_kw_5m = calc_field(np.minimum)(
         Required(Clean.pcs_available_charge_power_kw_5m),
@@ -367,91 +469,25 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
         Required(Clean.pcs_power_capacity_kw),
     )
 
-    @method_calc(
+    project_available_power_5m = calc_field(project_available_power_5m)(
         available_charge=Required(pcs_available_charge_power_clipped_kw_5m),
         available_discharge=Required(pcs_available_discharge_power_clipped_kw_5m),
     )
-    def project_available_power_5m(
-        available_charge: xr.DataArray,
-        available_discharge: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        The maximum of available charge and discharge power per PCS,
-        ignoring NaN on the missing stream, summed across all PCS devices.
-        """
-        available_power = xr.apply_ufunc(
-            np.fmax,
-            available_charge,
-            available_discharge,
-        )
-        return sum_across_devices(available_power, device_type=DeviceTypeEnum.BESS_PCS)
 
-    @method_calc(
+    project_power_availability_5m = calc_field(project_power_availability_5m)(
         available_power=Required(project_available_power_5m),
         pcs_capacity=Required(Clean.pcs_power_capacity_kw),
     )
-    def project_power_availability_5m(
-        available_power: xr.DataArray,
-        pcs_capacity: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        project available power normalized by the sum of all
-        pcs capacities.
-        """
-        total_capacity = sum_across_devices(
-            pcs_capacity, device_type=DeviceTypeEnum.BESS_PCS
-        )
-        return available_power / total_capacity
 
-    @method_calc(
+    project_poi_power_availability_5m = calc_field(project_poi_power_availability_5m)(
         available_power=Required(project_available_power_5m),
         poi_capacity=Required(Clean.project_poi_limit_kw),
     )
-    def project_poi_power_availability_5m(
-        available_power: xr.DataArray,
-        poi_capacity: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Available power clipped then normalized by the POI limit.
-        """
-        clipped = available_power.clip(max=poi_capacity)
-        return clipped / poi_capacity
 
-    @method_calc(
+    project_ner_availability_h = calc_field(project_ner_availability_h)(
         availability_5m=Required(project_energy_availability_5m),
         hour_utc_5m=Grouper(hour_utc_5m),
     )
-    def project_ner_availability_h(
-        availability_5m: xr.DataArray,
-        hour_utc_5m: xr.DataArray,
-    ) -> xr.DataArray:
-        """
-        Project NER Availability Per Hour
-        Used for excel report.
-        Determine hours with perfect availability.
-        Any offline underperformance event prevents the project
-        from discharging at nameplate power (required by
-        Technical Performance Metrics in Exhibit 7) making it
-        an exclusion. See Section III bb.
-        Periods with missing availability data are excluded
-        from the calculation.
-        If at at least 30 minutes of the hour has perfect availability,
-        the whole hour is assigned a 1.0.
-        """
-        epsilon = 1e-6
-        perfect_availability = xr.where(
-            availability_5m >= 1 - epsilon,
-            1.0,
-            xr.where(availability_5m < 1 - epsilon, 0.0, np.nan),
-        )
-        num_perfect_intervals = resample_sum(perfect_availability, grouper=hour_utc_5m)
-        # if at least 6 perfect 5-minute intervals, than the hour is considered
-        # NER available.
-        return xr.where(
-            num_perfect_intervals >= 6,
-            1.0,
-            xr.where(num_perfect_intervals < 6, 0.0, np.nan),
-        )
 
     # =======================================================
     # Charing Discharging Idling
