@@ -3,7 +3,7 @@ import {
   useGetHomepageSummary,
 } from '@/api/v1/protected/web-application/projects/events/events'
 import CustomCard from '@/components/CustomCard'
-import EventFirstModal from '@/pages/projects/events/components/EventFirstModal'
+import EventFirstModal from '@/components/EventFirstModal'
 import {
   EventsCmmsHeaderBadges,
   EventsCmmsTableCell,
@@ -162,7 +162,7 @@ export function TopEventsTableCard({
                   >
                     <Table.Td>
                       <Link
-                        to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
+                        to={`/projects/${projectId}/impacts/event?eventId=${event.event_id}`}
                         style={{ color: 'inherit' }}
                       >
                         {event.device_name_full}
@@ -230,7 +230,7 @@ export function TopEventsTableCard({
                   >
                     <Table.Td>
                       <Link
-                        to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
+                        to={`/projects/${projectId}/impacts/event?eventId=${event.event_id}`}
                         style={{ color: 'inherit' }}
                       >
                         {event.device_name_full}

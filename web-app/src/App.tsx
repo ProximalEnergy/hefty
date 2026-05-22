@@ -49,7 +49,6 @@ import EnergyWaterfall from '@/pages/projects/EnergyWaterfall'
 import ProjectAdminPage from '@/pages/projects/ProjectAdmin'
 // In Development
 import ProjectAvailabilityAnalysis from '@/pages/projects/ProjectAvailabilityAnalysis'
-import ProjectEvents from '@/pages/projects/ProjectEvents'
 // Project Home
 import ProjectHomeRouter from '@/pages/projects/ProjectHomeRouter'
 import ProjectLossWaterfall from '@/pages/projects/ProjectLossWaterfall'
@@ -429,16 +428,8 @@ const ClerkProviderWithRoutes = () => {
               </Route>
 
               {/* Events */}
-              <Route
-                path="impacts"
-                element={
-                  <RequiresUserType requiredUserType="superadmin">
-                    <ProjectImpacts />
-                  </RequiresUserType>
-                }
-              />
-              <Route path="events">
-                <Route index element={<ProjectEvents />} />
+              <Route path="impacts">
+                <Route index element={<ProjectImpacts />} />
                 <Route path="event" element={<EventRouter />} />
                 <Route path="uptime" element={<UptimeTable />} />
                 <Route

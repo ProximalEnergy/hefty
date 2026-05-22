@@ -13,7 +13,7 @@ import {
   useGetEvents,
   useGetGISTrackerByBlock,
 } from '@/hooks/api'
-import DeviceEventsTimeline from '@/pages/projects/events/DeviceEventsTimeline'
+import DeviceEventsTimeline from '@/components/DeviceEventsTimeline'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   Alert,

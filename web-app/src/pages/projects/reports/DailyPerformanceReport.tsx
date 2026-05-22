@@ -33,7 +33,7 @@ import { AutoFitStatValue } from '@/components/stats/AutoFitStatValue'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import type { EventSummary } from '@/hooks/types'
-import { EventTable } from '@/pages/projects/ProjectEvents'
+import { EventTable } from '@/components/EventTable'
 import { PerformanceReportMapCard } from '@/pages/projects/reports/PerformanceReportMapCard'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {

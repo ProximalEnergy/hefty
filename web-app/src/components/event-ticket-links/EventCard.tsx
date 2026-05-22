@@ -64,7 +64,7 @@ const EventCard = ({
                 variant="transparent"
                 onClick={() => {
                   window.open(
-                    `/projects/${projectId}/events/event/?eventId=${event.event_id}`,
+                    `/projects/${projectId}/impacts/event/?eventId=${event.event_id}`,
                     '_blank',
                   )
                 }}

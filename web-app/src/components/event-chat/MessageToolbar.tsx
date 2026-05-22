@@ -67,6 +67,10 @@ export function MessageToolbar({
 }: MessageToolbarProps) {
   const borderColor =
     colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]
+  const toolbarPosition = isCurrentUserMessage
+    ? ({ right: 0 } as const)
+    : ({ left: 0 } as const)
+  const popoverPosition = isCurrentUserMessage ? 'top-end' : 'top-start'
 
   return (
     <Paper
@@ -75,8 +79,7 @@ export function MessageToolbar({
         {
           position: 'absolute',
           ...(isFirstMessage ? { bottom: -30 } : { top: -30 }),
-          left: '50%',
-          transform: 'translateX(-50%)',
+          ...toolbarPosition,
           boxShadow: theme.shadows.sm,
           border: `1px solid ${borderColor}`,
           zIndex: 10,
@@ -120,9 +123,10 @@ export function MessageToolbar({
 
       {/* Actions */}
       <Popover
-        position="top"
+        position={popoverPosition}
         withArrow
         shadow="md"
+        withinPortal
         opened={addReactionMessageId === messageId}
         onChange={(opened) =>
           onSetAddReactionMessageId(opened ? messageId : null)
@@ -189,7 +193,14 @@ export function MessageToolbar({
 
       {/* Other Options Menu - Only for current user's messages */}
       {isCurrentUserMessage && (
-        <Menu shadow="md" width={150} position="top" withArrow offset={5}>
+        <Menu
+          shadow="md"
+          width={150}
+          position="top-end"
+          withArrow
+          withinPortal
+          offset={5}
+        >
           <Menu.Target>
             <ActionIcon
               variant="subtle"

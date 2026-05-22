@@ -1644,7 +1644,7 @@ const DroneInspectionsMap = ({
                         {hoveredAnomaly?.event_id && (
                           <Text size="xs">
                             <Link
-                              to={`/projects/${projectId}/events/event/?eventId=${hoveredAnomaly.event_id}`}
+                              to={`/projects/${projectId}/impacts/event/?eventId=${hoveredAnomaly.event_id}`}
                               style={{
                                 color: 'var(--mantine-color-blue-6)',
                                 textDecoration: 'none',
@@ -2142,7 +2142,7 @@ const DroneInspectionsMap = ({
                   {imageModalData.anomaly?.event_id && (
                     <Text size="sm">
                       <Link
-                        to={`/projects/${projectId}/events/event/?eventId=${imageModalData.anomaly.event_id}`}
+                        to={`/projects/${projectId}/impacts/event/?eventId=${imageModalData.anomaly.event_id}`}
                         style={{
                           color: 'var(--mantine-color-blue-6)',
                           textDecoration: 'none',

@@ -91,7 +91,7 @@ const DeviceEventsTimeline = ({
                 return (
                   <Timeline.Item key={index}>
                     <Link
-                      to={`/projects/${projectId}/events/event/?eventId=${item.event?.event_id}`}
+                      to={`/projects/${projectId}/impacts/event/?eventId=${item.event?.event_id}`}
                       style={{ color: 'inherit' }}
                     >
                       <Text

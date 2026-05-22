@@ -61,6 +61,7 @@ async def get_project_issues_route(
     active_only: bool = True,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
+    device_ids: Annotated[list[int] | None, Query()] = None,
     issue_category_ids: Annotated[list[int] | None, Query()] = None,
 ) -> list[interfaces.ProjectIssueSummary]:
     """Retrieve project issues for the impacts page.
@@ -70,9 +71,11 @@ async def get_project_issues_route(
         active_only: Include only unresolved issues when true.
         start: Include issues active at or after this timestamp.
         end: Include issues active at or before this timestamp.
+        device_ids: Device ids to include.
         issue_category_ids: Issue category ids to include.
     """
     issues_df = await core_project_issues.get_issues(
+        device_ids=device_ids,
         open_only=active_only,
         issue_category_ids=issue_category_ids,
         window_start=start,
@@ -210,3 +213,48 @@ async def get_project_issues_route(
         )
 
     return summaries
+
+
+@router.get("/issue-devices")
+async def get_issue_devices(
+    project: Annotated[models.Project, Depends(get_project_api)],
+) -> dict[str, list[dict[str, int | str]]]:
+    """Retrieve unique device types and devices with associated issues.
+
+    Args:
+        project: Project model from dependency injection.
+    """
+    issue_devices_df = await core_project_issues.get_issue_devices_summary().get_async(
+        schema=project.name_short,
+        output_type=OutputType.POLARS,
+    )
+    if issue_devices_df is None or issue_devices_df.is_empty():
+        return {"unique_types": [], "unique_devices": []}
+
+    unique_type_names: dict[int, str] = {}
+    unique_device_names: dict[int, str] = {}
+    for row in issue_devices_df.to_dicts():
+        device_type_id = row.get("device_type_id")
+        if device_type_id is None:
+            continue
+        device_type_name = str(row.get("device_type_name") or "Unknown")
+        unique_type_names[int(device_type_id)] = device_type_name
+
+        device_id = row.get("device_id")
+        if device_id is None:
+            continue
+        device_name = str(row.get("device_name") or "")
+        unique_device_names[int(device_id)] = (
+            f"{device_type_name} {device_name}".strip()
+        )
+
+    return {
+        "unique_types": [
+            {"device_type_id": device_type_id, "device_type_name": device_type_name}
+            for device_type_id, device_type_name in sorted(unique_type_names.items())
+        ],
+        "unique_devices": [
+            {"device_id": device_id, "device_name_full": device_name_full}
+            for device_id, device_name_full in sorted(unique_device_names.items())
+        ],
+    }

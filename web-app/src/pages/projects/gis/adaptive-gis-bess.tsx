@@ -1210,7 +1210,7 @@ function AdaptiveGisBESS({
                             const eventId = Number(first.properties?.eventId)
                             if (Number.isFinite(eventId)) {
                               navigate(
-                                `/projects/${projectId}/events/event/?eventId=${eventId}`,
+                                `/projects/${projectId}/impacts/event/?eventId=${eventId}`,
                               )
                             }
                           }

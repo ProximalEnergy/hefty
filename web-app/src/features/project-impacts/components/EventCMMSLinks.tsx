@@ -1,23 +1,26 @@
 import { useGetCMMSPermissions } from '@/api/v1/operational/project/cmms_permissions'
 import { useGetEventCMMSTickets } from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
+import EventFirstModal from '@/components/EventFirstModal'
 import { Event } from '@/hooks/types'
-import EventFirstModal from '@/pages/projects/events/components/EventFirstModal'
 import { Badge, Button, Group, Skeleton, Stack, Tooltip } from '@mantine/core'
 import { useState } from 'react'
-import { useParams } from 'react-router'
 
-const EventCMMSLinks = ({ event }: { event: Event }) => {
-  const { projectId } = useParams()
+type EventCMMSLinksProps = {
+  event: Event
+  projectId: string
+}
+
+const EventCMMSLinks = ({ event, projectId }: EventCMMSLinksProps) => {
   const [opened, setOpened] = useState(false)
   const cmmsPermissions = useGetCMMSPermissions({
-    pathParams: { project_id: projectId! },
+    pathParams: { project_id: projectId },
     queryOptions: { enabled: !!projectId },
   })
   const hasIntegration = cmmsPermissions.data?.some(
     (permission) => permission.can_view,
   )
   const existingLinks = useGetEventCMMSTickets({
-    pathParams: { project_id: projectId! },
+    pathParams: { project_id: projectId },
     queryParams: { event_ids: [event.event_id] },
     queryOptions: { enabled: !!projectId && !!event.event_id },
   })
@@ -65,7 +68,7 @@ const EventCMMSLinks = ({ event }: { event: Event }) => {
         linkedTicketIds={eventCMMSTickets.map(
           (ticket) => ticket.cmms_ticket_id,
         )}
-        projectId={projectId!}
+        projectId={projectId}
       />
     </Stack>
   )

@@ -36,7 +36,9 @@ const ICON_SIZE = 14
 interface DataTableProps<TData> {
   table: TanStackTable<TData>
   emptyState?: ReactNode
+  getRowCanClick?: (row: Row<TData>) => boolean
   onRowClick?: (row: Row<TData>) => void
+  renderExpandedRow?: (row: Row<TData>) => ReactNode
   estimateRowSize?: number
   maxHeight?: number | string
 }
@@ -94,7 +96,9 @@ const renderSortIcon = (sortState: false | 'asc' | 'desc') => {
 export function DataTable<TData>({
   table,
   emptyState,
+  getRowCanClick,
   onRowClick,
+  renderExpandedRow,
   estimateRowSize = 42,
   maxHeight,
 }: DataTableProps<TData>) {
@@ -158,13 +162,19 @@ export function DataTable<TData>({
     .join(' ')
   const virtualRows = virtualizer.getVirtualItems()
 
+  const rowCanClick = (row: Row<TData>) => {
+    return getRowCanClick?.(row) ?? Boolean(onRowClick)
+  }
+
   const handleRowClick = (row: Row<TData>) => {
     if (row.getIsGrouped()) {
       row.toggleExpanded()
       return
     }
 
-    onRowClick?.(row)
+    if (rowCanClick(row)) {
+      onRowClick?.(row)
+    }
   }
 
   const handleRowKeyDown = (
@@ -335,15 +345,23 @@ export function DataTable<TData>({
               const row = rows[virtualRow.index]
               if (!row) return null
 
+              const expandedContent =
+                row.getIsGrouped() || !row.getIsExpanded()
+                  ? null
+                  : renderExpandedRow?.(row)
+
               return (
                 <DataTableRow
+                  expandedContent={expandedContent}
                   key={row.id}
                   gridTemplateColumns={gridTemplateColumns}
+                  measureElement={virtualizer.measureElement}
                   onClick={() => handleRowClick(row)}
                   onKeyDown={(event) => handleRowKeyDown(event, row)}
-                  rowCanClick={Boolean(onRowClick)}
+                  rowCanClick={rowCanClick(row)}
                   row={row}
-                  rowHeight={virtualRow.size}
+                  rowHeight={estimateRowSize}
+                  virtualRowIndex={virtualRow.index}
                   top={virtualRow.start}
                 />
               )
@@ -356,32 +374,44 @@ export function DataTable<TData>({
 }
 
 function DataTableRow<TData>({
+  expandedContent,
   gridTemplateColumns,
+  measureElement,
   onClick,
   onKeyDown,
   row,
   rowCanClick,
   rowHeight,
+  virtualRowIndex,
   top,
 }: {
+  expandedContent?: ReactNode
   gridTemplateColumns: string
+  measureElement: (node: Element | null) => void
   onClick: () => void
   onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => void
   row: Row<TData>
   rowCanClick: boolean
   rowHeight: number
+  virtualRowIndex: number
   top: number
 }) {
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme('light')
   const colors = getDataTableColors(theme, colorScheme === 'dark')
   const isGrouped = row.getIsGrouped()
+  const expandIndicatorCellId =
+    !isGrouped && row.getCanExpand()
+      ? row.getVisibleCells().find((cell) => !cell.getIsPlaceholder())?.id
+      : undefined
 
   return (
     <MantineTable.Tr
-      aria-expanded={isGrouped ? row.getIsExpanded() : undefined}
+      aria-expanded={row.getCanExpand() ? row.getIsExpanded() : undefined}
+      data-index={virtualRowIndex}
       onClick={onClick}
       onKeyDown={onKeyDown}
+      ref={measureElement}
       tabIndex={isGrouped || rowCanClick ? 0 : undefined}
       style={{
         background: isGrouped ? colors.groupedBackground : colors.rowBackground,
@@ -402,6 +432,7 @@ function DataTableRow<TData>({
         const isGroupedCell = cell.getIsGrouped()
         const isAggregated = cell.getIsAggregated()
         const isPlaceholder = cell.getIsPlaceholder()
+        const showExpandIndicator = cell.id === expandIndicatorCellId
 
         return (
           <MantineTable.Td
@@ -426,10 +457,11 @@ function DataTableRow<TData>({
               w="100%"
             >
               {isPlaceholder
-                ? null
+                ? renderExpandIndicator(row, showExpandIndicator)
                 : renderCellContent({
                     isAggregated,
                     isGroupedCell,
+                    showExpandIndicator,
                     row,
                     cell,
                   })}
@@ -437,6 +469,20 @@ function DataTableRow<TData>({
           </MantineTable.Td>
         )
       })}
+      {expandedContent && (
+        <MantineTable.Td
+          colSpan={row.getVisibleCells().length}
+          onClick={(event) => event.stopPropagation()}
+          style={{
+            borderTop: `1px solid ${colors.subtleBorder}`,
+            gridColumn: '1 / -1',
+            minWidth: 0,
+            padding: theme.spacing.md,
+          }}
+        >
+          {expandedContent}
+        </MantineTable.Td>
+      )}
     </MantineTable.Tr>
   )
 }
@@ -445,11 +491,13 @@ function renderCellContent<TData>({
   cell,
   isAggregated,
   isGroupedCell,
+  showExpandIndicator,
   row,
 }: {
   cell: Cell<TData, unknown>
   isAggregated: boolean
   isGroupedCell: boolean
+  showExpandIndicator: boolean
   row: Row<TData>
 }) {
   if (isGroupedCell) {
@@ -478,5 +526,40 @@ function renderCellContent<TData>({
     return formatDataTableValue(cell.getValue(), columnDef.meta?.format)
   }
 
-  return flexRender(cell.column.columnDef.cell, cell.getContext())
+  const content = flexRender(cell.column.columnDef.cell, cell.getContext())
+
+  if (showExpandIndicator) {
+    return (
+      <Group gap={6} wrap="nowrap">
+        {renderExpandIndicator(row, true)}
+        <Box
+          component="span"
+          flex={1}
+          miw={0}
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {content}
+        </Box>
+      </Group>
+    )
+  }
+
+  return content
+}
+
+function renderExpandIndicator<TData>(
+  row: Row<TData>,
+  showExpandIndicator: boolean,
+) {
+  if (!showExpandIndicator) return null
+
+  return row.getIsExpanded() ? (
+    <IconChevronDown size={ICON_SIZE} />
+  ) : (
+    <IconChevronRight size={ICON_SIZE} />
+  )
 }

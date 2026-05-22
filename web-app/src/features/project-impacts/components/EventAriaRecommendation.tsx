@@ -2,6 +2,11 @@ import { Event } from '@/hooks/types'
 import { Divider, Group, Stack, Text } from '@mantine/core'
 import dayjs, { Dayjs } from 'dayjs'
 
+type EventAriaRecommendationProps = {
+  dailyLoss: number
+  event: Event
+}
+
 const getNextScheduledMaintenance = (date: Dayjs) => {
   let nextDate = date.add(1, 'day')
   while (![1, 15].includes(nextDate.date())) {
@@ -10,13 +15,10 @@ const getNextScheduledMaintenance = (date: Dayjs) => {
   return nextDate
 }
 
-const AriaRecommendation = ({
+export function EventAriaRecommendation({
   event,
   dailyLoss,
-}: {
-  event: Event
-  dailyLoss: number
-}) => {
+}: EventAriaRecommendationProps) {
   const today = dayjs()
 
   const nextMaintenance = getNextScheduledMaintenance(today)
@@ -101,5 +103,3 @@ const AriaRecommendation = ({
     </Stack>
   )
 }
-
-export default AriaRecommendation

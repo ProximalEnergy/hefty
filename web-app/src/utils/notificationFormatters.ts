@@ -206,7 +206,7 @@ function formatEventChatMessage(
     : `${senderName} posted a message on event #${eventId}.`
   const link =
     projectId && eventId
-      ? `/projects/${projectId}/events/event?eventId=${eventId}`
+      ? `/projects/${projectId}/impacts/event?eventId=${eventId}`
       : undefined
   return { title, body, link }
 }

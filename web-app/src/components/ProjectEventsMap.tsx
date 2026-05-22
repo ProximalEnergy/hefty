@@ -11,15 +11,12 @@ interface ProjectEventsMapProps {
   events: EventSummary[]
   eventMarkersLoading?: boolean
   project: Project | undefined
-  /** Events page: map sits in a 40% column next to the table. */
-  sideBySideLayout?: boolean
 }
 
 const ProjectEventsMap = ({
   events,
   eventMarkersLoading = false,
   project,
-  sideBySideLayout = false,
 }: ProjectEventsMapProps) => {
   const unmappedCount = events.filter(
     (event) => !hasMappableEventLocation(event),
@@ -30,7 +27,8 @@ const ProjectEventsMap = ({
     <CustomCard
       title="Event Map"
       fill
-      bodyStyle={{ height: 'auto' }}
+      style={{ flex: 1, minHeight: 0 }}
+      bodyStyle={{ display: 'flex', flex: 1, minHeight: 0 }}
       info={
         <Stack gap="xs">
           <Text fw={600}>Using the map</Text>
@@ -121,7 +119,7 @@ const ProjectEventsMap = ({
         </Group>
       }
     >
-      <Box h={sideBySideLayout ? 440 : 420} miw={0} w="100%">
+      <Box flex={1} mih={0} miw={0} w="100%">
         {isBess ? (
           <AdaptiveGisBESS
             eventSummaries={events}

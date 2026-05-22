@@ -4259,9 +4259,33 @@ export interface paths {
          *         active_only: Include only unresolved issues when true.
          *         start: Include issues active at or after this timestamp.
          *         end: Include issues active at or before this timestamp.
+         *         device_ids: Device ids to include.
          *         issue_category_ids: Issue category ids to include.
          */
         get: operations["get_project_issues_route_v1_operational_projects__project_id__issues_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/issues/issue-devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Issue Devices
+         * @description Retrieve unique device types and devices with associated issues.
+         *
+         *     Args:
+         *         project: Project model from dependency injection.
+         */
+        get: operations["get_issue_devices_v1_operational_projects__project_id__issues_issue_devices_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -20074,6 +20098,7 @@ export interface operations {
                 active_only?: boolean;
                 start?: string | null;
                 end?: string | null;
+                device_ids?: number[] | null;
                 issue_category_ids?: number[] | null;
             };
             header?: {
@@ -20093,6 +20118,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectIssueSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_issue_devices_v1_operational_projects__project_id__issues_issue_devices_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: {
+                            [key: string]: number | string;
+                        }[];
+                    };
                 };
             };
             /** @description Validation Error */

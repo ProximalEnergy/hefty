@@ -987,7 +987,7 @@ export function AdaptiveGisMap({
                             )
                             if (Number.isFinite(eventId)) {
                               navigate(
-                                `/projects/${projectId}/events/event/?eventId=${eventId}`,
+                                `/projects/${projectId}/impacts/event/?eventId=${eventId}`,
                               )
                             }
                           }

@@ -1284,7 +1284,7 @@ const DeviceTypeOverview = ({
                   <Table.Tr key={evt.event_id}>
                     <Table.Td>
                       <Link
-                        to={`/projects/${projectId}/events/event/?eventId=${evt.event_id}`}
+                        to={`/projects/${projectId}/impacts/event/?eventId=${evt.event_id}`}
                         style={{ textDecoration: 'underline' }}
                       >
                         <Text size="xs" c="blue">

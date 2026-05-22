@@ -1226,32 +1226,37 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
         h="100%"
         style={{ display: 'flex', flexDirection: 'column' }}
       >
-        <MessageInput
-          eventId={eventId}
-          projectId={projectId}
-          replyingTo={replyingTo}
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          cursorPosition={cursorPosition}
-          setCursorPosition={setCursorPosition}
-          inlineImages={inlineImages}
-          setInlineImages={setInlineImages}
-          pendingImages={pendingImages}
-          setPendingImages={setPendingImages}
-          onSendMessage={handleEventChatSendMessage}
-          onCancelReply={handleCancelReply}
-          isPending={createMessage.isPending}
-          savedVisibilityPreference={savedVisibilityPreference}
-          setSavedVisibilityPreference={setSavedVisibilityPreference}
-          isReplyingToPrivateMessage={isReplyingToPrivateMessage}
-          draftKey={draftKey}
-          commonEmojis={commonEmojis}
-        />
+        <Stack pl="md" pr="md" pt="md">
+          <MessageInput
+            eventId={eventId}
+            projectId={projectId}
+            replyingTo={replyingTo}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            cursorPosition={cursorPosition}
+            setCursorPosition={setCursorPosition}
+            inlineImages={inlineImages}
+            setInlineImages={setInlineImages}
+            pendingImages={pendingImages}
+            setPendingImages={setPendingImages}
+            onSendMessage={handleEventChatSendMessage}
+            onCancelReply={handleCancelReply}
+            isPending={createMessage.isPending}
+            savedVisibilityPreference={savedVisibilityPreference}
+            setSavedVisibilityPreference={setSavedVisibilityPreference}
+            isReplyingToPrivateMessage={isReplyingToPrivateMessage}
+            draftKey={draftKey}
+            commonEmojis={commonEmojis}
+          />
+        </Stack>
 
         {/* Comments Header */}
         <Group
           justify="space-between"
-          p="md"
+          pr="md"
+          pl="md"
+          pt="sm"
+          pb="sm"
           style={{ borderBottom: `1px solid ${borderColor}` }}
         >
           <Group gap="xs">

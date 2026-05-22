@@ -84,6 +84,27 @@ def get_issues(
     return DbQuery(query=stmt)
 
 
+def get_issue_devices_summary() -> DbQuery[Any, Literal[False]]:
+    """Return distinct issue devices with device and type labels."""
+    stmt = (
+        sa.select(
+            models.Device.device_type_id.label("device_type_id"),
+            models.DeviceType.name_long.label("device_type_name"),
+            models.Issue.device_id.label("device_id"),
+            models.Device.name_long.label("device_name"),
+        )
+        .select_from(models.Issue)
+        .join(models.Device, models.Issue.device_id == models.Device.device_id)
+        .join(
+            models.DeviceType,
+            models.Device.device_type_id == models.DeviceType.device_type_id,
+            isouter=True,
+        )
+        .distinct()
+    )
+    return DbQuery(query=stmt)
+
+
 def get_issues_open_in_window(
     *,
     time_start: datetime.datetime,

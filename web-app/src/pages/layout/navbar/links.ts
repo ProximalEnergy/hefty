@@ -90,8 +90,8 @@ export const projectLinks: DropdownLink[] = [
     links: [], // Will be populated dynamically in NavbarNested
   },
   {
-    to: (projectId: string) => `/projects/${projectId}/events`,
-    label: 'Events',
+    to: (projectId: string) => `/projects/${projectId}/impacts`,
+    label: 'Impacts',
     icon: icons.IconExclamationCircle,
     requiresEventIntegration: true,
   },
@@ -178,12 +178,12 @@ export const projectLinks: DropdownLink[] = [
     links: [
       {
         to: (projectId: string) =>
-          `/projects/${projectId}/events/meta-analysis`,
+          `/projects/${projectId}/impacts/meta-analysis`,
         label: 'Events Meta Analysis',
         requiresEventIntegration: true,
       },
       {
-        to: (projectId: string) => `/projects/${projectId}/events/uptime`,
+        to: (projectId: string) => `/projects/${projectId}/impacts/uptime`,
         label: 'Uptime',
         requiresEventIntegration: true,
         requiresPV: true,

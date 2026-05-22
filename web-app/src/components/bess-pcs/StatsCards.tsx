@@ -252,7 +252,7 @@ export const BessPCSStatsCards = ({
                             style={{ cursor: 'pointer' }}
                             onClick={() =>
                               navigate(
-                                `/projects/${projectId}/events/event?eventId=${event.eventId}`,
+                                `/projects/${projectId}/impacts/event?eventId=${event.eventId}`,
                               )
                             }
                           >

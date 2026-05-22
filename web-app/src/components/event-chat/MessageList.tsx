@@ -188,7 +188,7 @@ export function MessageList({
       style={{ flex: 1, minHeight: 0 }}
       p="md"
     >
-      <Stack gap="md" style={{ paddingBottom: '2rem' }}>
+      <Stack gap="md" pb="md">
         {isLoading ? (
           <Text c="dimmed" size="sm" ta="center" py="xl">
             Loading messages...

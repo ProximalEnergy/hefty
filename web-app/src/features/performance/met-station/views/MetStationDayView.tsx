@@ -4,7 +4,7 @@ import { MetStationTimeseries } from '@/features/performance/met-station/compone
 import { MetStationWindRose } from '@/features/performance/met-station/components/MetStationWindRose'
 import { useMetStationDayViewModel } from '@/features/performance/met-station/hooks/use-met-station-day-view-model'
 import type { MetStationContext } from '@/features/performance/met-station/types/met-station'
-import { buildTimeSearchParams } from '@/features/performance/met-station/utils/build-time-search-params'
+import { buildTimeSearchParams } from '@/utils/build-time-search-params'
 import { Group, Stack, Switch } from '@mantine/core'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
