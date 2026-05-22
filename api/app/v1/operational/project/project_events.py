@@ -1073,7 +1073,7 @@ async def get_uptime(
     # and localizes tz-naive as UTC.
     allowed = pd.to_datetime(allowed, utc=True)
     allowed = allowed.sort_values()
-    allowed_ns = allowed.view("i8")  # int64 ns since epoch (sorted)
+    allowed_ns = allowed.astype("int64").to_numpy()  # int64 ns since epoch
 
     # --- Vectorize event window clipping & tz normalization ---
     ev = events.copy()
@@ -1100,8 +1100,8 @@ async def get_uptime(
     # --- Match date_range(freq="5min") semantics (inclusive endpoints if aligned) ---
     # date_range(start, end, freq="5min") produces timestamps on the 5-min grid:
     # >= start and <= end (when end aligns).
-    start_ns = ev_start.view("i8")
-    end_ns = ev_end.view("i8")
+    start_ns = ev_start.astype("int64").to_numpy()
+    end_ns = ev_end.astype("int64").to_numpy()
 
     # Ceil start to next 5-min tick (unless already aligned)
     start_aligned = ((start_ns + (step_ns - 1)) // step_ns) * step_ns
