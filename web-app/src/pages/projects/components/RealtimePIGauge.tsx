@@ -63,9 +63,7 @@ export const RealtimePIGauge = ({
             cursor: onClick ? 'pointer' : 'default',
           } as React.CSSProperties
         }
-        label={
-          <RealtimeGaugeValue value={cappedValue} isLoading={isLoading} />
-        }
+        label={<RealtimeGaugeValue value={cappedValue} isLoading={isLoading} />}
         sections={sections}
       />
     </Tooltip>

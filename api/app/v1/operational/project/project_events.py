@@ -3,7 +3,7 @@ import datetime
 import logging
 import uuid
 from collections.abc import Sequence
-from typing import Annotated, Any, Literal, cast
+from typing import Annotated, Any, Literal, SupportsInt, cast
 
 import numpy as np
 import pandas as pd
@@ -1139,7 +1139,9 @@ async def get_uptime(
     }
 
     # Fetch device and device type data in batches
-    device_ids = [int(device_id) for device_id in device_downtime.keys()]
+    device_ids = [
+        int(cast(SupportsInt, device_id)) for device_id in device_downtime.keys()
+    ]
     if not device_ids:
         return []
 
