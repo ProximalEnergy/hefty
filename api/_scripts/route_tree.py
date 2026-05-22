@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import ast
 import os
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -994,6 +995,10 @@ def render_html(
         color: #0f172a;
         border-color: #e2e8f0;
     }
+    body.light .legend-item {
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
     h1 {
         font-size: 22px;
         margin-bottom: 16px;
@@ -1062,6 +1067,24 @@ def render_html(
     }
     .toolbar button:hover {
         background: #334155;
+    }
+    .legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+    }
+    .legend-item {
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        background: #111827;
+        padding: 10px;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+    .legend-item strong {
+        display: block;
+        margin-bottom: 4px;
     }
     details {
         margin-left: 16px;
@@ -1320,6 +1343,52 @@ def render_html(
         "<title>Route Tree</title>",
         f"<style>{css}</style></head><body>",
         "<h1>Route Tree</h1>",
+        "<div class='panel'>"
+        "<strong>Legend</strong>"
+        "<div class='legend'>"
+        "<div class='legend-item'>"
+        "<strong><span class='router'>R Router</span></strong>"
+        "Grouped FastAPI router or app node. Expanding it shows child "
+        "routers and routes mounted below that prefix."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong><span class='route'>P Path</span></strong>"
+        "A concrete API path. Expanding it shows the HTTP methods and "
+        "dependencies resolved for that endpoint."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong><span class='method method-get'>GET</span> Methods</strong>"
+        "HTTP method handlers registered for the path. Method colors only "
+        "distinguish verbs."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong><span class='tag-i'>Inherited</span> Dependencies</strong>"
+        "Dependencies inherited from parent routers or include_router calls."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong><span class='tag-e'>Path</span> Dependencies</strong>"
+        "Dependencies declared directly on the router, route decorator, or "
+        "endpoint parameters."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong><span class='ignored'>Ignored</span> Dependencies</strong>"
+        "Dependencies omitted from display by ignore rules. Hover to see "
+        "which dependencies were hidden."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong>"
+        "<span class='schema-badge schema-visible'>In Schema</span> "
+        "<span class='schema-badge schema-hidden'>Hidden</span>"
+        "</strong>"
+        "Whether the path appears in the production OpenAPI schema."
+        "</div>"
+        "<div class='legend-item'>"
+        "<strong><span class='file-links'><a>Cursor</a><a>Zed</a></span>"
+        " File links</strong>"
+        "Editor shortcuts for the source file that defines the router or path."
+        "</div>"
+        "</div>"
+        "</div>"
         "<div class='panel'>"
         "<div class='muted'>Ignored deps: " + ", ".join(sorted(ignored_deps)) + "</div>"
         "<div class='toolbar'>"
@@ -1611,6 +1680,11 @@ def route_tree() -> int:
         default=".route-tree.html",
         help="Write the HTML report to this path.",
     )
+    parser.add_argument(
+        "--no-open",
+        action="store_true",
+        help="Do not open the generated HTML report in the browser.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
@@ -1669,8 +1743,10 @@ def route_tree() -> int:
         ignored_deps=ignored_deps,
         repo_root=repo_root,
     )
-    html_path = Path(args.output)
+    html_path = Path(args.output).resolve()
     html_path.write_text(html_report, encoding="utf-8")
+    if not args.no_open:
+        webbrowser.open(html_path.as_uri())
     return 0
 
 

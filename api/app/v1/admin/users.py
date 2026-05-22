@@ -157,6 +157,7 @@ async def create_user_route(
     "/{user_id}",
     status_code=204,
     operation_id="delete_user",
+    dependencies=[Depends(dependencies.requires_admin_async)],
 )
 async def delete_user_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
