@@ -20,6 +20,7 @@ export const alignLossSeries = (
   lossValues: number[],
   targetMinutes: number,
   timeZone: string,
+  ffillLimit?: number,
 ): (number | null)[] => {
   if (baseTimes.length === 0 || lossTimes.length === 0) {
     return Array.from({ length: baseTimes.length }, () => null)
@@ -42,19 +43,32 @@ export const alignLossSeries = (
 
   if (targetMinutes <= 1) {
     let lossIdx = 0
-    let currentValue: number | null = losses[0]?.value ?? null
+    let currentValue: number | null = null
+    let ffilledPeriods = 0
 
     for (let i = 0; i < baseMs.length; i += 1) {
       const time = baseMs[i]
-      while (lossIdx + 1 < losses.length && time >= losses[lossIdx + 1].time) {
-        lossIdx += 1
+      let matchedLoss = false
+      while (lossIdx < losses.length && time >= losses[lossIdx].time) {
         currentValue = losses[lossIdx].value
+        lossIdx += 1
+        ffilledPeriods = 0
+        matchedLoss = true
       }
 
-      if (time < losses[0].time) {
+      if (currentValue === null || time < losses[0].time) {
         result[i] = null
-      } else {
+      } else if (
+        matchedLoss ||
+        ffillLimit === undefined ||
+        ffilledPeriods < ffillLimit
+      ) {
         result[i] = currentValue
+        if (!matchedLoss) {
+          ffilledPeriods += 1
+        }
+      } else {
+        result[i] = null
       }
     }
 
@@ -63,6 +77,7 @@ export const alignLossSeries = (
 
   let pointer = 0
   let lastValue: number | null = null
+  let ffilledPeriods = 0
 
   for (let i = 0; i < baseMs.length; i += 1) {
     const start = baseMs[i]
@@ -87,9 +102,16 @@ export const alignLossSeries = (
       const average = sum / count
       result[i] = average
       lastValue = average
+      ffilledPeriods = 0
       pointer = idx
-    } else {
+    } else if (
+      lastValue !== null &&
+      (ffillLimit === undefined || ffilledPeriods < ffillLimit)
+    ) {
       result[i] = lastValue
+      ffilledPeriods += 1
+    } else {
+      result[i] = null
     }
   }
 

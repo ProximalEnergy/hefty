@@ -360,7 +360,8 @@ const PowerPlotPVZoom = () => {
       lossesSeries.losses.loss,
       targetMinutes,
       projectTimeZone,
-    )
+      0,
+    ).map((value) => value ?? 0)
   }, [baseTimesNormalized, lossesSeries, interval, projectTimeZone])
 
   const hasStackedLosses =
