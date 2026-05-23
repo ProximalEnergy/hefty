@@ -1,12 +1,15 @@
 from uuid import UUID
 
+from core.crud.operational import qse_integrations as operational_qse_integrations
 from core.db_query import OutputType
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, HTTPException, Path, Query
 
+from app import dependencies
 from app._crud.admin.user_permissions import get_user_permissions
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
+from core import models
 
 
 async def require_jwt_or_api_superadmin(*, user: UserAuthed = Depends(get_user)):
@@ -155,3 +158,40 @@ async def require_user_company(
         )
 
     return company_id
+
+
+async def require_qse_integration_with_view_permission(
+    *,
+    project: models.Project = Depends(dependencies.get_project_api),
+    user: UserAuthed = Depends(get_user),
+) -> models.QSEIntegration:
+    """Load project QSE integration and require company can_view permission.
+
+    Args:
+        project: Project whose QSE integration is required.
+        user: Authenticated user whose company permissions are checked.
+    """
+    qse_integration_query = (
+        operational_qse_integrations.get_qse_integration_by_project_id(
+            project_id=project.project_id,
+        )
+    )
+    qse_integration = await qse_integration_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
+    )
+    if qse_integration is None:
+        raise HTTPException(status_code=404, detail="QSE integration not found")
+
+    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
+        company_id=user.company_id,
+    )
+    permissions = await permissions_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
+    )
+    has_permission = any(
+        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
+        for perm in permissions
+    )
+    if not has_permission:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return qse_integration

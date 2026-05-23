@@ -11,7 +11,6 @@ import httpx
 import numpy as np
 import pandas as pd
 from core.crud.operational import qse_integrations as operational_qse_integrations
-from core.db_query import OutputType
 from core.utils.core_utils import model_list_to_pandas
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_, exists, select
@@ -19,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, utils
 from app._dependencies.authentication import get_user
+from app._dependencies.authorization import require_qse_integration_with_view_permission
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
 from app.interfaces import UserAuthed
@@ -145,45 +145,19 @@ async def check_qse_access(
 
 @router.get("/debug/raw")
 async def get_market_performance_debug_raw(
-    user: Annotated[UserAuthed, Depends(get_user)],
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Debug endpoint to return raw PTP API response.
 
     This helps understand the actual structure of data returned from PTP.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
     # Default to last 2 hours if not specified
     tz_str = project.time_zone
     if end is None:
@@ -247,7 +221,10 @@ async def get_market_performance_debug_raw(
 
 @router.get("/realtime")
 async def get_market_performance_realtime(
-    user: Annotated[UserAuthed, Depends(get_user)],
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
@@ -257,45 +234,17 @@ async def get_market_performance_realtime(
     """Get real-time market performance data.
 
     Args:
+        qse_integration: QSE integration allowed for the user's company.
         start: Optional start datetime (defaults to 2 hours ago).
         end: Optional end datetime (defaults to now).
         project: Project model provided by dependency injection.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
         db_async: Database session.
 
     Returns:
         Real-time market performance data including telemetry, market prices,
         awards, and financial metrics.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
     # Default to last 2 hours if not specified
     tz_str = project.time_zone
     if end is None:
@@ -596,50 +545,23 @@ async def get_market_performance_realtime(
 
 @router.get("/realtime/price")
 async def get_realtime_price(
-    user: Annotated[UserAuthed, Depends(get_user)],
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get the latest real-time settlement point price (RTSPP) for the project.
 
     Args:
-        user: User authenticated by dependency injection.
+        qse_integration: QSE integration allowed for the user's company.
         project: Project model provided by dependency injection.
         tps_token: Token manager for PTP API authentication.
-        db_async: Database session.
 
     Returns:
         Latest RTSPP value in $/MWh, or None if not available.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
     # Get token
     token = await tps_token.get_token()
 
@@ -719,10 +641,11 @@ async def get_realtime_price(
 
 @router.get("/identifiers")
 async def get_project_identifiers(
-    user: Annotated[UserAuthed, Depends(get_user)],
-    project: models.Project = Depends(dependencies.get_project_api),
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get all PTP identifiers (parent and children) for the project.
 
@@ -731,43 +654,13 @@ async def get_project_identifiers(
     needed for different endpoints.
 
     Args:
-        user: User authenticated by dependency injection.
-        project: Project model provided by dependency injection.
+        qse_integration: QSE integration allowed for the user's company.
         tps_token: Token manager for PTP API authentication.
-        db_async: Database session.
 
     Returns:
         List of identifiers with metadata (identifier, element, definition,
         resource_id, parent_identifier).
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
     # Get token
     token = await tps_token.get_token()
 

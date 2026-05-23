@@ -6404,7 +6404,7 @@ export interface paths {
          * @description Get battery settlement details and calculated metrics.
          *
          *     Args:
-         *         user: Authenticated user.
+         *         qse_integration: QSE integration allowed for the user's company.
          *         start: Start datetime (filtered by data access permissions).
          *         end: End datetime.
          *         project: Project model instance.
@@ -7749,11 +7749,11 @@ export interface paths {
          * @description Get real-time market performance data.
          *
          *     Args:
+         *         qse_integration: QSE integration allowed for the user's company.
          *         start: Optional start datetime (defaults to 2 hours ago).
          *         end: Optional end datetime (defaults to now).
          *         project: Project model provided by dependency injection.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
          *         db_async: Database session.
          *
          *     Returns:
@@ -7781,10 +7781,9 @@ export interface paths {
          * @description Get the latest real-time settlement point price (RTSPP) for the project.
          *
          *     Args:
-         *         user: User authenticated by dependency injection.
+         *         qse_integration: QSE integration allowed for the user's company.
          *         project: Project model provided by dependency injection.
          *         tps_token: Token manager for PTP API authentication.
-         *         db_async: Database session.
          *
          *     Returns:
          *         Latest RTSPP value in $/MWh, or None if not available.
@@ -7814,10 +7813,8 @@ export interface paths {
          *     needed for different endpoints.
          *
          *     Args:
-         *         user: User authenticated by dependency injection.
-         *         project: Project model provided by dependency injection.
+         *         qse_integration: QSE integration allowed for the user's company.
          *         tps_token: Token manager for PTP API authentication.
-         *         db_async: Database session.
          *
          *     Returns:
          *         List of identifiers with metadata (identifier, element, definition,
@@ -7844,10 +7841,8 @@ export interface paths {
          * @description Get available PTP endpoints organized by category.
          *
          *     Args:
-         *         project: Project model provided by dependency injection.
+         *         qse_integration: QSE integration allowed for the user's company.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
-         *         db_async: Database session.
          *
          *     Returns:
          *         Dictionary of endpoints organized by category.
@@ -7873,11 +7868,9 @@ export interface paths {
          * @description Check data availability for endpoints in a specific category.
          *
          *     Args:
+         *         qse_integration: QSE integration allowed for the user's company.
          *         category: Category name (performance, settlement, market, etc.).
-         *         project: Project model provided by dependency injection.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
-         *         db_async: Database session.
          *
          *     Returns:
          *         Dictionary mapping endpoint names to availability booleans.
@@ -7909,10 +7902,8 @@ export interface paths {
          *         end: Optional end datetime (ISO 8601 UTC).
          *         element_id: Optional element identifier (defaults from provider_config).
          *         data_points: Optional list of data point keynames to filter.
-         *         project: Project model provided by dependency injection.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
-         *         db_async: Database session.
+         *         qse_integration: QSE integration allowed for the user's company.
          *
          *     Returns:
          *         PTP endpoint data.
@@ -7938,10 +7929,8 @@ export interface paths {
          * @description Get count of active outage tickets for a resource.
          *
          *     Args:
-         *         project: Project model provided by dependency injection.
+         *         qse_integration: QSE integration allowed for the user's company.
          *         tps_token: Token manager for PTP API authentication.
-         *         user: User model provided by dependency injection.
-         *         db_async: Database session.
          *         resource_name: Resource name to query (default: from provider_config).
          *
          *     Returns:

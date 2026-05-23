@@ -5,16 +5,12 @@ from __future__ import annotations
 import datetime
 from typing import Annotated, TypedDict
 
-from core.crud.operational import qse_integrations as operational_qse_integrations
-from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, utils
-from app._dependencies.authentication import get_user
+from app._dependencies.authorization import require_qse_integration_with_view_permission
 from app.integrations.providers import ptp_explorer
 from app.integrations.token_manager import TokenManager
-from app.interfaces import UserAuthed
 from app.logger import get_logger
 from core import models
 
@@ -193,52 +189,21 @@ async def _check_endpoint_has_data(
 
 @router.get("/endpoints")
 async def get_ptp_endpoints_route(
-    user: Annotated[UserAuthed, Depends(get_user)],
-    project: models.Project = Depends(dependencies.get_project_api),
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     _tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get available PTP endpoints organized by category.
 
     Args:
-        project: Project model provided by dependency injection.
+        qse_integration: QSE integration allowed for the user's company.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
-        db_async: Database session.
 
     Returns:
         Dictionary of endpoints organized by category.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(
-            status_code=403, detail="No QSE permissions for this project"
-        )
-
     try:
         ids = _get_ptp_identifiers(qse_integration=qse_integration)
         return {
@@ -261,54 +226,23 @@ async def get_ptp_endpoints_route(
 
 @router.get("/endpoints/availability")
 async def get_ptp_endpoints_availability(
-    user: Annotated[UserAuthed, Depends(get_user)],
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     category: str = Query(..., description="Category to check availability for"),
-    project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Check data availability for endpoints in a specific category.
 
     Args:
+        qse_integration: QSE integration allowed for the user's company.
         category: Category name (performance, settlement, market, etc.).
-        project: Project model provided by dependency injection.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
-        db_async: Database session.
 
     Returns:
         Dictionary mapping endpoint names to availability booleans.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(
-            status_code=403, detail="No QSE permissions for this project"
-        )
-
     # Validate category
     if category not in ENDPOINT_CATEGORIES:
         raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
@@ -348,7 +282,10 @@ async def get_ptp_endpoints_availability(
 
 @router.get("/data")
 async def get_ptp_data(
-    user: Annotated[UserAuthed, Depends(get_user)],
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     endpoint: str = Query(..., description="PTP endpoint name"),
     category: str = Query(..., description="Endpoint category"),
     start: datetime.datetime | None = Query(
@@ -361,9 +298,7 @@ async def get_ptp_data(
         None, description="Element identifier (defaults from provider_config)"
     ),
     data_points: Annotated[list[str] | None, Query()] = None,
-    project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Get PTP data for a specific endpoint.
 
@@ -374,44 +309,12 @@ async def get_ptp_data(
         end: Optional end datetime (ISO 8601 UTC).
         element_id: Optional element identifier (defaults from provider_config).
         data_points: Optional list of data point keynames to filter.
-        project: Project model provided by dependency injection.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
-        db_async: Database session.
+        qse_integration: QSE integration allowed for the user's company.
 
     Returns:
         PTP endpoint data.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(
-            status_code=403, detail="No QSE permissions for this project"
-        )
-
     if category not in ENDPOINT_CATEGORIES:
         logger.debug("Unknown PTP category: %s", category)
 
@@ -866,10 +769,11 @@ def _determine_ticket_status(*, ticket: dict) -> bool:
 
 @router.get("/active-outage-tickets")
 async def get_active_outage_tickets(
-    user: Annotated[UserAuthed, Depends(get_user)],
-    project: models.Project = Depends(dependencies.get_project_api),
+    qse_integration: Annotated[
+        models.QSEIntegration,
+        Depends(require_qse_integration_with_view_permission),
+    ],
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
     resource_name: str | None = Query(
         default=None,
         description="Resource name to query (default: from provider_config)",
@@ -878,45 +782,13 @@ async def get_active_outage_tickets(
     """Get count of active outage tickets for a resource.
 
     Args:
-        project: Project model provided by dependency injection.
+        qse_integration: QSE integration allowed for the user's company.
         tps_token: Token manager for PTP API authentication.
-        user: User model provided by dependency injection.
-        db_async: Database session.
         resource_name: Resource name to query (default: from provider_config).
 
     Returns:
         Dictionary with active_tickets count.
     """
-    # Get QSE integration
-    qse_integration_query = (
-        operational_qse_integrations.get_qse_integration_by_project_id(
-            project_id=project.project_id,
-        )
-    )
-    qse_integration = await qse_integration_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if qse_integration is None:
-        raise HTTPException(status_code=404, detail="QSE integration not found")
-
-    # Check permissions
-    permissions_query = operational_qse_integrations.get_qse_permissions_by_company_id(
-        company_id=user.company_id,
-    )
-    permissions = await permissions_query.get_async(
-        executor=db_async,
-        output_type=OutputType.SQLALCHEMY,
-    )
-    has_permission = any(
-        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
-        for perm in permissions
-    )
-    if not has_permission:
-        raise HTTPException(
-            status_code=403, detail="No QSE permissions for this project"
-        )
-
     ids = _get_ptp_identifiers(qse_integration=qse_integration)
     resource_name_to_use = (
         resource_name if resource_name is not None else ids["resource_id"]
