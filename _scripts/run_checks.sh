@@ -6,6 +6,7 @@ unset VIRTUAL_ENV
 
 # Parse command line arguments
 SKIP_TESTS=false
+RUN_SLOW=false
 RUN_ALL=false
 REQUESTED_DIFF_ONLY=true
 OFFLINE=false
@@ -24,6 +25,10 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --static)
             SKIP_TESTS=true
+            shift
+            ;;
+        -s|--slow)
+            RUN_SLOW=true
             shift
             ;;
         --all)
@@ -201,6 +206,24 @@ add_skipped_error_check() {
     local is_parallel="${4:-true}"
 
     add_skipped_check "$name" "$cmd" "$skip_reason" "error" "$is_parallel"
+}
+
+add_slow_check() {
+    local name="$1"
+    local cmd="$2"
+    local severity="${3:-error}"
+    local is_parallel="${4:-true}"
+
+    if [ "${RUN_SLOW}" = "true" ]; then
+        add_check "$name" "$cmd" "$severity" "$is_parallel"
+    else
+        add_skipped_check \
+            "$name" \
+            "$cmd" \
+            "slow check; use -s" \
+            "$severity" \
+            "$is_parallel"
+    fi
 }
 
 add_db_check() {
@@ -1490,10 +1513,10 @@ if [ "${RUN_PVEEM}" = "true" ]; then
     if [ "${ROOT_PYPROJECT_CHANGED}" = "true" ]; then
         add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
         add_check "PV-EEM: Ruff" "mise run pveem:ruff"
-        add_check "PV-EEM: Pytest" "mise run pveem:pytest"
+        add_slow_check "PV-EEM: Pytest" "mise run pveem:pytest"
     else
         add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
-        add_check "PV-EEM: Pytest" "mise run pveem:pytest"
+        add_slow_check "PV-EEM: Pytest" "mise run pveem:pytest"
     fi
 fi
 

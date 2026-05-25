@@ -1,0 +1,126 @@
+name: Nightly Checks
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-dev
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  detect-slow-check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      pveem-pytest: ${{ steps.pveem-pytest.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+
+      - name: Install tools
+        run: mise install
+
+      - name: Detect PV-EEM pytest changes
+        id: pveem-pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          pveem_pytest_pattern='^(pv-eem/|core/|pyproject\.toml$|'
+          pveem_pytest_pattern+='uv\.lock$|'
+          pveem_pytest_pattern+='\.mise\.toml$|'
+          pveem_pytest_pattern+='.github/workflows/nightly-checks\.yml$)'
+
+          baseline="$(
+            git rev-list -1 --before="24 hours ago" HEAD || true
+          )"
+
+          if [ -z "${baseline}" ]; then
+            echo "No baseline found; running PV-EEM pytest."
+            echo "has_changes=true" >>"${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          git diff --name-only "${baseline}..HEAD" >changed-files.txt
+
+          if rg -q "${pveem_pytest_pattern}" changed-files.txt; then
+            echo "PV-EEM pytest affected by changes since previous night."
+            echo "has_changes=true" >>"${GITHUB_OUTPUT}"
+          else
+            echo "PV-EEM pytest unaffected by changes since previous night."
+            echo "has_changes=false" >>"${GITHUB_OUTPUT}"
+          fi
+
+  pveem-pytest:
+    needs: detect-slow-check-changes
+    if: needs.detect-slow-check-changes.outputs.pveem-pytest == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+
+      - name: Install tools
+        run: mise install
+
+      - name: Run PV-EEM pytest
+        run: mise run pveem:pytest
+
+  notify-failure:
+    needs:
+      - detect-slow-check-changes
+      - pveem-pytest
+    if: |
+      always() &&
+      (
+        needs.detect-slow-check-changes.result == 'failure' ||
+        needs.pveem-pytest.result == 'failure'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Google Chat
+        env:
+          CHAT_WEBHOOK: ${{ secrets.NIGHTLY_CHECKS_BOT_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CHAT_WEBHOOK}" ]; then
+            echo "::warning::NIGHTLY_CHECKS_BOT_URL is not configured."
+            exit 0
+          fi
+
+          python3 - <<'PY' >message.json
+          from __future__ import annotations
+
+          import json
+          import os
+
+          run_url = (
+              f"{os.environ['GITHUB_SERVER_URL']}/"
+              f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+              f"{os.environ['GITHUB_RUN_ID']}"
+          )
+          message = {
+              "text": (
+                  "*Nightly checks failed* on `dev`.\n"
+                  f"<{run_url}|View workflow run>"
+              ),
+          }
+          print(json.dumps(message))
+          PY
+
+          curl -X POST "${CHAT_WEBHOOK}" \
+            -H "Content-Type: application/json" \
+            --data @message.json

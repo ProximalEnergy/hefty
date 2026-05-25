@@ -159,6 +159,7 @@ run = ["mise run web:install", "mise run web:build", "./_scripts/run_preview.sh"
 description = "Run quality checks"
 usage = '''
   flag "--static" help="Skip non-static tests"
+  flag "-s --slow" help="Run slow checks"
   flag "--all" help="Run all checks without diff filtering"
   flag "--diff-only" help="Run checks based on the diff vs dev (default)"
   flag "--offline" help="Skip checks that need network access"
@@ -178,6 +179,9 @@ if [ "${usage_diff_only:-false}" = "true" ]; then
 fi
 if [ "${usage_static:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --static"
+fi
+if [ "${usage_slow:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --slow"
 fi
 if [ "${usage_offline:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --offline"
