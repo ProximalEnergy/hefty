@@ -6,6 +6,7 @@ from app.v1.protected.web_application.projects import (
     bess_waterfall,
     project_kpi_summary_table,
     project_tag_explorer,
+    pvcollada,
 )
 from app.v1.protected.web_application.projects.battery_settlement import (
     battery_settlement,
@@ -50,3 +51,4 @@ router.include_router(reports.router)
 router.include_router(market_performance.router)
 router.include_router(ptp_data.router)
 router.include_router(project_kpi_summary_table.router)
+router.include_router(pvcollada.router)

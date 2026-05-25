@@ -34,6 +34,7 @@ dependencies = [
     "pydantic~=2.13.0",
     "pydantic-core~=2.46.0",
     "pyjwt>=2.9.0,<3",
+    "pyproj>=3.7.2,<4",
     "python-dotenv>=1.0.1,<2",
     "pytz~=2025.2",
     "reportlab>=4.4.6,<5",

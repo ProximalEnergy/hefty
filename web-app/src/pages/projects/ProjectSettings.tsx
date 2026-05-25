@@ -8,6 +8,8 @@ import Documents from '@/pages/projects/settings/documents'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useParams, useSearchParams } from 'react-router'
 
+import PVColladaExport from '@/pages/projects/settings/PVColladaExport'
+
 const ProjectSettings = () => {
   const { projectId } = useParams<{ projectId?: string }>()
   const [searchParams] = useSearchParams()
@@ -15,11 +17,15 @@ const ProjectSettings = () => {
 
   // BESS-only projects have project_type_id = BESS
   const isBESSOnly = project.data?.project_type_id === ProjectTypeEnum.BESS
+  const hasPV =
+    project.data?.project_type_id === ProjectTypeEnum.PV ||
+    project.data?.project_type_id === ProjectTypeEnum.PVS
 
   // If default tab is pv-budgeted but project is BESS-only, default to project-info
   const rawDefaultTab = searchParams.get('tab') || 'project-info'
   const defaultTab =
-    rawDefaultTab === 'pv-budgeted' && isBESSOnly
+    (rawDefaultTab === 'pv-budgeted' && isBESSOnly) ||
+    (rawDefaultTab === 'pvcollada-export' && !hasPV)
       ? 'project-info'
       : rawDefaultTab
 
@@ -41,6 +47,9 @@ const ProjectSettings = () => {
           <Tabs.Tab value="documents">Documents</Tabs.Tab>
           <Tabs.Tab value="om-contractors">O&M Contractors</Tabs.Tab>
           {!isBESSOnly && <Tabs.Tab value="pv-budgeted">PV Budgeted</Tabs.Tab>}
+          {hasPV && (
+            <Tabs.Tab value="pvcollada-export">PVCollada Export</Tabs.Tab>
+          )}
         </Tabs.List>
 
         <Tabs.Panel value="project-info" flex={1}>
@@ -58,6 +67,12 @@ const ProjectSettings = () => {
         {!isBESSOnly && (
           <Tabs.Panel value="pv-budgeted" flex={1}>
             <PVBudgeted projectId={projectId || '-1'} />
+          </Tabs.Panel>
+        )}
+
+        {hasPV && (
+          <Tabs.Panel value="pvcollada-export" flex={1}>
+            <PVColladaExport projectId={projectId || '-1'} />
           </Tabs.Panel>
         )}
       </Tabs>
