@@ -16,8 +16,10 @@ from core import models
 router = APIRouter(prefix="/user-projects", tags=["user-projects"])
 
 
-# TODO:  Make this route more secure
-@router.post("/update-user-projects")
+@router.post(
+    "/update-user-projects",
+    dependencies=[Depends(dependencies.requires_admin_async)],
+)
 async def update_user_projects_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_ids: list[str],
