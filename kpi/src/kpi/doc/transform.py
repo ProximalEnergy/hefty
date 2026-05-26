@@ -1,8 +1,7 @@
 import inspect
 from typing import Any
 
-from kpi.doc.field import doc_link_field
-from kpi.doc.reference import doc_link
+from kpi.doc.reference import doc_link, doc_link_field_ref
 from kpi.doc.render import node_doc_markdown, render_doc_value
 from kpi.op.transform.arg import (
     Constant,
@@ -25,7 +24,7 @@ def _markdown_table_cell(*, text: str) -> str:
 
 
 def _field_arg_doc(*, arg: Required | Optional | Grouper, label: str) -> str:
-    return f"*({label})* {doc_link_field(arg.field)}"
+    return f"*({label})* {doc_link_field_ref(arg.field_ref)}"
 
 
 @render_doc_value.register(Required)

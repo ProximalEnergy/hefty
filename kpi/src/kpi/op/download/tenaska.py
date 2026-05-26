@@ -7,7 +7,7 @@ from kpi.infra.download.tenaska import (
     download_tenaska_data,
     time_array_from_data,
 )
-from kpi.op.download.util import MarkdownDocModel
+from kpi.op.download.util import NoInputsModel
 from kpi.op.field import Field
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -16,7 +16,7 @@ from kpi.op.util import assign_var
 
 
 @node_protocol
-class TenaskaModel(MarkdownDocModel):
+class TenaskaModel(NoInputsModel):
     column_name: str
     scale: float | None
     offset: float | None

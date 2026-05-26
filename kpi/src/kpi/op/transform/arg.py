@@ -1,5 +1,4 @@
-from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 import xarray as xr
@@ -7,60 +6,80 @@ from kpi.base.context import get_context
 from kpi.base.enumeration import NEW_NAME, TIME_DESCRIPTOR, TimeCoord
 from kpi.base.exception import DatasetAccessError
 from kpi.base.protocol import arg_protocol
-from kpi.op.field import Field
+from kpi.op.field import Field, FieldRef
+from pydantic import BaseModel
 
 
-class ArgType(ABC):
-    """
-    A nominal type in order to dynamically check
-    whether an object is an instance of a subclass of `ArgType`.
-    """
+class _DataArrayArgType(BaseModel):
+    field_ref: FieldRef
 
-    @abstractmethod
-    def extract(self, dataset: xr.Dataset) -> Any: ...
-
-
-class _DataArrayArgType:
-    def __init__(self, field: Field[Any]) -> None:
-        self.field = field
-
-    @property
     def input_name(self) -> str:
-        return self.field.name
+        return self.field_ref.name
+
+
+class _NoInput(BaseModel):
+    def input_name(self) -> None:
+        return None
 
 
 @arg_protocol
-class Required(_DataArrayArgType, ArgType):
+class Required(_DataArrayArgType):
+    kind: Literal["Required"] = "Required"
+
     def extract(self, dataset: xr.Dataset) -> xr.DataArray:
         try:
-            return dataset[self.field.name]
+            return dataset[self.field_ref.name]
         except KeyError as e:
             raise DatasetAccessError(str(e)) from e
 
 
+def required(field: Field[Any]) -> Required:
+    return Required(field_ref=field.ref)
+
+
 @arg_protocol
-class Optional(_DataArrayArgType, ArgType):
+class Optional(_DataArrayArgType):
+    kind: Literal["Optional"] = "Optional"
+
     def extract(self, dataset: xr.Dataset) -> xr.DataArray | None:
         try:
-            return dataset[self.field.name]
+            return dataset[self.field_ref.name]
         except KeyError:
             return None
 
 
+def optional(field: Field[Any]) -> Optional:
+    return Optional(field_ref=field.ref)
+
+
 @arg_protocol
-class TimeZone(ArgType):
-    input_name = None
+class Grouper(_DataArrayArgType):
+    kind: Literal["Grouper"] = "Grouper"
+
+    def extract(self, dataset: xr.Dataset) -> xr.DataArray:
+        try:
+            x = dataset[self.input_name()]
+            return x.rename(x.attrs[NEW_NAME])
+        except KeyError as e:
+            raise DatasetAccessError(str(e)) from e
+
+
+def grouper(field: Field[Any]) -> Grouper:
+    return Grouper(field_ref=field.ref)
+
+
+@arg_protocol
+class TimeZone(_NoInput):
+    kind: Literal["TimeZone"] = "TimeZone"
 
     def extract(self, dataset: xr.Dataset) -> str:
         return get_context(dataset).time_zone
 
 
 @arg_protocol
-class TimeCoordArg(ArgType):
-    input_name = None
-
-    def __init__(self, time_coord: TimeCoord) -> None:
-        self.time_coord = time_coord
+class TimeCoordArg(_NoInput):
+    kind: Literal["TimeCoordArg"] = "TimeCoordArg"
+    time_coord: TimeCoord
 
     def extract(self, dataset: xr.Dataset) -> pd.DatetimeIndex:
         tz = "UTC"
@@ -70,22 +89,10 @@ class TimeCoordArg(ArgType):
 
 
 @arg_protocol
-class Constant[T](ArgType):
-    input_name = None
-
-    def __init__(self, value: T) -> None:
-        self.value = value
+class Constant[T](_NoInput):
+    kind: Literal["Constant"] = "Constant"
+    value: T
 
     def extract(self, dataset: xr.Dataset) -> T:
         _ = dataset
         return self.value
-
-
-@arg_protocol
-class Grouper(_DataArrayArgType, ArgType):
-    def extract(self, dataset: xr.Dataset) -> xr.DataArray:
-        try:
-            x = dataset[self.input_name]
-            return x.rename(x.attrs[NEW_NAME])
-        except KeyError as e:
-            raise DatasetAccessError(str(e)) from e

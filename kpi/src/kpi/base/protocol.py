@@ -69,7 +69,6 @@ def sensor_protocol[P: SensorProtocol](cls: type[P]) -> type[P]:
 
 
 class ArgProtocol[T](Protocol):
-    @property
     def input_name(self) -> str | None: ...
 
     def extract(self, dataset: xr.Dataset) -> T: ...

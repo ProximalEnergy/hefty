@@ -6,9 +6,9 @@ from kpi.registry.upload.api import UPLOAD
 from kpi.schema.api import BasePipeline
 
 NER_INPUTS = {
-    Eval.physical_total_usd_h.name,
-    Eval.virtual_net_usd_h.name,
-    Eval.project_ner_availability_h.name,
+    Eval.physical_total_usd_h.ref.name,
+    Eval.virtual_net_usd_h.ref.name,
+    Eval.project_ner_availability_h.ref.name,
 }
 
 

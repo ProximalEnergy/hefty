@@ -4,14 +4,14 @@ from kpi.base.context import get_context
 from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.infra.download.events import download_events_df
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.download.util import MarkdownDocModel
+from kpi.op.download.util import NoInputsModel
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 
 
 @node_protocol
-class EventsModel(MarkdownDocModel):
+class EventsModel(NoInputsModel):
     device_type: DeviceTypeEnum
     project_level: bool = False
 

@@ -14,11 +14,11 @@ from kpi.domain.util import diff, fill_na_with_arrays
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import (
     Constant,
-    Grouper,
-    Optional,
-    Required,
     TimeCoordArg,
     TimeZone,
+    grouper,
+    optional,
+    required,
 )
 from kpi.op.transform.method import calc_field
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
@@ -28,10 +28,7 @@ from kpi.registry.transform.hybrid.api import date_local_5m
 from kpi.registry.transform.pv.clean import TransformPvClean as Clean
 
 
-def time_local_5m(
-    time_5m_utc: pd.DatetimeIndex,
-    time_zone: str,
-) -> xr.DataArray:
+def time_local_5m(time_5m_utc: pd.DatetimeIndex, time_zone: str) -> xr.DataArray:
     """Convert 5-minute UTC timestamps to local wall time.
 
     Args:
@@ -50,9 +47,7 @@ def time_local_5m(
 
 
 def project_insolation_d(
-    *,
-    irradiance: xr.DataArray,
-    date_local_5m: xr.DataArray,
+    *, irradiance: xr.DataArray, date_local_5m: xr.DataArray
 ) -> xr.DataArray:
     """Daily plane-of-array insolation from 5-minute irradiance.
 
@@ -67,9 +62,7 @@ def project_insolation_d(
 
 
 def inverter_mechanical_availability_5m(
-    *,
-    power: xr.DataArray,
-    met_poa: xr.DataArray,
+    *, power: xr.DataArray, met_poa: xr.DataArray
 ) -> xr.DataArray:
     """PCS mechanical availability from power during high-irradiance periods.
 
@@ -82,16 +75,13 @@ def inverter_mechanical_availability_5m(
     """
     minimum_irradiance = 10
     poa_threshold = 90
-    epsilon = 1e-6
+    epsilon = 1e-06
     project_mean_irradiance = met_poa.where(met_poa >= minimum_irradiance).mean(
         dim=coord(DeviceTypeEnum.MET_STATION)
     )
     power_filtered = power.where(project_mean_irradiance > poa_threshold)
-
     return xr.where(
-        power_filtered > epsilon,
-        1.0,
-        xr.where(power_filtered < epsilon, 0.0, np.nan),
+        power_filtered > epsilon, 1.0, xr.where(power_filtered < epsilon, 0.0, np.nan)
     )
 
 
@@ -120,24 +110,18 @@ def combiner_mechanical_availability_5m(
     project_mean_irradiance = met_poa.where(met_poa >= minimum_irradiance).mean(
         dim=coord(DeviceTypeEnum.MET_STATION)
     )
-
     power_broadcasted = pcs_power.sel(
         {coord(DeviceTypeEnum.PV_INVERTER): combiner_to_inverter}
     ).drop_vars(coord(DeviceTypeEnum.PV_INVERTER))
-
     is_valid = (project_mean_irradiance > poa_threshold) & (
         power_broadcasted > pcs_power_threshold
     )
-
     is_available = (combiner_current > current_threshold_amps) & is_valid
-
     return xr.where(is_available, 1.0, xr.where(is_valid, 0.0, np.nan))
 
 
 def tracker_row_deviation_from_setpoint_deg_5m(
-    *,
-    position: xr.DataArray,
-    setpoint: xr.DataArray,
+    *, position: xr.DataArray, setpoint: xr.DataArray
 ) -> xr.DataArray:
     """Absolute tracker position deviation from setpoint.
 
@@ -152,10 +136,7 @@ def tracker_row_deviation_from_setpoint_deg_5m(
 
 
 def tracker_row_is_available_5m(
-    *,
-    position: xr.DataArray,
-    setpoint: xr.DataArray,
-    threshold_deg: float = 2,
+    *, position: xr.DataArray, setpoint: xr.DataArray, threshold_deg: float = 2
 ) -> xr.DataArray:
     """Tracker row availability from position vs setpoint.
 
@@ -168,8 +149,7 @@ def tracker_row_is_available_5m(
         ``1.0`` within threshold, ``0.0`` beyond, else NaN.
     """
     difference = tracker_row_deviation_from_setpoint_deg_5m(
-        position=position,
-        setpoint=setpoint,
+        position=position, setpoint=setpoint
     )
     return xr.where(
         difference <= threshold_deg,
@@ -194,93 +174,91 @@ def tracker_row_setpoint_deviation_from_median_deg_5m(
 
 class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
     time_local_5m = calc_field(time_local_5m)(
-        time_5m_utc=TimeCoordArg(TimeCoord.TIME_5MIN_UTC),
+        time_5m_utc=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
         time_zone=TimeZone(),
     )
 
     project_energy_exported_to_grid_unfiltered_kwh_5m = calc_field(diff)(
-        Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
+        required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m)
     )
 
     project_energy_exported_to_grid_kwh_5m = calc_field(filter_energy_5m)(
-        energy_unfiltered_5m=Required(
+        energy_unfiltered_5m=required(
             project_energy_exported_to_grid_unfiltered_kwh_5m
         ),
-        power_capacity=Required(Clean.project_ac_power_capacity_kw),
+        power_capacity=required(Clean.project_ac_power_capacity_kw),
     )
 
     project_energy_production_unfiltered_kwh_d = calc_field(resample_diff)(
-        Required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
-        grouper=Grouper(date_local_5m),
+        required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m),
+        grouper=grouper(date_local_5m),
     )
 
     inverter_energy_production_unfiltered_kwh_d = calc_field(resample_diff)(
-        Required(Clean.inverter_total_energy_production_filled_kwh_5m),
-        grouper=Grouper(date_local_5m),
+        required(Clean.inverter_total_energy_production_filled_kwh_5m),
+        grouper=grouper(date_local_5m),
     )
 
     project_expected_energy_best_kwh_5m = calc_field(fill_na_with_arrays)(
-        Optional(Expected.project_expected_energy_degraded_soiled_kwh_5m),
-        Optional(Expected.project_expected_energy_degraded_kwh_5m),
-        Optional(Expected.project_expected_energy_soiled_kwh_5m),
-        Optional(Expected.project_expected_energy_kwh_5m),
+        optional(Expected.project_expected_energy_degraded_soiled_kwh_5m),
+        optional(Expected.project_expected_energy_degraded_kwh_5m),
+        optional(Expected.project_expected_energy_soiled_kwh_5m),
+        optional(Expected.project_expected_energy_kwh_5m),
     )
 
     combiner_expected_energy_best_kwh_5m = calc_field(fill_na_with_arrays)(
-        Optional(Expected.combiner_expected_energy_degraded_soiled_kwh_5m),
-        Optional(Expected.combiner_expected_energy_degraded_kwh_5m),
-        Optional(Expected.combiner_expected_energy_soiled_kwh_5m),
-        Optional(Expected.combiner_expected_energy_kwh_5m),
+        optional(Expected.combiner_expected_energy_degraded_soiled_kwh_5m),
+        optional(Expected.combiner_expected_energy_degraded_kwh_5m),
+        optional(Expected.combiner_expected_energy_soiled_kwh_5m),
+        optional(Expected.combiner_expected_energy_kwh_5m),
     )
 
     project_poa_irradiance_w_m2_5m = calc_field(mean_across_devices)(
-        Required(Clean.met_poa_irradiance_w_m2_5m),
-        device_type=Constant(DeviceTypeEnum.MET_STATION),
+        required(Clean.met_poa_irradiance_w_m2_5m),
+        device_type=Constant(value=DeviceTypeEnum.MET_STATION),
     )
 
     project_insolation_d = calc_field(project_insolation_d)(
-        irradiance=Required(project_poa_irradiance_w_m2_5m),
-        date_local_5m=Grouper(date_local_5m),
+        irradiance=required(project_poa_irradiance_w_m2_5m),
+        date_local_5m=grouper(date_local_5m),
     )
 
     inverter_mechanical_availability_5m = calc_field(
         inverter_mechanical_availability_5m
     )(
-        power=Required(Clean.inverter_ac_power_kw_5m),
-        met_poa=Required(Clean.met_poa_irradiance_w_m2_5m),
+        power=required(Clean.inverter_ac_power_kw_5m),
+        met_poa=required(Clean.met_poa_irradiance_w_m2_5m),
     )
 
     combiner_mechanical_availability_5m = calc_field(
         combiner_mechanical_availability_5m
     )(
-        pcs_power=Required(Clean.inverter_ac_power_kw_5m),
-        combiner_current=Required(DownloadSensorPv.combiner_current_raw_amps_5m),
-        combiner_to_inverter=Required(DownloadDevicePvHierarchy.combiner_to_inverter),
-        met_poa=Required(Clean.met_poa_irradiance_w_m2_5m),
+        pcs_power=required(Clean.inverter_ac_power_kw_5m),
+        combiner_current=required(DownloadSensorPv.combiner_current_raw_amps_5m),
+        combiner_to_inverter=required(DownloadDevicePvHierarchy.combiner_to_inverter),
+        met_poa=required(Clean.met_poa_irradiance_w_m2_5m),
     )
 
     tracker_row_is_available_5m = calc_field(tracker_row_is_available_5m)(
-        position=Required(Clean.tracker_row_position_deg_5m),
-        setpoint=Required(Clean.tracker_row_setpoint_deg_5m),
+        position=required(Clean.tracker_row_position_deg_5m),
+        setpoint=required(Clean.tracker_row_setpoint_deg_5m),
     )
 
     project_theoretical_poa_irradiance_w_m2_5m = calc_field(theoretical_poa_irradiance)(
-        time_utc=TimeCoordArg(TimeCoord.TIME_5MIN_UTC),
-        latitude=Required(Clean.project_latitude_deg),
-        longitude=Required(Clean.project_longitude_deg),
-        altitude_m=Optional(Clean.project_elevation_m),
+        time_utc=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
+        latitude=required(Clean.project_latitude_deg),
+        longitude=required(Clean.project_longitude_deg),
+        altitude_m=optional(Clean.project_elevation_m),
         time_zone=TimeZone(),
     )
 
     tracker_row_deviation_from_setpoint_deg_5m = calc_field(
         tracker_row_deviation_from_setpoint_deg_5m
     )(
-        position=Required(Clean.tracker_row_position_deg_5m),
-        setpoint=Required(Clean.tracker_row_setpoint_deg_5m),
+        position=required(Clean.tracker_row_position_deg_5m),
+        setpoint=required(Clean.tracker_row_setpoint_deg_5m),
     )
 
     tracker_row_setpoint_deviation_from_median_deg_5m = calc_field(
         tracker_row_setpoint_deviation_from_median_deg_5m
-    )(
-        setpoint=Required(Clean.tracker_row_setpoint_deg_5m),
-    )
+    )(setpoint=required(Clean.tracker_row_setpoint_deg_5m))

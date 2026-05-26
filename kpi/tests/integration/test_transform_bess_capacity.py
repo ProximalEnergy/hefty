@@ -14,11 +14,11 @@ from kpi.registry.transform.bess.clean.project_attribute import (
 
 _CASES: tuple[tuple[str, CalcProtocol], ...] = (
     (
-        Download.project_energy_capacity_raw_kwh.name,
+        Download.project_energy_capacity_raw_kwh.ref.name,
         Project.project_energy_capacity_kwh.value,
     ),
     (
-        Download.project_power_capacity_raw_kw.name,
+        Download.project_power_capacity_raw_kw.ref.name,
         Project.project_power_capacity_kw.value,
     ),
 )

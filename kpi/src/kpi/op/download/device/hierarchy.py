@@ -5,13 +5,13 @@ from kpi.base.enumeration import NEW_NAME
 from kpi.base.exception import KpiError
 from kpi.base.protocol import device_protocol
 from kpi.base.util import coord
-from kpi.op.download.util import MarkdownDocModel
+from kpi.op.download.util import NoInputsModel
 
 from core import models
 
 
 @device_protocol
-class DeviceHierarchyModel(MarkdownDocModel):
+class DeviceHierarchyModel(NoInputsModel):
     child_device_type: DeviceTypeEnum
     parent_device_type: DeviceTypeEnum
 

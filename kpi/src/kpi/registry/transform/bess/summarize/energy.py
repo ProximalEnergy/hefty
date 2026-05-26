@@ -2,12 +2,11 @@
 Energy-based kpis including energy charged, energy discharged, aux, and RTE
 """
 
+import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
 from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import sum_across_devices
-import xarray as xr
-
 from kpi.domain.bess import (
     bess_filter_daily_energy,
     energy_efficiency,
@@ -15,7 +14,7 @@ from kpi.domain.bess import (
 )
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, Grouper, Optional, Required
+from kpi.op.transform.arg import Constant, grouper, optional, required
 from kpi.op.transform.method import calc_field
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
@@ -40,20 +39,18 @@ def project_aux_energy_kwh_d(
     Returns:
         Filtered daily auxiliary energy.
     """
-    epsilon = 1e-6
+    epsilon = 1e-06
     return energy_unfiltered_d.where(
         filter_mask(
             filter_by=energy_unfiltered_d / power_capacity,
             min_value=-epsilon,
             max_value=max_aux_specific_yield,
-        ),
+        )
     )
 
 
 def project_energy_charged_no_aux_kwh_d(
-    *,
-    energy_charged: xr.DataArray,
-    aux_energy: xr.DataArray,
+    *, energy_charged: xr.DataArray, aux_energy: xr.DataArray
 ) -> xr.DataArray:
     """Daily charged energy excluding auxiliary consumption.
 
@@ -74,25 +71,25 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_STRING_ENERGY_CHARGED (37)
     string_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.string_energy_charged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.string_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.string_energy_charged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.string_energy_capacity_kwh),
     )
 
     project_string_energy_charged_kwh_d = calc_field(sum_across_devices)(
-        Required(string_energy_charged_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_STRING),
+        required(string_energy_charged_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_ENERGY_DISCHARGED (41)
 
     string_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.string_energy_discharged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.string_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.string_energy_discharged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.string_energy_capacity_kwh),
     )
 
     project_string_energy_discharged_kwh_d = calc_field(sum_across_devices)(
-        Required(string_energy_discharged_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_STRING),
+        required(string_energy_discharged_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # =======================================================
@@ -102,27 +99,27 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
     # BESS_PCS_MODULE_ENERGY_CHARGED (113)
 
     pcs_module_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.pcs_module_energy_charged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.pcs_module_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.pcs_module_energy_charged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.pcs_module_energy_capacity_kwh),
     )
 
     project_pcs_module_energy_charged_kwh_d = calc_field(sum_across_devices)(
-        Required(pcs_module_energy_charged_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_PCS_MODULE),
+        required(pcs_module_energy_charged_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_PCS_MODULE),
     )
 
     # BESS_PCS_MODULE_ENERGY_DISCHARGED (114)
 
     pcs_module_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(
+        energy_unfiltered_d=required(
             Eval.pcs_module_energy_discharged_unfiltered_kwh_d
         ),
-        energy_capacity=Required(Clean.pcs_module_energy_capacity_kwh),
+        energy_capacity=required(Clean.pcs_module_energy_capacity_kwh),
     )
 
     project_pcs_module_energy_discharged_kwh_d = calc_field(sum_across_devices)(
-        Required(pcs_module_energy_discharged_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_PCS_MODULE),
+        required(pcs_module_energy_discharged_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_PCS_MODULE),
     )
 
     # =======================================================
@@ -131,42 +128,42 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_PCS_ENERGY_CHARGED_DC (87)
     pcs_energy_charged_dc_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.pcs_energy_charged_dc_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.pcs_energy_charged_dc_unfiltered_kwh_d),
+        energy_capacity=required(Clean.pcs_energy_capacity_kwh),
     )
 
     project_pcs_energy_charged_dc_kwh_d = calc_field(sum_across_devices)(
-        Required(pcs_energy_charged_dc_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_PCS),
+        required(pcs_energy_charged_dc_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_ENERGY_DISCHARGED_DC (88)
     pcs_energy_discharged_dc_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.pcs_energy_discharged_dc_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.pcs_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.pcs_energy_discharged_dc_unfiltered_kwh_d),
+        energy_capacity=required(Clean.pcs_energy_capacity_kwh),
     )
 
     project_pcs_energy_discharged_dc_kwh_d = calc_field(sum_across_devices)(
-        Required(pcs_energy_discharged_dc_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_PCS),
+        required(pcs_energy_discharged_dc_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     pcs_maximum_continuous_discharged_energy_kwh_d = calc_field(
         maximum_continuous_discharged_energy
     )(
-        discharge_energy=Required(Eval.pcs_energy_discharged_kwh_5m),
-        charge_energy=Required(Eval.pcs_energy_charged_kwh_5m),
-        energy_capacity=Optional(Clean.pcs_energy_capacity_kwh),
-        date_local_5m=Grouper(Eval.date_local_5m),
+        discharge_energy=required(Eval.pcs_energy_discharged_kwh_5m),
+        charge_energy=required(Eval.pcs_energy_charged_kwh_5m),
+        energy_capacity=optional(Clean.pcs_energy_capacity_kwh),
+        date_local_5m=grouper(Eval.date_local_5m),
     )
 
     project_pcs_maximum_continuous_discharged_energy_kwh_d = calc_field(
         maximum_continuous_discharged_energy
     )(
-        discharge_energy=Required(Eval.project_pcs_energy_discharged_kwh_5m),
-        charge_energy=Required(Eval.project_pcs_energy_charged_kwh_5m),
-        energy_capacity=Optional(Clean.project_energy_capacity_kwh),
-        date_local_5m=Grouper(Eval.date_local_5m),
+        discharge_energy=required(Eval.project_pcs_energy_discharged_kwh_5m),
+        charge_energy=required(Eval.project_pcs_energy_charged_kwh_5m),
+        energy_capacity=optional(Clean.project_energy_capacity_kwh),
+        date_local_5m=grouper(Eval.date_local_5m),
     )
 
     # =======================================================
@@ -175,24 +172,24 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_CIRCUIT_ENERGY_CHARGED (111)
     circuit_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.circuit_energy_charged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.circuit_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.circuit_energy_charged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.circuit_energy_capacity_kwh),
     )
 
     project_circuit_energy_charged_kwh_d = calc_field(sum_across_devices)(
-        Required(circuit_energy_charged_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER),
+        required(circuit_energy_charged_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER),
     )
 
     # BESS_CIRCUIT_ENERGY_DISCHARGED (112)
     circuit_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.circuit_energy_discharged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.circuit_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.circuit_energy_discharged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.circuit_energy_capacity_kwh),
     )
 
     project_circuit_energy_discharged_kwh_d = calc_field(sum_across_devices)(
-        Required(circuit_energy_discharged_kwh_d),
-        device_type=Constant(DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER),
+        required(circuit_energy_discharged_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER),
     )
 
     # =======================================================
@@ -201,46 +198,48 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     # BESS_PROJECT_ENERGY_CHARGED (35)
     project_energy_charged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.project_energy_charged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.project_energy_charged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.project_energy_capacity_kwh),
     )
 
     # PROJECT_ENERGY_DISCHARGED (39)
     project_energy_discharged_kwh_d = calc_field(bess_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.project_energy_discharged_unfiltered_kwh_d),
-        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+        energy_unfiltered_d=required(Eval.project_energy_discharged_unfiltered_kwh_d),
+        energy_capacity=required(Clean.project_energy_capacity_kwh),
     )
 
     # BESS_MV_AUX_METER_ENERGY (93)
     project_aux_energy_kwh_d = calc_field(project_aux_energy_kwh_d)(
-        energy_unfiltered_d=Required(Eval.project_aux_energy_unfiltered_kwh_d),
-        power_capacity=Required(Clean.project_power_capacity_kw),
+        energy_unfiltered_d=required(Eval.project_aux_energy_unfiltered_kwh_d),
+        power_capacity=required(Clean.project_power_capacity_kw),
     )
 
     # BESS_PROJECT_ENERGY_CHARGED_NO_AUX (115)
-    project_energy_charged_no_aux_kwh_d = calc_field(project_energy_charged_no_aux_kwh_d)(
-        energy_charged=Required(project_energy_charged_kwh_d),
-        aux_energy=Required(project_aux_energy_kwh_d),
+    project_energy_charged_no_aux_kwh_d = calc_field(
+        project_energy_charged_no_aux_kwh_d
+    )(
+        energy_charged=required(project_energy_charged_kwh_d),
+        aux_energy=required(project_aux_energy_kwh_d),
     )
 
     project_pcs_module_charge_efficiency_d = calc_field(energy_efficiency)(
-        source=Required(project_energy_charged_kwh_d),
-        sink=Required(project_pcs_module_energy_charged_kwh_d),
-        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+        source=required(project_energy_charged_kwh_d),
+        sink=required(project_pcs_module_energy_charged_kwh_d),
+        energy_capacity=required(Clean.project_energy_capacity_kwh),
     )
 
     project_pcs_module_discharge_efficiency_d = calc_field(energy_efficiency)(
-        source=Required(project_pcs_module_energy_discharged_kwh_d),
-        sink=Required(project_energy_discharged_kwh_d),
-        energy_capacity=Required(Clean.project_energy_capacity_kwh),
+        source=required(project_pcs_module_energy_discharged_kwh_d),
+        sink=required(project_energy_discharged_kwh_d),
+        energy_capacity=required(Clean.project_energy_capacity_kwh),
     )
 
     # PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY (106)
     project_maximum_continuous_discharged_energy_kwh_d = calc_field(
         maximum_continuous_discharged_energy
     )(
-        discharge_energy=Required(Eval.project_energy_discharged_kwh_5m),
-        charge_energy=Required(Eval.project_energy_charged_kwh_5m),
-        energy_capacity=Optional(Clean.project_energy_capacity_kwh),
-        date_local_5m=Grouper(Eval.date_local_5m),
+        discharge_energy=required(Eval.project_energy_discharged_kwh_5m),
+        charge_energy=required(Eval.project_energy_charged_kwh_5m),
+        energy_capacity=optional(Clean.project_energy_capacity_kwh),
+        date_local_5m=grouper(Eval.date_local_5m),
     )

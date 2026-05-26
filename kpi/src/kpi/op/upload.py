@@ -3,7 +3,7 @@ import warnings
 import xarray as xr
 from core.enumerations import KPITypeEnum
 from kpi.base.context import get_context
-from kpi.base.protocol import NodeProtocol, node_protocol, schema_protocol
+from kpi.base.protocol import node_protocol, schema_protocol
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
@@ -14,23 +14,20 @@ from kpi.infra.write_kpi import (
 from kpi.infra.write_kpi import (
     kpi_get_kpi_instances as get_kpi_instances,
 )
-from kpi.op.download.util import MarkdownDocModel
-from kpi.op.field import Field
+from kpi.op.download.util import NoInputsModel
+from kpi.op.field import FieldRef
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import select_optional, select_var
-from pydantic import ConfigDict
 
 
 @node_protocol
-class UploadModel(MarkdownDocModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
+class UploadModel(NoInputsModel):
     kpi_type: KPITypeEnum
     version: str
-    project_var: Field[NodeProtocol]
-    device_var: Field[NodeProtocol] | None = None
+    project_var: FieldRef
+    device_var: FieldRef | None = None
     scale: float | None = None
     offset: float | None = None
 

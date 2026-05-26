@@ -9,9 +9,9 @@ from kpi.schema.api import get_pipeline
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 NER_INPUTS = {
-    Eval.physical_total_usd_h.name,
-    Eval.virtual_net_usd_h.name,
-    Eval.project_ner_availability_h.name,
+    Eval.physical_total_usd_h.ref.name,
+    Eval.virtual_net_usd_h.ref.name,
+    Eval.project_ner_availability_h.ref.name,
 }
 
 project_id = ProjectID.GREGORY_INDIE.value

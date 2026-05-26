@@ -17,7 +17,7 @@ from kpi.domain.pv import pv_filter_daily_energy
 from kpi.domain.solv_contract import solv_lost_period, solv_period_produced
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, Grouper, Optional, Required
+from kpi.op.transform.arg import Constant, grouper, optional, required
 from kpi.op.transform.method import calc_field
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.sensor.pv import DownloadSensorPv
@@ -26,10 +26,7 @@ from kpi.registry.transform.pv.clean import TransformPvClean as Clean
 from kpi.registry.transform.pv.evaluate import TransformPvEvaluate as Eval
 
 
-def specific_yield(
-    energy: xr.DataArray,
-    power_capacity: xr.DataArray,
-) -> xr.DataArray:
+def specific_yield(energy: xr.DataArray, power_capacity: xr.DataArray) -> xr.DataArray:
     """Daily specific yield (energy per unit capacity).
 
     Args:
@@ -66,9 +63,7 @@ def performance_ratio_d(
 
 
 def project_solv_contractual_availability_d(
-    *,
-    period_kwh_produced: xr.DataArray,
-    period_kwh_lost: xr.DataArray,
+    *, period_kwh_produced: xr.DataArray, period_kwh_lost: xr.DataArray
 ) -> xr.DataArray:
     """SOLV contractual availability from produced and lost period energy.
 
@@ -83,9 +78,7 @@ def project_solv_contractual_availability_d(
 
 
 def project_performance_index_d(
-    *,
-    actual: xr.DataArray,
-    expected: xr.DataArray,
+    *, actual: xr.DataArray, expected: xr.DataArray
 ) -> xr.DataArray:
     """Daily performance index capped to [0, 1].
 
@@ -120,20 +113,16 @@ def project_curtailed_energy_kwh_d(
         Sum of non-negative ``expected - actual`` during curtailment by day.
     """
     energy_setpoint = power_setpoint / 12
-
     during_curtailment = actual_energy > 0.98 * energy_setpoint
     not_during_curtailment = actual_energy <= 0.98 * energy_setpoint
     curtailed_energy = (expected_energy - actual_energy).where(during_curtailment)
     curtailed_energy[curtailed_energy < 0] = 0
     curtailed_energy[not_during_curtailment] = 0
-
     return curtailed_energy.groupby(date_local_5m).sum()
 
 
 def inverter_module_energy_kwh_d(
-    *,
-    power: xr.DataArray,
-    date_local_5m: xr.DataArray,
+    *, power: xr.DataArray, date_local_5m: xr.DataArray
 ) -> xr.DataArray:
     """Integrate 5-minute inverter-module power to daily energy (kWh).
 
@@ -168,7 +157,7 @@ def project_inverter_module_to_meter_efficiency_d(
     yield_d = specific_yield(sink, power_capacity)
     source_filtered = source.where(yield_d > min_specific_yield_h)
     efficiency = sink / source_filtered
-    epsilon = 1e-6
+    epsilon = 1e-06
     return efficiency.where(
         filter_mask(filter_by=efficiency, min_value=0, max_value=1 + epsilon)
     )
@@ -195,9 +184,9 @@ def combiner_field_health_d(
     time_dim = TimeCoord.TIME_5MIN_UTC.value
     current_ffill_1hr = combiner_current.ffill(dim=time_dim, limit=12)
     pandas_time = pd.to_datetime(time_local_5m.values)
-    is_solar_noon = ((pandas_time.hour == 11) & (pandas_time.minute >= 30)) | (
-        (pandas_time.hour == 12) & (pandas_time.minute <= 30)
-    )
+    is_solar_noon = (pandas_time.hour == 11) & (pandas_time.minute >= 30) | (
+        pandas_time.hour == 12
+    ) & (pandas_time.minute <= 30)
     noon_idxs = np.flatnonzero(is_solar_noon)
     if noon_idxs.size == 0:
         is_solar_noon_array = xr.DataArray(
@@ -212,7 +201,6 @@ def combiner_field_health_d(
         date_noon = date_local_5m.isel({time_dim: noon_idxs})
         first_normalization = current_noon / combiner_power_capacity
         date_local_5m = date_noon
-
     percentile_99 = first_normalization.quantile(
         0.99, dim=coord(DeviceTypeEnum.PV_DC_COMBINER)
     ).drop_vars("quantile")
@@ -221,9 +209,7 @@ def combiner_field_health_d(
     return result.where(filter_mask(filter_by=result, min_value=-0.1, max_value=1.2))
 
 
-def project_avg_combiner_field_health_d(
-    field_health: xr.DataArray,
-) -> xr.DataArray:
+def project_avg_combiner_field_health_d(field_health: xr.DataArray) -> xr.DataArray:
     """Project-mean combiner field health capped to [0, 1].
 
     Args:
@@ -244,70 +230,70 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # PROJECT_ENERGY_PRODUCTION (6)
 
     project_energy_production_kwh_d = calc_field(pv_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.project_energy_production_unfiltered_kwh_d),
-        power_capacity=Required(Clean.project_ac_power_capacity_kw),
+        energy_unfiltered_d=required(Eval.project_energy_production_unfiltered_kwh_d),
+        power_capacity=required(Clean.project_ac_power_capacity_kw),
     )
 
     # SMA_INVERTER_AVAILABILITY_UPTIME_PROJECT (23) deprecated
 
     # SPECIFIC_YIELD (33)
     specific_yield_d = calc_field(specific_yield)(
-        energy=Required(project_energy_production_kwh_d),
-        power_capacity=Required(Clean.project_dc_power_capacity_kw),
+        energy=required(project_energy_production_kwh_d),
+        power_capacity=required(Clean.project_dc_power_capacity_kw),
     )
 
     # PERFORMANCE_RATIO (34)
     performance_ratio_d = calc_field(performance_ratio_d)(
-        energy=Required(project_energy_production_kwh_d),
-        power_capacity=Required(Clean.project_dc_power_capacity_kw),
-        insolation=Required(Eval.project_insolation_d),
+        energy=required(project_energy_production_kwh_d),
+        power_capacity=required(Clean.project_dc_power_capacity_kw),
+        insolation=required(Eval.project_insolation_d),
     )
 
     # PV_PROJECT_SOLV_PERIOD_MWH_PRODUCED (98)
     project_solv_period_produced_kwh_d = calc_field(solv_period_produced)(
-        irradiance=Required(Eval.project_poa_irradiance_w_m2_5m),
-        power=Required(Clean.pv_project_power_kw_5m),
-        date_local_5m=Grouper(date_local_5m),
+        irradiance=required(Eval.project_poa_irradiance_w_m2_5m),
+        power=required(Clean.pv_project_power_kw_5m),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # PV_PROJECT_SOLV_PERIOD_MWH_LOST (99)
     project_solv_period_lost_kwh_d = calc_field(solv_lost_period)(
-        irradiance=Required(Eval.project_poa_irradiance_w_m2_5m),
-        unit_ac_power=Required(Clean.inverter_ac_power_kw_5m),
-        unit_power_setpoint=Required(Clean.inverter_ac_power_setpoint_kw_5m),
-        power=Required(Clean.pv_project_power_kw_5m),
-        unit_ac_capacity=Required(Clean.inverter_ac_capacity_kw),
-        unit_dc_capacity=Required(Clean.inverter_dc_capacity_kw),
-        expected_energy=Required(Eval.project_expected_energy_best_kwh_5m),
-        date_local_5m=Grouper(date_local_5m),
+        irradiance=required(Eval.project_poa_irradiance_w_m2_5m),
+        unit_ac_power=required(Clean.inverter_ac_power_kw_5m),
+        unit_power_setpoint=required(Clean.inverter_ac_power_setpoint_kw_5m),
+        power=required(Clean.pv_project_power_kw_5m),
+        unit_ac_capacity=required(Clean.inverter_ac_capacity_kw),
+        unit_dc_capacity=required(Clean.inverter_dc_capacity_kw),
+        expected_energy=required(Eval.project_expected_energy_best_kwh_5m),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # PV_PROJECT_SOLV_CONTRACTUAL_AVAILABILITY (97)
     project_solv_contractual_availability_d = calc_field(
         project_solv_contractual_availability_d
     )(
-        period_kwh_produced=Required(project_solv_period_produced_kwh_d),
-        period_kwh_lost=Required(project_solv_period_lost_kwh_d),
+        period_kwh_produced=required(project_solv_period_produced_kwh_d),
+        period_kwh_lost=required(project_solv_period_lost_kwh_d),
     )
 
     # PV_PROJECT_EXPECTED_ENERGY_DELIVERED (102)
     project_expected_energy_delivered_kwh_d = calc_field(resample_sum)(
-        Required(Eval.project_expected_energy_best_kwh_5m),
-        grouper=Grouper(date_local_5m),
+        required(Eval.project_expected_energy_best_kwh_5m),
+        grouper=grouper(date_local_5m),
     )
 
     # PV_PROJECT_PERFORMANCE_INDEX (100)
     project_performance_index_d = calc_field(project_performance_index_d)(
-        actual=Required(project_energy_production_kwh_d),
-        expected=Required(project_expected_energy_delivered_kwh_d),
+        actual=required(project_energy_production_kwh_d),
+        expected=required(project_expected_energy_delivered_kwh_d),
     )
 
     # PV_PROJECT_CURTAILMENT (103)
     project_curtailed_energy_kwh_d = calc_field(project_curtailed_energy_kwh_d)(
-        power_setpoint=Required(Clean.project_power_setpoint_kw_5m),
-        expected_energy=Required(Eval.project_expected_energy_best_kwh_5m),
-        actual_energy=Required(Eval.project_energy_exported_to_grid_kwh_5m),
-        date_local_5m=Grouper(date_local_5m),
+        power_setpoint=required(Clean.project_power_setpoint_kw_5m),
+        expected_energy=required(Eval.project_expected_energy_best_kwh_5m),
+        actual_energy=required(Eval.project_energy_exported_to_grid_kwh_5m),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # =======================================================
@@ -318,25 +304,25 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # and
     # PROJECT_PV_INVERTER_MECHANICAL_AVAILABILITY (5)
     inverter_mechanical_availability_d = calc_field(resample_mean)(
-        x=Required(Eval.inverter_mechanical_availability_5m),
-        grouper=Grouper(date_local_5m),
+        x=required(Eval.inverter_mechanical_availability_5m),
+        grouper=grouper(date_local_5m),
     )
 
     project_inverter_mechanical_availability_d = calc_field(daily_mean_across_devices)(
-        value=Required(Eval.inverter_mechanical_availability_5m),
-        device_type=Constant(DeviceTypeEnum.PV_INVERTER),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.inverter_mechanical_availability_5m),
+        device_type=Constant(value=DeviceTypeEnum.PV_INVERTER),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # PV_INVERTER_ENERGY_PRODUCTION (2)
     inverter_energy_production_kwh_d = calc_field(pv_filter_daily_energy)(
-        energy_unfiltered_d=Required(Eval.inverter_energy_production_unfiltered_kwh_d),
-        power_capacity=Required(Clean.inverter_dc_capacity_kw),
+        energy_unfiltered_d=required(Eval.inverter_energy_production_unfiltered_kwh_d),
+        power_capacity=required(Clean.inverter_dc_capacity_kw),
     )
 
     project_pcs_energy_production_kwh_d = calc_field(sum_across_devices)(
-        Required(inverter_energy_production_kwh_d),
-        device_type=Constant(DeviceTypeEnum.PV_INVERTER),
+        required(inverter_energy_production_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.PV_INVERTER),
     )
 
     # =======================================================
@@ -345,21 +331,21 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     # PV_INVERTER_MODULE_ENERGY_PRODUCTION (7)
     inverter_module_energy_kwh_d = calc_field(inverter_module_energy_kwh_d)(
-        power=Required(Clean.inverter_module_ac_power_kw_5m),
-        date_local_5m=Grouper(date_local_5m),
+        power=required(Clean.inverter_module_ac_power_kw_5m),
+        date_local_5m=grouper(date_local_5m),
     )
 
     project_inverter_module_energy_kwh_d = calc_field(sum_across_devices)(
-        Required(inverter_module_energy_kwh_d),
-        device_type=Constant(DeviceTypeEnum.PV_INVERTER_MODULE),
+        required(inverter_module_energy_kwh_d),
+        device_type=Constant(value=DeviceTypeEnum.PV_INVERTER_MODULE),
     )
 
     project_inverter_module_to_meter_efficiency_d = calc_field(
         project_inverter_module_to_meter_efficiency_d
     )(
-        source=Required(project_inverter_module_energy_kwh_d),
-        sink=Required(project_energy_production_kwh_d),
-        power_capacity=Required(Clean.project_dc_power_capacity_kw),
+        source=required(project_inverter_module_energy_kwh_d),
+        sink=required(project_energy_production_kwh_d),
+        power_capacity=required(Clean.project_dc_power_capacity_kw),
     )
 
     # =======================================================
@@ -369,43 +355,43 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     # TRACKER_AVAILABILITY_BY_ROW (4)
 
     tracker_row_availability_d = calc_field(resample_mean)(
-        x=Required(Eval.tracker_row_is_available_5m),
-        grouper=Grouper(date_local_5m),
+        x=required(Eval.tracker_row_is_available_5m),
+        grouper=grouper(date_local_5m),
     )
 
     project_tracker_row_availability_d = calc_field(daily_mean_across_devices)(
-        value=Required(Eval.tracker_row_is_available_5m),
-        device_type=Constant(DeviceTypeEnum.TRACKER_ROW),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.tracker_row_is_available_5m),
+        device_type=Constant(value=DeviceTypeEnum.TRACKER_ROW),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW (21)
 
     tracker_row_deviation_from_setpoint_deg_d = calc_field(resample_mean)(
-        x=Required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
-        grouper=Grouper(date_local_5m),
+        x=required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
+        grouper=grouper(date_local_5m),
     )
 
     project_tracker_row_deviation_from_setpoint_deg_d = calc_field(
         daily_mean_across_devices
     )(
-        value=Required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
-        device_type=Constant(DeviceTypeEnum.TRACKER_ROW),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
+        device_type=Constant(value=DeviceTypeEnum.TRACKER_ROW),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
     tracker_row_setpoint_deviating_from_median_deg_d = calc_field(resample_mean)(
-        x=Required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
-        grouper=Grouper(date_local_5m),
+        x=required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
+        grouper=grouper(date_local_5m),
     )
 
     project_tracker_row_setpoint_deviating_from_median_deg_d = calc_field(
         daily_mean_across_devices
     )(
-        value=Required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
-        device_type=Constant(DeviceTypeEnum.TRACKER_ROW),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
+        device_type=Constant(value=DeviceTypeEnum.TRACKER_ROW),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # =======================================================
@@ -414,10 +400,10 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     # TRACKER_AVAILABILITY_BY_BLOCK (3)
     block_tracker_row_availability_d = calc_field(daily_mean_across_grouped_devices)(
-        value=Required(Eval.tracker_row_is_available_5m),
-        device_mapping=Required(DownloadDevicePvHierarchy.tracker_row_to_block),
-        device_type=Constant(DeviceTypeEnum.PV_BLOCK),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.tracker_row_is_available_5m),
+        device_mapping=required(DownloadDevicePvHierarchy.tracker_row_to_block),
+        device_type=Constant(value=DeviceTypeEnum.PV_BLOCK),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # see above for project level availability
@@ -426,10 +412,10 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     block_tracker_row_deviation_from_setpoint_deg_d = calc_field(
         daily_mean_across_grouped_devices
     )(
-        value=Required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
-        device_mapping=Required(DownloadDevicePvHierarchy.tracker_row_to_block),
-        device_type=Constant(DeviceTypeEnum.PV_BLOCK),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
+        device_mapping=required(DownloadDevicePvHierarchy.tracker_row_to_block),
+        device_type=Constant(value=DeviceTypeEnum.PV_BLOCK),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # see above for project level deviation from setpoint
@@ -438,10 +424,10 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     block_tracker_row_setpoint_deviating_from_median_deg_d = calc_field(
         daily_mean_across_grouped_devices
     )(
-        value=Required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
-        device_mapping=Required(DownloadDevicePvHierarchy.tracker_row_to_block),
-        device_type=Constant(DeviceTypeEnum.PV_BLOCK),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
+        device_mapping=required(DownloadDevicePvHierarchy.tracker_row_to_block),
+        device_type=Constant(value=DeviceTypeEnum.PV_BLOCK),
+        date_local_5m=grouper(date_local_5m),
     )
 
     # see above for project level setpoint deviating from median
@@ -452,76 +438,74 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     # PV_DC_COMBINER_FIELD_HEALTH (8)
     combiner_field_health_d = calc_field(combiner_field_health_d)(
-        combiner_current=Required(DownloadSensorPv.combiner_current_raw_amps_5m),
-        combiner_power_capacity=Required(Clean.combiner_dc_capacity_kw),
-        time_local_5m=Required(Eval.time_local_5m),
-        date_local_5m=Grouper(date_local_5m),
+        combiner_current=required(DownloadSensorPv.combiner_current_raw_amps_5m),
+        combiner_power_capacity=required(Clean.combiner_dc_capacity_kw),
+        time_local_5m=required(Eval.time_local_5m),
+        date_local_5m=grouper(date_local_5m),
     )
 
     project_avg_combiner_field_health_d = calc_field(
         project_avg_combiner_field_health_d
-    )(
-        field_health=Required(combiner_field_health_d),
-    )
+    )(field_health=required(combiner_field_health_d))
 
     # MODULE_STATE_OF_HEALTH_BY_COMBINER (17)
     combiner_module_excess_degradation_d = calc_field(
         pv_dc_combiner_module_excess_degradation
     )(
-        met_station_irradiance_poa_w_m2_5m=Required(Clean.met_poa_irradiance_w_m2_5m),
-        project_theoretical_poa_irradiance_w_m2_5m=Required(
+        met_station_irradiance_poa_w_m2_5m=required(Clean.met_poa_irradiance_w_m2_5m),
+        project_theoretical_poa_irradiance_w_m2_5m=required(
             Eval.project_theoretical_poa_irradiance_w_m2_5m
         ),
-        project_meter_power_kw_5m=Required(Clean.pv_project_power_kw_5m),
-        project_poi_limit_kw=Required(project_poi_limit_kw),
-        pv_inverter_ac_power_kw_5m=Required(Clean.inverter_ac_power_kw_5m),
-        pv_inverter_ac_power_capacity_kw=Required(Clean.inverter_ac_capacity_kw),
-        pv_inverter_reactive_power_kvar_5m=Required(
+        project_meter_power_kw_5m=required(Clean.pv_project_power_kw_5m),
+        project_poi_limit_kw=required(project_poi_limit_kw),
+        pv_inverter_ac_power_kw_5m=required(Clean.inverter_ac_power_kw_5m),
+        pv_inverter_ac_power_capacity_kw=required(Clean.inverter_ac_capacity_kw),
+        pv_inverter_reactive_power_kvar_5m=required(
             Clean.inverter_reactive_power_kvar_5m
         ),
-        pv_inverter_module_voltage_v_5m=Required(Clean.inverter_module_voltage_v_5m),
-        pv_inverter_module_power_kw_5m=Required(Clean.inverter_module_ac_power_kw_5m),
-        pv_inverter_module_power_capacity_kw=Required(
+        pv_inverter_module_voltage_v_5m=required(Clean.inverter_module_voltage_v_5m),
+        pv_inverter_module_power_kw_5m=required(Clean.inverter_module_ac_power_kw_5m),
+        pv_inverter_module_power_capacity_kw=required(
             Clean.inverter_module_ac_capacity_kw
         ),
-        block_tracker_row_deviation_from_setpoint_deg_d=Required(
+        block_tracker_row_deviation_from_setpoint_deg_d=required(
             block_tracker_row_deviation_from_setpoint_deg_d
         ),
-        block_tracker_row_setpoint_deviation_from_median_deg_d=Required(
+        block_tracker_row_setpoint_deviation_from_median_deg_d=required(
             block_tracker_row_setpoint_deviating_from_median_deg_d
         ),
-        pv_dc_combiner_field_health_d=Required(combiner_field_health_d),
-        pv_dc_combiner_current_amps_5m=Required(
+        pv_dc_combiner_field_health_d=required(combiner_field_health_d),
+        pv_dc_combiner_current_amps_5m=required(
             DownloadSensorPv.combiner_current_raw_amps_5m
         ),
-        pv_dc_combiner_expected_energy_kwh_5m=Required(
+        pv_dc_combiner_expected_energy_kwh_5m=required(
             Eval.combiner_expected_energy_best_kwh_5m
         ),
-        date_local_5m=Grouper(date_local_5m),
-        combiner_to_inverter=Required(DownloadDevicePvHierarchy.combiner_to_inverter),
-        combiner_to_block=Required(DownloadDevicePvHierarchy.combiner_to_block),
-        inverter_module_to_inverter=Required(
+        date_local_5m=grouper(date_local_5m),
+        combiner_to_inverter=required(DownloadDevicePvHierarchy.combiner_to_inverter),
+        combiner_to_block=required(DownloadDevicePvHierarchy.combiner_to_block),
+        inverter_module_to_inverter=required(
             DownloadDevicePvHierarchy.inverter_module_to_inverter
         ),
-        pv_inverter_ac_power_setpoint_kw_5m=Optional(
+        pv_inverter_ac_power_setpoint_kw_5m=optional(
             Clean.inverter_ac_power_setpoint_kw_5m
         ),
-        pv_inverter_voltage_v_5m=Optional(Clean.inverter_voltage_v_5m),
+        pv_inverter_voltage_v_5m=optional(Clean.inverter_voltage_v_5m),
     )
 
     project_combiner_module_excess_degradation_d = calc_field(mean_across_devices)(
-        Required(combiner_module_excess_degradation_d),
-        device_type=Constant(DeviceTypeEnum.PV_DC_COMBINER),
+        required(combiner_module_excess_degradation_d),
+        device_type=Constant(value=DeviceTypeEnum.PV_DC_COMBINER),
     )
 
     # PV_DC_COMBINER_MECHANICAL_AVAILABILITY (101)
     combiner_mechanical_availability_d = calc_field(resample_mean)(
-        x=Required(Eval.combiner_mechanical_availability_5m),
-        grouper=Grouper(date_local_5m),
+        x=required(Eval.combiner_mechanical_availability_5m),
+        grouper=grouper(date_local_5m),
     )
 
     project_combiner_mechanical_availability_d = calc_field(daily_mean_across_devices)(
-        value=Required(Eval.combiner_mechanical_availability_5m),
-        device_type=Constant(DeviceTypeEnum.PV_DC_COMBINER),
-        date_local_5m=Grouper(date_local_5m),
+        value=required(Eval.combiner_mechanical_availability_5m),
+        device_type=Constant(value=DeviceTypeEnum.PV_DC_COMBINER),
+        date_local_5m=grouper(date_local_5m),
     )

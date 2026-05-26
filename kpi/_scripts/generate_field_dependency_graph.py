@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
-from kpi.op.field import Field
+from kpi.op.field import Field, FieldRef
 from kpi.registry.download.api import DownloadRegistry
 from kpi.registry.api import FULL_REGISTRY
 from kpi.registry.transform.api import Transform
@@ -19,8 +19,8 @@ def _doc_path_from_module(*, module_name: str) -> str:
     return f"/{registry_module.replace('.', '/')}/"
 
 
-def _doc_anchor(*, module_name: str, owner_qualname: str, field_name: str) -> str:
-    return f"{module_name}.{owner_qualname}.{field_name}"
+def _doc_anchor(field_ref: FieldRef) -> str:
+    return f"{field_ref.module}.{field_ref.qualname}.{field_ref.name}"
 
 
 def _node_element(
@@ -77,12 +77,8 @@ def build_elements() -> dict[str, list[dict[str, dict[str, str | bool]]]]:
         if field_name in EXCLUDED_FIELDS:
             continue
         docs_metadata[field_name] = (
-            _doc_path_from_module(module_name=field._owner_module),
-            _doc_anchor(
-                module_name=field._owner_module,
-                owner_qualname=field._owner_qualname,
-                field_name=field_name,
-            ),
+            _doc_path_from_module(module_name=field.ref.module),
+            _doc_anchor(field.ref),
         )
     known_fields = {
         field_name

@@ -8,144 +8,143 @@ models: list[UploadModel] = [
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_CYCLE_COUNT,
         version="2.0.0",
-        project_var=Summarize.project_cycle_count_d,
+        project_var=Summarize.project_cycle_count_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_RESTING_SOC_PERCENT,
         version="2.0.0",
-        project_var=Summarize.project_avg_resting_soc_d,
+        project_var=Summarize.project_avg_resting_soc_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_AVERAGE_SOC_PERCENT,
         version="2.0.0",
-        project_var=Summarize.project_avg_soc_d,
+        project_var=Summarize.project_avg_soc_d.ref,
     ),
     # SUNGROW_BESS_TECHNICAL_AVAILABILITY_GUARANTEE (20) not implemented
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED,
         version="2.0.0",
-        project_var=Summarize.project_energy_charged_kwh_d,
+        project_var=Summarize.project_energy_charged_kwh_d.ref,
         scale=0.001,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_ENERGY_DISCHARGED,
         version="2.0.0",
-        project_var=Summarize.project_energy_discharged_kwh_d,
+        project_var=Summarize.project_energy_discharged_kwh_d.ref,
         scale=0.001,
     ),
     # PROJECT_RTE (43) not implemented
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_AVERAGE_DOD,
         version="2.0.0",
-        project_var=Summarize.project_avg_dod_d,
+        project_var=Summarize.project_avg_dod_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.C_RATE,
         version="2.0.0",
-        project_var=Summarize.project_avg_c_rate_d,
+        project_var=Summarize.project_avg_c_rate_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_SOH,
         version="2.0.0",
-        project_var=Summarize.project_soh_d,
+        project_var=Summarize.project_soh_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_AVERAGE_C_RATE_WHILE_CHARGING,
         version="2.0.0",
-        project_var=Summarize.project_avg_c_rate_while_charging_d,
+        project_var=Summarize.project_avg_c_rate_while_charging_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_AVERAGE_C_RATE_WHILE_DISCHARGING,
         version="2.0.0",
-        project_var=Summarize.project_avg_c_rate_while_discharging_d,
+        project_var=Summarize.project_avg_c_rate_while_discharging_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_HOURS_CHARGING,
         version="2.0.0",
-        project_var=Summarize.project_hours_charging_d,
+        project_var=Summarize.project_hours_charging_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_HOURS_DISCHARGING,
         version="2.0.0",
-        project_var=Summarize.project_hours_discharging_d,
+        project_var=Summarize.project_hours_discharging_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_HOURS_IDLING,
         version="2.0.0",
-        project_var=Summarize.project_hours_idling_d,
+        project_var=Summarize.project_hours_idling_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_MV_AUX_METER_ENERGY,
         version="2.0.0",
-        project_var=Summarize.project_aux_energy_kwh_d,
+        project_var=Summarize.project_aux_energy_kwh_d.ref,
         scale=0.001,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_CHARGE_CYCLES,
         version="2.0.0",
-        project_var=Summarize.project_charge_cycles_d,
+        project_var=Summarize.project_charge_cycles_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_DISCHARGE_CYCLES,
         version="2.0.0",
-        project_var=Summarize.project_discharge_cycles_d,
+        project_var=Summarize.project_discharge_cycles_d.ref,
     ),
     # BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY (104) not implemented
     # BESS_PROJECT_DC_ENCLOSURE_RTE (105) not implemented
     UploadModel(
         kpi_type=KPITypeEnum.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
         version="2.0.0",
-        project_var=Summarize.project_maximum_continuous_discharged_energy_kwh_d,
+        project_var=Summarize.project_maximum_continuous_discharged_energy_kwh_d.ref,
         scale=0.001,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_ENERGY_CHARGED_NO_AUX,
         version="2.0.0",
-        project_var=Summarize.project_energy_charged_no_aux_kwh_d,
+        project_var=Summarize.project_energy_charged_no_aux_kwh_d.ref,
         scale=0.001,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_METER_TO_PCS_MODULE_CHARGE_EFFICIENCY,
         version="2.0.1",
-        project_var=Summarize.project_pcs_module_charge_efficiency_d,
+        project_var=Summarize.project_pcs_module_charge_efficiency_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY,
         version="2.0.1",
-        project_var=Summarize.project_pcs_module_discharge_efficiency_d,
+        project_var=Summarize.project_pcs_module_discharge_efficiency_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_STRING_SOC_VARIANCE,
         version="2.0.0",
-        project_var=Summarize.project_string_soc_variance_d,
+        project_var=Summarize.project_string_soc_variance_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_STRING_SOC_BALANCE_SCORE,
         version="2.0.0",
-        project_var=Summarize.project_string_soc_balance_score_d,
+        project_var=Summarize.project_string_soc_balance_score_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_POWER_AVAILABILITY,
         version="2.0.0",
-        project_var=Summarize.project_power_availability_d,
+        project_var=Summarize.project_power_availability_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_ENERGY_AVAILABILITY,
         version="2.0.0",
-        project_var=Summarize.project_energy_availability_d,
+        project_var=Summarize.project_energy_availability_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_NER_AVAILABILITY,
         version="2.0.0",
-        project_var=Summarize.project_ner_availability_d,
+        project_var=Summarize.project_ner_availability_d.ref,
     ),
     UploadModel(
         kpi_type=KPITypeEnum.BESS_PROJECT_POI_POWER_AVAILABILITY,
         version="2.0.0",
-        project_var=Summarize.project_poi_power_availability_d,
+        project_var=Summarize.project_poi_power_availability_d.ref,
     ),
 ]
-
 UPLOAD_BESS_PROJECT: dict[str, UploadModel] = {
     model.kpi_type.name: model for model in models
 }

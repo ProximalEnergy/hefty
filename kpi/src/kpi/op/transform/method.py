@@ -36,11 +36,15 @@ class MethodCalc:
             ) from e
 
     def inputs(self) -> set[str]:
-        arg_inputs = {arg.input_name for arg in self.args if arg.input_name is not None}
+        arg_inputs = {
+            input_name
+            for arg in self.args
+            if (input_name := arg.input_name()) is not None
+        }
         kwarg_inputs = {
-            kwarg.input_name
+            input_name
             for kwarg in self.kwargs.values()
-            if kwarg.input_name is not None
+            if (input_name := kwarg.input_name()) is not None
         }
         return arg_inputs | kwarg_inputs
 

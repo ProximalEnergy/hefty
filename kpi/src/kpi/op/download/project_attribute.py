@@ -9,7 +9,7 @@ from kpi.base.protocol import (
 )
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
-from kpi.op.download.util import MarkdownDocModel
+from kpi.op.download.util import NoInputsModel
 from kpi.op.field import Field
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
@@ -21,7 +21,7 @@ from core import models
 
 
 @project_attribute_protocol
-class ProjectAttributeModel(MarkdownDocModel):
+class ProjectAttributeModel(NoInputsModel):
     source_field_name: str
     scale: float | None
     offset: float | None
