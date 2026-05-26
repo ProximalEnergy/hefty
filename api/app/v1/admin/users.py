@@ -52,8 +52,10 @@ async def get_users_route(
     # If the user is not a superadmin, they *have* to request explicit user_ids or users
     # from their own company (company_ids).
     # This is to prevent accidental access to all users or users from other companies.
+    query_company_ids = company_ids
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
-        if company_ids != [user_data.company_id] and not user_ids:
+        is_requesting_own_company = company_ids == [user_data.company_id]
+        if not is_requesting_own_company and not user_ids:
             raise HTTPException(
                 status_code=403,
                 detail=(
@@ -61,7 +63,15 @@ async def get_users_route(
                 ),
             )
 
-    users = await get_users(company_ids=company_ids, user_ids=user_ids).get_async(
+        if company_ids is not None and not is_requesting_own_company:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not authorized to access this company's users",
+            )
+
+        query_company_ids = [user_data.company_id]
+
+    users = await get_users(company_ids=query_company_ids, user_ids=user_ids).get_async(
         output_type=OutputType.PANDAS
     )
 
