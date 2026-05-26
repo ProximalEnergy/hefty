@@ -901,7 +901,7 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.4.9"
+version = "0.4.10"
 source = { editable = "core" }
 dependencies = [
     { name = "async-lru" },

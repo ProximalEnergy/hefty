@@ -62,10 +62,19 @@ AsyncSessionLambda = async_sessionmaker(
     bind=async_engine,
 )
 
+# Postgres-aligned constraint names for Alembic autogenerate (PRO-1820).
+NAMING_CONVENTION = {
+    "pk": "%(table_name)s_pkey",
+    "fk": "%(table_name)s_%(column_0_N_name)s_fkey",
+    "uq": "%(table_name)s_%(column_0_N_name)s_key",
+    "ix": "ix_%(column_0_label)s",
+}
+
 metadata = sa.MetaData(
     # Specify default schema
     # NOTE: Changing this value will have downstream effects
     schema="project",
+    naming_convention=NAMING_CONVENTION,
 )
 
 
