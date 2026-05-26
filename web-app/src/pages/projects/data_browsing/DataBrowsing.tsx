@@ -5,7 +5,10 @@ import {
   TimeIntervalEnum,
 } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
-import { useGetDataTimeSeriesV3 } from '@/api/v1/operational/project/project_data'
+import {
+  DataTimeSeriesV3,
+  useGetDataTimeSeriesV3,
+} from '@/api/v1/operational/project/project_data'
 import { useGetPvExpected } from '@/api/v1/operational/project/project_pv_expected'
 import { useGetTagsByRegex } from '@/api/v1/operational/project/project_tags'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -515,7 +518,7 @@ const DataBrowsing = () => {
     }
   }, [start, end])
 
-  const timeseriesData = useGetDataTimeSeriesV3({
+  const timeseriesData = useGetDataTimeSeriesV3<DataTimeSeriesV3>({
     pathParams: { projectId: projectId! },
     queryParams: {
       tag_ids: selectedTags
@@ -697,7 +700,10 @@ const DataBrowsing = () => {
       const columnIdx = traceIdx + 1
 
       // Create a map from normalized timestamp to y-value for this trace
-      const normalizedTimestampToValue = new Map<string, number | null>()
+      const normalizedTimestampToValue = new Map<
+        string,
+        number | string | null
+      >()
       trace.x.forEach((ts, idx) => {
         const normalized = normalizeTimestamp(ts)
         normalizedTimestampToValue.set(normalized, trace.y[idx] ?? null)

@@ -5,6 +5,31 @@ import { AxiosError } from 'axios'
 import { Data, Layout } from 'plotly.js'
 import { useMemo } from 'react'
 
+const AXIS_COLORS = [
+  '#1f77b4',
+  '#ff7f0e',
+  '#2ca02c',
+  '#d62728',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7f7f7f',
+  '#bcbd22',
+  '#17becf',
+]
+
+const STRING_AXIS_KEY = '__string__'
+
+interface AxisGroup {
+  key: string
+  title: string
+  color?: string
+  isString: boolean
+  categoryValues?: string[]
+}
+
+type TraceValue = number | string | null
+
 interface PlotWithUnitsProps {
   data?: Data[]
   tags?: EnrichedTag[]
@@ -52,43 +77,7 @@ const PlotWithUnits = ({
     return map
   }, [tags])
 
-  // Group tags by unit (from sensor_type.unit)
-  const unitGroups = useMemo(() => {
-    if (!tags || tags.length === 0) return []
-
-    const groups = new Map<string, EnrichedTag[]>()
-    const colors = [
-      '#1f77b4',
-      '#ff7f0e',
-      '#2ca02c',
-      '#d62728',
-      '#9467bd',
-      '#8c564b',
-      '#e377c2',
-      '#7f7f7f',
-      '#bcbd22',
-      '#17becf',
-    ]
-
-    // Group tags by unit
-    tags.forEach((tag) => {
-      const unit = tag.sensor_type_unit || ''
-      if (!groups.has(unit)) {
-        groups.set(unit, [])
-      }
-      groups.get(unit)!.push(tag)
-    })
-
-    const uniqueUnits = Array.from(groups.keys())
-    return uniqueUnits.map((unit, index) => ({
-      unit: unit || '',
-      color: uniqueUnits.length > 1 ? colors[index % colors.length] : undefined,
-      tags: groups.get(unit) || [],
-    }))
-  }, [tags])
-
-  // Process data: match traces to tags and assign units/y-axes
-  const processedData = useMemo(() => {
+  const resolvedTraces = useMemo(() => {
     if (!data || data.length === 0) return []
 
     return data.map((trace) => {
@@ -97,7 +86,7 @@ const PlotWithUnits = ({
       const traceData = trace as unknown as Record<string, unknown>
 
       // First try to match by tag_id if present in trace metadata
-      if (traceData.tag_id && typeof traceData.tag_id === 'number') {
+      if (typeof traceData.tag_id === 'number') {
         matchingTag = tagMap.get(traceData.tag_id)
       }
       // Try to match by tag_name_scada from metadata
@@ -111,24 +100,6 @@ const PlotWithUnits = ({
       else if (trace.name && typeof trace.name === 'string') {
         matchingTag = tagByNameScadaMap.get(trace.name)
       }
-
-      // Get unit from tag - handle unitless items (no sensor_type or no unit)
-      // Unitless items should have an empty string unit
-      let unit = ''
-      if (matchingTag) {
-        unit =
-          matchingTag.sensor_type?.unit ?? matchingTag.sensor_type_unit ?? ''
-      }
-
-      // Find unit group index - unitless items (empty string) should be grouped together
-      const unitIndex = unitGroups.findIndex((g) => g.unit === unit)
-      // If unit group not found, default to first group (shouldn't happen, but safety check)
-      const safeUnitIndex = unitIndex >= 0 ? unitIndex : 0
-      const yAxis = safeUnitIndex === 0 ? 'y' : `y${safeUnitIndex + 1}`
-
-      // Get unit group color (only if multiple units)
-      const group = unitGroups[safeUnitIndex]
-      const unitColor = group?.color
 
       // Determine trace name based on tagNameMode
       // Expected power tags (tag_id < 0) don't have name_scada, always use name_full
@@ -152,6 +123,73 @@ const PlotWithUnits = ({
       } else {
         traceName = trace.name || ''
       }
+
+      const yValues: TraceValue[] = Array.isArray(traceData.y)
+        ? (traceData.y as TraceValue[])
+        : []
+      const isStringTrace = yValues.some((value) => typeof value === 'string')
+      const unit = matchingTag
+        ? (matchingTag.sensor_type?.unit ?? matchingTag.sensor_type_unit ?? '')
+        : ''
+      const groupKey = isStringTrace ? STRING_AXIS_KEY : unit
+      const stringValues = yValues.filter(
+        (value): value is string => typeof value === 'string',
+      )
+
+      return {
+        trace,
+        traceName,
+        groupKey,
+        stringValues,
+        isStringTrace,
+      }
+    })
+  }, [data, tagMap, tagByNameScadaMap, tagNameMode])
+
+  // Group traces by unit, plus one categorical axis for text-valued traces.
+  const axisGroups = useMemo<AxisGroup[]>(() => {
+    const groups = new Map<string, AxisGroup>()
+
+    resolvedTraces.forEach(({ groupKey, isStringTrace, stringValues }) => {
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, {
+          key: groupKey,
+          title: isStringTrace ? 'String' : groupKey,
+          isString: isStringTrace,
+          categoryValues: isStringTrace ? [] : undefined,
+        })
+      }
+
+      if (isStringTrace) {
+        const group = groups.get(groupKey)
+        stringValues.forEach((value) => {
+          if (!group?.categoryValues?.includes(value)) {
+            group?.categoryValues?.push(value)
+          }
+        })
+      }
+    })
+
+    const uniqueGroups = Array.from(groups.values())
+    return uniqueGroups.map((group, index) => ({
+      ...group,
+      color:
+        uniqueGroups.length > 1
+          ? AXIS_COLORS[index % AXIS_COLORS.length]
+          : undefined,
+    }))
+  }, [resolvedTraces])
+
+  // Process data: assign traces to unit/string y-axes.
+  const processedData = useMemo(() => {
+    if (resolvedTraces.length === 0) return []
+
+    return resolvedTraces.map(({ trace, traceName, groupKey }) => {
+      const groupIndex = axisGroups.findIndex((group) => group.key === groupKey)
+      const safeGroupIndex = groupIndex >= 0 ? groupIndex : 0
+      const yAxis = safeGroupIndex === 0 ? 'y' : `y${safeGroupIndex + 1}`
+      const group = axisGroups[safeGroupIndex]
+      const unitColor = group?.color
 
       // Build the processed trace
       const processedTrace: Data = {
@@ -189,14 +227,14 @@ const PlotWithUnits = ({
 
       return processedTrace
     })
-  }, [data, tagMap, tagByNameScadaMap, unitGroups, tagNameMode])
+  }, [axisGroups, resolvedTraces])
 
   // Create layout with dynamic y-axes
   const dynamicLayout = useMemo(() => {
     // Calculate how much space we need for axes
     // Each axis needs about 0.08 of space (0.05 for axis + 0.03 buffer)
 
-    const numAxes = unitGroups.length + 1
+    const numAxes = axisGroups.length + 1
     const axisSpacing = 0.04
     const leftAxesCount = Math.ceil((numAxes - 1) / 2)
     const rightAxesCount = Math.floor((numAxes - 1) / 2)
@@ -205,7 +243,7 @@ const PlotWithUnits = ({
     const xDomainStart = leftMargin
     const xDomainEnd = rightMargin
 
-    if (unitGroups.length === 0) {
+    if (axisGroups.length === 0) {
       return {
         xaxis: { domain: [xDomainStart, xDomainEnd] },
         yaxis: { title: { text: '' }, showgrid: false },
@@ -217,24 +255,31 @@ const PlotWithUnits = ({
       xaxis: { domain: [xDomainStart, xDomainEnd] },
       yaxis: {
         title: {
-          text: unitGroups[0]?.unit || '',
-          ...(unitGroups[0]?.color
-            ? { font: { color: unitGroups[0].color } }
+          text: axisGroups[0]?.title || '',
+          ...(axisGroups[0]?.color
+            ? { font: { color: axisGroups[0].color } }
             : {}),
         },
+        ...(axisGroups[0]?.isString
+          ? {
+              type: 'category' as const,
+              categoryorder: 'array' as const,
+              categoryarray: axisGroups[0].categoryValues,
+            }
+          : {}),
         side: 'left',
-        linecolor: unitGroups[0]?.color,
+        linecolor: axisGroups[0]?.color,
         showgrid: false,
-        tickfont: unitGroups[0]?.color
-          ? { color: unitGroups[0].color }
+        tickfont: axisGroups[0]?.color
+          ? { color: axisGroups[0].color }
           : undefined,
       },
     }
 
     // Add additional y-axes for multiple units
-    if (unitGroups.length > 1) {
+    if (axisGroups.length > 1) {
       const additionalAxes: Record<string, Partial<Layout['yaxis']>> = {}
-      unitGroups.slice(1).forEach((group, idx) => {
+      axisGroups.slice(1).forEach((group, idx) => {
         // Calculate which side this axis should be on
         // First additional axis (idx=0) goes right, then alternates
         const isRight = idx % 2 === 0
@@ -254,10 +299,17 @@ const PlotWithUnits = ({
 
         additionalAxes[`yaxis${idx + 2}`] = {
           title: {
-            text: group.unit,
+            text: group.title,
             ...(group.color ? { font: { color: group.color } } : {}),
             standoff: 0,
           },
+          ...(group.isString
+            ? {
+                type: 'category' as const,
+                categoryorder: 'array' as const,
+                categoryarray: group.categoryValues,
+              }
+            : {}),
           overlaying: 'y',
           side: side,
           anchor: 'free',
@@ -271,7 +323,7 @@ const PlotWithUnits = ({
     }
 
     return { ...baseLayout, ...layout }
-  }, [unitGroups, layout])
+  }, [axisGroups, layout])
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

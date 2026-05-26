@@ -272,6 +272,8 @@ class DataTimeseries:
         # Fetch data from provider
         lookback_df = await self._fetch_provider_lookback(context=context)
         df = await self._fetch_provider_page(context=context)
+        lookback_df = self._normalize_provider_frame(df=lookback_df)
+        df = self._normalize_provider_frame(df=df)
 
         # Post process data
         df, page_limit_reached = await self._post_process_data_timeseries(
@@ -312,6 +314,7 @@ class DataTimeseries:
 
             # Fetch lookback data from provider
             lookback_df = await self._fetch_provider_lookback(context=context)
+            lookback_df = self._normalize_provider_frame(df=lookback_df)
 
             MAX_PAGE_GUARD = 100
             page_guard = 0
@@ -320,6 +323,7 @@ class DataTimeseries:
             while True:
                 # Fetch page data from provider
                 df = await self._fetch_provider_page(context=context)
+                df = self._normalize_provider_frame(df=df)
 
                 # Add page to pages list
                 pages.append(df)
@@ -587,6 +591,52 @@ class DataTimeseries:
             )
         return df
 
+    def _normalize_provider_frame(self, *, df: pl.DataFrame) -> pl.DataFrame:
+        """Normalize provider output columns before shared post-processing.
+
+        Args:
+            df: Raw provider DataFrame.
+        """
+        if not df.columns:
+            return df
+
+        if "time" not in df.columns and "time_bucket" in df.columns:
+            df = df.rename({"time_bucket": "time"})
+
+        if "tag_id" in df.columns:
+            df = df.with_columns(pl.col("tag_id").cast(pl.Int64))
+
+        value_casts = [
+            self._cast_to_dtype_expr(column=col, dtype=dtype).alias(col)
+            for col, dtype in VALUE_COL_TO_DTYPE.items()
+            if col in df.columns
+        ]
+        if not value_casts:
+            return df
+        return df.with_columns(value_casts)
+
+    @staticmethod
+    def _cast_to_dtype_expr(*, column: str, dtype: pl.DataType) -> pl.Expr:
+        """Build a tolerant cast expression for value and tag columns.
+
+        Args:
+            column: Column to cast.
+            dtype: Desired Polars dtype.
+        """
+        if isinstance(dtype, pl.Boolean):
+            normalized = pl.col(column).cast(pl.Utf8, strict=False).str.to_lowercase()
+            return (
+                pl.when(pl.col(column).is_null())
+                .then(pl.lit(None))
+                .when(normalized.is_in(["true", "t", "1", "1.0", "yes"]))
+                .then(pl.lit(True))
+                .when(normalized.is_in(["false", "f", "0", "0.0", "no"]))
+                .then(pl.lit(False))
+                .otherwise(pl.lit(None))
+                .cast(pl.Boolean)
+            )
+        return pl.col(column).cast(dtype, strict=False)
+
     async def _post_process_data_timeseries(
         self,
         *,
@@ -684,7 +734,10 @@ class DataTimeseries:
                     .then(
                         pl.when(pl.col(col).is_null())  # And column value is null
                         .then(
-                            pl.lit(lookback_pivoted[col].item())  # Use lookback value
+                            pl.lit(lookback_pivoted[col].item()).cast(
+                                df.schema[col],
+                                strict=False,
+                            )
                         )
                         .otherwise(pl.col(col))  # Otherwise keep existing value
                     )
@@ -1407,7 +1460,7 @@ class DataTimeseries:
         # Step 1: Identify value columns (value_integer, value_real, etc.)
         # Result: List of column names that contain actual data values
         value_cols = [c for c in df.columns if c.startswith("value_")]
-        if not value_cols:
+        if not value_cols or df.is_empty():
             time_col = self._get_time_column(df=df)
             if time_col in df.columns:
                 times = df.select(time_col).unique().sort(time_col)
@@ -1415,29 +1468,12 @@ class DataTimeseries:
                 times = self._empty_time_frame(time_col=time_col)
             return self._ensure_tag_columns(df=times, time_col=time_col)
 
-        # Step 2: Create lookup table for value column ordering
-        # Purpose: Maintains priority order when a tag could match multiple value
-        # columns
-        # Result: DataFrame mapping value column names to their priority order
+        # Step 2: Create lookup table for value column ordering.
         order_lut = pl.DataFrame(
             {"vcol": value_cols, "vorder": list(range(len(value_cols)))}
         )
 
-        # Step 3: Convert to lazy frame for efficient processing
-        ldf = df.lazy()
-
-        # Step 4: Unpivot value columns into long format
-        # Input: Wide format with columns [time, tag_id, value_integer, value_real, ...]
-        # Result: Long format with columns [time, tag_id, vcol, val]
-        # Each row represents one value from one value column for one tag at one time
-        long = ldf.unpivot(
-            index=["time", "tag_id"],
-            on=value_cols,
-            variable_name="vcol",
-            value_name="val",
-        )
-
-        # Step 5: Map pg_data_type_id to correct value column using lookup table
+        # Step 3: Map pg_data_type_id to correct value column using lookup table
         # Purpose: Each tag has a pg_data_type_id that tells us which value_* column it
         # uses
         # Result: Mapping DataFrame: pg_data_type_id -> value column name
@@ -1453,7 +1489,7 @@ class DataTimeseries:
             }
         )
 
-        # Step 6: Join tags_lut with mapping to get tag_id -> vcol relationship
+        # Step 4: Join tags_lut with mapping to get tag_id -> vcol relationship
         # Result: DataFrame with columns [tag_id, vcol] showing which value column each
         # tag uses
         tags_with_vcol = (
@@ -1462,7 +1498,7 @@ class DataTimeseries:
             .filter(pl.col("vcol").is_not_null())
         )
 
-        # Step 7: Filter to only tags where the mapped value column exists in data
+        # Step 5: Filter to only tags where the mapped value column exists in data
         # and add ordering information for disambiguation
         # Result: DataFrame with [tag_id, vcol, vorder] for tags that have data
         # Sorted by tag_id and vorder to ensure consistent selection
@@ -1473,22 +1509,35 @@ class DataTimeseries:
             .sort(["tag_id", "vorder"])
         )
 
-        # Step 8: Filter long-format data to only include rows matching chosen_vcol
-        # Result: Long-format DataFrame with only the correct value column per tag
-        filtered = long.join(chosen_vcol, on=["tag_id", "vcol"], how="inner")
-
-        # Step 9: Categorize value columns by data type
-        # Purpose: Different types need different processing (numeric gets unit scaling)
-        # Result: Three lists separating numeric, boolean, and text value columns
-        df_schema = df.schema
-        num_cols = [c for c in value_cols if df_schema[c].is_numeric()]
-        bool_cols = [c for c in value_cols if isinstance(df_schema[c], Boolean)]
-        txt_cols = [c for c in value_cols if isinstance(df_schema[c], String)]
+        # Step 6: Categorize value columns by logical dtype from metadata mapping.
+        # Unpivoting happens per group below so incompatible dtypes never share `val`.
+        num_cols = [
+            col
+            for col in value_cols
+            if (
+                VALUE_COL_TO_DTYPE.get(col, df.schema[col]).is_numeric()
+                and not isinstance(VALUE_COL_TO_DTYPE.get(col, df.schema[col]), Boolean)
+            )
+        ]
+        bool_cols = [
+            col
+            for col in value_cols
+            if isinstance(VALUE_COL_TO_DTYPE.get(col, df.schema[col]), Boolean)
+        ]
+        txt_cols = [
+            col
+            for col in value_cols
+            if isinstance(VALUE_COL_TO_DTYPE.get(col, df.schema[col]), String)
+        ]
 
         # Step 10: Process numeric values (apply unit scaling and offset)
         if num_cols:
             # Step 10a: Filter to only numeric value columns
-            numeric_filtered = filtered.filter(pl.col("vcol").is_in(num_cols))
+            numeric_filtered = self._unpivot_timeseries_value_columns(
+                df=df,
+                value_cols=num_cols,
+                chosen_vcol=chosen_vcol,
+            )
 
             # Step 10b: Prepare tags_lut for join
             tags_lut_lf = self._tags_lut.lazy().with_columns(
@@ -1539,9 +1588,18 @@ class DataTimeseries:
         # Step 11: Process boolean values (no scaling, just cast and pivot)
         # Result: Wide-format DataFrame with boolean tag columns
         if bool_cols:
+            bool_filtered = self._unpivot_timeseries_value_columns(
+                df=df,
+                value_cols=bool_cols,
+                chosen_vcol=chosen_vcol,
+            )
             bool_wide = (
-                filtered.filter(pl.col("vcol").is_in(bool_cols))
-                .with_columns(pl.col("val").cast(pl.Boolean).alias("val_adj"))
+                bool_filtered.with_columns(
+                    self._cast_to_dtype_expr(
+                        column="val",
+                        dtype=pl.Boolean(),
+                    ).alias("val_adj")
+                )
                 .select(["time", "tag_id", "val_adj"])
                 .collect(engine="streaming")
                 .pivot(
@@ -1557,9 +1615,13 @@ class DataTimeseries:
         # Step 12: Process text values (no scaling, just cast and pivot)
         # Result: Wide-format DataFrame with text tag columns
         if txt_cols:
+            text_filtered = self._unpivot_timeseries_value_columns(
+                df=df,
+                value_cols=txt_cols,
+                chosen_vcol=chosen_vcol,
+            )
             text_wide = (
-                filtered.filter(pl.col("vcol").is_in(txt_cols))
-                .with_columns(pl.col("val").cast(pl.Utf8).alias("val_adj"))
+                text_filtered.with_columns(pl.col("val").cast(pl.Utf8).alias("val_adj"))
                 .select(["time", "tag_id", "val_adj"])
                 .collect(engine="streaming")
                 .pivot(
@@ -1617,6 +1679,28 @@ class DataTimeseries:
 
         return self._ensure_tag_columns(df=wide, time_col="time")
 
+    @staticmethod
+    def _unpivot_timeseries_value_columns(
+        *,
+        df: pl.DataFrame,
+        value_cols: list[str],
+        chosen_vcol: pl.LazyFrame,
+    ) -> pl.LazyFrame:
+        """Unpivot compatible value columns and keep tag/value-column matches.
+
+        Args:
+            df: Provider frame with time, tag_id, and compatible value columns.
+            value_cols: Value columns safe to unpivot together.
+            chosen_vcol: Lazy tag_id to value-column mapping.
+        """
+        long = df.lazy().unpivot(
+            index=["time", "tag_id"],
+            on=value_cols,
+            variable_name="vcol",
+            value_name="val",
+        )
+        return long.join(chosen_vcol, on=["tag_id", "vcol"], how="inner")
+
     def _ensure_tag_columns(
         self,
         *,
@@ -1642,10 +1726,11 @@ class DataTimeseries:
             except (ValueError, TypeError):
                 continue
             col_dtype = df.schema[col]
-            if isinstance(col_dtype, pl.Null):
-                dtype = tag_dtype_by_id.get(tag_id)
-                if dtype is not None:
-                    df = df.with_columns(pl.col(col).cast(dtype).alias(col))
+            dtype = tag_dtype_by_id.get(tag_id)
+            if dtype is not None and col_dtype != dtype:
+                df = df.with_columns(
+                    self._cast_to_dtype_expr(column=col, dtype=dtype).alias(col)
+                )
 
         missing_tag_ids = requested_tag_ids - existing_tag_cols
         for tag_id in sorted(missing_tag_ids):

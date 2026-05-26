@@ -4,6 +4,14 @@ import type { DataTimeSeries } from '@/hooks/types'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { UseQueryOptions } from '@tanstack/react-query'
 
+export interface DataTimeSeriesV3 extends Omit<
+  DataTimeSeries,
+  'y' | 'y_range'
+> {
+  y: (number | string | null)[]
+  y_range: (number | string | null)[]
+}
+
 const URL = '/v1/operational/projects/{project_id}/time-series'
 
 type get = paths[typeof URL]['get']
@@ -46,7 +54,9 @@ export const useGetTimeSeries = ({
   })
 }
 
-export const useGetDataTimeSeriesV3 = ({
+export const useGetDataTimeSeriesV3 = <
+  TDataTimeSeries extends DataTimeSeries | DataTimeSeriesV3 = DataTimeSeries,
+>({
   pathParams,
   queryParams,
   queryOptions = {},
@@ -77,7 +87,7 @@ export const useGetDataTimeSeriesV3 = ({
     ...queryOptions,
   }
 
-  return useCustomQuery<DataTimeSeries[]>({
+  return useCustomQuery<TDataTimeSeries[]>({
     axiosConfig,
     queryName: 'getTimeSeries',
     pathParams,
