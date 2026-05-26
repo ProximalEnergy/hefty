@@ -1,0 +1,1 @@
+ - cards should have an info icon hover section explaining how the data in the card is retrieved, processed and displayed

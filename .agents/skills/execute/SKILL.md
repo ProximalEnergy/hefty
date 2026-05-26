@@ -14,3 +14,6 @@ description: >-
 # Step 1
 - Read the plan document and implement user's desired task number
 - Ask for task number if not given
+
+# Step 2
+- Reference _index.md and read any files that may be relevant
