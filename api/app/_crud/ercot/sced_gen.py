@@ -1,22 +1,22 @@
+from typing import Literal
+
 import datetime
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
+from core.db_query import DbQuery
 
 
-async def get_ercot_sced_gen(
-    db: AsyncSession,
+def get_ercot_sced_gen(
     *,
     resource_id: int,
     start: datetime.datetime,
     end: datetime.datetime,
-):
-    """Fetch SCED generation records for a resource within a time range.
+) -> DbQuery[models.SCEDGen, Literal[False]]:
+    """Build SCED generation query for a resource within a time range.
 
     Args:
-        db: Async database session for the operational schema.
         resource_id: ERCOT resource ID to filter by.
         start: Inclusive start timestamp for the query window.
         end: Exclusive end timestamp for the query window.
@@ -27,5 +27,4 @@ async def get_ercot_sced_gen(
         .where(models.SCEDGen.time >= start)
         .where(models.SCEDGen.time < end)
     )
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query)

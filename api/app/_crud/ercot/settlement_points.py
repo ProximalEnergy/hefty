@@ -1,8 +1,10 @@
+from typing import Literal
+
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, selectinload
 
 from core import models
+from core.db_query import DbQuery
 
 
 def get_ercot_settlement_point_options(*, deep: bool):
@@ -27,14 +29,14 @@ def get_ercot_settlement_point_options(*, deep: bool):
     return options
 
 
-async def get_ercot_settlement_points(*, db: AsyncSession, deep: bool = False):
-    """Fetch ERCOT settlement points.
+def get_ercot_settlement_points(
+    *, deep: bool = False
+) -> DbQuery[models.SettlementPoint, Literal[False]]:
+    """Build query for ERCOT settlement points.
 
     Args:
-        db: Async SQLAlchemy session used for the query.
         deep: Whether to eager-load related objects.
     """
     options = get_ercot_settlement_point_options(deep=deep)
     query = select(models.SettlementPoint).options(*options)
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query)

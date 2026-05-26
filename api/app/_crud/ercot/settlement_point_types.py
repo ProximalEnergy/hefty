@@ -1,14 +1,18 @@
+from typing import Literal
+
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
+from core.db_query import DbQuery
 
 
-async def get_ercot_settlement_point_types(*, db: AsyncSession, name_long: str = ""):
-    """Fetch ERCOT settlement point types.
+def get_ercot_settlement_point_types(
+    *,
+    name_long: str = "",
+) -> DbQuery[models.SettlementPointType, Literal[False]]:
+    """Build query for ERCOT settlement point types.
 
     Args:
-        db: Async SQLAlchemy session used for the query.
         name_long: Optional long name filter.
     """
     query = select(models.SettlementPointType)
@@ -16,5 +20,4 @@ async def get_ercot_settlement_point_types(*, db: AsyncSession, name_long: str =
     if name_long:
         query = query.where(models.SettlementPointType.name_long == name_long)
 
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query)

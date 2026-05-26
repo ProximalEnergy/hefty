@@ -36,7 +36,10 @@ async def get_settlement_points(
         deep: Description for deep.
         db: Description for db.
     """
-    return await crud_get_ercot_settlement_points(db=db, deep=deep)
+    return await crud_get_ercot_settlement_points(deep=deep).get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
+    )
 
 
 @router.get(
@@ -115,10 +118,12 @@ async def get_resource_net_power(
         )
     resource = resource_rows[0]
     sced_gen_data = await crud_get_ercot_sced_gen(
-        db,
         resource_id=resource_id,
         start=start,
         end=end,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
     sced_load_db_query = crud_get_ercot_sced_load(
         resource_id=resource_id,
@@ -158,8 +163,8 @@ async def get_resource_net_power(
             detail="Data not found",
         )
 
-    df_gen = pd.DataFrame.from_records([d.__dict__ for d in sced_gen_data])
-    df_gen = df_gen[["power_generated", "time"]].set_index("time").sort_index()
+    df_gen = sced_gen_data[["power_generated", "time"]]
+    df_gen = df_gen.set_index("time").sort_index()
 
     df_load = sced_load_data[["power_consumed", "time"]]
     df_load = df_load.set_index("time").sort_index()
