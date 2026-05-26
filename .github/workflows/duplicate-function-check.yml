@@ -4,6 +4,14 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     branches: [dev]
+    paths:
+      - "api/**"
+      - "core/**"
+      - "microservices/**"
+      - "web-app/**"
+      - "kpi/**"
+      - "_scripts/**"
+      - ".github/workflows/duplicate-function-check.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
