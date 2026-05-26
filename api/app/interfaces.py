@@ -841,9 +841,12 @@ class DataTimeSeries(BaseModel):
     yaxis: str
     name: str
     sensor_type_name: str
+    sensor_type_name_long: str | None = None
     device_name_long: str
+    device_name_full: str | None = None
     tag_name_scada: str
     tag_name_long: str
+    tag_name_full: str | None = None
     device_id: int
     sensor_type_id: int
     tag_id: int

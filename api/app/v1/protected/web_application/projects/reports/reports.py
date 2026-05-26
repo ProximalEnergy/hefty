@@ -26,7 +26,6 @@ router = APIRouter(
 
 # NOTE: FastAPI automatically adds imported paths to the router.
 from . import (
-    clearsky_filter,  # noqa: F401
     module_degradation,  # noqa: F401
     scada_telemetry_last_reported,  # noqa: F401
 )

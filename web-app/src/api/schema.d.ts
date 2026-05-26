@@ -4877,6 +4877,7 @@ export interface paths {
          *         rolling_window: Description for rolling_window.
          *         use_poa_1d: Description for use_poa_1d.
          *         use_poa_std: Description for use_poa_std.
+         *         poa_tag_ids: Optional POA tag ids selected for clearsky filtering.
          *         resample_rate: Description for resample_rate.
          *         project_db: Description for project_db.
          *         async_project_db: Description for async_project_db.
@@ -7576,34 +7577,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/reports/clearsky-poa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Clearsky Poa
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         project: Description for project.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_db: Description for project_db.
-         *         resample_rate: Description for resample_rate.
-         */
-        get: operations["get_clearsky_poa_v1_protected_web_application_projects__project_id__reports_clearsky_poa_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/protected/web-application/projects/{project_id}/reports/degradation-poa": {
         parameters: {
             query?: never;
@@ -10010,12 +9983,18 @@ export interface components {
             name: string;
             /** Sensor Type Name */
             sensor_type_name: string;
+            /** Sensor Type Name Long */
+            sensor_type_name_long?: string | null;
             /** Device Name Long */
             device_name_long: string;
+            /** Device Name Full */
+            device_name_full?: string | null;
             /** Tag Name Scada */
             tag_name_scada: string;
             /** Tag Name Long */
             tag_name_long: string;
+            /** Tag Name Full */
+            tag_name_full?: string | null;
             /** Device Id */
             device_id: number;
             /** Sensor Type Id */
@@ -21040,6 +21019,7 @@ export interface operations {
                 rolling_window: number;
                 use_poa_1d: boolean;
                 use_poa_std: boolean;
+                poa_tag_ids?: number[] | null;
                 resample_rate?: string;
             };
             header?: {
@@ -24886,43 +24866,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeviceTypePowerSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_clearsky_poa_v1_protected_web_application_projects__project_id__reports_clearsky_poa_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                resample_rate?: string | null;
-            };
-            header?: {
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -859,37 +859,6 @@ export const useGetSunburstData = ({
   })
 }
 
-export const useGetClearskyPOA = ({
-  pathParams,
-  queryOptions = {},
-  queryParams = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-  queryParams?: {
-    start?: string
-    end?: string
-    resample_rate?: string
-  }
-}) => {
-  const axiosConfig = {
-    url:
-      `/v1/protected/web-application/projects/` +
-      `${pathParams.projectId}/reports/clearsky-poa`,
-  }
-  const defaultQueryOptions = {
-    staleTime: QUERY_TIME.FIVE_MINUTES,
-  }
-
-  return useCustomQuery<DataTimeSeries[]>({
-    axiosConfig,
-    queryName: 'getClearskyPOA',
-    pathParams,
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetDegradationPOA = ({
   pathParams,
   queryOptions = {},

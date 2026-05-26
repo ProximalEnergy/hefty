@@ -32,6 +32,7 @@ export const useGetDCAmperageReportV2 = ({
     use_poa_1d: boolean
     use_poa_std: boolean
     resample_rate: string
+    poa_tag_ids?: number[]
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

@@ -140,11 +140,15 @@ export interface DataTimeSeries {
   yaxis: string
   name: string
   sensor_type_name: string
+  sensor_type_name_long?: string | null
   device_name_long: string
+  device_name_full?: string | null
   tag_name_scada: string
   tag_name_long: string
+  tag_name_full?: string | null
   device_id: number
   sensor_type_id: number
+  tag_id?: number
 }
 
 export interface DegradationPOA {

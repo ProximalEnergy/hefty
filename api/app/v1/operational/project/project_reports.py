@@ -13,8 +13,9 @@ from core.crud.project import tags as project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsort_keygen, natsorted
+from pandas._libs.missing import NAType
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -32,6 +33,28 @@ router = APIRouter(
     prefix="/reports",
     tags=["project_reports"],
 )
+
+
+def _get_nearest_ancestor_device_name(
+    *,
+    device_id_path: str | None,
+    ancestor_device_names_by_id: dict[int, str],
+) -> str | NAType:
+    """Find the nearest named ancestor in a device path.
+
+    Args:
+        device_id_path: Dot-delimited device ancestry path.
+        ancestor_device_names_by_id: Names keyed by eligible ancestor device ids.
+    """
+    if device_id_path is None or pd.isna(device_id_path):
+        return pd.NA
+
+    for ancestor_id in reversed([p for p in str(device_id_path).split(".") if p]):
+        ancestor_name = ancestor_device_names_by_id.get(int(ancestor_id))
+        if ancestor_name is not None:
+            return ancestor_name
+
+    return pd.NA
 
 
 @router.get("/pcs-apparent-vs-voltage")
@@ -156,6 +179,7 @@ async def dc_amperage_report_v2(
     rolling_window: int,
     use_poa_1d: bool,
     use_poa_std: bool,
+    poa_tag_ids: Annotated[list[int] | None, Query()] = None,
     resample_rate: str = "5min",
     project_db: Session = Depends(get_project_db),
     async_project_db: AsyncSession = Depends(get_project_db_async),
@@ -171,6 +195,7 @@ async def dc_amperage_report_v2(
         rolling_window: Description for rolling_window.
         use_poa_1d: Description for use_poa_1d.
         use_poa_std: Description for use_poa_std.
+        poa_tag_ids: Optional POA tag ids selected for clearsky filtering.
         resample_rate: Description for resample_rate.
         project_db: Description for project_db.
         async_project_db: Description for async_project_db.
@@ -191,6 +216,13 @@ async def dc_amperage_report_v2(
         output_type=OutputType.PANDAS,
         schema=project_schema,
     )
+    if poa_tag_ids:
+        poa_tags_df = poa_tags_df[poa_tags_df["tag_id"].astype(int).isin(poa_tag_ids)]
+    if poa_tags_df.empty:
+        raise HTTPException(
+            status_code=404,
+            detail="No selected POA tags found for this project",
+        )
     poa_tags = [
         models.Tag(**cast(dict[str, Any], record))
         for record in poa_tags_df.to_dict("records")
@@ -336,8 +368,17 @@ async def dc_amperage_report_v2(
         cb_device_id_to_modules_per_pv_source_circuit,
     )
 
-    df_cb_report["Parent Inverter"] = df_cb_report["parent_device_id"].map(
-        inv_devices_df["name_long"],
+    inverter_names_by_device_id = {
+        int(record["device_id"]): str(record["name_long"])
+        for record in inv_devices_df.reset_index()[["device_id", "name_long"]].to_dict(
+            "records"
+        )
+    }
+    df_cb_report["Parent Inverter"] = df_cb_report["device_id_path"].map(
+        lambda device_id_path: _get_nearest_ancestor_device_name(
+            device_id_path=device_id_path,
+            ancestor_device_names_by_id=inverter_names_by_device_id,
+        ),
     )
 
     df_cb_report["string_Vmp"] = df_cb_report["Vmp"] * df_cb_report["strings_per_cb"]

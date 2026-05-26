@@ -26,3 +26,7 @@
   
 ## Typescript
 - prefer mantine over custom css
+- In `web-app/src`, use absolute `@/` imports instead of relative internal
+  imports. For example, prefer
+  `@/features/projects/reports/dc-amperage-report/components/DcAmperageReportTextWithInfo`
+  over `./DcAmperageReportTextWithInfo`.

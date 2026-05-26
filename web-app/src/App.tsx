@@ -106,7 +106,6 @@ import ProjectKPIHome from '@/pages/projects/kpis/project-kpi-home/ProjectKPIHom
 import SparePartsPage from '@/pages/projects/maintenance/SpareParts'
 import WarrantyClaims from '@/pages/projects/maintenance/warranty-claims/WarrantyClaims'
 import BESSMonthlyReport from '@/pages/projects/reports/BESSMonthlyReport'
-import DCAmperageReport from '@/pages/projects/reports/DCAmperageReport'
 import DailyPerformanceReport from '@/pages/projects/reports/DailyPerformanceReport'
 import InverterAvailabilityReport from '@/pages/projects/reports/InverterAvailabilityReport'
 import ModuleDegradation from '@/pages/projects/reports/ModuleDegradation'
@@ -152,6 +151,7 @@ import {
   Routes,
   useLocation,
 } from 'react-router'
+import { DcAmperageReportRoute } from '@/features/projects/reports/dc-amperage-report/routes/DcAmperageReportRoute'
 
 // import CustomDashPage from '@/pages/projects/custom_dash/CustomDash'
 
@@ -470,7 +470,7 @@ const ClerkProviderWithRoutes = () => {
               <Route path="reports" element={<ProjectReportsPage />} />
               <Route
                 path="reports/dc-amperage"
-                element={<DCAmperageReport />}
+                element={<DcAmperageReportRoute />}
               />
               <Route
                 path="reports/module-degradation"

@@ -408,6 +408,31 @@ async def get_timeseries_v3(
     )
     tag_id_to_tag_name_scada = {tag.tag_id: tag.name_scada for tag in tags}
     tag_id_to_tag_name_long = {tag.tag_id: tag.name_long or "" for tag in tags}
+    tag_id_to_sensor_type_name_long = {
+        tag.tag_id: getattr(tag, "sensor_type_name_long", None) or "" for tag in tags
+    }
+    tag_id_to_device_name_full = {
+        tag.tag_id: " ".join(
+            part
+            for part in [
+                getattr(tag, "device_type_name_long", None),
+                tag_id_to_device_name_long.get(tag.tag_id, ""),
+            ]
+            if part
+        )
+        for tag in tags
+    }
+    tag_id_to_tag_name_full = {
+        tag.tag_id: " ".join(
+            part
+            for part in [
+                tag_id_to_device_name_full.get(tag.tag_id, ""),
+                tag_id_to_sensor_type_name_long.get(tag.tag_id, ""),
+            ]
+            if part
+        )
+        for tag in tags
+    }
     tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
     tag_id_to_sensor_type_id = {tag.tag_id: tag.sensor_type_id for tag in tags}
 
@@ -474,6 +499,9 @@ async def get_timeseries_v3(
         device_name_long = tag_id_to_device_name_long.get(tag_id, "")
         tag_name_scada = tag_id_to_tag_name_scada.get(tag_id, "")
         tag_name_long = tag_id_to_tag_name_long.get(tag_id, "")
+        sensor_type_name_long = tag_id_to_sensor_type_name_long.get(tag_id, "")
+        device_name_full = tag_id_to_device_name_full.get(tag_id, "")
+        tag_name_full = tag_id_to_tag_name_full.get(tag_id, "")
         device_id = tag_id_to_device_id.get(tag_id)
         sensor_type_id = tag_id_to_sensor_type_id.get(tag_id)
 
@@ -502,9 +530,12 @@ async def get_timeseries_v3(
             "yaxis": "y",
             "name": tag_name_scada,  # Use tag_name_scada as the trace name
             "sensor_type_name": sensor_type_name,
+            "sensor_type_name_long": sensor_type_name_long,
             "device_name_long": device_name_long,
+            "device_name_full": device_name_full,
             "tag_name_scada": tag_name_scada,
             "tag_name_long": tag_name_long,
+            "tag_name_full": tag_name_full,
             "device_id": device_id if device_id is not None else 0,
             "sensor_type_id": sensor_type_id if sensor_type_id is not None else 0,
             "tag_id": tag_id,  # Include tag_id for matching

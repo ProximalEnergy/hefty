@@ -89,34 +89,59 @@ function isInsideFeature(absPath, features) {
   return null
 }
 
+async function directoryContainsFeatureSubfolders(directoryEntries) {
+  return directoryEntries.some(
+    (entry) => entry.isDirectory() && ALLOWED_SUBFOLDERS.has(entry.name),
+  )
+}
+
 async function findFeatures() {
   const featuresPath = join(ROOT, FEATURES_DIR)
   if (!(await isDir(featuresPath))) {
     console.error(`error: ${FEATURES_DIR} not found (cwd: ${ROOT})`)
     process.exit(2)
   }
-  const groups = await readdir(featuresPath, { withFileTypes: true })
   const features = []
-  for (const g of groups) {
-    if (!g.isDirectory()) continue
-    if (!KEBAB.test(g.name)) {
+
+  async function visitGroup(groupPath, groupParts) {
+    const entries = await readdir(groupPath, { withFileTypes: true })
+
+    if (await directoryContainsFeatureSubfolders(entries)) {
+      const featureName = groupParts.at(-1)
+      const groupName = groupParts.slice(0, -1).join('/')
+      features.push({
+        group: groupName,
+        name: featureName,
+        path: groupPath,
+        importRoot: `@/features/${groupParts.join('/')}`,
+      })
+      return
+    }
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      if (!KEBAB.test(entry.name)) {
+        push(
+          'group-kebab-case',
+          join(groupPath, entry.name),
+          `group folder "${entry.name}" is not kebab-case`,
+        )
+      }
+      await visitGroup(join(groupPath, entry.name), [...groupParts, entry.name])
+    }
+  }
+
+  const groups = await readdir(featuresPath, { withFileTypes: true })
+  for (const group of groups) {
+    if (!group.isDirectory()) continue
+    if (!KEBAB.test(group.name)) {
       push(
         'group-kebab-case',
-        join(featuresPath, g.name),
-        `group folder "${g.name}" is not kebab-case`,
+        join(featuresPath, group.name),
+        `group folder "${group.name}" is not kebab-case`,
       )
     }
-    const groupPath = join(featuresPath, g.name)
-    const entries = await readdir(groupPath, { withFileTypes: true })
-    for (const e of entries) {
-      if (!e.isDirectory()) continue
-      features.push({
-        group: g.name,
-        name: e.name,
-        path: join(groupPath, e.name),
-        importRoot: `@/features/${g.name}/${e.name}`,
-      })
-    }
+    await visitGroup(join(featuresPath, group.name), [group.name])
   }
   return features
 }
