@@ -3428,8 +3428,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
+         *         project_id: Description for project_id.
          *         document_id: Description for document_id.
          *         db: Description for db.
+         *         user: Description for user.
          */
         delete: operations["delete_project_document_route_v1_operational_projects__project_id__documents__document_id__delete"];
         options?: never;
@@ -18957,8 +18959,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                document_id: string;
                 project_id: string;
+                document_id: string;
             };
             cookie?: never;
         };

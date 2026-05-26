@@ -404,16 +404,30 @@ async def search_contract_content(
 
 @router.delete("/{document_id}", response_model=interfaces.Message)
 async def delete_project_document_route(
+    project_id: UUID,
     document_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user: Annotated[interfaces.UserAuthed, Depends(get_user)],
 ) -> interfaces.Message:
-    # Check if document is associated with a contract
     """todo
 
     Args:
+        project_id: Description for project_id.
         document_id: Description for document_id.
         db: Description for db.
+        user: Description for user.
     """
+    documents = await crud_get_project_documents(
+        db=db,
+        document_ids=[document_id],
+        project_ids=[project_id],
+        company_ids=[user.company_id],
+    )
+    if not documents:
+        raise HTTPException(status_code=404, detail="Document not found")
+    document = documents[0]
+
+    # Check if document is associated with a contract
     associated_contracts = await crud_get_contracts_by_document_id(
         db=db, document_id=document_id
     )
@@ -425,10 +439,6 @@ async def delete_project_document_route(
                 "contract."
             ),
         )
-
-    # Query document
-    documents = await crud_get_project_documents(db=db, document_ids=[document_id])
-    document = documents[0]
 
     try:
         # Delete document from OpenAI
@@ -457,6 +467,11 @@ async def delete_project_document_route(
         )
 
     # Delete document from database
-    await crud_delete_project_document(db=db, document_id=document_id)
+    await crud_delete_project_document(
+        db=db,
+        document_id=document_id,
+        project_id=project_id,
+        company_id=user.company_id,
+    )
 
     return interfaces.Message(message="Document deleted successfully")

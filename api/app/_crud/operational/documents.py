@@ -67,15 +67,21 @@ async def delete_project_document(
     db: AsyncSession,
     *,
     document_id: UUID,
+    project_id: UUID,
+    company_id: UUID,
 ):
-    """Delete a document by identifier.
+    """Delete a document by scoped identifiers.
 
     Args:
         db: Database session.
         document_id: Document identifier to delete.
+        project_id: Project identifier owning the document.
+        company_id: Company identifier owning the document.
     """
     delete_stmt = delete(models.Document).where(
         models.Document.document_id == document_id,
+        models.Document.project_id == project_id,
+        models.Document.company_id == company_id,
     )
     await db.execute(delete_stmt)
     await db.commit()
