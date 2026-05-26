@@ -679,8 +679,9 @@ const ProjectHome = () => {
                   <Text component="span" fw={500}>
                     Note:
                   </Text>{' '}
-                  Values are averaged over the last hour and updated every 5
-                  minutes.
+                  Values are instantaneous (not averaged) and mapped to the next
+                  minute timestamp. For example, the last known value from
+                  4:10:00 to 4:10:59 is shown at 4:11.
                 </Text>
               </Stack>
             }
