@@ -75,10 +75,10 @@ else
     exit 1
 fi
 
-if [ -f "core/models.py" ]; then
-    echo "   ✓ core/models.py found"
+if [ -f "core/models/__init__.py" ]; then
+    echo "   ✓ core/models/__init__.py found"
 else
-    echo "   ❌ core/models.py NOT found"
+    echo "   ❌ core/models/__init__.py NOT found"
     exit 1
 fi
 
@@ -178,7 +178,8 @@ REQUIRED_FILES=(
     "app/"
     "core/"
     "core/__init__.py"
-    "core/models.py"
+    "core/models/"
+    "core/models/__init__.py"
     "requirements.txt"
     "Procfile"
     ".ebextensions/"
@@ -244,10 +245,10 @@ else
     exit 1
 fi
 
-if python3 -c "import sys; import ast; ast.parse(open('core/models.py').read())" 2>/dev/null; then
-    echo "   ✓ core/models.py has valid Python syntax"
+if find core/models -type f -name '*.py' -print0 | xargs -0 python3 -m py_compile; then
+    echo "   ✓ core/models package has valid Python syntax"
 else
-    echo "   ❌ core/models.py has syntax errors"
+    echo "   ❌ core/models package has syntax errors"
     exit 1
 fi
 
