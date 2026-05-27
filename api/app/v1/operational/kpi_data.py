@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from core.crud.operational.kpi_data import core_get_kpi_data
 from core.db_query import OutputType
+from core.enumerations import UserTypeEnum
 from fastapi import APIRouter, Depends, Query
 
 from app import interfaces
@@ -28,7 +29,7 @@ async def get_kpi_data_route(
         datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)
     ],
     end: datetime.date,
-    project_ids: Annotated[list[uuid.UUID], Query()] = [],
+    project_ids: Annotated[list[uuid.UUID] | None, Query()] = None,
     kpi_type_ids: Annotated[list[int], Query()] = [],
     include_device_data: bool = True,
     include_all_dates: bool = True,
@@ -45,14 +46,26 @@ async def get_kpi_data_route(
         user_data: Description for user_data.
         include_all_dates: Description for include_all_dates.
     """
-    project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
+    if project_ids is None and user_data.user_type_id == UserTypeEnum.SUPERADMIN:
+        scoped_project_ids = None
+    elif project_ids is None:
+        scoped_project_ids = user_data.operational_project_ids
+    elif user_data.user_type_id == UserTypeEnum.SUPERADMIN:
+        scoped_project_ids = project_ids
+    else:
+        allowed_project_ids = set(user_data.operational_project_ids)
+        scoped_project_ids = [
+            project_id
+            for project_id in project_ids
+            if project_id in allowed_project_ids
+        ]
 
     # NOTE: Logic was separated out into a helper function so that other endpoints can
     # use the same logic
     return await get_kpi_data_helper(
         start=start,
         end=end,
-        project_ids=project_ids,
+        project_ids=scoped_project_ids,
         kpi_type_ids=kpi_type_ids,
         include_device_data=include_device_data,
         include_all_dates=include_all_dates,
@@ -63,7 +76,7 @@ async def get_kpi_data_helper(
     *,
     start: datetime.date,
     end: datetime.date,
-    project_ids: list[uuid.UUID],
+    project_ids: list[uuid.UUID] | None,
     kpi_type_ids: list[int],
     include_device_data: bool,
     include_all_dates: bool = True,
@@ -78,6 +91,9 @@ async def get_kpi_data_helper(
         include_device_data: Description for include_device_data.
         include_all_dates: Description for include_all_dates.
     """
+    if project_ids is not None and len(project_ids) == 0:
+        return []
+
     date_range = pd.date_range(start=start, end=end, freq="D", inclusive="left")
 
     # Query KPI data

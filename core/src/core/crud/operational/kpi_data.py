@@ -198,7 +198,7 @@ def core_get_kpi_data(
     kpi_type_ids: list[int],
     start: datetime.date,
     end: datetime.date,
-    project_ids: list[UUID] = [],
+    project_ids: list[UUID] | None = None,
     include_device_data: bool = True,
 ) -> DbQuery[models.OperationalKPIData, Literal[False]]:
     """
@@ -208,7 +208,7 @@ def core_get_kpi_data(
         kpi_type_ids: List of KPI type IDs to query.
         start: Start date.
         end: End date.
-        project_ids: List of project IDs to query.
+        project_ids: List of project IDs to query. Empty lists return no rows.
         include_device_data: Whether to include device data.
     """
     columns = list(models.OperationalKPIData.__table__.columns)
@@ -222,8 +222,11 @@ def core_get_kpi_data(
             for column in columns
         ]
     query = select(*columns)
-    if project_ids:
-        query = query.where(models.OperationalKPIData.project_id.in_(project_ids))
+    if project_ids is not None:
+        if len(project_ids) == 0:
+            query = query.where(sa.false())
+        else:
+            query = query.where(models.OperationalKPIData.project_id.in_(project_ids))
     if kpi_type_ids:
         query = query.where(models.OperationalKPIData.kpi_type_id.in_(kpi_type_ids))
     query = query.where(models.OperationalKPIData.date >= start)
