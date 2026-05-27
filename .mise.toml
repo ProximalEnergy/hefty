@@ -436,6 +436,15 @@ dir = "{{config_root}}"
 run = "./_scripts/check_duplicate_classes.sh"
 
 # =============================================================================
+# SUPER-ADMIN TASKS (runs in ./super-admin directory)
+# =============================================================================
+
+[tasks."super-admin:uploaded-documents"]
+description = "Generate HTML report of uploaded project documents"
+dir = "super-admin/uploaded-documents"
+run = "uv sync && uv run uploaded-documents"
+
+# =============================================================================
 # CORE TASKS (runs in ./core directory)
 # =============================================================================
 
