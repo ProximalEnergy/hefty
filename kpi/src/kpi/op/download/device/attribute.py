@@ -1,15 +1,18 @@
+from typing import Literal
+
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from kpi.base.protocol import DeviceProtocol, device_protocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
-from kpi.op.download.util import NoInputsModel
 from kpi.op.field import Field
+from kpi.op.node import NodeModel
 
 
 @device_protocol
-class DeviceAttributeModel(NoInputsModel):
+class DeviceAttributeModel(NodeModel):
+    kind: Literal["DeviceAttributeModel"] = "DeviceAttributeModel"
     device_type: DeviceTypeEnum
     source_field_name: str
     scale: float | None

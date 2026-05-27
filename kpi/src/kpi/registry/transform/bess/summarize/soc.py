@@ -6,7 +6,6 @@ SOC balance score, Depth of Discharge, and Cycle Count.
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
-from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.agg.across_devices import mean_across_devices
 from kpi.domain.agg.other import daily_mean_across_devices
@@ -14,8 +13,8 @@ from kpi.domain.agg.resample import resample_mean
 from kpi.domain.bess import cycle_count, depth_of_discharge, soc_balance_score
 from kpi.domain.util import diff
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, grouper, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import DeviceTypeConstant, grouper, required
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.device.bess.hierarchy import DownloadDeviceBessHierarchy
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
@@ -101,7 +100,7 @@ def pcs_string_soc_variance_d(
     return daily.where(daily_coverage >= min_data_coverage)
 
 
-class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
+class TransformBessSummarizeSoc(FieldRegistry[MethodCalc]):
     # blocks, modules (distinct from pcs modules), and enclosures not
     # implemented because they are being deprecated
 
@@ -164,7 +163,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_pcs_string_soc_variance_d = calc_field(mean_across_devices)(
         x=required(pcs_string_soc_variance_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_STRING_SOC_BALANCE_SCORE (121)
@@ -187,7 +186,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_bank_soc_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.bank_soc_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BANK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BANK),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -199,7 +198,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_bank_resting_soc_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.bank_resting_soc_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BANK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BANK),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -217,7 +216,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_bank_cycle_count_d = calc_field(mean_across_devices)(
         x=required(bank_cycle_count_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BANK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BANK),
     )
 
     # =======================================================
@@ -231,7 +230,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_block_cycle_count_d = calc_field(mean_across_devices)(
         x=required(block_cycle_count_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BLOCK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BLOCK),
     )
 
     # BESS_BLOCK_RESTING_SOC_PERCENT (12)
@@ -242,7 +241,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_block_resting_soc_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.block_resting_soc_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BLOCK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BLOCK),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -253,7 +252,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_block_soc_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.block_soc_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BLOCK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BLOCK),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -268,7 +267,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_string_soc_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.string_soc_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -280,7 +279,7 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_string_resting_soc_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.string_resting_soc_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -298,5 +297,5 @@ class TransformBessSummarizeSoc(FieldRegistry[CalcProtocol]):
 
     project_avg_string_cycle_count_d = calc_field(mean_across_devices)(
         x=required(string_cycle_count_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )

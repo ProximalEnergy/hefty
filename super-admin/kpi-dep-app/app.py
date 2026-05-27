@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from kpi.op.plan import MultiFieldPlan, PipelinePlan, get_plan
 from kpi.registry.download.api import DownloadSensor
 from kpi.registry.upload.api import UPLOAD
-from kpi.schema.api import BasePipeline
+from kpi.schema.api import base_pipeline
 from sqlalchemy import select, text
 
 from core import models
@@ -292,9 +292,8 @@ def get_sensor_type_ids_for_kpis(*, kpi_type_ids: list[int]) -> list[int]:
     """Return sensor_type_ids required by selected KPI pipeline outputs."""
     if not kpi_type_ids:
         return []
-    pipeline = BasePipeline()
     plan = get_plan(
-        schema=pipeline, outputs={KPITypeEnum(idx).name for idx in kpi_type_ids}
+        schema=base_pipeline, outputs={KPITypeEnum(idx).name for idx in kpi_type_ids}
     )
 
     download_plan = plan.steps.get("download")

@@ -1,4 +1,3 @@
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.bess import (
     clean_cell_voltage,
     clean_power,
@@ -9,7 +8,7 @@ from kpi.domain.bess import (
 from kpi.domain.general import filter_by_value
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess as Sensor
 from kpi.registry.transform.bess.clean.device_attribute import (
     TransformBessCleanDeviceAttribute as Device,
@@ -19,7 +18,7 @@ from kpi.registry.transform.bess.clean.project_attribute import (
 )
 
 
-class TransformBessCleanSensor(FieldRegistry[CalcProtocol]):
+class TransformBessCleanSensor(FieldRegistry[MethodCalc]):
     # =======================================================
     # Power
     # =======================================================

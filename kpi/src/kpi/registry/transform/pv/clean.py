@@ -2,7 +2,6 @@ import xarray as xr
 
 from kpi.base.enumeration import TimeCoord
 from kpi.base.exception import ValidationError
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import (
     apply_filter,
     diff,
@@ -14,7 +13,7 @@ from kpi.domain.util import (
 )
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import Constant, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.device.pv.attribute import (
     DownloadDevicePvAttribute as Device,
 )
@@ -79,7 +78,7 @@ def met_poa_irradiance_w_m2_5m(x: xr.DataArray) -> xr.DataArray:
     return x.where(~flat_mask)
 
 
-class TransformPvClean(FieldRegistry[CalcProtocol]):
+class TransformPvClean(FieldRegistry[MethodCalc]):
     # =======================================================
     # Project Attributes
     # =======================================================

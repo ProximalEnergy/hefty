@@ -1,9 +1,10 @@
 import warnings
+from typing import Literal
 
 import xarray as xr
 from core.enumerations import KPITypeEnum
 from kpi.base.context import get_context
-from kpi.base.protocol import node_protocol, schema_protocol
+from kpi.base.protocol import schema_protocol
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_by_id
 from kpi.infra.write_kpi import (
@@ -14,28 +15,30 @@ from kpi.infra.write_kpi import (
 from kpi.infra.write_kpi import (
     kpi_get_kpi_instances as get_kpi_instances,
 )
-from kpi.op.download.util import NoInputsModel
-from kpi.op.field import FieldRef
+from kpi.op.node import NodeModel, node_type
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import select_optional, select_var
+from pydantic import BaseModel
 
 
-@node_protocol
-class UploadModel(NoInputsModel):
+@node_type
+class UploadModel(NodeModel):
+    kind: Literal["UploadModel"] = "UploadModel"
+
     kpi_type: KPITypeEnum
     version: str
-    project_var: FieldRef
-    device_var: FieldRef | None = None
+    project_var: str
+    device_var: str | None = None
     scale: float | None = None
     offset: float | None = None
 
     def inputs(self) -> set[str]:
         return (
-            {self.project_var.name, self.device_var.name}
+            {self.project_var, self.device_var}
             if self.device_var is not None
-            else {self.project_var.name}
+            else {self.project_var}
         )
 
 
@@ -53,7 +56,10 @@ def merge_upload_maps_strict(
 
 
 @schema_protocol
-class UploadSchema(SchemaAbstract[UploadModel]):
+class UploadSchema(BaseModel, SchemaAbstract[UploadModel]):
+    kind: Literal["UploadSchema"] = "UploadSchema"
+    map: dict[str, UploadModel]
+
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
 
@@ -75,7 +81,7 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                     continue
                 device_data = None
                 if model.device_var is not None:
-                    device_data = select_optional(dataset, model.device_var.name)
+                    device_data = select_optional(dataset, model.device_var)
                     if device_data is not None:
                         device_data = scale_offset(
                             device_data, scale=model.scale, offset=model.offset
@@ -83,7 +89,7 @@ class UploadSchema(SchemaAbstract[UploadModel]):
                 data_rows.extend(
                     arrays_to_rows(
                         project_data=scale_offset(
-                            select_var(dataset, model.project_var.name),
+                            select_var(dataset, model.project_var),
                             scale=model.scale,
                             offset=model.offset,
                         ),

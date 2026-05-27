@@ -7,8 +7,7 @@ from kpi.op.plan import MultiFieldPlan, SingleFieldPlan
 
 @schema_protocol
 class SchemaAbstract[T: NodeProtocol](ABC):
-    def __init__(self, map: dict[str, T]) -> None:
-        self.map = map
+    map: dict[str, T]
 
     @abstractmethod
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:

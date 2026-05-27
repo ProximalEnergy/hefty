@@ -3,18 +3,18 @@
 from kpi.registry.api import FULL_REGISTRY
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 from kpi.registry.upload.api import UPLOAD
-from kpi.schema.api import BasePipeline
+from kpi.schema.api import base_pipeline
 
 NER_INPUTS = {
-    Eval.physical_total_usd_h.ref.name,
-    Eval.virtual_net_usd_h.ref.name,
-    Eval.project_ner_availability_h.ref.name,
+    Eval.physical_total_usd_h.name,
+    Eval.virtual_net_usd_h.name,
+    Eval.project_ner_availability_h.name,
 }
 
 
 def test_no_orphan_workflow_fields() -> None:
     """Every defined field must lie on a path to some uploaded KPI field."""
-    pipeline = BasePipeline()
+    pipeline = base_pipeline
     upload_keys = set(UPLOAD.keys()) | set(NER_INPUTS)
     plan = pipeline.full_plan()
     inputs = plan.trim(upload_keys, delete=False)

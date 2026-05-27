@@ -9,9 +9,9 @@ from kpi.schema.api import get_pipeline
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 NER_INPUTS = {
-    Eval.physical_total_usd_h.ref.name,
-    Eval.virtual_net_usd_h.ref.name,
-    Eval.project_ner_availability_h.ref.name,
+    Eval.physical_total_usd_h.name,
+    Eval.virtual_net_usd_h.name,
+    Eval.project_ner_availability_h.name,
 }
 
 project_id = ProjectID.GREGORY_INDIE.value
@@ -24,8 +24,7 @@ load_dotenv()
 set_global_observer(LocalObserver())
 
 
-Pipeline = get_pipeline(project_id=project_id)
-pipeline = Pipeline()
+pipeline = get_pipeline(project_id=project_id)
 
 plan = get_plan(
     schema=pipeline,
@@ -37,14 +36,10 @@ dataset = create_dataset(
     start_date=start_date,
     end_date=end_date,
 )
-dataset = pipeline.download.run(
-    dataset=dataset, plan=plan.steps[Pipeline.download.name]
-)
+dataset = pipeline.run_step(dataset=dataset, plan=plan, step_name="download")
 
 
-ds = tidy(
-    pipeline.transform.run(dataset=dataset, plan=plan.steps[Pipeline.transform.name])
-)
+ds = tidy(pipeline.run_step(dataset=dataset, plan=plan, step_name="transform"))
 print(ds)
 
 

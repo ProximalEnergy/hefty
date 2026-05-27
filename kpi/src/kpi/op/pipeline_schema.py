@@ -1,60 +1,41 @@
-from typing import Self, overload
+from typing import Annotated, Literal, Self
 
+import pydantic as pyd
 import xarray as xr
-from kpi.base.protocol import SchemaProtocol, schema_protocol
+from kpi.base.protocol import schema_protocol
+from kpi.op.download.api import DownloadSchemaType
 from kpi.op.observer import observe
-from kpi.op.plan import PipelinePlan
+from kpi.op.plan import MultiFieldPlan, PipelinePlan
+from kpi.op.transform.schema import CalcSchema
+from kpi.op.upload import UploadSchema
+from pydantic import BaseModel
 
-
-class Schema:
-    value: SchemaProtocol
-
-    def __init__(self, value: SchemaProtocol) -> None:
-        self.value = value
-        self._name: str | None = None
-
-    def __set_name__(self, owner: type, name: str) -> None:
-        del owner
-        self._name = name
-
-    @property
-    def name(self) -> str:
-        if self._name is None:
-            raise AttributeError("name not set yet (__set_name__ not called)")
-        return self._name
-
-    @overload
-    def __get__(self, instance: None, owner: type) -> Self: ...
-
-    @overload
-    def __get__(self, instance: object, owner: type) -> SchemaProtocol: ...
-
-    def __get__(self, instance: object | None, owner: type) -> SchemaProtocol | Self:
-        del owner
-        if instance is None:
-            return self
-
-        return self.value
+SchemaType = DownloadSchemaType | CalcSchema | UploadSchema
 
 
 @schema_protocol
-class PipelineSchema:
-    map: dict[str, SchemaProtocol]
-
-    def __init__(self) -> None:
-        mapping = {}
-        for base in reversed(type(self).__mro__):
-            for name, schema in base.__dict__.items():
-                if isinstance(schema, Schema):
-                    mapping[name] = schema.value
-
-        self.map = mapping
+class PipelineSchema(BaseModel):
+    kind: Literal["PipelineSchema"] = "PipelineSchema"
+    map: dict[str, Annotated[Self | SchemaType, pyd.Field(discriminator="kind")]]
 
     def run(self, dataset: xr.Dataset, plan: PipelinePlan) -> xr.Dataset:
-        for schema_name, sub_plan in plan.steps.items():
-            with observe():
-                dataset = self.map[schema_name].run(dataset=dataset, plan=sub_plan)
+        for schema_name in plan.steps.keys():
+            dataset = self.run_step(dataset=dataset, plan=plan, step_name=schema_name)
         return dataset
+
+    def run_step(
+        self, dataset: xr.Dataset, plan: PipelinePlan, step_name: str
+    ) -> xr.Dataset:
+        sub_plan = plan.steps[step_name]
+        schema = self.map[step_name]
+        with observe():
+            if isinstance(schema, PipelineSchema):
+                if not isinstance(sub_plan, PipelinePlan):
+                    raise TypeError("PipelineSchema requires PipelinePlan")
+                return schema.run(dataset=dataset, plan=sub_plan)
+            if not isinstance(sub_plan, MultiFieldPlan):
+                raise TypeError("Leaf schema requires MultiFieldPlan")
+            return schema.run(dataset=dataset, plan=sub_plan)
 
     def full_plan(self) -> PipelinePlan:
         return PipelinePlan(

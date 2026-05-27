@@ -98,7 +98,7 @@ def lambda_handler(event, _context):
 
     pipeline = get_pipeline(
         project_id=project_id,
-    )()
+    )
 
     with observe():
         output_kpis: set[str] = set()

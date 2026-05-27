@@ -1,9 +1,9 @@
 from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_ercot_settlement_point_types(

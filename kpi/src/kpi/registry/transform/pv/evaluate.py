@@ -4,7 +4,6 @@ import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
 from kpi.base.enumeration import TimeCoord
-from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.agg.across_devices import mean_across_devices
 from kpi.domain.agg.resample import resample_diff, resample_sum
@@ -13,14 +12,14 @@ from kpi.domain.pv import theoretical_poa_irradiance
 from kpi.domain.util import diff, fill_na_with_arrays
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import (
-    Constant,
+    DeviceTypeConstant,
     TimeCoordArg,
     TimeZone,
     grouper,
     optional,
     required,
 )
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.expected_energy import DownloadExpectedEnergy as Expected
 from kpi.registry.download.sensor.pv import DownloadSensorPv
@@ -172,7 +171,7 @@ def tracker_row_setpoint_deviation_from_median_deg_5m(
     return abs(setpoint - setpoint.median(dim=coord(DeviceTypeEnum.TRACKER_ROW)))
 
 
-class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
+class TransformPvEvaluate(FieldRegistry[MethodCalc]):
     time_local_5m = calc_field(time_local_5m)(
         time_5m_utc=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
         time_zone=TimeZone(),
@@ -215,7 +214,7 @@ class TransformPvEvaluate(FieldRegistry[CalcProtocol]):
 
     project_poa_irradiance_w_m2_5m = calc_field(mean_across_devices)(
         required(Clean.met_poa_irradiance_w_m2_5m),
-        device_type=Constant(value=DeviceTypeEnum.MET_STATION),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.MET_STATION),
     )
 
     project_insolation_d = calc_field(project_insolation_d)(

@@ -16,18 +16,6 @@ class NodeProtocol(Protocol):
     def inputs(self) -> set[str]: ...
 
 
-def node_protocol[P: NodeProtocol](cls: type[P]) -> type[P]:
-    return cls
-
-
-class CalcProtocol(NodeProtocol, Protocol):
-    def run(self, dataset: xr.Dataset) -> xr.DataArray: ...
-
-
-def calc_protocol[P: CalcProtocol](cls: type[P]) -> type[P]:
-    return cls
-
-
 class ProjectAttributeProtocol(NodeProtocol, Protocol):
     def run(self, project: models.Project) -> xr.DataArray: ...
 
@@ -72,14 +60,6 @@ class ArgProtocol[T](Protocol):
     def input_name(self) -> str | None: ...
 
     def extract(self, dataset: xr.Dataset) -> T: ...
-
-
-def arg_protocol[P: ArgProtocol](cls: type[P]) -> type[P]:
-    return cls
-
-
-class CalcFactoryProtocol(Protocol):
-    def __call__(self, *args: ArgProtocol, **kwargs: ArgProtocol) -> CalcProtocol: ...
 
 
 class PlanProtocol(Protocol):

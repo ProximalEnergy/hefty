@@ -4,18 +4,17 @@ power-based computations including C-rates and hours charging/discharging.
 
 from core.enumerations import DeviceTypeEnum
 
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import mean_across_devices
 from kpi.domain.agg.other import daily_mean_across_devices
 from kpi.domain.agg.resample import resample_mean
 from kpi.domain.general import count_daily_hours_from_5m
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, grouper, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import DeviceTypeConstant, grouper, required
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
 
-class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
+class TransformBessSummarizePower(FieldRegistry[MethodCalc]):
     # =======================================================
     # Project level
     # =======================================================
@@ -66,7 +65,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_pcs_c_rate_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.pcs_c_rate_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -78,7 +77,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_pcs_c_rate_while_charging_d = calc_field(mean_across_devices)(
         x=required(pcs_avg_c_rate_while_charging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_AVERAGE_C_RATE_WHILE_DISCHARGING (79)
@@ -89,7 +88,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_pcs_c_rate_while_discharging_d = calc_field(mean_across_devices)(
         x=required(pcs_avg_c_rate_while_discharging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_HOURS_CHARGING (81)
@@ -100,7 +99,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_pcs_hours_charging_d = calc_field(mean_across_devices)(
         x=required(pcs_hours_charging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_HOURS_DISCHARGING (82)
@@ -111,7 +110,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_pcs_hours_discharging_d = calc_field(mean_across_devices)(
         required(pcs_hours_discharging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_HOURS_IDLING (85)
@@ -122,7 +121,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_pcs_hours_idling_d = calc_field(mean_across_devices)(
         x=required(pcs_hours_idling_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_AVG_REAL_AC_POWER_WHILE_CHARGING (89)
@@ -133,7 +132,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_pcs_real_ac_power_while_charging_d = calc_field(mean_across_devices)(
         x=required(pcs_avg_real_ac_power_while_charging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_AVG_REAL_AC_POWER_WHILE_DISCHARGING (90)
@@ -144,7 +143,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_pcs_real_ac_power_while_discharging_d = calc_field(mean_across_devices)(
         x=required(pcs_avg_real_ac_power_while_discharging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # =======================================================
@@ -158,7 +157,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_string_c_rate_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.string_c_rate_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -170,7 +169,7 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_string_c_rate_while_charging_d = calc_field(mean_across_devices)(
         x=required(string_avg_c_rate_while_charging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_AVG_C_RATE_WHILE_DISCHARGING (63)
@@ -181,5 +180,5 @@ class TransformBessSummarizePower(FieldRegistry[CalcProtocol]):
 
     project_avg_string_c_rate_while_discharging_d = calc_field(mean_across_devices)(
         x=required(string_avg_c_rate_while_discharging_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )

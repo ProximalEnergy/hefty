@@ -1,16 +1,29 @@
+from typing import Annotated, Literal
+
+import pydantic as pyd
 import xarray as xr
 from kpi.base.context import get_context
 from kpi.base.exception import MissingStaticDataError, NoDownloadedDataError
-from kpi.base.protocol import DeviceProtocol, schema_protocol
+from kpi.base.protocol import schema_protocol
 from kpi.infra.download.devices import download_device_df
+from kpi.op.download.device.attribute import DeviceAttributeModel
+from kpi.op.download.device.hierarchy import DeviceHierarchyModel
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
+from pydantic import BaseModel
+
+DeviceNode = Annotated[
+    DeviceAttributeModel | DeviceHierarchyModel, pyd.Field(discriminator="kind")
+]
 
 
 @schema_protocol
-class DeviceSchema(SchemaAbstract[DeviceProtocol]):
+class DeviceSchema(BaseModel, SchemaAbstract[DeviceNode]):
+    kind: Literal["DeviceSchema"] = "DeviceSchema"
+    map: dict[str, DeviceNode]
+
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         field_names = plan.outputs()
         device_type_ids = set[int]().union(

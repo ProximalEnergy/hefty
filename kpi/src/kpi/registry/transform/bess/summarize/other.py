@@ -6,7 +6,6 @@ import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
 from kpi.base.enumeration import TimeCoord
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import (
     max_across_devices,
     mean_across_devices,
@@ -22,8 +21,13 @@ from kpi.domain.agg.resample import (
 from kpi.domain.bess import is_charging, is_discharging
 from kpi.domain.util import diff
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, grouper, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import (
+    DeviceTypeConstant,
+    TimeCoordConstant,
+    grouper,
+    required,
+)
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
@@ -100,7 +104,7 @@ def project_avg_string_current_while_discharging_amps_d(
     )
 
 
-class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
+class TransformBessSummarizeOther(FieldRegistry[MethodCalc]):
     # =======================================================
     # SoH
     # =======================================================
@@ -115,7 +119,8 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     )
 
     project_bank_soh_d = calc_field(mean_across_devices)(
-        required(bank_soh_d), device_type=Constant(value=DeviceTypeEnum.BESS_BANK)
+        required(bank_soh_d),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BANK),
     )
 
     # BESS_STRING_SOH (54)
@@ -124,7 +129,8 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
     )
 
     project_string_soh_d = calc_field(mean_across_devices)(
-        required(string_soh_d), device_type=Constant(value=DeviceTypeEnum.BESS_STRING)
+        required(string_soh_d),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # =======================================================
@@ -133,11 +139,12 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     # BESS_STRING_DEGRADATION (80)
     string_degradation_d = calc_field(diff)(
-        required(string_soh_d), time_dim=Constant(value=TimeCoord.DATE_LOCAL)
+        required(string_soh_d), time_dim=TimeCoordConstant(value=TimeCoord.DATE_LOCAL)
     )
 
     project_string_degradation_d = calc_field(diff)(
-        required(project_string_soh_d), time_dim=Constant(value=TimeCoord.DATE_LOCAL)
+        required(project_string_soh_d),
+        time_dim=TimeCoordConstant(value=TimeCoord.DATE_LOCAL),
     )
 
     # =======================================================
@@ -152,7 +159,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_string_min_module_temp_d = calc_field(min_across_devices)(
         x=required(string_min_module_temp_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_MAX_MODULE_TEMP (60)
@@ -163,7 +170,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_string_max_module_temp_d = calc_field(max_across_devices)(
         x=required(string_max_module_temp_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_AVG_MODULE_TEMP (61)
@@ -174,7 +181,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_string_avg_module_temp_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.string_avg_module_temp_c_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -186,7 +193,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_string_avg_cell_temperature_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.string_avg_cell_temp_c_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -198,7 +205,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_max_cell_temperature_d = calc_field(max_across_devices)(
         x=required(string_max_cell_temperature_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_MIN_CELL_TEMPERATURE (74)
@@ -209,7 +216,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_min_cell_temperature_d = calc_field(min_across_devices)(
         x=required(string_min_cell_temperature_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # =======================================================
@@ -224,7 +231,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_min_cell_voltage_d = calc_field(min_across_devices)(
         x=required(string_min_cell_voltage_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_AVG_CELL_VOLTAGE (65)
@@ -235,7 +242,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_avg_cell_voltage_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.string_avg_cell_voltage_v_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -247,7 +254,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_max_cell_voltage_d = calc_field(max_across_devices)(
         x=required(string_max_cell_voltage_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # =======================================================
@@ -262,7 +269,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_avg_string_current_amps_d = calc_field(daily_mean_across_devices)(
         value=required(Clean.string_current_amps_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -274,7 +281,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_max_string_current_amps_d = calc_field(max_across_devices)(
         x=required(string_max_current_amps_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_MIN_CURRENT (69)
@@ -285,7 +292,7 @@ class TransformBessSummarizeOther(FieldRegistry[CalcProtocol]):
 
     project_min_string_current_amps_d = calc_field(min_across_devices)(
         x=required(string_min_current_amps_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_AVG_CURRENT_WHILE_CHARGING (70)

@@ -1,26 +1,33 @@
+from typing import Literal
+
 import xarray as xr
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from kpi.base.context import get_context
-from kpi.base.protocol import node_protocol, schema_protocol
+from kpi.base.protocol import schema_protocol
 from kpi.infra.download.sensor import get_existing_columns_df
 from kpi.infra.download.status import download_status_df, get_tag_df
 from kpi.infra.pandas_to_xarray import pandas_device_time_series_to_xarray
-from kpi.op.download.util import NoInputsModel
+from kpi.op.node import NodeModel, node_type
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
+from pydantic import BaseModel
 
 
-@node_protocol
-class StatusModel(NoInputsModel):
+@node_type
+class StatusModel(NodeModel):
+    kind: Literal["StatusModel"] = "StatusModel"
     sensor_type: SensorTypeEnum
     device_type: DeviceTypeEnum
     failure_modes: list[int]
 
 
 @schema_protocol
-class StatusSchema(SchemaAbstract[StatusModel]):
+class StatusSchema(BaseModel, SchemaAbstract[StatusModel]):
+    kind: Literal["StatusSchema"] = "StatusSchema"
+    map: dict[str, StatusModel]
+
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
         field_names = plan.outputs()

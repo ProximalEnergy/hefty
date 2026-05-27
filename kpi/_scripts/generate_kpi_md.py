@@ -4,6 +4,7 @@ from core.db_query import DbQuery
 from core.enumerations import KPITypeEnum, OutputType
 from core import models
 from kpi.doc.reference import doc_link_field_ref
+from kpi.op.field import FIELD_REGISTRY
 from kpi.registry.upload.api import UPLOAD
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -86,9 +87,9 @@ for row in result.to_dicts():
         description=row["description"],
         unit=row["unit"],
         version=upload_model.version,
-        project_var_link=doc_link_field_ref(upload_model.project_var),
+        project_var_link=doc_link_field_ref(FIELD_REGISTRY[upload_model.project_var]),
         device_var_link=(
-            doc_link_field_ref(upload_model.device_var)
+            doc_link_field_ref(FIELD_REGISTRY[upload_model.device_var])
             if upload_model.device_var is not None
             else None
         ),

@@ -5,7 +5,6 @@ Energy-based kpis including energy charged, energy discharged, aux, and RTE
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import sum_across_devices
 from kpi.domain.bess import (
     bess_filter_daily_energy,
@@ -14,8 +13,8 @@ from kpi.domain.bess import (
 )
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, grouper, optional, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import DeviceTypeConstant, grouper, optional, required
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
@@ -64,7 +63,7 @@ def project_energy_charged_no_aux_kwh_d(
     return energy_charged - aux_energy
 
 
-class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
+class TransformBessSummarizeEnergy(FieldRegistry[MethodCalc]):
     # =======================================================
     # String level
     # =======================================================
@@ -77,7 +76,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_string_energy_charged_kwh_d = calc_field(sum_across_devices)(
         required(string_energy_charged_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # BESS_STRING_ENERGY_DISCHARGED (41)
@@ -89,7 +88,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_string_energy_discharged_kwh_d = calc_field(sum_across_devices)(
         required(string_energy_discharged_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # =======================================================
@@ -105,7 +104,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_pcs_module_energy_charged_kwh_d = calc_field(sum_across_devices)(
         required(pcs_module_energy_charged_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS_MODULE),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS_MODULE),
     )
 
     # BESS_PCS_MODULE_ENERGY_DISCHARGED (114)
@@ -119,7 +118,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_pcs_module_energy_discharged_kwh_d = calc_field(sum_across_devices)(
         required(pcs_module_energy_discharged_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS_MODULE),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS_MODULE),
     )
 
     # =======================================================
@@ -134,7 +133,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_pcs_energy_charged_dc_kwh_d = calc_field(sum_across_devices)(
         required(pcs_energy_charged_dc_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # BESS_PCS_ENERGY_DISCHARGED_DC (88)
@@ -145,7 +144,7 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_pcs_energy_discharged_dc_kwh_d = calc_field(sum_across_devices)(
         required(pcs_energy_discharged_dc_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     pcs_maximum_continuous_discharged_energy_kwh_d = calc_field(
@@ -178,7 +177,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_circuit_energy_charged_kwh_d = calc_field(sum_across_devices)(
         required(circuit_energy_charged_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER),
+        device_type=DeviceTypeConstant(
+            value=DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER
+        ),
     )
 
     # BESS_CIRCUIT_ENERGY_DISCHARGED (112)
@@ -189,7 +190,9 @@ class TransformBessSummarizeEnergy(FieldRegistry[CalcProtocol]):
 
     project_circuit_energy_discharged_kwh_d = calc_field(sum_across_devices)(
         required(circuit_energy_discharged_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER),
+        device_type=DeviceTypeConstant(
+            value=DeviceTypeEnum.BESS_MV_COLLECTOR_CIRCUIT_METER
+        ),
     )
 
     # =======================================================

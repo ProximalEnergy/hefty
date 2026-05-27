@@ -4,7 +4,6 @@ import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
 from kpi.base.enumeration import TimeCoord
-from kpi.base.protocol import CalcProtocol
 from kpi.base.util import coord
 from kpi.domain.agg.across_devices import mean_across_devices, sum_across_devices
 from kpi.domain.agg.other import (
@@ -17,8 +16,8 @@ from kpi.domain.pv import pv_filter_daily_energy
 from kpi.domain.solv_contract import solv_lost_period, solv_period_produced
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, grouper, optional, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import DeviceTypeConstant, grouper, optional, required
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.sensor.pv import DownloadSensorPv
 from kpi.registry.transform.hybrid.api import date_local_5m, project_poi_limit_kw
@@ -222,7 +221,7 @@ def project_avg_combiner_field_health_d(field_health: xr.DataArray) -> xr.DataAr
     return result.where(filter_mask(filter_by=result, min_value=0, max_value=1))
 
 
-class TransformPvSummarize(FieldRegistry[CalcProtocol]):
+class TransformPvSummarize(FieldRegistry[MethodCalc]):
     # =======================================================
     # Project KPIs
     # =======================================================
@@ -310,7 +309,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     project_inverter_mechanical_availability_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.inverter_mechanical_availability_5m),
-        device_type=Constant(value=DeviceTypeEnum.PV_INVERTER),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_INVERTER),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -322,7 +321,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     project_pcs_energy_production_kwh_d = calc_field(sum_across_devices)(
         required(inverter_energy_production_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.PV_INVERTER),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_INVERTER),
     )
 
     # =======================================================
@@ -337,7 +336,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     project_inverter_module_energy_kwh_d = calc_field(sum_across_devices)(
         required(inverter_module_energy_kwh_d),
-        device_type=Constant(value=DeviceTypeEnum.PV_INVERTER_MODULE),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_INVERTER_MODULE),
     )
 
     project_inverter_module_to_meter_efficiency_d = calc_field(
@@ -361,7 +360,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     project_tracker_row_availability_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.tracker_row_is_available_5m),
-        device_type=Constant(value=DeviceTypeEnum.TRACKER_ROW),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.TRACKER_ROW),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -376,7 +375,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         daily_mean_across_devices
     )(
         value=required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
-        device_type=Constant(value=DeviceTypeEnum.TRACKER_ROW),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.TRACKER_ROW),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -390,7 +389,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
         daily_mean_across_devices
     )(
         value=required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
-        device_type=Constant(value=DeviceTypeEnum.TRACKER_ROW),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.TRACKER_ROW),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -402,7 +401,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     block_tracker_row_availability_d = calc_field(daily_mean_across_grouped_devices)(
         value=required(Eval.tracker_row_is_available_5m),
         device_mapping=required(DownloadDevicePvHierarchy.tracker_row_to_block),
-        device_type=Constant(value=DeviceTypeEnum.PV_BLOCK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_BLOCK),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -414,7 +413,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     )(
         value=required(Eval.tracker_row_deviation_from_setpoint_deg_5m),
         device_mapping=required(DownloadDevicePvHierarchy.tracker_row_to_block),
-        device_type=Constant(value=DeviceTypeEnum.PV_BLOCK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_BLOCK),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -426,7 +425,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
     )(
         value=required(Eval.tracker_row_setpoint_deviation_from_median_deg_5m),
         device_mapping=required(DownloadDevicePvHierarchy.tracker_row_to_block),
-        device_type=Constant(value=DeviceTypeEnum.PV_BLOCK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_BLOCK),
         date_local_5m=grouper(date_local_5m),
     )
 
@@ -495,7 +494,7 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     project_combiner_module_excess_degradation_d = calc_field(mean_across_devices)(
         required(combiner_module_excess_degradation_d),
-        device_type=Constant(value=DeviceTypeEnum.PV_DC_COMBINER),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_DC_COMBINER),
     )
 
     # PV_DC_COMBINER_MECHANICAL_AVAILABILITY (101)
@@ -506,6 +505,6 @@ class TransformPvSummarize(FieldRegistry[CalcProtocol]):
 
     project_combiner_mechanical_availability_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.combiner_mechanical_availability_5m),
-        device_type=Constant(value=DeviceTypeEnum.PV_DC_COMBINER),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.PV_DC_COMBINER),
         date_local_5m=grouper(date_local_5m),
     )

@@ -1,10 +1,31 @@
-from typing import ClassVar
+from collections.abc import MutableMapping
+from typing import Any, ClassVar
 
 from kpi.base.protocol import NodeProtocol
 from kpi.op.field import Field
 
 
-class FieldRegistry[F: NodeProtocol]:
+class SetFieldNameDict(dict):
+    def __setitem__(self, key, value):
+        if hasattr(value, "__set_field_name__"):
+            value.__set_field_name__(key)
+        super().__setitem__(key, value)
+
+
+class FieldRegistryMetaclass(type):
+    @classmethod
+    def __prepare__(
+        metacls, name: str, bases: tuple[type, ...], /, **kwds: Any
+    ) -> MutableMapping[str, object]:
+        """
+        This method is called before __new__.
+        It must return a dictionary-like object that will store the class attributes.
+        """
+        del metacls, bases, kwds
+        return SetFieldNameDict()
+
+
+class FieldRegistry[F: NodeProtocol](metaclass=FieldRegistryMetaclass):
     allow_override: ClassVar[bool] = False
 
     def __init__(self) -> None:

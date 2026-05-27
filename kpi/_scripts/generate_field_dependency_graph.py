@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
-from kpi.op.field import Field, FieldRef
+from kpi.op.field import FIELD_REGISTRY, Field, FieldRef
 from kpi.registry.download.api import DownloadRegistry
 from kpi.registry.api import FULL_REGISTRY
 from kpi.registry.transform.api import Transform
@@ -76,9 +76,10 @@ def build_elements() -> dict[str, list[dict[str, dict[str, str | bool]]]]:
     ).items():
         if field_name in EXCLUDED_FIELDS:
             continue
+        field_ref = FIELD_REGISTRY[field_name]
         docs_metadata[field_name] = (
-            _doc_path_from_module(module_name=field.ref.module),
-            _doc_anchor(field.ref),
+            _doc_path_from_module(module_name=field_ref.module),
+            _doc_anchor(field_ref),
         )
     known_fields = {
         field_name

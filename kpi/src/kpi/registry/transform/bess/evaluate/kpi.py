@@ -3,7 +3,6 @@ import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
 from kpi.base.enumeration import TimeCoord
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.across_devices import mean_across_devices, sum_across_devices
 from kpi.domain.agg.resample import resample_diff, resample_sum
 from kpi.domain.bess import (
@@ -25,8 +24,15 @@ from kpi.domain.util import (
     where,
 )
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, TimeCoordArg, TimeZone, grouper, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import (
+    DeviceTypeConstant,
+    TimeCoordArg,
+    TimeCoordConstant,
+    TimeZone,
+    grouper,
+    required,
+)
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.sensor.bess import DownloadSensorBess
 from kpi.registry.transform.bess.clean.api import TransformBessClean as Clean
 
@@ -127,20 +133,20 @@ def project_ner_availability_h(
     )
 
 
-class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
+class TransformBessEvaluateKpi(FieldRegistry[MethodCalc]):
     date_local_5m = calc_field(
         time_grouper, doc_header="Convert 5-minute UTC time to local date"
     )(
         from_time=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
-        from_time_coord=Constant(value=TimeCoord.TIME_5MIN_UTC),
-        to_time_coord=Constant(value=TimeCoord.DATE_LOCAL),
+        from_time_coord=TimeCoordConstant(value=TimeCoord.TIME_5MIN_UTC),
+        to_time_coord=TimeCoordConstant(value=TimeCoord.DATE_LOCAL),
         time_zone=TimeZone(),
     )
 
     hour_utc_5m = calc_field(time_grouper)(
         from_time=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
-        from_time_coord=Constant(value=TimeCoord.TIME_5MIN_UTC),
-        to_time_coord=Constant(value=TimeCoord.HOUR_UTC),
+        from_time_coord=TimeCoordConstant(value=TimeCoord.TIME_5MIN_UTC),
+        to_time_coord=TimeCoordConstant(value=TimeCoord.HOUR_UTC),
     )
 
     # =======================================================
@@ -238,7 +244,7 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
 
     project_pcs_energy_charged_kwh_5m = calc_field(sum_across_devices)(
         required(pcs_energy_charged_kwh_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     pcs_energy_discharged_unfiltered_kwh_5m = calc_field(diff)(
@@ -252,7 +258,7 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
 
     project_pcs_energy_discharged_kwh_5m = calc_field(sum_across_devices)(
         required(pcs_energy_discharged_kwh_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     # =======================================================
@@ -400,7 +406,7 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
 
     project_soh_5m = calc_field(mean_across_devices)(
         required(Clean.string_soh_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_STRING),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_STRING),
     )
 
     # =======================================================
@@ -430,7 +436,8 @@ class TransformBessEvaluateKpi(FieldRegistry[CalcProtocol]):
     # =======================================================
 
     project_pcs_availability_5m = calc_field(mean_across_devices)(
-        required(pcs_available_5m), device_type=Constant(value=DeviceTypeEnum.BESS_PCS)
+        required(pcs_available_5m),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
     )
 
     project_energy_availability_5m = calc_field(project_energy_availability_5m)(

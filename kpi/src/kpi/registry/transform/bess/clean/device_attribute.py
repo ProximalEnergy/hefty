@@ -1,14 +1,13 @@
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.util import verify_positive
 from kpi.op.field_registry import FieldRegistry
 from kpi.op.transform.arg import required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.device.bess.attribute import (
     DownloadDeviceBessAttribute as Download,
 )
 
 
-class TransformBessCleanDeviceAttribute(FieldRegistry[CalcProtocol]):
+class TransformBessCleanDeviceAttribute(FieldRegistry[MethodCalc]):
     # mv circuit
 
     circuit_energy_capacity_kwh = calc_field(verify_positive)(

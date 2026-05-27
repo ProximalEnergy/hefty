@@ -1,10 +1,10 @@
 from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import noload, selectinload
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_ercot_settlement_point_options(*, deep: bool):

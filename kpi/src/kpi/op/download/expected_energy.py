@@ -1,23 +1,27 @@
+from typing import Literal
+
 import xarray as xr
 from core.crud.project.data_expected import get_project_data_expected
 from core.db_query import OutputType
 from core.enumerations import DeviceTypeEnum
 from kpi.base.context import get_context
-from kpi.base.protocol import node_protocol, schema_protocol
+from kpi.base.protocol import schema_protocol
 from kpi.base.util import coord
 from kpi.domain.util import scale_offset
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.download.util import NoInputsModel
+from kpi.op.node import NodeModel, node_type
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
+from pydantic import BaseModel
 
 from core import models
 
 
-@node_protocol
-class ExpectedEnergyModel(NoInputsModel):
+@node_type
+class ExpectedEnergyModel(NodeModel):
+    kind: Literal["ExpectedEnergyModel"] = "ExpectedEnergyModel"
     expected_metric_id: int
     device_type: DeviceTypeEnum
     project_level: bool = False
@@ -26,7 +30,11 @@ class ExpectedEnergyModel(NoInputsModel):
 
 
 @schema_protocol
-class ExpectedEnergySchema(SchemaAbstract[ExpectedEnergyModel]):
+class ExpectedEnergySchema(BaseModel, SchemaAbstract[ExpectedEnergyModel]):
+    kind: Literal["ExpectedEnergySchema"] = "ExpectedEnergySchema"
+
+    map: dict[str, ExpectedEnergyModel]
+
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
         field_names = plan.outputs()

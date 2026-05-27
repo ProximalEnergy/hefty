@@ -1,22 +1,26 @@
+from typing import Literal
+
 import xarray as xr
 from kpi.base.context import get_context
-from kpi.base.protocol import node_protocol, schema_protocol
+from kpi.base.protocol import schema_protocol
 from kpi.domain.util import scale_offset
 from kpi.infra.download.tenaska import (
     data_array_from_elements,
     download_tenaska_data,
     time_array_from_data,
 )
-from kpi.op.download.util import NoInputsModel
 from kpi.op.field import Field
+from kpi.op.node import NodeModel, node_type
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
+from pydantic import BaseModel
 
 
-@node_protocol
-class TenaskaModel(NoInputsModel):
+@node_type
+class TenaskaModel(NodeModel):
+    kind: Literal["TenaskaModel"] = "TenaskaModel"
     column_name: str
     scale: float | None
     offset: float | None
@@ -35,10 +39,11 @@ def tenaska_field(
 
 
 @schema_protocol
-class TenaskaSchema(SchemaAbstract[TenaskaModel]):
-    def __init__(self, map: dict[str, TenaskaModel], url: str) -> None:
-        super().__init__(map=map)
-        self.url = url
+class TenaskaSchema(BaseModel, SchemaAbstract[TenaskaModel]):
+    kind: Literal["TenaskaSchema"] = "TenaskaSchema"
+
+    map: dict[str, TenaskaModel]
+    url: str
 
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)

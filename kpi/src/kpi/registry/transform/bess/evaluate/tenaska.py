@@ -1,19 +1,24 @@
 from kpi.base.enumeration import TimeCoord
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.resample import resample_first, resample_sum
 from kpi.domain.util import sum_arrays, time_grouper
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, TimeCoordArg, grouper, optional, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import (
+    TimeCoordArg,
+    TimeCoordConstant,
+    grouper,
+    optional,
+    required,
+)
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.tenaska.generator import DownloadTenaskaGenerator as Gen
 from kpi.registry.download.tenaska.virtual import DownloadTenaskaVirtual as Virtual
 
 
-class TransformBessEvaluateTenaska(FieldRegistry[CalcProtocol]):
+class TransformBessEvaluateTenaska(FieldRegistry[MethodCalc]):
     hour_utc_15m = calc_field(time_grouper)(
         from_time=TimeCoordArg(time_coord=TimeCoord.TIME_15MIN_UTC),
-        from_time_coord=Constant(value=TimeCoord.TIME_15MIN_UTC),
-        to_time_coord=Constant(value=TimeCoord.HOUR_UTC),
+        from_time_coord=TimeCoordConstant(value=TimeCoord.TIME_15MIN_UTC),
+        to_time_coord=TimeCoordConstant(value=TimeCoord.HOUR_UTC),
     )
 
     # =======================================================

@@ -1,10 +1,12 @@
-from typing import Self
+from typing import Annotated, Literal, Self
 
+import pydantic as pyd
 from kpi.base.protocol import PlanProtocol, SchemaProtocol, plan_protocol
 from pydantic import BaseModel, model_validator
 
 
 class SingleFieldPlan(BaseModel):
+    kind: Literal["SingleFieldPlan"] = "SingleFieldPlan"
     field_name: str
     inputs: dict[str, bool]
 
@@ -29,6 +31,7 @@ class SingleFieldPlan(BaseModel):
 
 @plan_protocol
 class MultiFieldPlan(BaseModel):
+    kind: Literal["MultiFieldPlan"] = "MultiFieldPlan"
     fields: list[SingleFieldPlan]
 
     def trim(self, outputs: set[str], delete: bool = True) -> set[str]:
@@ -55,7 +58,8 @@ class MultiFieldPlan(BaseModel):
 
 @plan_protocol
 class PipelinePlan(BaseModel):
-    steps: dict[str, Self | MultiFieldPlan]
+    kind: Literal["PipelinePlan"] = "PipelinePlan"
+    steps: dict[str, Annotated[Self | MultiFieldPlan, pyd.Field(discriminator="kind")]]
 
     def trim(self, outputs: set[str], delete: bool = True) -> set[str]:
         inputs = set[str](outputs)

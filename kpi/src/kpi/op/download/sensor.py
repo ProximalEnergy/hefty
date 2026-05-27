@@ -1,4 +1,7 @@
+from typing import Annotated, Literal
+
 import pandas as pd
+import pydantic as pyd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum, SensorTypeEnum
 from kpi.base.context import get_context
@@ -12,16 +15,19 @@ from kpi.infra.download.sensor import (
     tag_df_from_tags_polars,
 )
 from kpi.infra.pandas_to_xarray import dataframe_to_xarray
-from kpi.op.download.util import NoInputsModel
 from kpi.op.field import Field
+from kpi.op.node import NodeModel
 from kpi.op.observer import observe
 from kpi.op.plan import MultiFieldPlan
 from kpi.op.schema import SchemaAbstract
 from kpi.op.util import assign_var
+from pydantic import BaseModel
 
 
 @sensor_protocol
-class SensorModel(NoInputsModel):
+class SensorModel(NodeModel):
+    kind: Literal["SensorModel"] = "SensorModel"
+
     sensor_type: SensorTypeEnum
     project_level: bool
     scale: float | None
@@ -61,8 +67,42 @@ def sensor_field(
     )
 
 
+@sensor_protocol
+class SensorMax(NodeModel):
+    kind: Literal["SensorMax"] = "SensorMax"
+
+    sensor_type: SensorTypeEnum
+    project_level: bool = False
+
+    def run(
+        self,
+        *,
+        tag_df: pd.DataFrame,
+        data_raw: pd.DataFrame,
+        sensor_to_device_map: dict[int, int],
+    ) -> xr.DataArray | None:
+        filtered_df = get_existing_columns_df(tag_df, data_raw, self.sensor_type)
+
+        filtered = filtered_df.rename(columns=tag_df.device_id.to_dict())
+        # take maximum across all tags with the same device id
+        filtered = filtered.T.groupby(level=0).max().T
+        value = dataframe_to_xarray(
+            filtered,
+            project_level=self.project_level,
+            device_type=DeviceTypeEnum(sensor_to_device_map[self.sensor_type.value]),
+        )
+        return value
+
+
+SensorNode = Annotated[SensorModel | SensorMax, pyd.Field(discriminator="kind")]
+
+
 @schema_protocol
-class SensorSchema(SchemaAbstract[SensorProtocol]):
+class SensorSchema(BaseModel, SchemaAbstract[SensorNode]):
+    kind: Literal["SensorSchema"] = "SensorSchema"
+
+    map: dict[str, SensorNode]
+
     def run(self, dataset: xr.Dataset, plan: MultiFieldPlan) -> xr.Dataset:
         context = get_context(dataset)
         field_names = plan.outputs()
@@ -100,28 +140,3 @@ class SensorSchema(SchemaAbstract[SensorProtocol]):
                 )
                 assign_var(dataset, field_name, value)
         return dataset
-
-
-@sensor_protocol
-class SensorMax(NoInputsModel):
-    sensor_type: SensorTypeEnum
-    project_level: bool = False
-
-    def run(
-        self,
-        *,
-        tag_df: pd.DataFrame,
-        data_raw: pd.DataFrame,
-        sensor_to_device_map: dict[int, int],
-    ) -> xr.DataArray | None:
-        filtered_df = get_existing_columns_df(tag_df, data_raw, self.sensor_type)
-
-        filtered = filtered_df.rename(columns=tag_df.device_id.to_dict())
-        # take maximum across all tags with the same device id
-        filtered = filtered.T.groupby(level=0).max().T
-        value = dataframe_to_xarray(
-            filtered,
-            project_level=self.project_level,
-            device_type=DeviceTypeEnum(sensor_to_device_map[self.sensor_type.value]),
-        )
-        return value

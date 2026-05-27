@@ -5,13 +5,12 @@ Status and event-based kpis, namely availability
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
 
-from kpi.base.protocol import CalcProtocol
 from kpi.domain.agg.other import daily_mean_across_devices
 from kpi.domain.agg.resample import resample_mean
 from kpi.domain.bess import perfect_availability_intervals
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import Constant, grouper, required
-from kpi.op.transform.method import calc_field
+from kpi.op.transform.arg import DeviceTypeConstant, grouper, required
+from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.status import DownloadStatus
 from kpi.registry.transform.bess.evaluate.api import TransformBessEvaluate as Eval
 
@@ -39,7 +38,7 @@ def project_ner_availability_d(
     return perfect.groupby(date_local_5m).mean()
 
 
-class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
+class TransformBessSummarizeAvailability(FieldRegistry[MethodCalc]):
     # PCS
 
     # BESS_PCS_AVAILABILITY (58)
@@ -49,7 +48,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
 
     project_pcs_availability_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.pcs_available_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -63,7 +62,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
 
     project_pcs_module_availability_d = calc_field(daily_mean_across_devices)(
         value=required(Eval.pcs_module_available_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_PCS_MODULE),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_PCS_MODULE),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 
@@ -77,7 +76,7 @@ class TransformBessSummarizeAvailability(FieldRegistry[CalcProtocol]):
 
     project_bank_availability_d = calc_field(daily_mean_across_devices)(
         value=required(DownloadStatus.bank_available_5m),
-        device_type=Constant(value=DeviceTypeEnum.BESS_BANK),
+        device_type=DeviceTypeConstant(value=DeviceTypeEnum.BESS_BANK),
         date_local_5m=grouper(Eval.date_local_5m),
     )
 

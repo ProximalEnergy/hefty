@@ -1,11 +1,10 @@
+import datetime
 from typing import Literal
 
-import datetime
-
+from core.db_query import DbQuery
 from sqlalchemy import select
 
 from core import models
-from core.db_query import DbQuery
 
 
 def get_ercot_sced_gen(

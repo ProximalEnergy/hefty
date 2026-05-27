@@ -3,6 +3,7 @@ from typing import Any
 
 from kpi.doc.reference import doc_link, doc_link_field_ref
 from kpi.doc.render import node_doc_markdown, render_doc_value
+from kpi.op.field import FIELD_REGISTRY
 from kpi.op.transform.arg import (
     Constant,
     Grouper,
@@ -24,7 +25,7 @@ def _markdown_table_cell(*, text: str) -> str:
 
 
 def _field_arg_doc(*, arg: Required | Optional | Grouper, label: str) -> str:
-    return f"*({label})* {doc_link_field_ref(arg.field_ref)}"
+    return f"*({label})* {doc_link_field_ref(FIELD_REGISTRY[arg.field_name])}"
 
 
 @render_doc_value.register(Required)
@@ -60,7 +61,7 @@ def _(arg: Grouper) -> str:
 @node_doc_markdown.register
 def _(node: MethodCalc) -> str:
     sig = inspect.signature(node.fn)
-    bound = sig.bind(*node.args, **node.kwargs)
+    bound = sig.bind(*node.args, **node.keyword_args)
     rows = "\n".join(
         f"| `{name}` | {_markdown_table_cell(text=render_doc_value(arg))} |"
         for name, arg in bound.arguments.items()

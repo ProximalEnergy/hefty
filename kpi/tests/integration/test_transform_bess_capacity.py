@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import xarray as xr
 from kpi.base.exception import ValidationError
-from kpi.base.protocol import CalcProtocol
+from kpi.op.transform.method import MethodCalc
 from kpi.registry.download.project_attribute.api import (
     DownloadProjectAttribute as Download,
 )
@@ -12,19 +12,19 @@ from kpi.registry.transform.bess.clean.project_attribute import (
     TransformBessCleanProjectAttribute as Project,
 )
 
-_CASES: tuple[tuple[str, CalcProtocol], ...] = (
+_CASES: tuple[tuple[str, MethodCalc], ...] = (
     (
-        Download.project_energy_capacity_raw_kwh.ref.name,
+        Download.project_energy_capacity_raw_kwh.name,
         Project.project_energy_capacity_kwh.value,
     ),
     (
-        Download.project_power_capacity_raw_kw.ref.name,
+        Download.project_power_capacity_raw_kw.name,
         Project.project_power_capacity_kw.value,
     ),
 )
 
 
-def _run_transform(*, raw: str, clean: CalcProtocol, raw_value: float) -> xr.DataArray:
+def _run_transform(*, raw: str, clean: MethodCalc, raw_value: float) -> xr.DataArray:
     """Run the clean transform for a single project capacity field."""
     ds = xr.Dataset({raw: xr.DataArray(raw_value)})
     return clean.run(ds)
@@ -33,7 +33,7 @@ def _run_transform(*, raw: str, clean: CalcProtocol, raw_value: float) -> xr.Dat
 @pytest.mark.parametrize(("raw", "clean"), _CASES)
 def test_project_capacity_unchanged_when_raw_positive(
     raw: str,
-    clean: CalcProtocol,
+    clean: MethodCalc,
 ) -> None:
     """Positive raw capacity is copied unchanged to the clean field."""
     value = 12_500.0
@@ -45,7 +45,7 @@ def test_project_capacity_unchanged_when_raw_positive(
 @pytest.mark.parametrize("raw_value", [0.0, -1.0, np.nan])
 def test_project_capacity_raises_when_raw_not_positive(
     raw: str,
-    clean: CalcProtocol,
+    clean: MethodCalc,
     raw_value: float,
 ) -> None:
     """Non-positive raw capacity raises ``ValidationError``."""

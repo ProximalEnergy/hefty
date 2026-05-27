@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceTypeEnum
@@ -5,13 +7,14 @@ from kpi.base.enumeration import NEW_NAME
 from kpi.base.exception import KpiError
 from kpi.base.protocol import device_protocol
 from kpi.base.util import coord
-from kpi.op.download.util import NoInputsModel
+from kpi.op.node import NodeModel
 
 from core import models
 
 
 @device_protocol
-class DeviceHierarchyModel(NoInputsModel):
+class DeviceHierarchyModel(NodeModel):
+    kind: Literal["DeviceHierarchyModel"] = "DeviceHierarchyModel"
     child_device_type: DeviceTypeEnum
     parent_device_type: DeviceTypeEnum
 
