@@ -16,7 +16,14 @@ from kpi.domain.pv import pv_filter_daily_energy
 from kpi.domain.solv_contract import solv_lost_period, solv_period_produced
 from kpi.domain.util import filter_mask
 from kpi.op.field_registry import FieldRegistry
-from kpi.op.transform.arg import DeviceTypeConstant, grouper, optional, required
+from kpi.op.transform.arg import (
+    DeviceTypeConstant,
+    TimeCoordArg,
+    TimeZone,
+    grouper,
+    optional,
+    required,
+)
 from kpi.op.transform.method import MethodCalc, calc_field
 from kpi.registry.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.registry.download.sensor.pv import DownloadSensorPv
@@ -166,7 +173,8 @@ def combiner_field_health_d(
     *,
     combiner_current: xr.DataArray,
     combiner_power_capacity: xr.DataArray,
-    time_local_5m: xr.DataArray,
+    time_utc_5m: pd.DatetimeIndex,
+    time_zone: str,
     date_local_5m: xr.DataArray,
 ) -> xr.DataArray:
     """Daily combiner field health from noon-normalized current.
@@ -174,7 +182,8 @@ def combiner_field_health_d(
     Args:
         combiner_current: Raw combiner current at 5-minute resolution.
         combiner_power_capacity: Combiner DC capacity.
-        time_local_5m: Local wall time on the 5-minute grid.
+        time_utc_5m: UTC 5-minute index.
+        time_zone: IANA timezone name for the project.
         date_local_5m: Local date grouper aligned to the time dimension.
 
     Returns:
@@ -182,7 +191,7 @@ def combiner_field_health_d(
     """
     time_dim = TimeCoord.TIME_5MIN_UTC.value
     current_ffill_1hr = combiner_current.ffill(dim=time_dim, limit=12)
-    pandas_time = pd.to_datetime(time_local_5m.values)
+    pandas_time = time_utc_5m.tz_convert(time_zone)
     is_solar_noon = (pandas_time.hour == 11) & (pandas_time.minute >= 30) | (
         pandas_time.hour == 12
     ) & (pandas_time.minute <= 30)
@@ -191,7 +200,7 @@ def combiner_field_health_d(
         is_solar_noon_array = xr.DataArray(
             is_solar_noon,
             dims=[time_dim],
-            coords={time_dim: time_local_5m.coords[time_dim]},
+            coords={time_dim: time_utc_5m.values},
         )
         current_at_solar_noon = current_ffill_1hr.where(is_solar_noon_array)
         first_normalization = current_at_solar_noon / combiner_power_capacity
@@ -439,7 +448,8 @@ class TransformPvSummarize(FieldRegistry[MethodCalc]):
     combiner_field_health_d = calc_field(combiner_field_health_d)(
         combiner_current=required(DownloadSensorPv.combiner_current_raw_amps_5m),
         combiner_power_capacity=required(Clean.combiner_dc_capacity_kw),
-        time_local_5m=required(Eval.time_local_5m),
+        time_utc_5m=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
+        time_zone=TimeZone(),
         date_local_5m=grouper(date_local_5m),
     )
 

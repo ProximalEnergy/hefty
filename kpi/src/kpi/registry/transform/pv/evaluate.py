@@ -37,11 +37,11 @@ def time_local_5m(time_5m_utc: pd.DatetimeIndex, time_zone: str) -> xr.DataArray
     Returns:
         Local datetime values on the 5-minute UTC coordinate grid.
     """
-    local_time = time_5m_utc.tz_localize("UTC").tz_convert(time_zone).tz_localize(None)
+    local_time = time_5m_utc.tz_convert(time_zone).tz_localize(None)
     return xr.DataArray(
         local_time.values,
         dims=[TimeCoord.TIME_5MIN_UTC.value],
-        coords={TimeCoord.TIME_5MIN_UTC.value: time_5m_utc},
+        coords={TimeCoord.TIME_5MIN_UTC.value: time_5m_utc.values},
     )
 
 
@@ -172,11 +172,6 @@ def tracker_row_setpoint_deviation_from_median_deg_5m(
 
 
 class TransformPvEvaluate(FieldRegistry[MethodCalc]):
-    time_local_5m = calc_field(time_local_5m)(
-        time_5m_utc=TimeCoordArg(time_coord=TimeCoord.TIME_5MIN_UTC),
-        time_zone=TimeZone(),
-    )
-
     project_energy_exported_to_grid_unfiltered_kwh_5m = calc_field(diff)(
         required(Clean.project_total_energy_exported_to_grid_filled_kwh_5m)
     )
