@@ -246,7 +246,9 @@ class DbQuery[T, S]:
             return None
 
         if self.is_scalar:
-            return result.mappings().one_or_none()
+            if isinstance(self.query, TextClause):
+                return result.mappings().one_or_none()
+            return result.scalars().unique().one_or_none()
 
         items = result.mappings().all()
         _warn_for_large_sqlalchemy_result(count=len(items))

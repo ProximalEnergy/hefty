@@ -565,6 +565,7 @@ api/app/v1/operational/project/project_om_contractors.py:sqlalchemy-db-crud-outs
 api/app/v1/operational/project/project_om_contractors.py:sqlalchemy-db-crud-outside-dbquery:6faed9ea:db.commit()
 api/app/v1/operational/project/project_om_contractors.py:sqlalchemy-db-crud-outside-dbquery:6faed9ea:db.commit()
 api/app/v1/operational/project/project_om_contractors.py:sqlalchemy-db-crud-outside-dbquery:dd0ae20b:router.delete("/{om_contractor_scope_id}")
+api/app/v1/operational/project/project_pv_budgeted.py:sqlalchemy-db-crud-outside-dbquery:5128ed50:crud.bulk_upsert_data( project_db=project_db, pv_budgeted_series_id=series_id, rows=payload.rows, )
 api/app/v1/operational/project/project_pv_budgeted.py:sqlalchemy-db-crud-outside-dbquery:ffdcf4aa:router.delete("/series/{pv_budgeted_series_id}")
 api/app/v1/operational/projects.py:sqlalchemy-db-crud-outside-dbquery:312292c7:db.execute( select(DBProject).where(DBProject.project_id == project_id) )
 api/app/v1/operational/projects.py:sqlalchemy-db-crud-outside-dbquery:6faed9ea:db.commit()

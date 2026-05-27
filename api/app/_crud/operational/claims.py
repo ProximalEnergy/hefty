@@ -73,15 +73,18 @@ def _project_claim_records_from_dataframe(
 
 
 def _returned_int(*, row: Any, key: str) -> int | None:
-    """Read an integer id from a DML RETURNING row.
+    """Read an integer id from a DML RETURNING result.
 
     Args:
-        row: Row returned from a write query.
+        row: Scalar or row returned from a write query.
         key: Column key to read.
     """
-    if row is None or not isinstance(row, Mapping):
+    if row is None:
         return None
-    value = row.get(key)
+    if isinstance(row, Mapping):
+        value = row.get(key)
+    else:
+        value = row
     return int(value) if value is not None else None
 
 

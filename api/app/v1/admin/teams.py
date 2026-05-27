@@ -1,24 +1,43 @@
 import uuid
-from typing import Annotated
+from typing import Annotated, Any, cast
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies
-from app._crud.admin.teams import add_team_member as crud_add_team_member
+from app._crud.admin.teams import (
+    add_team_member as crud_add_team_member,
+)
 from app._crud.admin.teams import (
     create_team as crud_create_team,
 )
-from app._crud.admin.teams import delete_team as crud_delete_team
+from app._crud.admin.teams import (
+    delete_team as crud_delete_team,
+)
+from app._crud.admin.teams import (
+    delete_team_assignments as crud_delete_team_assignments,
+)
+from app._crud.admin.teams import (
+    delete_team_members as crud_delete_team_members,
+)
+from app._crud.admin.teams import (
+    get_admin_team_user,
+    get_team_members_for_teams,
+)
+from app._crud.admin.teams import (
+    get_team as crud_get_team,
+)
 from app._crud.admin.teams import (
     get_teams as crud_get_teams,
 )
 from app._crud.admin.teams import (
-    get_teams_with_members as crud_get_teams_with_members,
+    remove_team_member as crud_remove_team_member,
 )
-from app._crud.admin.teams import remove_team_member as crud_remove_team_member
-from app._crud.admin.teams import rename_team as crud_rename_team
+from app._crud.admin.teams import (
+    rename_team as crud_rename_team,
+)
 from app._dependencies.authentication import get_user
 from app.interfaces import (
     TeamCreate,
@@ -27,9 +46,50 @@ from app.interfaces import (
     TeamUpdate,
     TeamWithMembers,
     UserAuthed,
+    UserBasic,
 )
+from core import models
 
 router = APIRouter(prefix="/teams", tags=["teams"])
+
+
+async def _build_teams_with_members(
+    *, db: AsyncSession, company_id: uuid.UUID
+) -> list[TeamWithMembers]:
+    teams = cast(
+        list[models.Team],
+        await crud_get_teams(company_id=company_id).get_async(
+            executor=db, output_type=OutputType.SQLALCHEMY
+        ),
+    )
+    if not teams:
+        return []
+
+    team_ids = [team.team_id for team in teams]
+    member_rows = cast(
+        list[Any],
+        await get_team_members_for_teams(team_ids=team_ids).get_async(
+            executor=db, output_type=OutputType.SQLALCHEMY
+        ),
+    )
+
+    members_by_team_id: dict[uuid.UUID, list[UserBasic]] = {}
+    for row in member_rows or []:
+        members_by_team_id.setdefault(row.team_id, []).append(
+            UserBasic(user_id=row.user_id, name_long=(row.name_long or ""))
+        )
+
+    return [
+        TeamWithMembers(
+            team_id=team.team_id,
+            company_id=team.company_id,
+            name_long=team.name_long,
+            created_at=team.created_at,
+            updated_at=team.updated_at,
+            members=members_by_team_id.get(team.team_id, []),
+        )
+        for team in teams
+    ]
 
 
 @router.get(
@@ -48,7 +108,9 @@ async def get_teams_route(
         db: Database session.
         company_id: Company identifier to filter teams.
     """
-    return await crud_get_teams(db=db, company_id=company_id)
+    return await crud_get_teams(company_id=company_id).get_async(
+        executor=db, output_type=OutputType.SQLALCHEMY
+    )
 
 
 @router.get(
@@ -65,7 +127,9 @@ async def get_company_teams(
         db: Database session.
         user_data: Authenticated user context.
     """
-    return await crud_get_teams(db=db, company_id=user_data.company_id)
+    return await crud_get_teams(company_id=user_data.company_id).get_async(
+        executor=db, output_type=OutputType.SQLALCHEMY
+    )
 
 
 @router.get(
@@ -82,7 +146,7 @@ async def get_company_teams_with_members(
         db: Database session.
         user_data: Authenticated user context.
     """
-    return await crud_get_teams_with_members(db=db, company_id=user_data.company_id)
+    return await _build_teams_with_members(db=db, company_id=user_data.company_id)
 
 
 @router.post(
@@ -105,8 +169,17 @@ async def create_team_route(
         team: Team payload to create.
     """
     try:
-        return await crud_create_team(db=db, company_id=user_data.company_id, team=team)
+        result = await crud_create_team(
+            company_id=user_data.company_id,
+            team=team,
+        ).get_async(
+            executor=db,
+            output_type=OutputType.SQLALCHEMY,
+        )
+        await db.commit()
+        return result
     except IntegrityError:
+        await db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Team with this name already exists for this company",
@@ -128,7 +201,7 @@ async def get_teams_with_members_route(
         db: Database session.
         company_id: Company identifier to filter teams.
     """
-    return await crud_get_teams_with_members(db=db, company_id=company_id)
+    return await _build_teams_with_members(db=db, company_id=company_id)
 
 
 @router.post(
@@ -148,7 +221,22 @@ async def add_member(
         payload: User identifier payload.
         db: Database session.
     """
-    await crud_add_team_member(db=db, team_id=team_id, user_id=payload.user_id)
+    team = await crud_get_team(team_id=team_id).get_async(
+        executor=db, output_type=OutputType.SQLALCHEMY
+    )
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    user = await get_admin_team_user(user_id=payload.user_id).get_async(
+        executor=db, output_type=OutputType.SQLALCHEMY
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    await crud_add_team_member(team_id=team_id, user_id=payload.user_id).execute_async(
+        executor=db
+    )
+    await db.commit()
     return
 
 
@@ -169,7 +257,10 @@ async def remove_member(
         user_id: User identifier to remove.
         db: Database session.
     """
-    await crud_remove_team_member(db=db, team_id=team_id, user_id=user_id)
+    await crud_remove_team_member(team_id=team_id, user_id=user_id).execute_async(
+        executor=db
+    )
+    await db.commit()
     return
 
 
@@ -184,10 +275,13 @@ async def delete_team_route(
     """Delete a team (admin only).
 
     Args:
-        team_id: Team identifier to delete.
+        team_id: Team identifier to deleteo
         db: Database session.
     """
-    await crud_delete_team(db=db, team_id=team_id)
+    await crud_delete_team_assignments(team_id=team_id).execute_async(executor=db)
+    await crud_delete_team_members(team_id=team_id).execute_async(executor=db)
+    await crud_delete_team(team_id=team_id).execute_async(executor=db)
+    await db.commit()
     return
 
 
@@ -209,8 +303,16 @@ async def update_team(
         db: Database session.
     """
     try:
-        return await crud_rename_team(db=db, team_id=team_id, payload=payload)
+        team = await crud_rename_team(team_id=team_id, payload=payload).get_async(
+            executor=db, output_type=OutputType.SQLALCHEMY
+        )
+        if team is None:
+            await db.rollback()
+            raise HTTPException(status_code=404, detail="Team not found")
+        await db.commit()
+        return team
     except IntegrityError:
+        await db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Team with this name already exists for this company",

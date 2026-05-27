@@ -570,7 +570,7 @@ export interface paths {
          * @description Delete a team (admin only).
          *
          *     Args:
-         *         team_id: Team identifier to delete.
+         *         team_id: Team identifier to deleteo
          *         db: Database session.
          */
         delete: operations["delete_team_route_v1_admin_teams__team_id__delete"];

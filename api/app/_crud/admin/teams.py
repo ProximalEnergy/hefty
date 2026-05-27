@@ -1,191 +1,117 @@
 import uuid
-from typing import cast
+from typing import Any, Literal
 
-from sqlalchemy import Select, delete, select
-from sqlalchemy.engine import CursorResult
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from core.db_query import DbQuery
+from sqlalchemy import Select, delete, insert, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from app.interfaces import TeamCreate, TeamUpdate, TeamWithMembers, UserBasic
+from app.interfaces import TeamCreate, TeamUpdate
 from core import models
 
 
-async def get_teams(*, db: AsyncSession, company_id: uuid.UUID):
-    """Fetch teams for a company ordered by name.
-
-    Args:
-        db: Database session.
-        company_id: Company identifier to filter teams.
-    """
+def get_teams(*, company_id: uuid.UUID) -> DbQuery[models.Team, Literal[False]]:
     query = (
         select(models.Team)
         .where(models.Team.company_id == company_id)
         .order_by(models.Team.name_long.asc())
     )
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query)
 
 
-async def create_team(*, db: AsyncSession, company_id: uuid.UUID, team: TeamCreate):
-    """Create a team for a company.
-
-    Args:
-        db: Database session.
-        company_id: Company identifier that owns the team.
-        team: Team payload containing the display name.
-    """
-    db_team = models.Team(company_id=company_id, name_long=team.name_long)
-    db.add(db_team)
-    try:
-        await db.commit()
-    except IntegrityError:
-        await db.rollback()
-        raise
-    await db.refresh(db_team)
-    return db_team
+def create_team(
+    *, company_id: uuid.UUID, team: TeamCreate
+) -> DbQuery[models.Team, Literal[True]]:
+    query = (
+        insert(models.Team)
+        .values(company_id=company_id, name_long=team.name_long)
+        .returning(models.Team)
+    )
+    return DbQuery(query=query, is_scalar=True)
 
 
-async def get_teams_with_members(
-    *, db: AsyncSession, company_id: uuid.UUID
-) -> list[TeamWithMembers]:
-    """Fetch teams and their members for a company.
-
-    Args:
-        db: Database session.
-        company_id: Company identifier to filter teams.
-    """
-    teams = await get_teams(db=db, company_id=company_id)
-    results: list[TeamWithMembers] = []
-    for t in teams:
-        user_query: Select[tuple[models.User]] = (
-            select(models.User)
-            .join(models.TeamMember, models.TeamMember.user_id == models.User.user_id)
-            .where(models.TeamMember.team_id == t.team_id)
-            .order_by(models.User.name_long.asc())
-        )
-        result = await db.execute(user_query)
-        users = result.scalars().all()
-        results.append(
-            TeamWithMembers(
-                team_id=t.team_id,
-                company_id=t.company_id,
-                name_long=t.name_long,
-                created_at=t.created_at,
-                updated_at=t.updated_at,
-                members=[
-                    UserBasic(user_id=u.user_id, name_long=(u.name_long or ""))
-                    for u in users
-                ],
-            )
-        )
-    return results
-
-
-async def add_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: str):
-    # ensure team exists
-    """Add a user to a team.
-
-    Args:
-        db: Database session.
-        team_id: Team identifier to update.
-        user_id: User identifier to add.
-    """
+def get_team(*, team_id: uuid.UUID) -> DbQuery[models.Team, Literal[True]]:
     query = select(models.Team).where(models.Team.team_id == team_id)
-    result = await db.execute(query)
-    team = result.scalars().first()
-    if not team:
-        raise ValueError("Team not found")
-    # ensure user exists
-    user_query = select(models.User).where(models.User.user_id == user_id)
-    result = await db.execute(user_query)
-    user = result.scalars().first()
-    if not user:
-        raise ValueError("User not found")
-    # upsert behavior guarded by PK (team_id, user_id)
-    db_tm = models.TeamMember(team_id=team_id, user_id=user_id)
-    db.add(db_tm)
-    try:
-        await db.commit()
-    except IntegrityError:
-        await db.rollback()
-        # already exists, ignore (idempotent)
-    return db_tm
+    return DbQuery(query=query, is_scalar=True)
 
 
-async def remove_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: str):
-    """Remove a user from a team.
+def get_admin_team_user(*, user_id: str) -> DbQuery[models.User, Literal[True]]:
+    query = select(models.User).where(models.User.user_id == user_id)
+    return DbQuery(query=query, is_scalar=True)
 
-    Args:
-        db: Database session.
-        team_id: Team identifier to update.
-        user_id: User identifier to remove.
-    """
+
+def get_team_members(*, team_id: uuid.UUID) -> DbQuery[models.User, Literal[False]]:
+    query: Select[tuple[models.User]] = (
+        select(models.User)
+        .join(models.TeamMember, models.TeamMember.user_id == models.User.user_id)
+        .where(models.TeamMember.team_id == team_id)
+        .order_by(models.User.name_long.asc())
+    )
+    return DbQuery(query=query)
+
+
+def get_team_members_for_teams(
+    *, team_ids: list[uuid.UUID]
+) -> DbQuery[Any, Literal[False]]:
+    query = (
+        select(
+            models.TeamMember.team_id,
+            models.User.user_id,
+            models.User.name_long,
+        )
+        .join(models.TeamMember, models.TeamMember.user_id == models.User.user_id)
+        .where(models.TeamMember.team_id.in_(team_ids))
+        .order_by(models.TeamMember.team_id.asc(), models.User.name_long.asc())
+    )
+    return DbQuery(query=query)
+
+
+def add_team_member(
+    *, team_id: uuid.UUID, user_id: str
+) -> DbQuery[None, Literal[False]]:
+    query = (
+        pg_insert(models.TeamMember)
+        .values(team_id=team_id, user_id=user_id)
+        .on_conflict_do_nothing()
+    )
+    return DbQuery(query=query)
+
+
+def remove_team_member(
+    *, team_id: uuid.UUID, user_id: str
+) -> DbQuery[None, Literal[False]]:
     query = delete(models.TeamMember).where(
         models.TeamMember.team_id == team_id, models.TeamMember.user_id == user_id
     )
-    await db.execute(query)
-    await db.commit()
+    return DbQuery(query=query)
 
 
-async def delete_team(*, db: AsyncSession, team_id: uuid.UUID) -> dict[str, int]:
-    """Delete a team and clean up dependent rows that reference it.
-
-        Order matters due to FK constraints:
-        1) operational.calendar_item_assignments (FK to admin.teams.team_id)
-        2) admin.team_members (FK to admin.teams.team_id)
-        3) admin.teams
-
-    Args:
-        db: Database session.
-        team_id: Team identifier to delete.
-    """
-    # 1) Remove calendar assignments referencing this team (operational schema)
-    deleted_assignments = 0
+def delete_team_assignments(*, team_id: uuid.UUID) -> DbQuery[None, Literal[False]]:
     assignment_model = getattr(models, "CalendarItemAssignment", None)
-    if assignment_model is not None:
-        query = delete(assignment_model).where(assignment_model.team_id == team_id)
-        result = await db.execute(query)
-        result = cast(CursorResult, result)
-        deleted_assignments = result.rowcount
+    if assignment_model is None:
+        query = delete(models.TeamMember).where(models.TeamMember.team_id == team_id)
+        return DbQuery(query=query)
 
-    # 2) Remove team member links
+    query = delete(assignment_model).where(assignment_model.team_id == team_id)
+    return DbQuery(query=query)
+
+
+def delete_team_members(*, team_id: uuid.UUID) -> DbQuery[None, Literal[False]]:
     query = delete(models.TeamMember).where(models.TeamMember.team_id == team_id)
-    result = await db.execute(query)
-    result = cast(CursorResult, result)
-    deleted_members = result.rowcount
+    return DbQuery(query=query)
 
-    # 3) Remove the team itself
+
+def delete_team(*, team_id: uuid.UUID) -> DbQuery[None, Literal[False]]:
     query = delete(models.Team).where(models.Team.team_id == team_id)
-    result = await db.execute(query)
-    result = cast(CursorResult, result)
-    deleted_teams = result.rowcount
-
-    await db.commit()
-    return {
-        "deleted_assignments": int(deleted_assignments),
-        "deleted_members": int(deleted_members),
-        "deleted_teams": int(deleted_teams),
-    }
+    return DbQuery(query=query)
 
 
-async def rename_team(*, db: AsyncSession, team_id: uuid.UUID, payload: TeamUpdate):
-    """Rename a team.
-
-    Args:
-        db: Database session.
-        team_id: Team identifier to rename.
-        payload: Team update payload.
-    """
-    query = select(models.Team).where(models.Team.team_id == team_id)
-    result = await db.execute(query)
-    team = result.scalars().first()
-    if not team:
-        raise ValueError("Team not found")
-    team.name_long = payload.name_long
-    try:
-        await db.commit()
-    except IntegrityError:
-        await db.rollback()
-        raise
-    await db.refresh(team)
-    return team
+def rename_team(
+    *, team_id: uuid.UUID, payload: TeamUpdate
+) -> DbQuery[models.Team, Literal[True]]:
+    query = (
+        update(models.Team)
+        .where(models.Team.team_id == team_id)
+        .values(name_long=payload.name_long)
+        .returning(models.Team)
+    )
+    return DbQuery(query=query, is_scalar=True)

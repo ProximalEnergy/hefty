@@ -21,7 +21,9 @@ rule:
   pattern: $OBJ.$METHOD($$$ARGS)
 constraints:
   METHOD:
-    regex: "^(add_all|delete|execute|scalar|scalars|flush|commit|bulk_save_objects|bulk_insert_mappings|bulk_update_mappings|exec_driver_sql|query)$"
+    # Transaction boundaries are allowed outside DbQuery. Writes should still
+    # happen through DbQuery, while routes may own commit/rollback timing.
+    regex: "^(add_all|delete|execute|scalars?|flush|bulk_.*|exec_driver_sql|query)$"
 message: "Use DbQuery for DB CRUD operations"
 severity: warning
 ---
