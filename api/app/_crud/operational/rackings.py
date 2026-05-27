@@ -1,9 +1,12 @@
 import uuid
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
+from app._crud.operational.manufacturer_model_ids import (
+    lookup_ids_by_manufacturer_model_pairs,
+)
 from core import models
 
 
@@ -133,63 +136,18 @@ async def get_racking_ids_by_manufacturer_model(
         ValueError: If the input lists 'racking_manufacturers' and
                     'racking_models' do not have the same length.
     """
-    if len(racking_manufacturers) != len(racking_models):
-        raise ValueError(
-            "Input lists 'racking_manufacturers' and 'racking_models' "
-            "must have the same length.",
-        )
-
-    if not racking_manufacturers:  # If lists are empty
-        return []
-
-    # 1. Create unique pairs from input to optimize the DB query
-    # We use a set first to avoid redundant OR conditions in the SQL query
-    # Store original pairs with index for reconstruction later if needed, but
-    # simple zip is sufficient here as we iterate through original list at the end.
-    input_pairs: list[tuple[str, str]] = list(
-        zip(racking_manufacturers, racking_models),
+    return await lookup_ids_by_manufacturer_model_pairs(
+        db=db,
+        manufacturers=racking_manufacturers,
+        model_names=racking_models,
+        manufacturers_list_name="racking_manufacturers",
+        model_names_list_name="racking_models",
+        id_column=models.Racking.racking_id,
+        manufacturer_column=models.Racking.manufacturer,
+        model_column=models.Racking.model,
+        company_id_column=models.Racking.company_id,
+        company_id=company_id,
     )
-    unique_input_pairs: set[tuple[str, str]] = set(input_pairs)
-
-    # 2. Build the OR condition for the database query
-    # Find rows where (manufacturer=m1 AND model=mdl1) OR
-    # (manufacturer=m2 AND model=mdl2) ...
-    pair_conditions = [
-        and_(models.Racking.manufacturer == manuf, models.Racking.model == model)
-        for manuf, model in unique_input_pairs
-    ]
-    combined_filter = or_(*pair_conditions)
-
-    # Add company_id filter if provided
-    if company_id is not None:
-        combined_filter = and_(combined_filter, models.Racking.company_id == company_id)
-
-    # 3. Execute a single query to fetch all matching rackings
-    # Select the id, manufacturer, and model to build the lookup map
-    query = select(
-        models.Racking.racking_id,
-        models.Racking.manufacturer,
-        models.Racking.model,
-    ).where(combined_filter)
-
-    result = await db.execute(query)
-    results = result.all()  # Fetches [(id, manuf, model), ...] for all found rackings
-
-    # 4. Build a lookup dictionary: {(manufacturer, model): id}
-    # This maps the found manufacturer/model pairs back to their IDs
-    found_rackings_lookup: dict[tuple[str, str], int] = {
-        (manuf, model): mod_id for mod_id, manuf, model in results
-    }
-
-    # 5. Construct the final ordered list based on the *original* input pairs
-    ordered_ids: list[int | None] = []
-    for manuf, model in input_pairs:
-        # Look up the pair in our dictionary of found rackings.
-        # If the pair wasn't found in the query results, .get() returns None.
-        racking_id = found_rackings_lookup.get((manuf, model), None)
-        ordered_ids.append(racking_id)
-
-    return ordered_ids
 
 
 async def create_racking(
