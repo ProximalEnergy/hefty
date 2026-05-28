@@ -1955,4 +1955,40 @@ class QSEField(Base):
     __table_args__ = {"schema": "operational"}
 
 
+class ActiveEvent(Base):
+    __tablename__ = "active_events"
+
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey(
+            "operational.projects.project_id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    )
+    event_id: Mapped[int] = mapped_column(
+        sa.Integer,
+        primary_key=True,
+    )
+    device_id: Mapped[int]
+    device_type_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.device_types.device_type_id"),
+    )
+    device_name_full: Mapped[str]
+    failure_mode_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.failure_modes.failure_mode_id"),
+    )
+    root_cause_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.root_causes.root_cause_id"),
+    )
+    time_start: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
+    loss_total_financial: Mapped[float | None] = mapped_column(sa.Double)
+    loss_total_energetic: Mapped[float | None] = mapped_column(sa.Double)
+
+    device_type = relationship("DeviceType")
+    failure_mode = relationship("FailureMode")
+    root_cause = relationship("RootCause")
+
+    __table_args__ = {"schema": "operational"}
+
+
 ##### END OPERATIONAL SCHEMA #####

@@ -866,6 +866,7 @@ export const SensorTypeEnum = {
   BESS_PCS_AVAILABLE_CHARGE_POWER_EMS: 221,
   BESS_PCS_AVAILABLE_DISCHARGE_POWER_EMS: 222,
   BESS_PCS_SOC_PERCENT: 223,
+  BESS_CELL_TEMPERATURE: 224,
 } as const;
 
 export const TimeIntervalEnum = {
