@@ -74,6 +74,61 @@ jobs:
       - name: Install tools
         run: mise install
 
+      - name: Write PV-EEM .env
+        env:
+          ENVIRONMENT: DEV
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.DB_URI_DEV }}
+          CLICKHOUSE_HOST: ${{ secrets.CLICKHOUSE_HOST }}
+          CLICKHOUSE_USER: >-
+            ${{ secrets.CLICKHOUSE_USER || secrets.CLICKHOUSE_USERNAME }}
+          CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL || secrets.NIGHTLY_CHECKS_BOT_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import os
+          from pathlib import Path
+
+          required_names = [
+              "ENVIRONMENT",
+              "DATABASE_URL",
+              "CLICKHOUSE_HOST",
+              "CLICKHOUSE_USER",
+              "CLICKHOUSE_PASSWORD",
+              "WEBHOOK_URL",
+              "AWS_ACCESS_KEY_ID",
+              "AWS_SECRET_ACCESS_KEY",
+              "AWS_S3_BUCKET_NAME",
+          ]
+          optional_names = [
+              "AWS_S3_REGION",
+          ]
+          missing_names = [
+              name for name in required_names if not os.environ.get(name)
+          ]
+          if missing_names:
+              names = ", ".join(missing_names)
+              raise SystemExit(f"Missing PV-EEM environment values: {names}")
+
+          env_names = required_names + [
+              name for name in optional_names if os.environ.get(name)
+          ]
+          env_path = Path("pv-eem/.env")
+          with env_path.open("w") as env_file:
+              for name in env_names:
+                  value = json.dumps(os.environ[name])
+                  env_file.write(f"{name}={value}\n")
+          PY
+          chmod 600 pv-eem/.env
+
       - name: Run PV-EEM pytest
         run: mise run pveem:pytest
 
