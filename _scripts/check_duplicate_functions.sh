@@ -180,7 +180,7 @@ NF >= 4 {
         next
     }
 
-    if (name ~ /^__.*__$/ || name == "_" || name == "lambda_handler" || name == "health_check") {
+    if (name ~ /^__.*__$/ || name == "_" || name == "lambda_handler" || name == "health_check" || (name == "main" && file ~ /__main__\.py$/)) {
         next
     }
 

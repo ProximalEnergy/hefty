@@ -20,6 +20,7 @@ on:
       - "issues/**"
       - "microservices/**"
       - "pv-eem/**"
+      - "super-admin/**"
       - "web-app/**"
       - "_scripts/name_shorts_ast_grep_check.sh"
       - ".mise.toml"

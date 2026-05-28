@@ -1,100 +1,57 @@
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Literal
 
-from app.logger import get_logger
+from core.db_query import DbQuery
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
 from core import models
 
-logger = get_logger(name=__name__)
 
-
-async def update_user_kpi_type_favorite(
+def update_user_kpi_type_favorite(
     *,
-    db: AsyncSession,
     user_id: str,
     kpi_type_id: int,
     is_favorited: bool,
-) -> models.UserKPITypes:
-    """Update the is_favorited field for a user's kpi_type.
-        If the relationship does not exist, it will be created.
+) -> DbQuery[models.UserKPITypes, Literal[True]]:
+    """Return query updating a user's KPI type favorite state.
+
+    If the relationship does not exist, it will be created.
 
     Args:
-        db: Database session.
         user_id: User identifier to update.
         kpi_type_id: KPI type identifier to update.
         is_favorited: New favorite state.
     """
-    try:
-        # Find the existing user kpi_type relationship
-        query = select(models.UserKPITypes).where(
-            models.UserKPITypes.user_id == user_id,
-            models.UserKPITypes.kpi_type_id == kpi_type_id,
+    query = (
+        pg_insert(models.UserKPITypes)
+        .values(
+            user_id=user_id,
+            kpi_type_id=kpi_type_id,
+            is_favorited=is_favorited,
         )
-        result = await db.execute(query)
-        user_kpi_type = result.scalar_one_or_none()
-
-        if not user_kpi_type:
-            # Create new relationship if it doesn't exist
-            user_kpi_type = models.UserKPITypes(
-                user_id=user_id,
-                kpi_type_id=kpi_type_id,
-                is_favorited=is_favorited,
-            )
-            db.add(user_kpi_type)
-            logger.info(
-                f"Creating new favorite status for user {user_id}, "
-                f"kpi_type {kpi_type_id} to {is_favorited}"
-            )
-        else:
-            # Update the is_favorited field
-            user_kpi_type.is_favorited = is_favorited
-            logger.info(
-                f"Successfully updated favorite status for user "
-                f"{user_id}, kpi_type {kpi_type_id} to {is_favorited}"
-            )
-
-        await db.commit()
-        await db.refresh(user_kpi_type)
-
-        return user_kpi_type
-
-    except Exception as e:
-        logger.error(
-            f"Failed to update favorite status for user "
-            f"{user_id}, kpi_type {kpi_type_id}: {e}"
+        .on_conflict_do_update(
+            index_elements=[
+                models.UserKPITypes.user_id,
+                models.UserKPITypes.kpi_type_id,
+            ],
+            set_={"is_favorited": is_favorited},
         )
-        await db.rollback()
-        raise
+        .returning(models.UserKPITypes)
+    )
+    return DbQuery(query=query, is_scalar=True)
 
 
-async def get_user_favorited_kpi_types(
+def get_user_favorited_kpi_types(
     *,
-    db: AsyncSession,
     user_id: str,
-) -> list[models.UserKPITypes]:
-    """Get all favorited KPI types for a given user.
+) -> DbQuery[models.UserKPITypes, Literal[False]]:
+    """Return query for all favorited KPI types for a given user.
 
     Args:
-        db: Database session
-        user_id: The user ID to get favorited KPI types for
-
-    Returns:
-        List of UserKPITypes records where is_favorited is True
+        user_id: The user ID to get favorited KPI types for.
     """
-    try:
-        query = select(models.UserKPITypes).where(
-            models.UserKPITypes.user_id == user_id,
-            models.UserKPITypes.is_favorited,
-        )
-        result = await db.execute(query)
-        favorited_kpi_types = result.scalars().all()
-
-        logger.info(
-            f"Retrieved {len(favorited_kpi_types)} favorited KPI types "
-            f"for user {user_id}"
-        )
-
-        return list(favorited_kpi_types)
-
-    except Exception as e:
-        logger.error(f"Failed to get favorited KPI types for user {user_id}: {e}")
-        raise
+    query = select(models.UserKPITypes).where(
+        models.UserKPITypes.user_id == user_id,
+        models.UserKPITypes.is_favorited,
+    )
+    return DbQuery(query=query)

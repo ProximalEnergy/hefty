@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,12 +28,13 @@ async def update_kpi_type_favorite(
         user: Authenticated user data.
         db: Database session.
     """
-    return await update_user_kpi_type_favorite(
-        db=db,
+    user_kpi_type = await update_user_kpi_type_favorite(
         user_id=user.user_id,
         kpi_type_id=favorite_update.kpi_type_id,
         is_favorited=favorite_update.is_favorited,
-    )
+    ).get_async(executor=db, output_type=OutputType.SQLALCHEMY)
+    await db.commit()
+    return user_kpi_type
 
 
 @router.get("/favorite")
@@ -47,12 +49,14 @@ async def get_user_favorited_kpi_types_route(
         user: Authenticated user data.
         db: Database session.
     """
-    db_results = await get_user_favorited_kpi_types(db=db, user_id=user.user_id)
+    db_results = await get_user_favorited_kpi_types(user_id=user.user_id).get_async(
+        executor=db, output_type=OutputType.SQLALCHEMY
+    )
     return [
         interfaces.UserKPITypesInterface(
-            user_id=result.user_id,
+            user_id=str(result.user_id),
             kpi_type_id=int(result.kpi_type_id),
-            is_favorited=result.is_favorited,
+            is_favorited=bool(result.is_favorited),
         )
         for result in db_results
     ]

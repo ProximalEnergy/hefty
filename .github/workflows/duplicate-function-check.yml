@@ -10,6 +10,8 @@ on:
       - "microservices/**"
       - "web-app/**"
       - "kpi/**"
+      - "super-admin/**"
+      - "pv-eem/**"
       - "_scripts/**"
       - ".github/workflows/duplicate-function-check.yml"
 

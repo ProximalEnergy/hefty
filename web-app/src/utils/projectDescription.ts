@@ -24,8 +24,12 @@ export const projectDescription = (project: Project) => {
     case ProjectTypeEnum.BESS:
       title = [
         `${formatProjectDescriptionValue(project.poi)} MW POI Limit`,
-        project.capacity_bess_power_ac !== null ? `${formatProjectDescriptionValue(project.capacity_bess_power_ac)} MW AC Capacity` : null,
-        project.capacity_bess_energy_bol_dc !== null ? `${formatProjectDescriptionValue(project.capacity_bess_energy_bol_dc)} MWh Energy` : null,
+        project.capacity_bess_power_ac !== null
+          ? `${formatProjectDescriptionValue(project.capacity_bess_power_ac)} MW AC Capacity`
+          : null,
+        project.capacity_bess_energy_bol_dc !== null
+          ? `${formatProjectDescriptionValue(project.capacity_bess_energy_bol_dc)} MWh Energy`
+          : null,
       ]
         .filter((val): val is string => val !== null)
         .join(' | ')

@@ -191,7 +191,7 @@ class UserKPITypes(Base):
         sa.ForeignKey("admin.users.user_id"),
         primary_key=True,
     )
-    kpi_type_id: Mapped[uuid.UUID] = mapped_column(
+    kpi_type_id: Mapped[int] = mapped_column(
         sa.ForeignKey("operational.kpi_types.kpi_type_id"),
         primary_key=True,
     )
