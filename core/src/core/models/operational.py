@@ -1632,6 +1632,46 @@ class CMMSProvider(Base):
     __table_args__ = {"schema": "operational"}
 
 
+class ForecastWeatherProvider(Base):
+    __tablename__ = "forecast_weather_providers"
+
+    forecast_weather_provider_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=False,
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+    name_long: Mapped[str]
+    is_public: Mapped[bool] = mapped_column(server_default="FALSE")
+
+    models = relationship(
+        "ForecastWeatherModel", back_populates="forecast_weather_provider"
+    )
+
+    __table_args__ = {"schema": "operational"}
+
+
+class ForecastWeatherModel(Base):
+    __tablename__ = "forecast_weather_models"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=False,
+    )
+    forecast_weather_provider_id: Mapped[int] = mapped_column(
+        sa.ForeignKey(
+            "operational.forecast_weather_providers.forecast_weather_provider_id"
+        )
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+    name_long: Mapped[str]
+
+    forecast_weather_provider = relationship(
+        "ForecastWeatherProvider", back_populates="models"
+    )
+
+    __table_args__ = {"schema": "operational"}
+
+
 class CMMSIntegration(Base):
     __tablename__ = "cmms_integrations"
 

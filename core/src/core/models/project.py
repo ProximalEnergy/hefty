@@ -144,6 +144,179 @@ class DataExpected(Base):
     # NOTE: Timescale Hypertable is created in the alembic migration
 
 
+class ForecastMet(Base):
+    __tablename__ = "forecast_met"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.forecast_weather_models.forecast_weather_model_id"),
+        primary_key=True,
+    )
+    time_forecast_run: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    time_forecasted: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    ghi: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Global horizontal irradiance [W/m^2]",
+    )
+    dhi: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Diffuse horizontal irradiance [W/m^2]",
+    )
+    dni: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Direct normal irradiance [W/m^2]",
+    )
+    ambient_temperature: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Ambient air temperature [C]",
+    )
+    wind_speed: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Wind speed [m/s]",
+    )
+
+    forecast_weather_model = relationship("ForecastWeatherModel")
+
+
+class ForecastMetLatest(Base):
+    __tablename__ = "forecast_met_latest"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.forecast_weather_models.forecast_weather_model_id"),
+        primary_key=True,
+    )
+    time_forecast_run: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+    )
+    time_forecasted: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    ghi: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Global horizontal irradiance [W/m^2]",
+    )
+    dhi: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Diffuse horizontal irradiance [W/m^2]",
+    )
+    dni: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Direct normal irradiance [W/m^2]",
+    )
+    ambient_temperature: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Ambient air temperature [C]",
+    )
+    wind_speed: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Wind speed [m/s]",
+    )
+
+    sa.Index("forecast_met_latest_time_forecasted_idx", time_forecasted)
+
+    forecast_weather_model = relationship("ForecastWeatherModel")
+
+
+class ForecastPVEnergy(Base):
+    __tablename__ = "forecast_pv_energy"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.forecast_weather_models.forecast_weather_model_id"),
+        primary_key=True,
+    )
+    time_forecast_run: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    time_forecasted: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    p_mp: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="PV output power at POI [W]",
+    )
+
+    forecast_weather_model = relationship("ForecastWeatherModel")
+
+
+class ForecastPVEnergyLatest(Base):
+    __tablename__ = "forecast_pv_energy_latest"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.forecast_weather_models.forecast_weather_model_id"),
+        primary_key=True,
+    )
+    time_forecast_run: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+    )
+    time_forecasted: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    p_mp: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="PV output power at POI [W]",
+    )
+
+    sa.Index("forecast_pv_energy_latest_time_forecasted_idx", time_forecasted)
+
+    forecast_weather_model = relationship("ForecastWeatherModel")
+
+
+class ForecastAvailablePVEnergy(Base):
+    __tablename__ = "forecast_available_pv_energy"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.forecast_weather_models.forecast_weather_model_id"),
+        primary_key=True,
+    )
+    time_forecast_run: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    time_forecasted: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    p_mp: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Available PV output power at POI [W]",
+    )
+
+    forecast_weather_model = relationship("ForecastWeatherModel")
+
+
+class ForecastAvailablePVEnergyLatest(Base):
+    __tablename__ = "forecast_available_pv_energy_latest"
+
+    forecast_weather_model_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.forecast_weather_models.forecast_weather_model_id"),
+        primary_key=True,
+    )
+    time_forecast_run: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+    )
+    time_forecasted: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        primary_key=True,
+    )
+    p_mp: Mapped[float] = mapped_column(
+        sa.Float,
+        comment="Available PV output power at POI [W]",
+    )
+
+    sa.Index("forecast_available_pv_energy_latest_time_forecasted_idx", time_forecasted)
+
+    forecast_weather_model = relationship("ForecastWeatherModel")
+
+
 class ProjectDataTimeseries(Base):
     __tablename__ = "data_timeseries"
 
