@@ -168,6 +168,9 @@ if update_devices:
                         capacity_dc = EXCLUDED.capacity_dc,
                         capacity_ac = EXCLUDED.capacity_ac,
                         capacity_energy_dc = EXCLUDED.capacity_energy_dc,
+                        capacity_power_ac_kw = EXCLUDED.capacity_power_ac_kw,
+                        capacity_power_dc_kw = EXCLUDED.capacity_power_dc_kw,
+                        capacity_energy_dc_kwh = EXCLUDED.capacity_energy_dc_kwh,
                         point = EXCLUDED.point,
                         polygon = EXCLUDED.polygon;
                     """,
