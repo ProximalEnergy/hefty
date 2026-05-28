@@ -60,9 +60,25 @@ sync_uv_project() {
     uv sync --project "${project_path}" --package "${package_name}"
 }
 
-sync_uv_project . mono .venv && \
-sync_uv_project core core core/.venv && \
-sync_uv_project api api api/.venv && \
+sync_uv_project "." "mono" ".venv" && \
+sync_uv_project "api" "api" "api/.venv" && \
+sync_uv_project "core" "core" "core/.venv" && \
+sync_uv_project "issues" "issues" "issues/.venv" && \
+sync_uv_project "kpi" "kpi" "kpi/.venv" && \
+sync_uv_project "microservices/data_connection_outage_notifications_lambda" \
+  "data-connection-outage-notifications-lambda" \
+  "microservices/data_connection_outage_notifications_lambda/.venv" && \
+sync_uv_project "microservices/cmms-ticket-download" \
+  "cmms-ticket-download" \
+  "microservices/cmms-ticket-download/.venv" && \
+sync_uv_project "microservices/cmms-integration-fetcher" \
+  "cmms-integration-fetcher" \
+  "microservices/cmms-integration-fetcher/.venv" && \
+sync_uv_project "microservices/kpi-pipeline-fetcher" \
+  "kpi-pipeline-fetcher" \
+  "microservices/kpi-pipeline-fetcher/.venv" && \
+sync_uv_project "pv-eem" "pv-expected-energy" "pv-eem/.venv" && \
+sync_uv_project "forecast" "forecast" "forecast/.venv" && \
 mise install && \
 (
   mise run web:install || \
