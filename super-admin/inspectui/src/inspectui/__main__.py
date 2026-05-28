@@ -43,10 +43,5 @@ def main_inspectui() -> int:
         return 1
 
 
-def main() -> int:
-    """Console-script entry point."""
-    return main_inspectui()
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main_inspectui())

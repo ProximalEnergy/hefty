@@ -91,5 +91,6 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 
 [tool.deptry]
+extend_exclude = ["cdk/**"]
 known_first_party = ["kpi"]
 per_rule_ignores = { DEP002 = ["bottleneck", "flox", "greenlet", "pyarrow"] }

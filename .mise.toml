@@ -1,5 +1,8 @@
 min_version = "2026.4.18"
 
+[settings]
+npm.package_manager = "pnpm"
+
 [tools]
 uv = "0.11.7"
 gh = "2.91.0"
@@ -7,6 +10,7 @@ awscli = "2.34.31"
 ripgrep = "15.1.0"
 ast-grep = "0.42.1"
 pnpm = "10.33.2"
+"npm:aws-cdk" = "2.1119.0"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
@@ -783,7 +787,7 @@ run = "./_scripts/ast_grep_check.sh microservices"
 [tasks."micro:deploy-data-connection-outage-notifications-lambda"]
 description = "Deploy data connection outage notifications lambda"
 dir = "microservices/cdk"
-run = "uv run cdk deploy DataConnectionOutageNotificationsLambdaStack"
+run = "cdk deploy DataConnectionOutageNotificationsLambdaStack"
 
 # =============================================================================
 # API TASKS (runs in ./api directory)

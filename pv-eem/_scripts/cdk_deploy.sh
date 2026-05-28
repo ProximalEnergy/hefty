@@ -89,9 +89,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[cdk-deploy] Running: cd _cdk && uv run cdk deploy ${ARGS[*]}"
+echo "[cdk-deploy] Running: cd _cdk && cdk deploy ${ARGS[*]}"
 
-if (cd _cdk && uv run cdk deploy "${ARGS[@]}") 2>&1 | tee "${LOG_FILE}"; then
+if (cd _cdk && cdk deploy "${ARGS[@]}") 2>&1 | tee "${LOG_FILE}"; then
   exit 0
 fi
 
