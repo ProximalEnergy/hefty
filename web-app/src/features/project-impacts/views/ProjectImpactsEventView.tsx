@@ -13,6 +13,10 @@ import { ProjectImpactsDeviceTypeMultiSelect } from '@/features/project-impacts/
 import { useProjectImpactsEventViewStableContext } from '@/features/project-impacts/hooks/use-project-impacts-event-view-stable-context'
 import { useProjectImpactsEventViewUnstableContext } from '@/features/project-impacts/hooks/use-project-impacts-event-view-unstable-context'
 import type { ProjectImpactsContext } from '@/features/project-impacts/types/project-impacts-types'
+import {
+  buildClosedImpactDateRangeKey,
+  dateRangeDefaultsToIncludingClosed,
+} from '@/features/project-impacts/utils/closed-impact-date-range'
 import { EventTable } from '@/components/EventTable'
 
 type ProjectImpactsEventViewProps = {
@@ -29,10 +33,22 @@ export function ProjectImpactsEventView({
 
   const [selectedDevices, setSelectedDevices] = useState<string[]>([])
   const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([])
-  const [showClosedEvents, setShowClosedEvents] = useState(false)
 
   const [searchParams] = useSearchParams()
   const { start, end } = buildTimeSearchParams(searchParams)
+  const selectedDateRangeKey = buildClosedImpactDateRangeKey({ start, end })
+  const defaultShowClosedEvents = dateRangeDefaultsToIncludingClosed({
+    start,
+    end,
+  })
+  const [closedEventsState, setClosedEventsState] = useState<{
+    rangeKey: string | null
+    value: boolean
+  }>({ rangeKey: '', value: false })
+  const showClosedEvents =
+    closedEventsState.rangeKey === selectedDateRangeKey
+      ? closedEventsState.value
+      : defaultShowClosedEvents
 
   const stableContext = useProjectImpactsEventViewStableContext({
     projectId: context.projectId,
@@ -51,7 +67,12 @@ export function ProjectImpactsEventView({
       <Group justify="space-between">
         <Switch
           checked={showClosedEvents}
-          onChange={(event) => setShowClosedEvents(event.currentTarget.checked)}
+          onChange={(event) =>
+            setClosedEventsState({
+              rangeKey: selectedDateRangeKey,
+              value: event.currentTarget.checked,
+            })
+          }
           label="Include Closed Events"
         />
         <Group>

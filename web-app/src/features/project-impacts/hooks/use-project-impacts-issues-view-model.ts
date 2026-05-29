@@ -12,6 +12,10 @@ import utc from 'dayjs/plugin/utc'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import type { ProjectImpactsContext } from '@/features/project-impacts/types/project-impacts-types'
+import {
+  buildClosedImpactDateRangeKey,
+  dateRangeDefaultsToIncludingClosed,
+} from '@/features/project-impacts/utils/closed-impact-date-range'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
@@ -55,16 +59,11 @@ export function useProjectImpactsIssuesViewModel({
     maxDays: 30,
     format: 'YYYY-MM-DD HH:mm:ss',
   })
-  const selectedDateRangeKey =
-    start && end
-      ? `${start.format('YYYY-MM-DD')}:${end.format('YYYY-MM-DD')}`
-      : null
-  const selectedRangeIsToday = Boolean(
-    start && end && start.isSame(dayjs(), 'day') && end.isSame(dayjs(), 'day'),
-  )
-  const defaultIncludeClosedIssues = Boolean(
-    selectedDateRangeKey && !selectedRangeIsToday,
-  )
+  const selectedDateRangeKey = buildClosedImpactDateRangeKey({ start, end })
+  const defaultIncludeClosedIssues = dateRangeDefaultsToIncludingClosed({
+    start,
+    end,
+  })
   const [closedIssuesState, setClosedIssuesState] = useState<{
     rangeKey: string | null
     value: boolean
