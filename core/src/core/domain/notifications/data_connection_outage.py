@@ -16,6 +16,9 @@ from sqlalchemy import outerjoin, select
 
 from core import enumerations, models
 
+_MIN_GRACE_PERIOD = timedelta(minutes=5)
+_MAX_GRACE_PERIOD = timedelta(hours=1)
+
 
 @dataclass(frozen=True)
 class DataStatusCheck:
@@ -143,9 +146,7 @@ def check_data_status(*, cron: str, now: datetime) -> DataStatusCheck:
         raise ValueError(msg)
 
     span = next_expected - last_expected
-    hour_ms = timedelta(hours=1).total_seconds() * 1000
-    grace_ms = min(span.total_seconds() * 1000, hour_ms)
-    grace_period = timedelta(milliseconds=grace_ms)
+    grace_period = min(max(span, _MIN_GRACE_PERIOD), _MAX_GRACE_PERIOD)
 
     return DataStatusCheck(
         last_expected=last_expected,

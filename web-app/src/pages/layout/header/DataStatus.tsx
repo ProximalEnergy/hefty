@@ -239,14 +239,12 @@ function checkDataStatus(cron: string): DataStatusCheck {
     throw new Error(`Unsupported cron format: ${cron}`)
   }
 
-  // Calculate grace period as the minimum of:
-  // 1. Time between last and next expected data
-  // 2. 1 hour
+  // Grace: at least 5 minutes (short cadences), at most 1 hour.
+  const spanMs = dayjs(nextExpected).diff(dayjs(lastExpected))
+  const minGraceMs = dayjs.duration(5, 'minutes').asMilliseconds()
+  const maxGraceMs = dayjs.duration(1, 'hour').asMilliseconds()
   const gracePeriod = dayjs.duration(
-    Math.min(
-      dayjs(nextExpected).diff(dayjs(lastExpected)),
-      dayjs.duration(1, 'hour').asMilliseconds(),
-    ),
+    Math.min(Math.max(spanMs, minGraceMs), maxGraceMs),
     'milliseconds',
   )
 
