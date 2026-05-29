@@ -1,11 +1,17 @@
 """JSON round-trip guards for transform arg types."""
 
+from unittest.mock import patch
+
+import xarray as xr
 from core.enumerations import DeviceTypeEnum
 from kpi.base.enumeration import TimeCoord
+from kpi.base.exception import NoDownloadedDataError
 from kpi.domain.agg.across_devices import sum_across_devices
 from kpi.domain.general import filter_by_value
 from kpi.domain.util import diff
+from kpi.op.observer import LocalObserver, use_observer
 from kpi.op.pipeline_schema import PipelineSchema
+from kpi.op.plan import MultiFieldPlan, PipelinePlan
 from kpi.op.transform.arg import (
     Constant,
     DeviceTypeConstant,
@@ -84,3 +90,22 @@ def test_pipeline_schema_json_round_trip_rehydrates_enum_arg() -> None:
     arg = transform.map["field"].keyword_args["device_type"]
     assert isinstance(arg, DeviceTypeConstant)
     assert arg.value is DeviceTypeEnum.BESS_STRING
+
+
+def _raise_no_downloaded_data(
+    self: CalcSchema, *, dataset: xr.Dataset, plan: MultiFieldPlan
+) -> xr.Dataset:
+    del self, dataset, plan
+    raise NoDownloadedDataError("missing")
+
+
+def test_run_preserves_dataset_when_observer_swallows_error() -> None:
+    """A skipped schema-level error does not replace the dataset with None."""
+    dataset = xr.Dataset()
+    schema = PipelineSchema(map={"transform": CalcSchema(map={})})
+    plan = PipelinePlan(steps={"transform": MultiFieldPlan(fields=[])})
+    with use_observer(LocalObserver()):
+        with patch.object(CalcSchema, "run", _raise_no_downloaded_data):
+            result = schema.run(dataset=dataset, plan=plan)
+
+    assert result is dataset

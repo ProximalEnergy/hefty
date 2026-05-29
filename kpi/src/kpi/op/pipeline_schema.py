@@ -32,10 +32,12 @@ class PipelineSchema(BaseModel):
             if isinstance(schema, PipelineSchema):
                 if not isinstance(sub_plan, PipelinePlan):
                     raise TypeError("PipelineSchema requires PipelinePlan")
-                return schema.run(dataset=dataset, plan=sub_plan)
-            if not isinstance(sub_plan, MultiFieldPlan):
-                raise TypeError("Leaf schema requires MultiFieldPlan")
-            return schema.run(dataset=dataset, plan=sub_plan)
+                dataset = schema.run(dataset=dataset, plan=sub_plan)
+            else:
+                if not isinstance(sub_plan, MultiFieldPlan):
+                    raise TypeError("Leaf schema requires MultiFieldPlan")
+                dataset = schema.run(dataset=dataset, plan=sub_plan)
+        return dataset
 
     def full_plan(self) -> PipelinePlan:
         return PipelinePlan(
