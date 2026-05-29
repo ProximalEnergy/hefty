@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING, Any
 
-from core.enumerations import DeviceTypeEnum
+from core.enumerations import DeviceTypeEnum, ProjectTypeEnum
 
 from inspectui.core.models import TestResult
 from inspectui.core.tests.base import BaseTest, TestParameter, TestRegistry
@@ -394,3 +394,130 @@ class RequiredDeviceModelsTest(BaseTest):
                 "conditions": conditions,
             },
         )
+
+
+_PV_PROJECT_TYPES = frozenset({ProjectTypeEnum.PV, ProjectTypeEnum.PVS})
+_BESS_PROJECT_TYPES = frozenset({ProjectTypeEnum.BESS})
+
+
+@TestRegistry.register
+class RequiredDeviceTypesTest(BaseTest):
+    """Require at least one device per configured type on PV/BESS projects."""
+
+    name = "required_device_types"
+    description = (
+        "Verify PV/PVS and BESS projects have at least one device of each "
+        "required device type"
+    )
+    category = "relationships"
+
+    parameters = [
+        TestParameter(
+            name="pv_device_type_ids",
+            param_type="int_list",
+            description=(
+                "Device types (IDs / DeviceType enum) required on PV and PVS "
+                "projects"
+            ),
+            default=[],
+            required=False,
+        ),
+        TestParameter(
+            name="bess_device_type_ids",
+            param_type="int_list",
+            description=(
+                "Device types (IDs / DeviceType enum) required on BESS projects"
+            ),
+            default=[],
+            required=False,
+        ),
+    ]
+
+    def run_test(self, cache: "CacheManager") -> TestResult:
+        """Require configured device types exist on matching project types."""
+        project = cache.current_project
+        if project is None:
+            return self.skip("No project loaded in cache")
+
+        scope, required = self._required_types_for_project(
+            project_type_id=project.project_type_id,
+        )
+        if scope is None:
+            return self.skip(
+                "Project type "
+                f"{project.project_type_id} is not PV, PVS, or BESS"
+            )
+        if not required:
+            return self.skip(f"No required device types configured for {scope}")
+
+        implemented = {d.device_type_id for d in cache.devices}
+        missing_ids = sorted(tid for tid in required if tid not in implemented)
+        passed = len(missing_ids) == 0
+
+        conditions: list[dict[str, object]] = []
+        for tid in sorted(required):
+            cond_passed = tid in implemented
+            label = _device_type_label(type_id=tid)
+            if cond_passed:
+                count = sum(1 for d in cache.devices if d.device_type_id == tid)
+                detail = f"implemented ({count} device(s))"
+            else:
+                detail = "not implemented (no devices of this type)"
+            conditions.append(
+                {
+                    "label": label,
+                    "passed": cond_passed,
+                    "detail": detail,
+                },
+            )
+
+        scope_label = scope.upper()
+        if passed:
+            message = (
+                f"All {len(required)} required {scope_label} device type(s) "
+                "are implemented"
+            )
+        else:
+            missing_labels = ", ".join(
+                _device_type_label(type_id=tid) for tid in missing_ids
+            )
+            message = (
+                f"{len(missing_ids)}/{len(required)} required {scope_label} "
+                f"device type(s) missing: {missing_labels}"
+            )
+
+        return TestResult(
+            test_name=self.name,
+            passed=passed,
+            message=message,
+            details={
+                "project_type_id": project.project_type_id,
+                "scope": scope,
+                "required_device_type_ids": sorted(required),
+                "missing_device_type_ids": missing_ids,
+                "conditions": conditions,
+            },
+        )
+
+    def _required_types_for_project(
+        self,
+        *,
+        project_type_id: int,
+    ) -> tuple[str | None, frozenset[int]]:
+        """Map project type to scope label and required device type ids."""
+        try:
+            project_type = ProjectTypeEnum(project_type_id)
+        except ValueError:
+            return None, frozenset()
+
+        if project_type in _PV_PROJECT_TYPES:
+            type_ids = _coerce_device_type_ids(
+                self.get_param("pv_device_type_ids"),
+            )
+            return "pv", frozenset(type_ids)
+        if project_type in _BESS_PROJECT_TYPES:
+            type_ids = _coerce_device_type_ids(
+                self.get_param("bess_device_type_ids"),
+            )
+            return "bess", frozenset(type_ids)
+        return None, frozenset()

@@ -4,7 +4,13 @@ Terminal UI for working with mono project/device/tag data: pick active projects,
 
 ## Run
 
-From `**super-admin/inspectui`**:
+From the monorepo root (recommended):
+
+```bash
+mise run super-admin:inspectui
+```
+
+Or from `**super-admin/inspectui**`:
 
 1. `uv sync`
 2. Set `**DATABASE_URL**` (or a `.env` file in the working directory).
@@ -47,6 +53,7 @@ Registered in `src/inspectui/core/tests/builtin/`. Defaults belong in `test_para
 | `sensor_type_unique_per_device` | At most one tag per device for each configured sensor type |
 | `parent_device_type_allowlist`  | Child device types must have an allowed parent type        |
 | `required_device_models`        | Selected device types must have `device_model_id` set      |
+| `required_device_types`         | PV/PVS and BESS projects must implement configured types   |
 
 
 To add a test: subclass `**BaseTest`**, decorate with `**@TestRegistry.register**`, define `**parameters**` if needed, implement `**run()**`, and add a `**TEST_PARAMS**` entry when you want shared defaults. Builtin registration happens when `inspectui.core.tests` is imported.

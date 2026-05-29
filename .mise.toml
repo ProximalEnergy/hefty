@@ -464,6 +464,11 @@ description = "Generate HTML report of uploaded project documents"
 dir = "super-admin/uploaded-documents"
 run = "uv sync && uv run uploaded-documents"
 
+[tasks."super-admin:inspectui"]
+description = "Run InspectUI terminal app (project/device/tag data quality)"
+dir = "super-admin/inspectui"
+run = "uv sync && uv run inspectui"
+
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
 # =============================================================================

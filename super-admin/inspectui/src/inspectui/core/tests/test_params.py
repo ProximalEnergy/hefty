@@ -99,4 +99,10 @@ TEST_PARAMS: dict[str, dict[str, Any]] = {
             DeviceTypeEnum.PV_INVERTER,
         ],
     },
+    "required_device_types": {
+        "pv_device_type_ids": [
+            DeviceTypeEnum.DC_FIELD,
+        ],
+        "bess_device_type_ids": [],
+    },
 }
