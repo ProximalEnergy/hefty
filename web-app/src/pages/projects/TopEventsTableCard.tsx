@@ -128,7 +128,7 @@ export function TopEventsTableCard({
       <CustomCard
         title={
           <Link
-            to={`/projects/${projectId}/events`}
+            to={`/projects/${projectId}/impacts`}
             style={{ color: 'inherit' }}
           >
             {cardTitle}
