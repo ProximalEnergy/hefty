@@ -11,8 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core import enumerations
 from core.database import Base
-
-from .common import LTree, claim_status_enum, claim_update_type_enum
+from core.models.common import LTree, claim_status_enum, claim_update_type_enum
 
 
 ##### START PROJECT SCHEMA #####

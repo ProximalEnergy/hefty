@@ -218,6 +218,39 @@ class UserSubscription(Base):
     __table_args__ = {"schema": "admin"}
 
 
+class NotificationSeverityLookup(Base):
+    __tablename__ = "notification_severities"
+
+    notification_severity_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
+class NotificationChannel(Base):
+    __tablename__ = "notification_channels"
+
+    notification_channel_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
+class NotificationStateLookup(Base):
+    __tablename__ = "notification_state_enums"
+
+    notification_state_enum_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+
+    __table_args__ = {"schema": "admin"}
+
+
 class NotificationType(Base):
     __tablename__ = "notification_types"
 
@@ -229,8 +262,14 @@ class NotificationType(Base):
     in_app_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
         mapped_column(notification_severity_enum)
     )
+    in_app_severity_id_default: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
+    )
     email_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
         mapped_column(notification_severity_enum)
+    )
+    email_severity_id_default: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
     )
 
     __table_args__ = {"schema": "admin"}
@@ -254,8 +293,14 @@ class NotificationPreference(Base):
     email_min_severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
         notification_severity_enum
     )
+    email_min_severity_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
+    )
     in_app_min_severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
         notification_severity_enum
+    )
+    in_app_min_severity_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
     )
 
     __table_args__ = (
@@ -281,6 +326,9 @@ class Notification(Base):
     data: Mapped[dict] = mapped_column(JSONB)
     severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
         notification_severity_enum
+    )
+    severity_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
         sa.DateTime(timezone=True),
@@ -308,8 +356,14 @@ class NotificationState(Base):
     channel: Mapped[enumerations.NotificationChannelEnum] = mapped_column(
         notification_channel_enum
     )
+    channel_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationChannel.notification_channel_id),
+    )
     state: Mapped[enumerations.NotificationStateEnum] = mapped_column(
         notification_state_enum
+    )
+    state_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationStateLookup.notification_state_enum_id),
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
         sa.DateTime(timezone=True),
@@ -424,39 +478,6 @@ class SharedPages(Base):
         nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
-
-    __table_args__ = {"schema": "admin"}
-
-
-class NotificationSeverityLookup(Base):
-    __tablename__ = "notification_severities"
-
-    notification_severity_id: Mapped[int] = mapped_column(
-        primary_key=True, autoincrement=False
-    )
-    name_short: Mapped[str] = mapped_column(unique=True)
-
-    __table_args__ = {"schema": "admin"}
-
-
-class NotificationChannel(Base):
-    __tablename__ = "notification_channels"
-
-    notification_channel_id: Mapped[int] = mapped_column(
-        primary_key=True, autoincrement=False
-    )
-    name_short: Mapped[str] = mapped_column(unique=True)
-
-    __table_args__ = {"schema": "admin"}
-
-
-class NotificationStateLookup(Base):
-    __tablename__ = "notification_state_enums"
-
-    notification_state_enum_id: Mapped[int] = mapped_column(
-        primary_key=True, autoincrement=False
-    )
-    name_short: Mapped[str] = mapped_column(unique=True)
 
     __table_args__ = {"schema": "admin"}
 
