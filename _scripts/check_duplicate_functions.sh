@@ -144,6 +144,13 @@ function is_stub_file(file) {
     return 0
 }
 
+function is_mobile_file(file) {
+    if (file ~ /^mobile\//) {
+        return 1
+    }
+    return 0
+}
+
 function is_allowed_duplicate(name, signature) {
     if (name == "render") {
         if (signature ~ /^def render\(self\)([[:space:]]*->[^:]+)?:$/) {
@@ -177,6 +184,10 @@ NF >= 4 {
     signature = $4
 
     if (is_alembic_migration(file)) {
+        next
+    }
+
+    if (is_mobile_file(file)) {
         next
     }
 
