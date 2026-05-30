@@ -10,8 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core import enumerations
 from core.database import Base
-
-from .common import (
+from core.models.common import (
     notification_channel_enum,
     notification_severity_enum,
     notification_state_enum,

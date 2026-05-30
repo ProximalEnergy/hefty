@@ -112,6 +112,7 @@ select = [
     "UP",      # pyupgrade
     "S608",    # hardcoded-sql-expression
     "TID251",  # banned imports
+    "TID252",  # ban relative imports
     "E501",    # line too long
 ]
 fixable = ["ALL"]
@@ -145,8 +146,9 @@ external = []
     "T20",  # print statements allowed in tests
 ]
 "api/_data_insert/**/*.py" = [
-    "S608", # hardcoded-sql-expression allowed in data insert scripts
-    "T20",  # print statements allowed in data insert scripts
+    "S608",   # hardcoded-sql-expression allowed in data insert scripts
+    "T20",    # print statements allowed in data insert scripts
+    "TID252", # relative imports allowed in data insert scripts
 ]
 "api/_scripts/**/*.py" = [
     "PLC0415", # allow local imports in scripts
@@ -186,6 +188,9 @@ external = []
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "api" = { msg = "Avoid importing from the api package outside api itself." }

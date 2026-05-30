@@ -12,9 +12,10 @@ from app.dependencies import (
     tps_token_mgr_async,
 )
 from app.integrations.token_manager import TokenManager
+from app.v1.protected.web_application.projects.reports.eec_bess_monthly import (
+    eec_bess_monthly as eec_bess_monthly_module,
+)
 from core import models
-
-from .eec_bess_monthly import eec_bess_monthly as eec_bess_monthly_module
 
 BESSMonthlyReportRequest = eec_bess_monthly_module.BESSMonthlyReportRequest
 
@@ -25,9 +26,9 @@ router = APIRouter(
 )
 
 # NOTE: FastAPI automatically adds imported paths to the router.
-from . import (
-    module_degradation,  # noqa: F401
-    scada_telemetry_last_reported,  # noqa: F401
+from app.v1.protected.web_application.projects.reports import (  # noqa: F401
+    module_degradation,
+    scada_telemetry_last_reported,
 )
 
 

@@ -23,9 +23,8 @@ from app._crud.operational.documents import get_project_documents
 from app._dependencies import authentication
 from app._dependencies.authentication import get_user
 from app.interfaces import UserAuthed
+from app.v1.operational.project.project_documents import generate_presigned_url
 from core import models
-
-from .project_documents import generate_presigned_url
 
 
 def validate_and_clean_date(*, date_string: str | None) -> str | None:

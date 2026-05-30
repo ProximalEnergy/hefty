@@ -11,8 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core import enumerations
 from core.database import Base
-
-from .common import claim_submission_channel_enum
+from core.models.common import claim_submission_channel_enum
 
 
 ##### START OPERATIONAL SCHEMA #####

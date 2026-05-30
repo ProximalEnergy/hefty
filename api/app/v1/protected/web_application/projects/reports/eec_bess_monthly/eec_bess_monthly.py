@@ -17,6 +17,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from app.integrations.providers import ptp_explorer
 from app.logger import get_logger
+from app.v1.protected.web_application.projects.reports.eec_bess_monthly import (
+    chart_utils,
+    report_utils,
+)
 from core.crud.operational.contract_kpis import (
     get_contract_kpis as crud_get_contract_kpis,
 )
@@ -64,21 +68,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from core import models
-
-from .chart_utils import create_stacked_bar_chart, create_waterfall_chart
-from .report_utils import (
-    calc_delta_percentage,
-    format_change_text,
-    format_change_text_reversed,
-    format_dollar_per_kw_value,
-    format_dollar_value,
-    format_energy_value,
-    format_percentage_per_year,
-    format_percentage_value,
-    img_fit_by_width,
-    load_image_from_source,
-    tstyle_gridded_table,
-)
 
 logger = get_logger(name=__name__)
 
@@ -457,8 +446,8 @@ def section_full_width_image(*, doc, img_bytes_or_path, styles, caption=None):
         List of flowable elements.
     """
     max_w = doc.width - 2 * MARGIN_X
-    img = load_image_from_source(img_bytes_or_path)
-    img = img_fit_by_width(img=img, target_w=max_w)
+    img = report_utils.load_image_from_source(img_bytes_or_path)
+    img = report_utils.img_fit_by_width(img=img, target_w=max_w)
     flows = [img, Spacer(1, 0.30 * inch)]
     if caption:
         flows.append(
@@ -487,8 +476,8 @@ def section_revenue_breakdown_with_table(
     max_w = doc.width - 2 * MARGIN_X
 
     # Add the image
-    img = load_image_from_source(img_bytes_or_path)
-    img = img_fit_by_width(img=img, target_w=max_w)
+    img = report_utils.load_image_from_source(img_bytes_or_path)
+    img = report_utils.img_fit_by_width(img=img, target_w=max_w)
     flows = [img, Spacer(1, 0.20 * inch)]
 
     # Aggregate daily data by month
@@ -541,7 +530,7 @@ def section_revenue_breakdown_with_table(
 
     # Create table
     revenue_table = Table(table_data, colWidths=col_widths)
-    base_style = tstyle_gridded_table(
+    base_style = report_utils.tstyle_gridded_table(
         header_bg=colors.lightgrey,
         row_bg_alt=colors.HexColor("#F7F7F7"),
     )
@@ -655,15 +644,17 @@ def section_two_column_metrics(
     left_w = (doc.width - GUTTER_PT) / 2.0
     right_w = left_w
 
-    # calc_delta is now imported from report_utils as calc_delta_percentage
+    # calc_delta is now imported from report_utils as report_utils.calc_delta_percentage
 
     # ---- data ----
     soh_mean = kpi_means.get(KPITypeEnum.BESS_STRING_SOH)
     soh_actual_display = (
-        format_percentage_value(value=soh_mean) if soh_mean is not None else "—"
+        report_utils.format_percentage_value(value=soh_mean)
+        if soh_mean is not None
+        else "—"
     )
     soh_delta_display = (
-        calc_delta_percentage(actual=soh_mean, expected=current_soh)
+        report_utils.calc_delta_percentage(actual=soh_mean, expected=current_soh)
         if soh_mean is not None
         else "—"
     )
@@ -672,7 +663,7 @@ def section_two_column_metrics(
         f"{cycle_count_sum:.2f}" if cycle_count_sum is not None else "—"
     )
     monthly_cycles_delta = (
-        calc_delta_percentage(
+        report_utils.calc_delta_percentage(
             actual=cycle_count_sum,
             expected=kpi_expected_values["monthly_cycles"],
         )
@@ -680,7 +671,7 @@ def section_two_column_metrics(
         else "—"
     )
     ytd_cycles_delta = (
-        calc_delta_percentage(
+        report_utils.calc_delta_percentage(
             actual=ytd_cycles,
             expected=kpi_expected_values["ytd_cycles"],
         )
@@ -689,12 +680,12 @@ def section_two_column_metrics(
     )
     average_soc_mean = kpi_means.get(KPITypeEnum.PROJECT_AVERAGE_SOC_PERCENT)
     average_soc_actual = (
-        format_percentage_value(value=average_soc_mean)
+        report_utils.format_percentage_value(value=average_soc_mean)
         if average_soc_mean is not None
         else "—"
     )
     average_soc_delta = (
-        calc_delta_percentage(
+        report_utils.calc_delta_percentage(
             actual=average_soc_mean,
             expected=kpi_expected_values["average_soc"],
         )
@@ -703,12 +694,12 @@ def section_two_column_metrics(
     )
     resting_soc_mean = kpi_means.get(KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT)
     resting_soc_actual = (
-        format_percentage_value(value=resting_soc_mean)
+        report_utils.format_percentage_value(value=resting_soc_mean)
         if resting_soc_mean is not None
         else "—"
     )
     resting_soc_delta = (
-        calc_delta_percentage(
+        report_utils.calc_delta_percentage(
             actual=resting_soc_mean,
             expected=kpi_expected_values["average_resting_soc"],
         )
@@ -739,35 +730,39 @@ def section_two_column_metrics(
         (
             "BESS State of Health (%)",
             soh_actual_display,
-            format_percentage_value(value=current_soh),
+            report_utils.format_percentage_value(value=current_soh),
             soh_delta_display,
         ),  # source: BESS Bank SoH KPI
         (
             "Average SOC (%)",
             average_soc_actual,
-            format_percentage_value(value=kpi_expected_values["average_soc"]),
+            report_utils.format_percentage_value(
+                value=kpi_expected_values["average_soc"]
+            ),
             average_soc_delta,
         ),  # source: Project Average SOC KPI
         (
             "Average Resting SOC (%)",
             resting_soc_actual,
-            format_percentage_value(value=kpi_expected_values["average_resting_soc"]),
+            report_utils.format_percentage_value(
+                value=kpi_expected_values["average_resting_soc"]
+            ),
             resting_soc_delta,
         ),  # source: BESS Bank Resting SOC KPI
         (
             "Minimum SOC (%)",
-            format_percentage_value(value=soc_stats["soc_min"]),
-            format_percentage_value(value=kpi_expected_values["min_soc"]),
-            calc_delta_percentage(
+            report_utils.format_percentage_value(value=soc_stats["soc_min"]),
+            report_utils.format_percentage_value(value=kpi_expected_values["min_soc"]),
+            report_utils.calc_delta_percentage(
                 actual=soc_stats["soc_min"],
                 expected=kpi_expected_values["min_soc"],
             ),
         ),  # source: Minimum SOC KPI
         (
             "Maximum SOC (%)",
-            format_percentage_value(value=soc_stats["soc_max"]),
-            format_percentage_value(value=kpi_expected_values["max_soc"]),
-            calc_delta_percentage(
+            report_utils.format_percentage_value(value=soc_stats["soc_max"]),
+            report_utils.format_percentage_value(value=kpi_expected_values["max_soc"]),
+            report_utils.calc_delta_percentage(
                 actual=soc_stats["soc_max"],
                 expected=kpi_expected_values["max_soc"],
             ),
@@ -905,30 +900,30 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
         value = _cell_float(row=row, column=column)
         if np.isnan(value):
             return "—"
-        return format_percentage_value(value=value)
+        return report_utils.format_percentage_value(value=value)
 
     # --- Table Data (now 4 columns) ---
     executive_data: list[list[str]] = [
         ["Metric", "This Month", "Expected", "Δ vs Expected"],
         [
             "Total Revenue",
-            format_dollar_value(
+            report_utils.format_dollar_value(
                 value=_cell_float(row="Total Revenue", column="This Month")
             ),
-            format_dollar_value(
+            report_utils.format_dollar_value(
                 value=_cell_float(row="Total Revenue", column="Expected")
             ),
             _delta_str(row="Total Revenue"),
         ],
         [
             "Total Energy Discharged",
-            format_energy_value(
+            report_utils.format_energy_value(
                 value=_cell_float(
                     row="Total Energy Discharged",
                     column="This Month",
                 )
             ),
-            format_energy_value(
+            report_utils.format_energy_value(
                 value=_cell_float(
                     row="Total Energy Discharged",
                     column="Expected",
@@ -938,13 +933,13 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
         ],
         [
             "Total Energy Charged",
-            format_energy_value(
+            report_utils.format_energy_value(
                 value=_cell_float(
                     row="Total Energy Charged",
                     column="This Month",
                 )
             ),
-            format_energy_value(
+            report_utils.format_energy_value(
                 value=_cell_float(
                     row="Total Energy Charged",
                     column="Expected",
@@ -970,23 +965,23 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
         ],
         [
             "Degradation Rate",
-            format_percentage_per_year(
+            report_utils.format_percentage_per_year(
                 _cell_float(row="Degradation Rate", column="This Month")
             ),
-            format_percentage_per_year(
+            report_utils.format_percentage_per_year(
                 _cell_float(row="Degradation Rate", column="Expected")
             ),
             _delta_str(row="Degradation Rate"),
         ],
         [
             "Forecast Accuracy",
-            format_percentage_value(
+            report_utils.format_percentage_value(
                 value=_cell_float(
                     row="Forecast Accuracy",
                     column="This Month",
                 )
             ),
-            format_percentage_value(
+            report_utils.format_percentage_value(
                 value=_cell_float(
                     row="Forecast Accuracy",
                     column="Expected",
@@ -1015,7 +1010,7 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
                     Paragraph(row[1], right_style),  # This Month
                     Paragraph(row[2], right_style),  # Expected
                     Paragraph(
-                        format_change_text_reversed(row[3]), right_style
+                        report_utils.format_change_text_reversed(row[3]), right_style
                     ),  # Delta
                 ]
             )
@@ -1025,7 +1020,9 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
                     Paragraph(row[0], cell_style),  # Metric (left)
                     Paragraph(row[1], right_style),  # This Month
                     Paragraph(row[2], right_style),  # Expected
-                    Paragraph(format_change_text(row[3]), right_style),  # Delta
+                    Paragraph(
+                        report_utils.format_change_text(row[3]), right_style
+                    ),  # Delta
                 ]
             )
 
@@ -1039,7 +1036,7 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
             doc.width * 0.20,  # Δ vs Expected
         ],
     )
-    base_style = tstyle_gridded_table(
+    base_style = report_utils.tstyle_gridded_table(
         header_bg=colors.lightgrey,
         row_bg_alt=colors.HexColor("#F7F7F7"),
     )
@@ -1108,20 +1105,26 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
     tb4_raw = monthly_tbx.get("4")
 
     realized_val = format_or_dash(
-        value=realized_intraday_value, formatter=format_dollar_per_kw_value
+        value=realized_intraday_value, formatter=report_utils.format_dollar_per_kw_value
     )
-    tb1_val = format_or_dash(value=tb1_raw, formatter=format_dollar_per_kw_value)
-    tb2_val = format_or_dash(value=tb2_raw, formatter=format_dollar_per_kw_value)
+    tb1_val = format_or_dash(
+        value=tb1_raw, formatter=report_utils.format_dollar_per_kw_value
+    )
+    tb2_val = format_or_dash(
+        value=tb2_raw, formatter=report_utils.format_dollar_per_kw_value
+    )
     tb_project_val = format_or_dash(
         value=tb_project_raw,
-        formatter=format_dollar_per_kw_value,
+        formatter=report_utils.format_dollar_per_kw_value,
     )
-    tb4_val = format_or_dash(value=tb4_raw, formatter=format_dollar_per_kw_value)
+    tb4_val = format_or_dash(
+        value=tb4_raw, formatter=report_utils.format_dollar_per_kw_value
+    )
 
     def safe_pct_capture(*, expected: float | None, actual: float | None) -> str:
         if expected is None or actual is None or expected == 0:
             return "—"
-        return format_percentage_value(value=max(actual / expected, 0))
+        return report_utils.format_percentage_value(value=max(actual / expected, 0))
 
     tb1_delta = safe_pct_capture(expected=tb1_raw, actual=realized_intraday_value)
     tb2_delta = safe_pct_capture(expected=tb2_raw, actual=realized_intraday_value)
@@ -1172,7 +1175,7 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
         colWidths=[doc.width * 0.45, doc.width * 0.30, doc.width * 0.25],
         hAlign="LEFT",
     )
-    table_style = tstyle_gridded_table(
+    table_style = report_utils.tstyle_gridded_table(
         header_bg=colors.lightgrey,
         row_bg_alt=colors.HexColor("#F7F7F7"),
     )
@@ -1258,7 +1261,7 @@ def build_portfolio_kpi_table_rows(
                 or column == "RTE (%)"
                 or column == "Balance of Strings"
             ):
-                formatted_value = format_percentage_value(value=value)
+                formatted_value = report_utils.format_percentage_value(value=value)
             elif column == "Energy Yield (MWh/MW)":
                 formatted_value = f"{value:.2f}"
             elif column == "Real $ / MWh Delivered":
@@ -1293,8 +1296,8 @@ def section_portfolio_kpi_comparison(
     """
 
     title = Paragraph("<b>Portfolio KPI Comparison</b>", styles["h2_center"])
-    radar_image = load_image_from_source(radar_chart_bytes)
-    radar_image = img_fit_by_width(
+    radar_image = report_utils.load_image_from_source(radar_chart_bytes)
+    radar_image = report_utils.img_fit_by_width(
         img=radar_image,
         target_w=doc.width * 0.6,
     )
@@ -1319,7 +1322,7 @@ def section_portfolio_kpi_comparison(
             ],
             hAlign="LEFT",
         )
-        table_style = tstyle_gridded_table(
+        table_style = report_utils.tstyle_gridded_table(
             header_bg=colors.lightgrey,
             row_bg_alt=colors.HexColor("#F7F7F7"),
         )
@@ -1355,8 +1358,8 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
         styles["h2_center"],
     )
 
-    img = load_image_from_source(image_bytes)
-    img = img_fit_by_width(img=img, target_w=max_w)
+    img = report_utils.load_image_from_source(image_bytes)
+    img = report_utils.img_fit_by_width(img=img, target_w=max_w)
     # events table
 
     def build_events_table():
@@ -1510,7 +1513,7 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
             splitByRow=1,
         )
 
-        base_style = tstyle_gridded_table(
+        base_style = report_utils.tstyle_gridded_table(
             header_bg=colors.whitesmoke,
             row_bg_alt=colors.HexColor("#F5F5F5"),
         )
@@ -1537,7 +1540,7 @@ def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_tabl
 
     rollup_tbl = Table(rollup_rows, colWidths=[3.0 * inch, 2.0 * inch])
     rollup_tbl.setStyle(
-        tstyle_gridded_table(
+        report_utils.tstyle_gridded_table(
             header_bg=None,
             row_bg_alt=colors.HexColor("#F5F5F5"),
         )
@@ -2281,7 +2284,7 @@ async def generate_revenue_breakdown_chart(
     bar_columns = [col for col in rev_breakdown_df.columns if col != "Net Profit"]
 
     # Create chart using utility function
-    fig = create_stacked_bar_chart(
+    fig = chart_utils.create_stacked_bar_chart(
         df=rev_breakdown_df,
         bar_columns=bar_columns,
         line_column="Net Profit",
@@ -3573,7 +3576,7 @@ async def build_event_data(
         else {}
     )
 
-    fig = create_waterfall_chart(
+    fig = chart_utils.create_waterfall_chart(
         total_capacity=total_energy_capacity,
         losses=losses_dict,
         title="Capacity Impact by Failure Mode",
@@ -3771,7 +3774,7 @@ async def generate_executive_summary(
         "forecast_accuracy"
     ]
     executive_summary_df.loc[:, "Delta"] = executive_summary_df.apply(
-        lambda x: calc_delta_percentage(
+        lambda x: report_utils.calc_delta_percentage(
             actual=x["This Month"], expected=x["Expected"], format_as_change=True
         ),
         axis=1,

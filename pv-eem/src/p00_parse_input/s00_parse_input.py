@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from .simulation_temporal_mode import SimulationTemporalMode
+from p00_parse_input.simulation_temporal_mode import SimulationTemporalMode
 
 
 @dataclass(slots=True)
