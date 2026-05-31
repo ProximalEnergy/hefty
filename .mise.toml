@@ -1196,7 +1196,13 @@ uv run --dev ruff check pv-eem/
 [tasks."pveem:pytest"]
 description = "Run test suite for pv-eem"
 dir = "pv-eem"
-run = "uv run pytest -n auto"
+run = """
+if [ "${GITHUB_ACTIONS:-false}" = "true" ]; then
+  uv run pytest
+else
+  uv run pytest -n auto
+fi
+"""
 
 [tasks."pveem:live_test"]
 description = "Run a live sun_pond pv-eem sanity check"

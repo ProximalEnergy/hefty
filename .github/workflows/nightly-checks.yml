@@ -132,21 +132,18 @@ jobs:
       - name: Run PV-EEM pytest
         run: mise run pveem:pytest
 
-  notify-failure:
+  notify-nightly-result:
     needs:
       - detect-slow-check-changes
       - pveem-pytest
-    if: |
-      always() &&
-      (
-        needs.detect-slow-check-changes.result == 'failure' ||
-        needs.pveem-pytest.result == 'failure'
-      )
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Notify Google Chat
         env:
           CHAT_WEBHOOK: ${{ secrets.NIGHTLY_CHECKS_BOT_URL }}
+          DETECT_RESULT: ${{ needs.detect-slow-check-changes.result }}
+          PVEEM_PYTEST_RESULT: ${{ needs.pveem-pytest.result }}
         shell: bash
         run: |
           set -euo pipefail
@@ -162,14 +159,28 @@ jobs:
           import json
           import os
 
+          passed_results = {"success", "skipped"}
+          detect_result = os.environ["DETECT_RESULT"]
+          pveem_pytest_result = os.environ["PVEEM_PYTEST_RESULT"]
+          is_success = (
+              detect_result == "success"
+              and pveem_pytest_result in passed_results
+          )
           run_url = (
               f"{os.environ['GITHUB_SERVER_URL']}/"
               f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
               f"{os.environ['GITHUB_RUN_ID']}"
           )
+          status_text = (
+              "✅ *Nightly checks passed*"
+              if is_success
+              else "🟥🟥🟥 *Nightly checks failed*"
+          )
           message = {
               "text": (
-                  "*Nightly checks failed* on `dev`.\n"
+                  f"{status_text} on `dev`.\n"
+                  f"detect-slow-check-changes: `{detect_result}`\n"
+                  f"pveem-pytest: `{pveem_pytest_result}`\n"
                   f"<{run_url}|View workflow run>"
               ),
           }
