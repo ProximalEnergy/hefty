@@ -78,11 +78,12 @@ def calculate_rear_irradiance_solar_factors(
         index=bifacial_inputs.index, dtype=float, name="qinc_back"
     )
 
-    for group_indices, group_df in bifacial_inputs.groupby(grouping_cols):
+    for _, group_df in bifacial_inputs.groupby(grouping_cols):
         gcr = group_df["racking_controls_gcr"].iloc[0]
         height = group_df["pile_height"].iloc[0]
         pitch = group_df["pitch"].iloc[0]
         pvrow_width = pitch * gcr
+        engine_inputs = _deduplicate_engine_inputs(group_df=group_df)
 
         pv_array_parameters = {
             "n_pvrows": N_PVROWS,
@@ -96,13 +97,13 @@ def calculate_rear_irradiance_solar_factors(
         engine = PVEngine(pvarray)
         try:
             engine.fit(
-                timestamps=group_df["time"],
-                DNI=group_df["dni"],
-                DHI=group_df["dhi"],
-                solar_zenith=group_df["apparent_zenith"],
-                solar_azimuth=group_df["azimuth"],
-                surface_tilt=group_df["surface_tilt"],
-                surface_azimuth=group_df["surface_azimuth"],
+                timestamps=engine_inputs["time"],
+                DNI=engine_inputs["dni"],
+                DHI=engine_inputs["dhi"],
+                solar_zenith=engine_inputs["apparent_zenith"],
+                solar_azimuth=engine_inputs["azimuth"],
+                surface_tilt=engine_inputs["surface_tilt"],
+                surface_azimuth=engine_inputs["surface_azimuth"],
                 albedo=ALBEDO,
             )
 
@@ -111,8 +112,11 @@ def calculate_rear_irradiance_solar_factors(
                 fn_build_report=_fn_report,
             )
             if df_report is not None and not df_report.empty:
-                # Assign results back to the original indices for this group
-                poa_rear_series.loc[group_df.index] = df_report["qinc_back"].values
+                poa_rear_series.loc[group_df.index] = _expand_engine_results(
+                    group_df=group_df,
+                    engine_inputs=engine_inputs,
+                    df_report=df_report,
+                )
         except KeyError as error:
             # pvfactors can raise KeyError('horizon') with some pvlib/pvfactors combos.
             # Fallback to zero rear POA so simulation can proceed deterministically.
@@ -122,6 +126,42 @@ def calculate_rear_irradiance_solar_factors(
                 raise
 
     return poa_rear_series
+
+
+def _deduplicate_engine_inputs(*, group_df: pd.DataFrame) -> pd.DataFrame:
+    engine_input_columns = [
+        "time",
+        "dni",
+        "dhi",
+        "apparent_zenith",
+        "azimuth",
+        "surface_tilt",
+        "surface_azimuth",
+    ]
+    return group_df.loc[:, engine_input_columns].drop_duplicates(
+        ignore_index=True,
+    )
+
+
+def _expand_engine_results(
+    *,
+    group_df: pd.DataFrame,
+    engine_inputs: pd.DataFrame,
+    df_report: pd.DataFrame,
+) -> pd.Series:
+    engine_outputs = engine_inputs.assign(
+        qinc_back=df_report["qinc_back"].to_numpy()
+    )
+    expanded_outputs = group_df.loc[:, list(engine_inputs)].merge(
+        right=engine_outputs,
+        on=list(engine_inputs),
+        how="left",
+        sort=False,
+    )
+    return pd.Series(
+        expanded_outputs["qinc_back"].to_numpy(),
+        index=group_df.index,
+    )
 
 
 def _fn_report(pvarray):
