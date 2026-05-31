@@ -63,6 +63,24 @@ jobs:
     needs: detect-slow-check-changes
     if: needs.detect-slow-check-changes.outputs.pveem-pytest == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: cdk-and-unit
+            pytest_args: _cdk/tests/unit _tests/unit
+          - label: integration-and-nuisance
+            pytest_args: _tests/integration _tests/nuisance
+          - label: plantpredict-bifacial
+            pytest_args: _tests/validation/plantpredict/test_bifacial.py
+          - label: plantpredict-combiner
+            pytest_args: _tests/validation/plantpredict/test_combiner.py
+          - label: plantpredict-inverter
+            pytest_args: _tests/validation/plantpredict/test_inverter.py
+          - label: plantpredict-pvwatts
+            pytest_args: _tests/validation/plantpredict/test_pvwatts.py
+          - label: plantpredict-transformer
+            pytest_args: _tests/validation/plantpredict/test_transformer.py
     env:
       ENVIRONMENT: DEV
       DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.DB_URI_DEV }}
@@ -129,8 +147,9 @@ jobs:
           PY
           chmod 600 pv-eem/.env
 
-      - name: Run PV-EEM pytest
-        run: mise run pveem:pytest
+      - name: Run PV-EEM pytest (${{ matrix.label }})
+        working-directory: pv-eem
+        run: uv run pytest ${{ matrix.pytest_args }}
 
   notify-nightly-result:
     needs:
