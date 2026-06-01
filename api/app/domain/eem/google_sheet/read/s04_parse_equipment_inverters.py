@@ -1,10 +1,10 @@
-# import logging
-
 import pandas as pd
-from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app._crud.operational.inverters import get_inverter_ids_by_manufacturer_model
+from app.domain.eem.google_sheet.read._resolve_manufacturer_model_equipment_ids import (
+    resolve_manufacturer_model_equipment_ids,
+)
 
 
 async def parse_equipment_inverters(
@@ -12,72 +12,21 @@ async def parse_equipment_inverters(
     db: AsyncSession,
     system: pd.DataFrame,
 ) -> pd.DataFrame:
-    # --- Get racking id ---
-    """todo
+    """Resolve inverter equipment IDs from sheet PCS manufacturer/model columns.
 
     Args:
-        db: Description for db.
-        system: Description for system.
+        db: Async database session for equipment lookups.
+        system: Google Sheet system dataframe to enrich.
     """
-    system["gsheet_inverter_id"] = (
-        pd.factorize(
-            system[["PCS Manufacturer", "PCS Model"]].astype(str).agg("-".join, axis=1),
-        )[0]
-        + 1
-    )
-    unique_inverters = (
-        system[["gsheet_inverter_id", "PCS Manufacturer", "PCS Model"]]
-        .groupby("gsheet_inverter_id")
-        .first()
-    )
-    unique_inverters = unique_inverters.reset_index()
-    unique_manufacturers_list = unique_inverters["PCS Manufacturer"].tolist()
-    unique_models_list = unique_inverters["PCS Model"].tolist()
-
-    unique_inverter_ids = await get_inverter_ids_by_manufacturer_model(
+    return await resolve_manufacturer_model_equipment_ids(
         db=db,
-        inverter_manufacturers=unique_manufacturers_list,
-        inverter_models=unique_models_list,
+        system=system,
+        manufacturer_column="PCS Manufacturer",
+        model_column="PCS Model",
+        gsheet_id_column="gsheet_inverter_id",
+        output_id_column="inverter_equipment_id",
+        entity_plural="inverters",
+        lookup_ids=get_inverter_ids_by_manufacturer_model,
+        lookup_manufacturers_argument="inverter_manufacturers",
+        lookup_models_argument="inverter_models",
     )
-    if None in unique_inverter_ids:
-        # Find the inverters that have a None ID
-        missing_inverters = [
-            f"{manufactuer} {model}"
-            for manufactuer, model, id in zip(
-                unique_manufacturers_list,
-                unique_models_list,
-                unique_inverter_ids,
-            )
-            if id is None
-        ]
-
-        # Create a user-friendly string list of the missing items
-        missing_inverters_str = ", ".join(map(str, missing_inverters))
-
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Could not find following inverters in the database: "
-                f"{missing_inverters_str}",
-            ),
-        )
-    unique_inverters["inverter_equipment_id"] = unique_inverter_ids
-
-    system = pd.merge(
-        system,
-        unique_inverters[["PCS Manufacturer", "PCS Model", "inverter_equipment_id"]],
-        on=["PCS Manufacturer", "PCS Model"],
-        how="left",  # Use 'left' to keep all rows from the original 'system' DataFrame
-    )
-
-    # --- Clean up temporary columns ---
-    system = system.drop(
-        columns=[
-            "gsheet_inverter_id",
-            "PCS Manufacturer",
-            "PCS Model",
-        ],
-        errors="ignore",
-    )
-
-    return system

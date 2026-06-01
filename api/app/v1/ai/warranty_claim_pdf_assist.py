@@ -3,6 +3,7 @@
 import base64
 import json
 import re
+from collections.abc import Iterable
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
@@ -161,11 +162,11 @@ IGNORED_MODEL_TEXT_VALUES = {
 }
 
 
-def _join_non_empty(*parts: str) -> str:
+def _join_non_empty(*, parts: Iterable[str]) -> str:
     """Join non-empty strings with single spaces.
 
     Args:
-        *parts: Candidate strings to join.
+        parts: Candidate strings to join.
 
     Returns:
         Normalized combined string.
@@ -417,8 +418,10 @@ def _claim_context_prompt_payload(
     )
 
     full_name = _join_non_empty(
-        claim_context.user_first_name,
-        claim_context.user_last_name,
+        parts=(
+            claim_context.user_first_name,
+            claim_context.user_last_name,
+        ),
     )
     if full_name and wants_contact:
         ctx_json["user_full_name"] = full_name
@@ -474,7 +477,12 @@ def _claim_context_prompt_payload(
         for device in claim_context.devices:
             device_item: dict[str, Any] = {}
             device_name = device.device_name.strip()
-            model = _join_non_empty(device.device_brand, device.device_model)
+            model = _join_non_empty(
+                parts=(
+                    device.device_brand,
+                    device.device_model,
+                ),
+            )
             if device.event_id is not None:
                 device_item["event"] = device.event_id
             if device_name:

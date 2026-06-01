@@ -150,7 +150,7 @@ def _proximal_tag(*, name: str) -> str:
     return f"{{{PROXIMAL_NS}}}{name}"
 
 
-def _safe_xml_id(prefix: str, value: object) -> str:
+def _safe_xml_id(*, prefix: str, value: object) -> str:
     """Build an XML ID-compatible identifier.
 
     Args:
@@ -164,7 +164,12 @@ def _safe_xml_id(prefix: str, value: object) -> str:
     return f"{prefix}_{cleaned}"
 
 
-def _add_text(parent: ET.Element, tag: str, value: object | None) -> ET.Element:
+def _add_text(
+    *,
+    parent: ET.Element,
+    tag: str,
+    value: object | None,
+) -> ET.Element:
     """Append a text element when the value exists.
 
     Args:
@@ -714,7 +719,9 @@ async def _get_components(
         dc_power_w = _mw_to_w(value=device.capacity_dc) or ac_power_w
         inverters.append(
             PVColladaInverter(
-                inverter_id=_safe_xml_id("inverter_model", device.device_id),
+                inverter_id=_safe_xml_id(
+                    prefix="inverter_model", value=device.device_id
+                ),
                 manufacturer=manufacturer,
                 name=name or device.name_long or f"Inverter {device.device_id}",
                 inverter_type="central",
@@ -794,21 +801,47 @@ def _add_components(
             module_element = ET.SubElement(
                 modules_element,
                 _pv_tag(name="module"),
-                id=_safe_xml_id("module", module.module_id),
+                id=_safe_xml_id(prefix="module", value=module.module_id),
             )
-            _add_text(module_element, _pv_tag(name="manufacturer"), module.manufacturer)
-            _add_text(module_element, _pv_tag(name="name"), module.name)
-            _add_text(module_element, _pv_tag(name="module_type"), module.module_type)
-            _add_text(module_element, _pv_tag(name="nom_power"), module.nom_power_w)
-            _add_text(module_element, _pv_tag(name="length"), module.length_mm)
-            _add_text(module_element, _pv_tag(name="width"), module.width_mm)
-            _add_text(module_element, _pv_tag(name="depth"), module.depth_mm)
             _add_text(
-                module_element,
-                _pv_tag(name="num_cells_series"),
-                module.num_cells_series,
+                parent=module_element,
+                tag=_pv_tag(name="manufacturer"),
+                value=module.manufacturer,
             )
-            _add_text(module_element, _pv_tag(name="num_strings"), module.num_strings)
+            _add_text(
+                parent=module_element, tag=_pv_tag(name="name"), value=module.name
+            )
+            _add_text(
+                parent=module_element,
+                tag=_pv_tag(name="module_type"),
+                value=module.module_type,
+            )
+            _add_text(
+                parent=module_element,
+                tag=_pv_tag(name="nom_power"),
+                value=module.nom_power_w,
+            )
+            _add_text(
+                parent=module_element,
+                tag=_pv_tag(name="length"),
+                value=module.length_mm,
+            )
+            _add_text(
+                parent=module_element, tag=_pv_tag(name="width"), value=module.width_mm
+            )
+            _add_text(
+                parent=module_element, tag=_pv_tag(name="depth"), value=module.depth_mm
+            )
+            _add_text(
+                parent=module_element,
+                tag=_pv_tag(name="num_cells_series"),
+                value=module.num_cells_series,
+            )
+            _add_text(
+                parent=module_element,
+                tag=_pv_tag(name="num_strings"),
+                value=module.num_strings,
+            )
 
     if components.inverters:
         inverters_element = ET.SubElement(components_element, _pv_tag(name="inverters"))
@@ -819,23 +852,27 @@ def _add_components(
                 id=inverter.inverter_id,
             )
             _add_text(
-                inverter_element, _pv_tag(name="manufacturer"), inverter.manufacturer
-            )
-            _add_text(inverter_element, _pv_tag(name="name"), inverter.name)
-            _add_text(
-                inverter_element,
-                _pv_tag(name="inverter_type"),
-                inverter.inverter_type,
+                parent=inverter_element,
+                tag=_pv_tag(name="manufacturer"),
+                value=inverter.manufacturer,
             )
             _add_text(
-                inverter_element,
-                _pv_tag(name="nom_power_ac"),
-                inverter.nom_power_ac_w,
+                parent=inverter_element, tag=_pv_tag(name="name"), value=inverter.name
             )
             _add_text(
-                inverter_element,
-                _pv_tag(name="nom_power_dc"),
-                inverter.nom_power_dc_w,
+                parent=inverter_element,
+                tag=_pv_tag(name="inverter_type"),
+                value=inverter.inverter_type,
+            )
+            _add_text(
+                parent=inverter_element,
+                tag=_pv_tag(name="nom_power_ac"),
+                value=inverter.nom_power_ac_w,
+            )
+            _add_text(
+                parent=inverter_element,
+                tag=_pv_tag(name="nom_power_dc"),
+                value=inverter.nom_power_dc_w,
             )
 
 
@@ -860,11 +897,13 @@ def _add_asset(
     """
     asset = ET.SubElement(root, _collada_tag(name="asset"))
     contributor = ET.SubElement(asset, _collada_tag(name="contributor"))
-    _add_text(contributor, _collada_tag(name="author"), "Proximal Energy")
     _add_text(
-        contributor,
-        _collada_tag(name="comments"),
-        "PVCollada 2.0 export of the Proximal project structure.",
+        parent=contributor, tag=_collada_tag(name="author"), value="Proximal Energy"
+    )
+    _add_text(
+        parent=contributor,
+        tag=_collada_tag(name="comments"),
+        value="PVCollada 2.0 export of the Proximal project structure.",
     )
 
     coordinates = _get_project_coordinates(project=project)
@@ -873,10 +912,14 @@ def _add_asset(
         coverage = ET.SubElement(asset, _collada_tag(name="coverage"))
         location = ET.SubElement(coverage, _collada_tag(name="geographic_location"))
         _add_text(
-            location, _collada_tag(name="longitude"), _format_number(value=longitude)
+            parent=location,
+            tag=_collada_tag(name="longitude"),
+            value=_format_number(value=longitude),
         )
         _add_text(
-            location, _collada_tag(name="latitude"), _format_number(value=latitude)
+            parent=location,
+            tag=_collada_tag(name="latitude"),
+            value=_format_number(value=latitude),
         )
         altitude = ET.SubElement(
             location, _collada_tag(name="altitude"), mode="absolute"
@@ -884,10 +927,10 @@ def _add_asset(
         altitude.text = _format_number(value=project.elevation) or "0"
 
     generated_at_text = generated_at.isoformat().replace("+00:00", "Z")
-    _add_text(asset, _collada_tag(name="created"), generated_at_text)
-    _add_text(asset, _collada_tag(name="modified"), generated_at_text)
+    _add_text(parent=asset, tag=_collada_tag(name="created"), value=generated_at_text)
+    _add_text(parent=asset, tag=_collada_tag(name="modified"), value=generated_at_text)
     ET.SubElement(asset, _collada_tag(name="unit"), meter="1", name="m")
-    _add_text(asset, _collada_tag(name="up_axis"), "Z_UP")
+    _add_text(parent=asset, tag=_collada_tag(name="up_axis"), value="Z_UP")
 
     extra = ET.SubElement(asset, _collada_tag(name="extra"))
     pv_technique = ET.SubElement(
@@ -896,51 +939,57 @@ def _add_asset(
         profile=PVCOLLADA_PROFILE,
     )
     software = ET.SubElement(pv_technique, _pv_tag(name="software"))
-    _add_text(software, _pv_tag(name="source"), "Proximal Energy Platform")
-    _add_text(software, _pv_tag(name="target"), "PVCollada 2.0")
+    _add_text(
+        parent=software, tag=_pv_tag(name="source"), value="Proximal Energy Platform"
+    )
+    _add_text(parent=software, tag=_pv_tag(name="target"), value="PVCollada 2.0")
 
     pv_project = ET.SubElement(pv_technique, _pv_tag(name="project"))
-    _add_text(pv_project, _pv_tag(name="name"), project.name_long)
-    _add_text(pv_project, _pv_tag(name="drawing"), project.name_short)
-    _add_text(pv_project, _pv_tag(name="company"), "Proximal Energy")
-    _add_text(pv_project, _pv_tag(name="timezone"), project.time_zone)
+    _add_text(parent=pv_project, tag=_pv_tag(name="name"), value=project.name_long)
+    _add_text(parent=pv_project, tag=_pv_tag(name="drawing"), value=project.name_short)
+    _add_text(parent=pv_project, tag=_pv_tag(name="company"), value="Proximal Energy")
+    _add_text(parent=pv_project, tag=_pv_tag(name="timezone"), value=project.time_zone)
     if project_geometry.projection is not None:
         _add_text(
-            pv_project,
-            _pv_tag(name="local_projection"),
-            project_geometry.projection.epsg_code,
+            parent=pv_project,
+            tag=_pv_tag(name="local_projection"),
+            value=project_geometry.projection.epsg_code,
         )
     if project_geometry.boundary is not None:
         _add_text(
-            pv_project,
-            _pv_tag(name="boundary"),
-            "ProjectStructure/ProjectBoundary/project_boundary_instance",
+            parent=pv_project,
+            tag=_pv_tag(name="boundary"),
+            value="ProjectStructure/ProjectBoundary/project_boundary_instance",
         )
     _add_text(
-        pv_project,
-        _pv_tag(name="module_count"),
-        _estimate_module_count(devices=devices),
+        parent=pv_project,
+        tag=_pv_tag(name="module_count"),
+        value=_estimate_module_count(devices=devices),
     )
     _add_text(
-        pv_project,
-        _pv_tag(name="table_count"),
-        len(project_geometry.rack_devices) or None,
+        parent=pv_project,
+        tag=_pv_tag(name="table_count"),
+        value=len(project_geometry.rack_devices) or None,
     )
     _add_text(
-        pv_project,
-        _pv_tag(name="string_count"),
-        _estimate_string_count(devices=devices),
+        parent=pv_project,
+        tag=_pv_tag(name="string_count"),
+        value=_estimate_string_count(devices=devices),
     )
     _add_text(
-        pv_project, _pv_tag(name="capacity_dc"), _mw_to_w(value=project.capacity_dc)
+        parent=pv_project,
+        tag=_pv_tag(name="capacity_dc"),
+        value=_mw_to_w(value=project.capacity_dc),
     )
     _add_text(
-        pv_project, _pv_tag(name="capacity_ac"), _mw_to_w(value=project.capacity_ac)
+        parent=pv_project,
+        tag=_pv_tag(name="capacity_ac"),
+        value=_mw_to_w(value=project.capacity_ac),
     )
     _add_text(
-        pv_project,
-        _pv_tag(name="interconnection_limit"),
-        _mw_to_w(value=project.poi),
+        parent=pv_project,
+        tag=_pv_tag(name="interconnection_limit"),
+        value=_mw_to_w(value=project.poi),
     )
 
     _add_components(parent=pv_technique, components=components)
@@ -970,7 +1019,7 @@ def _add_asset(
         "cod": project.cod,
     }
     for key, value in project_fields.items():
-        _add_text(proximal_project, _proximal_tag(name=key), value)
+        _add_text(parent=proximal_project, tag=_proximal_tag(name=key), value=value)
 
 
 def _add_device_extra(
@@ -994,7 +1043,7 @@ def _add_device_extra(
             profile=PVCOLLADA_PROFILE,
         )
         table = ET.SubElement(pv_technique, _pv_tag(name="table"))
-        _add_text(table, _pv_tag(name="type"), "tracker")
+        _add_text(parent=table, tag=_pv_tag(name="type"), value="tracker")
 
     technique = ET.SubElement(
         extra,
@@ -1004,7 +1053,7 @@ def _add_device_extra(
     device_element = ET.SubElement(
         technique,
         _proximal_tag(name="device"),
-        id=_safe_xml_id("device_metadata", device.device_id),
+        id=_safe_xml_id(prefix="device_metadata", value=device.device_id),
     )
 
     fields: dict[str, object | None] = {
@@ -1034,7 +1083,7 @@ def _add_device_extra(
         "serial_number": device.serial_number,
     }
     for key, value in fields.items():
-        _add_text(device_element, _proximal_tag(name=key), value)
+        _add_text(parent=device_element, tag=_proximal_tag(name=key), value=value)
 
 
 def _add_device_node(
@@ -1058,9 +1107,9 @@ def _add_device_node(
     node = ET.SubElement(
         parent,
         _collada_tag(name="node"),
-        id=_safe_xml_id("device", device.device_id),
+        id=_safe_xml_id(prefix="device", value=device.device_id),
         name=label,
-        sid=_safe_xml_id("device", device.device_id),
+        sid=_safe_xml_id(prefix="device", value=device.device_id),
     )
 
     is_rack_device = device.device_id in rack_device_ids
@@ -1068,7 +1117,7 @@ def _add_device_node(
         instance_geometry = ET.SubElement(
             node,
             _collada_tag(name="instance_geometry"),
-            url=f"#{_safe_xml_id('rack_geometry', device.device_id)}",
+            url=f"#{_safe_xml_id(prefix='rack_geometry', value=device.device_id)}",
         )
         instance_extra = ET.SubElement(instance_geometry, _collada_tag(name="extra"))
         instance_technique = ET.SubElement(
@@ -1079,7 +1128,7 @@ def _add_device_node(
         ET.SubElement(
             instance_technique,
             _pv_tag(name="instance_rack"),
-            id=_safe_xml_id("rack_instance", device.device_id),
+            id=_safe_xml_id(prefix="rack_instance", value=device.device_id),
         )
 
     for child in children_by_parent_id.get(device.device_id, []):
@@ -1215,14 +1264,14 @@ def _add_mesh_geometry(
         source=f"#{vertices_id}",
     )
     _add_text(
-        polylist,
-        _collada_tag(name="vcount"),
-        " ".join(str(len(polygon)) for polygon in polygons),
+        parent=polylist,
+        tag=_collada_tag(name="vcount"),
+        value=" ".join(str(len(polygon)) for polygon in polygons),
     )
     _add_text(
-        polylist,
-        _collada_tag(name="p"),
-        " ".join(str(index) for polygon in polygons for index in polygon),
+        parent=polylist,
+        tag=_collada_tag(name="p"),
+        value=" ".join(str(index) for polygon in polygons for index in polygon),
     )
 
     if rack_module_id is not None:
@@ -1233,10 +1282,12 @@ def _add_mesh_geometry(
             profile=PVCOLLADA_PROFILE,
         )
         rack = ET.SubElement(technique, _pv_tag(name="rack"))
-        _add_text(rack, _pv_tag(name="rack_type"), "tracker")
+        _add_text(parent=rack, tag=_pv_tag(name="rack_type"), value="tracker")
         tracker_azimuth = _axis_azimuth_from_local_points(points=vertices) or 180.0
-        _add_text(rack, _pv_tag(name="tracker_azimuth"), tracker_azimuth)
-        _add_text(rack, _pv_tag(name="module_id"), rack_module_id)
+        _add_text(
+            parent=rack, tag=_pv_tag(name="tracker_azimuth"), value=tracker_azimuth
+        )
+        _add_text(parent=rack, tag=_pv_tag(name="module_id"), value=rack_module_id)
 
 
 def _add_library_geometries(
@@ -1270,7 +1321,7 @@ def _add_library_geometries(
         )
 
     module_xml_ids = {
-        module.module_id: _safe_xml_id("module", module.module_id)
+        module.module_id: _safe_xml_id(prefix="module", value=module.module_id)
         for module in components.modules
     }
     device_by_id = {device.device_id: device for device in devices}
@@ -1283,7 +1334,7 @@ def _add_library_geometries(
         )
         _add_mesh_geometry(
             library_geometries=library_geometries,
-            geometry_id=_safe_xml_id("rack_geometry", device_id),
+            geometry_id=_safe_xml_id(prefix="rack_geometry", value=device_id),
             geometry=geometry,
             projection=projection,
             rack_module_id=rack_module_id,

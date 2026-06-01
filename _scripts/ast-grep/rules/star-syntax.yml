@@ -5,11 +5,20 @@ severity: error
 language: Python
 rule:
   all:
-    - any:
-        - pattern: 'def $FUNC($ARGS): $$$BODY'
-        - pattern: 'def $FUNC($ARGS) -> $RET: $$$BODY'
-        - pattern: 'async def $FUNC($ARGS): $$$BODY'
-        - pattern: 'async def $FUNC($ARGS) -> $RET: $$$BODY'
+    - kind: function_definition
+    - not:
+        has:
+          kind: parameters
+          has:
+            kind: keyword_separator
+    - not:
+        pattern: 'def $FUNC(): $$$BODY'
+    - not:
+        pattern: 'def $FUNC() -> $RET: $$$BODY'
+    - not:
+        pattern: 'async def $FUNC(): $$$BODY'
+    - not:
+        pattern: 'async def $FUNC() -> $RET: $$$BODY'
     - not:
         follows:
           stopBy: end
@@ -37,15 +46,44 @@ rule:
           - follows:
               pattern: '@classmethod'
     - not:
+        all:
+          - pattern: 'def $FUNC(cls, $$$ARGS): $$$BODY'
+          - follows:
+              pattern: '@classmethod'
+    - not:
+        all:
+          - pattern: 'def $FUNC(cls, $$$ARGS) -> $RET: $$$BODY'
+          - follows:
+              pattern: '@classmethod'
+    - not:
+        all:
+          - pattern: 'async def $FUNC(cls, $$$ARGS): $$$BODY'
+          - follows:
+              pattern: '@classmethod'
+    - not:
+        all:
+          - pattern: 'async def $FUNC(cls, $$$ARGS) -> $RET: $$$BODY'
+          - follows:
+              pattern: '@classmethod'
+    - not:
         pattern: 'def $FUNC(self): $$$BODY'
     - not:
         pattern: 'def $FUNC(self) -> $RET: $$$BODY'
+    - not:
+        pattern: 'async def $FUNC(self): $$$BODY'
+    - not:
+        pattern: 'async def $FUNC(self) -> $RET: $$$BODY'
+    - not:
+        pattern: 'def $FUNC(self, $$$ARGS): $$$BODY'
+    - not:
+        pattern: 'def $FUNC(self, $$$ARGS) -> $RET: $$$BODY'
+    - not:
+        pattern: 'async def $FUNC(self, $$$ARGS): $$$BODY'
+    - not:
+        pattern: 'async def $FUNC(self, $$$ARGS) -> $RET: $$$BODY'
     - not:
         pattern: 'def lambda_handler($EVENT, $CONTEXT): $$$BODY'
     - not:
         pattern: 'def lambda_handler($EVENT, $CONTEXT) -> $RET: $$$BODY'
     - not:
         regex: '(?s).*#\s*no-star-syntax.*'
-constraints:
-  ARGS:
-    regex: '^[^*]+$'
