@@ -35,7 +35,12 @@
     },
     {
       matchPackageNames: ["actions/python-versions"],
-      enabled: false
+      enabled: false,
+    },
+    // =========== Group GitHub Actions ============
+    {
+      matchManagers: ["github-actions"],
+      groupName: "github-actions",
     },
     // =========== Group Upgrades by Service ============
     {
