@@ -221,7 +221,7 @@ jobs:
           echo "✅ PR title updated successfully."
 
       - name: Auto-update PR high impact checkboxes
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const owner = context.repo.owner;
@@ -302,7 +302,7 @@ jobs:
             core.info("Updated High Impact checkboxes.");
 
       - name: Validate PR checklist boxes (x / N/A)
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const owner = context.repo.owner;

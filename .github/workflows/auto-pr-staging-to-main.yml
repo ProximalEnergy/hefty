@@ -86,7 +86,7 @@ jobs:
       - name: Get commit authors
         id: get_authors
         if: steps.diff.outputs.no_changes == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const compare = await github.rest.repos.compareCommits({
@@ -127,7 +127,7 @@ jobs:
       - name: Create PR
         id: create_pr
         if: steps.diff.outputs.no_changes == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           result-encoding: string
           script: |
@@ -150,7 +150,7 @@ jobs:
 
       - name: Assign reviewers
         if: steps.diff.outputs.no_changes == 'false' && steps.get_authors.outputs.reviewers != '' && steps.create_pr.outputs.pr_number != ''
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const reviewers = '${{ steps.get_authors.outputs.reviewers }}'
