@@ -9,7 +9,10 @@
   schedule: ["* 5-12 1 * *"],
   timezone: "America/Los_Angeles",
   description: "Schedule on the first of the month at 5 AM Pacific",
-  ignorePaths: ["**/requirements.txt"],
+  ignorePaths: [
+    "**/requirements.txt",
+    "third-party/**",
+  ],
   packageRules: [
     // =========== Don't Upgrade Python ============
     {
@@ -42,14 +45,17 @@
         ".pre-commit-config.yaml",
       ],
       groupName: "root",
+      reviewers: ["kurt-rhee"],
     },
     {
       matchFileNames: ["api/**"],
       groupName: "api",
+      reviewers: ["kurt-rhee"],
     },
     {
       matchFileNames: ["core/**"],
       groupName: "core",
+      reviewers: ["kurt-rhee"],
     },
     {
       matchFileNames: ["web-app/**"],
@@ -57,8 +63,14 @@
       reviewers: ["hunter-proximal"],
     },
     {
+      matchFileNames: ["mobile/**"],
+      groupName: "mobile",
+      reviewers: ["hunter-proximal"],
+    },
+    {
       matchFileNames: ["docs-mdbook/**"],
       groupName: "docs-mdbook",
+      reviewers: ["kurt-rhee"],
     },
     {
       matchFileNames: ["kpi/**"],
@@ -66,12 +78,76 @@
       reviewers: ["davidthemathman"],
     },
     {
-      matchFileNames: ["microservices/**"],
-      groupName: "microservices",
+      matchFileNames: ["microservices/calendar_notifications_lambda/**"],
+      groupName: "microservices/calendar_notifications_lambda",
+      reviewers: ["Robiemaan"],
+    },
+    {
+      matchFileNames: ["microservices/cdk/**"],
+      groupName: "microservices/cdk",
+      reviewers: ["kurt-rhee"],
+    },
+    {
+      matchFileNames: ["microservices/cmms-integration-fetcher/**"],
+      groupName: "microservices/cmms-integration-fetcher",
+      reviewers: ["davidthemathman"],
+    },
+    {
+      matchFileNames: ["microservices/cmms-ticket-download/**"],
+      groupName: "microservices/cmms-ticket-download",
+      reviewers: ["davidthemathman"],
+    },
+    {
+      matchFileNames: [
+        "microservices/data_connection_outage_notifications_lambda/**",
+      ],
+      groupName: "microservices/data_connection_outage_notifications_lambda",
+      reviewers: ["kurt-rhee"],
+    },
+    {
+      matchFileNames: ["microservices/issues_pipeline_lambda/**"],
+      groupName: "microservices/issues_pipeline_lambda",
+      reviewers: ["kurt-rhee"],
+    },
+    {
+      matchFileNames: ["microservices/weather_alerts_lambda/**"],
+      groupName: "microservices/weather_alerts_lambda",
+      reviewers: ["Robiemaan"],
+    },
+    {
+      matchFileNames: ["forecast/**"],
+      groupName: "forecast",
+      reviewers: ["kurt-rhee"],
+    },
+    {
+      matchFileNames: ["issues/**"],
+      groupName: "issues",
+      reviewers: ["hunter-proximal"],
     },
     {
       matchFileNames: ["pv-eem/**"],
       groupName: "pv-eem",
+      reviewers: ["kurt-rhee"],
+    },
+    {
+      matchFileNames: ["super-admin/inspectui/**"],
+      groupName: "super-admin/inspectui",
+      reviewers: ["davidthemathman"],
+    },
+    {
+      matchFileNames: ["super-admin/kpi-dep-app/**"],
+      groupName: "super-admin/kpi-dep-app",
+      reviewers: ["davidthemathman"],
+    },
+    {
+      matchFileNames: ["super-admin/meta/**"],
+      groupName: "super-admin/meta",
+      reviewers: ["kurt-rhee"],
+    },
+    {
+      matchFileNames: ["super-admin/uploaded-documents/**"],
+      groupName: "super-admin/uploaded-documents",
+      reviewers: ["marcus-maro"],
     },
   ],
 }
