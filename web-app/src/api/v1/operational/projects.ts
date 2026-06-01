@@ -3,6 +3,7 @@ import { ProjectType } from '@/api/v1/operational/project_types'
 import { useCustomQuery } from '@/hooks/api'
 import { MultiPolygon, Point } from '@/hooks/devices'
 import { baseURL } from '@/urlConfig'
+import { PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY } from '@/utils/personalPortfolio'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
 import { readLocalStorageValue } from '@mantine/hooks'
@@ -206,7 +207,7 @@ export const useGetProjects = ({
   }
 
   const excludedProjectIds = readLocalStorageValue<string[]>({
-    key: 'proximal-personal-portfolio-excluded-project-ids',
+    key: PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY,
     defaultValue: [],
   })
 

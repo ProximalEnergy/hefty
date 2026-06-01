@@ -1,7 +1,8 @@
 from typing import Literal
+from uuid import UUID
 
 from core.db_query import DbQuery
-from sqlalchemy import func, select
+from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import enumerations, models
@@ -11,6 +12,7 @@ async def get_user_in_app_notifications(
     *,
     db: AsyncSession,
     user_id: str,
+    project_ids_included: list[UUID],
     limit: int | None = None,
     offset: int = 0,
 ) -> list[tuple[models.Notification, models.NotificationState]]:
@@ -19,6 +21,8 @@ async def get_user_in_app_notifications(
     Args:
         db: Database session.
         user_id: User ID to get notifications for.
+        project_ids_included: Project IDs enabled in the user's Personal
+            Portfolio.
         limit: Optional max number of notifications to return.
         offset: Number of notifications to skip before returning results.
 
@@ -39,6 +43,11 @@ async def get_user_in_app_notifications(
             == enumerations.NotificationChannelEnum.IN_APP,
             models.NotificationState.state
             != enumerations.NotificationStateEnum.DELETED,
+            (
+                models.Notification.project_id.in_(project_ids_included)
+                if project_ids_included
+                else false()
+            ),
         )
         .order_by(models.Notification.created_at.desc())
     )
@@ -156,20 +165,38 @@ async def delete_all_notifications(
     *,
     db: AsyncSession,
     user_id: str,
+    project_ids_included: list[UUID],
 ) -> int:
     """Mark all IN_APP notifications as deleted for a user.
 
     Args:
         db: Database session.
         user_id: User ID.
+        project_ids_included: Project IDs enabled in the user's Personal
+            Portfolio.
 
     Returns:
         Number of notifications marked as deleted.
     """
-    query = select(models.NotificationState).where(
-        models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
-        models.NotificationState.state != enumerations.NotificationStateEnum.DELETED,
+    query = (
+        select(models.NotificationState)
+        .join(
+            models.Notification,
+            models.Notification.notification_id
+            == models.NotificationState.notification_id,
+        )
+        .where(
+            models.NotificationState.user_id == user_id,
+            models.NotificationState.channel
+            == enumerations.NotificationChannelEnum.IN_APP,
+            models.NotificationState.state
+            != enumerations.NotificationStateEnum.DELETED,
+            (
+                models.Notification.project_id.in_(project_ids_included)
+                if project_ids_included
+                else false()
+            ),
+        )
     )
     result = await db.execute(query)
     notification_states = result.scalars().all()
@@ -189,20 +216,37 @@ async def mark_all_notifications_as_read(
     *,
     db: AsyncSession,
     user_id: str,
+    project_ids_included: list[UUID],
 ) -> int:
     """Mark all IN_APP notifications as read for a user.
 
     Args:
         db: Database session.
         user_id: User ID.
+        project_ids_included: Project IDs enabled in the user's Personal
+            Portfolio.
 
     Returns:
         Number of notifications marked as read.
     """
-    query = select(models.NotificationState).where(
-        models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
-        models.NotificationState.state == enumerations.NotificationStateEnum.UNREAD,
+    query = (
+        select(models.NotificationState)
+        .join(
+            models.Notification,
+            models.Notification.notification_id
+            == models.NotificationState.notification_id,
+        )
+        .where(
+            models.NotificationState.user_id == user_id,
+            models.NotificationState.channel
+            == enumerations.NotificationChannelEnum.IN_APP,
+            models.NotificationState.state == enumerations.NotificationStateEnum.UNREAD,
+            (
+                models.Notification.project_id.in_(project_ids_included)
+                if project_ids_included
+                else false()
+            ),
+        )
     )
     result = await db.execute(query)
     notification_states = result.scalars().all()
@@ -221,6 +265,7 @@ async def mark_all_notifications_as_read(
 def get_unread_notification_count(
     *,
     user_id: str,
+    project_ids_included: list[UUID],
 ) -> DbQuery[int, Literal[True]]:
     """Get the count of unread IN_APP notifications for a user.
 
@@ -228,13 +273,29 @@ def get_unread_notification_count(
 
     Args:
         user_id: User ID to get unread count for.
+        project_ids_included: Project IDs enabled in the user's Personal
+            Portfolio.
 
     Returns:
         Count of unread IN_APP notifications.
     """
-    query = select(func.count(models.NotificationState.notification_state_id)).where(
-        models.NotificationState.user_id == user_id,
-        models.NotificationState.channel == enumerations.NotificationChannelEnum.IN_APP,
-        models.NotificationState.state == enumerations.NotificationStateEnum.UNREAD,
+    query = (
+        select(func.count(models.NotificationState.notification_state_id))
+        .join(
+            models.Notification,
+            models.Notification.notification_id
+            == models.NotificationState.notification_id,
+        )
+        .where(
+            models.NotificationState.user_id == user_id,
+            models.NotificationState.channel
+            == enumerations.NotificationChannelEnum.IN_APP,
+            models.NotificationState.state == enumerations.NotificationStateEnum.UNREAD,
+            (
+                models.Notification.project_id.in_(project_ids_included)
+                if project_ids_included
+                else false()
+            ),
+        )
     )
     return DbQuery(query=query, is_scalar=True)

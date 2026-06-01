@@ -2,8 +2,10 @@ import { NotificationStateEnum } from '@/api/enumerations'
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
+import { PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY } from '@/utils/personalPortfolio'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import { useAuth } from '@clerk/react'
+import { useLocalStorage } from '@mantine/hooks'
 import {
   type InfiniteData,
   UseInfiniteQueryOptions,
@@ -13,6 +15,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import axios from 'axios'
+import qs from 'qs'
 
 const _COMPONENT_NAME = 'NotificationInterface'
 
@@ -21,6 +24,84 @@ export type NotificationPage = {
   notifications: Notification[]
   nextOffset: number | undefined
 }
+
+type InfiniteNotificationsQueryKey = readonly [
+  'getNotificationsInfinite',
+  {
+    pageSize: number
+    projectIdsExcluded: string[]
+  },
+]
+
+const areProjectIdSetsEqual = (
+  firstProjectIds: readonly string[],
+  secondProjectIds: readonly string[],
+) => {
+  if (firstProjectIds.length !== secondProjectIds.length) {
+    return false
+  }
+
+  const secondProjectIdSet = new Set(secondProjectIds)
+  return firstProjectIds.every((projectId) => secondProjectIdSet.has(projectId))
+}
+
+const getInfiniteNotificationsProjectIdsExcluded = (
+  queryKey: readonly unknown[],
+) => {
+  const queryParams = queryKey[1]
+  if (queryParams == null || typeof queryParams !== 'object') {
+    return undefined
+  }
+
+  const { projectIdsExcluded } = queryParams as {
+    projectIdsExcluded?: unknown
+  }
+  if (!Array.isArray(projectIdsExcluded)) {
+    return undefined
+  }
+
+  if (
+    projectIdsExcluded.every(
+      (projectId): projectId is string => typeof projectId === 'string',
+    )
+  ) {
+    return projectIdsExcluded
+  }
+
+  return undefined
+}
+
+const isCurrentPortfolioNotificationsQuery = (
+  queryKey: readonly unknown[],
+  projectIdsExcluded: readonly string[],
+) => {
+  if (queryKey[0] !== 'getNotificationsInfinite') {
+    return false
+  }
+
+  const queryProjectIdsExcluded =
+    getInfiniteNotificationsProjectIdsExcluded(queryKey)
+
+  if (queryProjectIdsExcluded == null) {
+    return projectIdsExcluded.length === 0
+  }
+
+  return areProjectIdSetsEqual(queryProjectIdsExcluded, projectIdsExcluded)
+}
+
+export const usePersonalPortfolioExcludedProjectIds = () => {
+  const [excludedProjectIds] = useLocalStorage<string[]>({
+    key: PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY,
+    defaultValue: [],
+    getInitialValueInEffect: false,
+  })
+
+  return excludedProjectIds
+}
+
+export const serializeNotificationQueryParams = (
+  params: Record<string, unknown>,
+) => qs.stringify(params, { arrayFormat: 'repeat' })
 
 export const useInfiniteNotifications = ({
   pageSize = 50,
@@ -32,26 +113,32 @@ export const useInfiniteNotifications = ({
       NotificationPage,
       unknown,
       InfiniteData<NotificationPage>,
-      readonly ['getNotificationsInfinite', { pageSize: number }],
+      InfiniteNotificationsQueryKey,
       number
     >
   >
 }) => {
   const { getToken } = useAuth()
+  const projectIdsExcluded = usePersonalPortfolioExcludedProjectIds()
 
   return useInfiniteQuery<
     NotificationPage,
     unknown,
     InfiniteData<NotificationPage>,
-    readonly ['getNotificationsInfinite', { pageSize: number }],
+    InfiniteNotificationsQueryKey,
     number
   >({
-    queryKey: ['getNotificationsInfinite', { pageSize }],
+    queryKey: ['getNotificationsInfinite', { pageSize, projectIdsExcluded }],
     queryFn: async ({ pageParam = 0 }) => {
       const token = await getToken({ template: 'default' })
       const response = await axios.get(`${baseURL}/v1/admin/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { limit: pageSize, offset: pageParam },
+        params: {
+          limit: pageSize,
+          offset: pageParam,
+          project_ids_excluded: projectIdsExcluded,
+        },
+        paramsSerializer: serializeNotificationQueryParams,
       })
       const data = response.data as Notification[]
       return {
@@ -61,8 +148,9 @@ export const useInfiniteNotifications = ({
     },
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     initialPageParam: 0,
-    staleTime: QUERY_TIME.FIVE_MINUTES, // 5 minutes - prevent frequent background refetches
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    // 5 minutes - prevent frequent background refetches
+    staleTime: QUERY_TIME.FIVE_MINUTES,
+    refetchOnWindowFocus: false,
     ...queryOptions,
   })
 }
@@ -72,19 +160,22 @@ export const useGetUnreadNotificationCount = ({
 }: {
   queryOptions?: Partial<UseQueryOptions>
 }) => {
+  const projectIdsExcluded = usePersonalPortfolioExcludedProjectIds()
   const axiosConfig = {
     url: `/v1/admin/notifications/unread-count`,
   }
 
   const defaultQueryOptions = {
     refetchOnWindowFocus: false,
-    staleTime: QUERY_TIME.THIRTY_SECONDS, // 30 seconds - count doesn't need to be super fresh
-    refetchInterval: QUERY_TIME.THIRTY_SECONDS, // Refetch every 30 seconds to check for new notifications
+    // 30 seconds - count doesn't need to be super fresh
+    staleTime: QUERY_TIME.THIRTY_SECONDS,
+    refetchInterval: QUERY_TIME.THIRTY_SECONDS,
   }
 
   return useCustomQuery<{ count: number }>({
     axiosConfig,
     queryName: 'getUnreadNotificationCount',
+    queryParams: { project_ids_excluded: projectIdsExcluded },
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -108,12 +199,12 @@ export const useMarkNotificationAsRead = () => {
       return response.data
     },
     onMutate: async (notificationId: number) => {
-      // Cancel any outgoing refetches (match all infinite queries regardless of pageSize)
+      // Cancel outgoing refetches for all page sizes.
       await queryClient.cancelQueries({
         predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
       })
 
-      // Get all infinite notification queries (there might be multiple with different pageSize)
+      // Get all infinite notification queries.
       const allInfiniteQueries = queryClient.getQueriesData<
         InfiniteData<NotificationPage>
       >({
@@ -187,12 +278,12 @@ export const useMarkNotificationAsUnread = () => {
       return response.data
     },
     onMutate: async (notificationId: number) => {
-      // Cancel any outgoing refetches (match all infinite queries regardless of pageSize)
+      // Cancel outgoing refetches for all page sizes.
       await queryClient.cancelQueries({
         predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
       })
 
-      // Get all infinite notification queries (there might be multiple with different pageSize)
+      // Get all infinite notification queries.
       const allInfiniteQueries = queryClient.getQueriesData<
         InfiniteData<NotificationPage>
       >({
@@ -264,12 +355,12 @@ export const useDeleteNotification = () => {
       )
     },
     onMutate: async (notificationId: number) => {
-      // Cancel any outgoing refetches (match all infinite queries regardless of pageSize)
+      // Cancel outgoing refetches for all page sizes.
       await queryClient.cancelQueries({
         predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
       })
 
-      // Get all infinite notification queries (there might be multiple with different pageSize)
+      // Get all infinite notification queries.
       const allInfiniteQueries = queryClient.getQueriesData<
         InfiniteData<NotificationPage>
       >({
@@ -325,6 +416,7 @@ export const useDeleteNotification = () => {
 export const useDeleteAllNotifications = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
+  const projectIdsExcluded = usePersonalPortfolioExcludedProjectIds()
 
   return useMutation({
     mutationFn: async () => {
@@ -333,25 +425,35 @@ export const useDeleteAllNotifications = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: { project_ids_excluded: projectIdsExcluded },
+        paramsSerializer: serializeNotificationQueryParams,
       })
     },
     onMutate: async () => {
-      // Cancel any outgoing refetches (match all infinite queries regardless of pageSize)
+      // Cancel outgoing refetches for current portfolio page sizes.
       await queryClient.cancelQueries({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
 
-      // Get all infinite notification queries (there might be multiple with different pageSize)
+      // Get current portfolio infinite notification queries.
       const allInfiniteQueries = queryClient.getQueriesData<
         InfiniteData<NotificationPage>
       >({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
 
       // Store previous values for rollback
       const previousQueries = new Map(allInfiniteQueries)
 
-      // Optimistically clear all notifications from all infinite queries
+      // Optimistically clear notifications from current portfolio queries
       allInfiniteQueries.forEach(([queryKey]) => {
         queryClient.setQueryData<InfiniteData<NotificationPage>>(queryKey, {
           pages: [{ notifications: [], nextOffset: undefined }],
@@ -371,7 +473,11 @@ export const useDeleteAllNotifications = () => {
       }
       // Invalidate on error to refetch and ensure consistency
       queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
       queryClient.invalidateQueries({
         queryKey: ['getUnreadNotificationCount'],
@@ -380,7 +486,11 @@ export const useDeleteAllNotifications = () => {
     onSuccess: () => {
       // Invalidate queries to ensure consistency
       queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
       queryClient.invalidateQueries({
         queryKey: ['getUnreadNotificationCount'],
@@ -392,6 +502,7 @@ export const useDeleteAllNotifications = () => {
 export const useMarkAllNotificationsAsRead = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
+  const projectIdsExcluded = usePersonalPortfolioExcludedProjectIds()
 
   return useMutation({
     mutationFn: async () => {
@@ -403,27 +514,37 @@ export const useMarkAllNotificationsAsRead = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          params: { project_ids_excluded: projectIdsExcluded },
+          paramsSerializer: serializeNotificationQueryParams,
         },
       )
       return response.data
     },
     onMutate: async () => {
-      // Cancel any outgoing refetches (match all infinite queries regardless of pageSize)
+      // Cancel outgoing refetches for current portfolio page sizes.
       await queryClient.cancelQueries({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
 
-      // Get all infinite notification queries (there might be multiple with different pageSize)
+      // Get current portfolio infinite notification queries.
       const allInfiniteQueries = queryClient.getQueriesData<
         InfiniteData<NotificationPage>
       >({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
 
       // Store previous values for rollback
       const previousQueries = new Map(allInfiniteQueries)
 
-      // Optimistically update all infinite queries
+      // Optimistically update current portfolio queries
       allInfiniteQueries.forEach(([queryKey, data]) => {
         if (data) {
           const nextPages = data.pages.map((page) => ({
@@ -454,7 +575,11 @@ export const useMarkAllNotificationsAsRead = () => {
       }
       // Invalidate on error to refetch and ensure consistency
       queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+        predicate: (query) =>
+          isCurrentPortfolioNotificationsQuery(
+            query.queryKey,
+            projectIdsExcluded,
+          ),
       })
       queryClient.invalidateQueries({
         queryKey: ['getUnreadNotificationCount'],

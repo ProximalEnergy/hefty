@@ -4,6 +4,7 @@ import {
 } from '@/api/admin'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { COMPANY_THEME_CONFIG } from '@/components/CompanyThemeManager'
+import { PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY } from '@/utils/personalPortfolio'
 import {
   Box,
   Button,
@@ -33,7 +34,7 @@ const CompanyView = () => {
   const updateThemeMutation = useUpdateSelfClerkTheme()
 
   const [, setExcludedProjectIds] = useLocalStorage<string[]>({
-    key: 'proximal-personal-portfolio-excluded-project-ids',
+    key: PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY,
     defaultValue: [],
   })
 
@@ -80,6 +81,12 @@ const CompanyView = () => {
 
     queryClient.removeQueries({
       queryKey: ['getProjectsPersonal'],
+    })
+    queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[0] === 'getNotificationsInfinite',
+    })
+    queryClient.invalidateQueries({
+      queryKey: ['getUnreadNotificationCount'],
     })
 
     const theme = selectedCompany.name_short.toLowerCase()

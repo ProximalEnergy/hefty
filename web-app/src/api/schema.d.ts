@@ -15034,6 +15034,7 @@ export interface operations {
     get_user_notifications_v1_admin_notifications_get: {
         parameters: {
             query?: {
+                project_ids_excluded?: string[] | null;
                 limit?: number;
                 offset?: number;
             };
@@ -15067,7 +15068,9 @@ export interface operations {
     };
     get_unread_notification_count_route_v1_admin_notifications_unread_count_get: {
         parameters: {
-            query?: never;
+            query?: {
+                project_ids_excluded?: string[] | null;
+            };
             header?: {
                 "x-api-key"?: string;
             };
@@ -15100,7 +15103,9 @@ export interface operations {
     };
     delete_all_notifications_route_v1_admin_notifications_delete_all_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                project_ids_excluded?: string[] | null;
+            };
             header?: {
                 "x-api-key"?: string;
             };
@@ -15226,7 +15231,9 @@ export interface operations {
     };
     mark_all_notifications_read_v1_admin_notifications_read_all_put: {
         parameters: {
-            query?: never;
+            query?: {
+                project_ids_excluded?: string[] | null;
+            };
             header?: {
                 "x-api-key"?: string;
             };

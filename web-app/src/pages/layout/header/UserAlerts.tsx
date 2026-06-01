@@ -1,6 +1,10 @@
 import { NotificationStateEnum } from '@/api/enumerations'
 import type * as types from '@/api/schema'
-import { useGetUnreadNotificationCount } from '@/api/v1/admin/notifications'
+import {
+  serializeNotificationQueryParams,
+  useGetUnreadNotificationCount,
+  usePersonalPortfolioExcludedProjectIds,
+} from '@/api/v1/admin/notifications'
 import NotificationsPanel from '@/pages/layout/header/NotificationsPanel'
 import classes from '@/pages/layout/header/ThemeToggle.module.css'
 import { baseURL } from '@/urlConfig'
@@ -19,6 +23,7 @@ const UserAlerts = () => {
   const { data: unreadCountData } = useGetUnreadNotificationCount({})
   const queryClient = useQueryClient()
   const { getToken } = useAuth()
+  const projectIdsExcluded = usePersonalPortfolioExcludedProjectIds()
   const [
     notificationsOpened,
     { open: openNotifications, close: closeNotifications },
@@ -43,7 +48,12 @@ const UserAlerts = () => {
             `${baseURL}/v1/admin/notifications`,
             {
               headers: { Authorization: `Bearer ${token}` },
-              params: { limit: 1, offset: 0 }, // Get just the latest one
+              params: {
+                limit: 1,
+                offset: 0,
+                project_ids_excluded: projectIdsExcluded,
+              },
+              paramsSerializer: serializeNotificationQueryParams,
             },
           )
           const notificationList =
@@ -123,7 +133,13 @@ const UserAlerts = () => {
 
     // Update previous count
     previousUnreadCountRef.current = unreadCount
-  }, [unreadCount, queryClient, openNotifications, getToken])
+  }, [
+    unreadCount,
+    queryClient,
+    openNotifications,
+    getToken,
+    projectIdsExcluded,
+  ])
 
   return (
     <>

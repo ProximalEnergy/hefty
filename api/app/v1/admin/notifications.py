@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -31,6 +32,24 @@ from app._dependencies.authentication import get_user
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
+def get_personal_portfolio_project_ids(
+    *,
+    permitted_project_ids: list[UUID],
+    project_ids_excluded: list[UUID] | None,
+) -> list[UUID]:
+    """Return projects currently enabled in the user's Personal Portfolio.
+
+    Args:
+        permitted_project_ids: Project IDs the user can access.
+        project_ids_excluded: Project IDs hidden from the user's Personal
+            Portfolio.
+    """
+    if not project_ids_excluded:
+        return permitted_project_ids
+
+    return list(set(permitted_project_ids) - set(project_ids_excluded))
+
+
 @router.get(
     "",
     response_model=list[interfaces.NotificationInterface],
@@ -39,6 +58,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 async def get_user_notifications(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
+    project_ids_excluded: Annotated[list[UUID] | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
@@ -47,6 +67,8 @@ async def get_user_notifications(
     Args:
         db: Database session.
         user_data: Authenticated user data.
+        project_ids_excluded: Project IDs hidden from the user's Personal
+            Portfolio.
         limit: Optional max number of notifications to return.
         offset: Number of notifications to skip before returning results.
 
@@ -54,9 +76,14 @@ async def get_user_notifications(
         List of Notification objects with IN_APP channel that are not deleted,
         including state. Pagination is supported via limit/offset.
     """
+    project_ids_enabled = get_personal_portfolio_project_ids(
+        permitted_project_ids=user_data.operational_project_ids,
+        project_ids_excluded=project_ids_excluded,
+    )
     notification_tuples = await crud_get_user_in_app_notifications(
         db=db,
         user_id=user_data.user_id,
+        project_ids_included=project_ids_enabled,
         limit=limit,
         offset=offset,
     )
@@ -85,17 +112,25 @@ async def get_user_notifications(
 )
 async def get_unread_notification_count_route(
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
+    project_ids_excluded: Annotated[list[UUID] | None, Query()] = None,
 ):
     """Return the unread IN_APP notification count for the requesting user.
 
     Args:
         user_data: Authenticated user data.
+        project_ids_excluded: Project IDs hidden from the user's Personal
+            Portfolio.
 
     Returns:
         Dictionary with count of unread notifications.
     """
+    project_ids_enabled = get_personal_portfolio_project_ids(
+        permitted_project_ids=user_data.operational_project_ids,
+        project_ids_excluded=project_ids_excluded,
+    )
     count = await crud_get_unread_notification_count(
-        user_id=user_data.user_id
+        user_id=user_data.user_id,
+        project_ids_included=project_ids_enabled,
     ).get_async(output_type=OutputType.SQLALCHEMY)
     return {"count": count}
 
@@ -108,14 +143,25 @@ async def get_unread_notification_count_route(
 async def delete_all_notifications_route(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
+    project_ids_excluded: Annotated[list[UUID] | None, Query()] = None,
 ):
     """Mark all IN_APP notifications as deleted for the requesting user.
 
     Args:
         db: Database session.
         user_data: Authenticated user data.
+        project_ids_excluded: Project IDs hidden from the user's Personal
+            Portfolio.
     """
-    await crud_delete_all_notifications(db=db, user_id=user_data.user_id)
+    project_ids_enabled = get_personal_portfolio_project_ids(
+        permitted_project_ids=user_data.operational_project_ids,
+        project_ids_excluded=project_ids_excluded,
+    )
+    await crud_delete_all_notifications(
+        db=db,
+        user_id=user_data.user_id,
+        project_ids_included=project_ids_enabled,
+    )
 
 
 @router.put(
@@ -157,6 +203,7 @@ async def mark_notification_read(
     notification_tuples = await crud_get_user_in_app_notifications(
         db=db,
         user_id=user_data.user_id,
+        project_ids_included=user_data.operational_project_ids,
     )
     for notification, ns in notification_tuples:
         if notification.notification_id == notification_id:
@@ -216,6 +263,7 @@ async def mark_notification_unread(
     notification_tuples = await crud_get_user_in_app_notifications(
         db=db,
         user_id=user_data.user_id,
+        project_ids_included=user_data.operational_project_ids,
     )
     for notification, ns in notification_tuples:
         if notification.notification_id == notification_id:
@@ -279,19 +327,27 @@ async def delete_notification_route(
 async def mark_all_notifications_read(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[interfaces.UserAuthed, Depends(get_user)],
+    project_ids_excluded: Annotated[list[UUID] | None, Query()] = None,
 ):
     """Mark all IN_APP notifications as read for the requesting user.
 
     Args:
         db: Database session.
         user_data: Authenticated user data.
+        project_ids_excluded: Project IDs hidden from the user's Personal
+            Portfolio.
 
     Returns:
         Dictionary with count of notifications marked as read.
     """
+    project_ids_enabled = get_personal_portfolio_project_ids(
+        permitted_project_ids=user_data.operational_project_ids,
+        project_ids_excluded=project_ids_excluded,
+    )
     count = await crud_mark_all_notifications_as_read(
         db=db,
         user_id=user_data.user_id,
+        project_ids_included=project_ids_enabled,
     )
 
     return {"count": count}

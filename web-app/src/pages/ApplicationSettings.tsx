@@ -31,6 +31,7 @@ import { Teams as AdminTeams } from '@/components/admin/Teams'
 import { GISContext } from '@/contexts/GISContext'
 import { useUpdateReportSubscription } from '@/hooks/api'
 import type { UserSubscription } from '@/hooks/types'
+import { PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY } from '@/utils/personalPortfolio'
 import { useUser } from '@clerk/react'
 import {
   Accordion,
@@ -1692,7 +1693,7 @@ function PersonalPortfolio({ projects }: { projects: Project[] }) {
 
   const [excludedProjectIds, setExcludedProjectIds] = useLocalStorage<string[]>(
     {
-      key: 'proximal-personal-portfolio-excluded-project-ids',
+      key: PERSONAL_PORTFOLIO_EXCLUDED_PROJECT_IDS_KEY,
       defaultValue: [],
     },
   )
@@ -1744,6 +1745,13 @@ function PersonalPortfolio({ projects }: { projects: Project[] }) {
                       )
                       queryClient.removeQueries({
                         queryKey: ['getProjectsPersonal'],
+                      })
+                      queryClient.invalidateQueries({
+                        predicate: (query) =>
+                          query.queryKey[0] === 'getNotificationsInfinite',
+                      })
+                      queryClient.invalidateQueries({
+                        queryKey: ['getUnreadNotificationCount'],
                       })
                     }}
                   />
