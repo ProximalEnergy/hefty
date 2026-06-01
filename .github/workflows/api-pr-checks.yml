@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep star-syntax check
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep sqlalchemy query filter check
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep sqlalchemy array_agg check
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep fastapi project-id access check
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep fastapi project-id access prefix check
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep api project-id path check
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep forbidden-with-async-db check
@@ -137,7 +137,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run ast-grep DbQuery DataFrame cast check
@@ -213,7 +213,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
       - name: Run docstring args check
