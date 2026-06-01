@@ -15,5 +15,5 @@ core = { path = "../../core", editable = true }
 uploaded-documents = "uploaded_documents.__main__:main_uploaded_documents"
 
 [build-system]
-requires = ["uv_build>=0.7.2,<0.8"]
+requires = ["uv_build>=0.11.8,<0.12"]
 build-backend = "uv_build"
