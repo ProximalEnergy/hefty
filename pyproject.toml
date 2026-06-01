@@ -53,7 +53,6 @@ members = [
     "microservices/data_connection_outage_notifications_lambda",
     "microservices/cmms-ticket-download",
     "microservices/cmms-integration-fetcher",
-    "microservices/kpi-pipeline-fetcher",
     "pv-eem",
     "forecast",
 ]

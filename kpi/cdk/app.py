@@ -14,7 +14,7 @@ KpiLambdaStack(
         account="016997484973",
         region="us-east-2",
     ),
-    description="Lambda function for the KPI pipeline",
+    description="Lambda and Step Functions infrastructure for the KPI pipeline",
 )
 
 app.synth()

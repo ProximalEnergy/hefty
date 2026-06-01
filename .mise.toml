@@ -78,9 +78,6 @@ sync_uv_project "microservices/cmms-ticket-download" \
 sync_uv_project "microservices/cmms-integration-fetcher" \
   "cmms-integration-fetcher" \
   "microservices/cmms-integration-fetcher/.venv" && \
-sync_uv_project "microservices/kpi-pipeline-fetcher" \
-  "kpi-pipeline-fetcher" \
-  "microservices/kpi-pipeline-fetcher/.venv" && \
 sync_uv_project "pv-eem" "pv-expected-energy" "pv-eem/.venv" && \
 sync_uv_project "forecast" "forecast" "forecast/.venv" && \
 mise install && \

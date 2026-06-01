@@ -675,10 +675,6 @@ core/src/core/utils/notifications.py:sqlalchemy-db-crud-outside-dbquery:db311a8e
 core/src/core/utils/notifications.py:sqlalchemy-db-crud-outside-dbquery:f7f60e6c:result_users.scalars()
 microservices/data_connection_outage_notifications_lambda/data_connection_outage_notifications_lambda.py:sqlalchemy-db-crud-outside-dbquery:2763b732:result.scalars()
 microservices/data_connection_outage_notifications_lambda/data_connection_outage_notifications_lambda.py:sqlalchemy-db-crud-outside-dbquery:63b223ca:db.execute(stmt)
-microservices/kpi-pipeline-fetcher/lambda_function.py:sqlalchemy-db-crud-outside-dbquery:07422a6a:db.execute(select(models.Project))
-microservices/kpi-pipeline-fetcher/lambda_function.py:sqlalchemy-db-crud-outside-dbquery:4a251096:db.execute(select(models.Project)).scalars()
-microservices/kpi-pipeline-fetcher/lambda_function.py:sqlalchemy-db-crud-outside-dbquery:513b66d3:db.execute(stmt).scalars()
-microservices/kpi-pipeline-fetcher/lambda_function.py:sqlalchemy-db-crud-outside-dbquery:63b223ca:db.execute(stmt)
 pv-eem/src/p03_export/s01_to_proximal_db.py:sqlalchemy-db-crud-outside-dbquery:45f57b23:conn.execute( text( f"CREATE TEMP TABLE {temp_table} " f"(LIKE {project_name_short}.data_expected IN
 pv-eem/src/p03_export/s01_to_proximal_db.py:sqlalchemy-db-crud-outside-dbquery:c6bbfcd2:conn.execute(text(f"DROP TABLE {temp_table}"))
 pv-eem/src/p03_export/s01_to_proximal_db.py:sqlalchemy-db-crud-outside-dbquery:ceeb894c:conn.execute(upsert_stmt)

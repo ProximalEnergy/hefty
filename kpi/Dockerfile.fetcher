@@ -19,14 +19,15 @@ COPY uv.lock pyproject.toml ./
 # files for core
 COPY core/pyproject.toml core/README.md ./core/
 COPY core/src/ ./core/src/
-# files for microservices/kpi-pipeline-fetcher
-COPY microservices/kpi-pipeline-fetcher/pyproject.toml ./microservices/kpi-pipeline-fetcher/
-COPY microservices/kpi-pipeline-fetcher/_scripts/install_lambda_dependencies.sh ./microservices/kpi-pipeline-fetcher/_scripts/
-COPY microservices/kpi-pipeline-fetcher/lambda_function.py ./microservices/kpi-pipeline-fetcher/
+# files for kpi
+COPY kpi/pyproject.toml kpi/README.md ./kpi/
+COPY kpi/_scripts/install_lambda_dependencies.sh ./kpi/_scripts/
+COPY kpi/fetcher_lambda_function.py ./kpi/fetcher_lambda_function.py
+COPY kpi/src/ ./kpi/src/
 
 RUN --mount=from=uv,source=/uv,target=/bin/uv \
   --mount=type=cache,target=/root/.cache/uv \
-  sh ./microservices/kpi-pipeline-fetcher/_scripts/install_lambda_dependencies.sh
+  sh ./kpi/_scripts/install_lambda_dependencies.sh
 
 # -----------------
 # Stage 2: Runtime
@@ -38,6 +39,6 @@ FROM public.ecr.aws/lambda/python:3.12-arm64
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 
 # Copy the lambda function code
-COPY microservices/kpi-pipeline-fetcher/lambda_function.py ${LAMBDA_TASK_ROOT}
+COPY kpi/fetcher_lambda_function.py ${LAMBDA_TASK_ROOT}
 
-CMD ["lambda_function.lambda_handler"]
+CMD ["fetcher_lambda_function.lambda_handler"]

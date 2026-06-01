@@ -1,5 +1,5 @@
 {
-  "app": "uv run python app.py",
+  "app": "uv run --project . python app.py",
   "watch": {
     "include": [
       "**"
