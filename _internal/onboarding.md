@@ -1,8 +1,12 @@
 # Onboarding
 
-## Commands
+## Important Commands
 - `mise onboarding`
 - `mise check`
+
+## Important Tools
+- `mise`:  task runner, tool environment manager
+- `uv`:  python package management
 
 ## Architecture
 - The 3 Main Folders
