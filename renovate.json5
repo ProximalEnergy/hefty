@@ -4,6 +4,7 @@
   dependencyDashboard: true,
   minimumReleaseAge: "30 days",
   internalChecksFilter: "strict",
+  separateMajorMinor: true,
   reviewers: ["kurt-rhee"],
   schedule: ["* 5-12 1 * *"],
   timezone: "America/Los_Angeles",
@@ -17,7 +18,11 @@
     },
     {
       matchPackageNames: ["python"],
-      matchDatasources: ["docker", "github-tags", "github-runners", "github-releases"],
+      matchDatasources: [
+        "docker",
+        "github-tags",
+        "github-releases",
+      ],
       enabled: false,
     },
     {
@@ -31,7 +36,11 @@
     },
     // =========== Group Upgrades by Service ============
     {
-      matchFileNames: ["pyproject.toml"],
+      matchFileNames: [
+        "pyproject.toml",
+        ".mise.toml",
+        ".pre-commit-config.yaml",
+      ],
       groupName: "root",
     },
     {
