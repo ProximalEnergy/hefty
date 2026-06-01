@@ -9,6 +9,7 @@ gh = "2.91.0"
 awscli = "2.34.41"
 ripgrep = "15.1.0"
 ast-grep = "0.42.1"
+node = "24.15"
 pnpm = "10.33.2"
 "npm:aws-cdk" = "2.1119.0"
 
