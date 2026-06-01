@@ -6,18 +6,7 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from core.db_query import DbQuery
-from sqlalchemy import (
-    bindparam,
-    delete,
-    exists,
-    func,
-    insert,
-    literal,
-    not_,
-    or_,
-    select,
-    text,
-)
+from sqlalchemy import bindparam, delete, func, insert, literal, select, text
 from sqlalchemy.schema import Table
 from sqlalchemy.sql.elements import BindParameter
 
@@ -131,8 +120,9 @@ def lock_operational_active_events(
     acquires that mode. This lock blocks until no other transaction holds
     the same ``project_id`` refresh lock, then releases at commit/rollback.
 
-    Run before ``refresh_project_active_events`` in the same transaction
-    when concurrent refreshes for the same project must serialize.
+    Run before ``delete_project_active_events`` and
+    ``insert_project_active_events`` in the same transaction when
+    concurrent refreshes for the same project must serialize.
 
     Args:
         project_id: Operational project UUID.
@@ -159,29 +149,53 @@ def lock_operational_active_events(
     return DbQuery(query=lock_stmt, is_scalar=False)
 
 
-def refresh_project_active_events(
+def delete_project_active_events(
+    *,
+    project_id: UUID,
+) -> DbQuery[Any, Literal[False]]:
+    """Delete denormalized active-event rows for a project.
+
+    Run after ``lock_operational_active_events`` and before
+    ``insert_project_active_events`` in the same transaction. Separate
+    statements are required because PostgreSQL does not guarantee
+    delete-before-insert when both touch ``operational.active_events``
+    inside one data-modifying ``WITH`` clause.
+
+    Args:
+        project_id: Operational project UUID.
+
+    Returns:
+        ``DbQuery`` wrapping ``DELETE FROM operational.active_events``.
+    """
+    active_table = cast(Table, models.ActiveEvent.__table__)
+    project_id_param = bindparam(
+        "project_id",
+        value=project_id,
+        type_=sa.Uuid(as_uuid=True),
+    )
+    delete_stmt = delete(active_table).where(
+        active_table.c.project_id == project_id_param,
+    )
+    return DbQuery(query=delete_stmt, is_scalar=False)
+
+
+def insert_project_active_events(
     *,
     project_id: UUID,
     name_short: str,
 ) -> DbQuery[Any, Literal[False]]:
-    """Rebuild operational.active_events for a project from open tenant events.
+    """Insert open tenant events into operational.active_events.
 
     Open events are those with ``time_end IS NULL`` in the project schema.
-    Replaces existing denormalized rows for ``project_id`` in one atomic
-    ``INSERT … SELECT`` that includes a modifying ``DELETE`` CTE.
-
-    Run with ``execute()`` / ``execute_async()`` on the returned ``DbQuery``.
-    When passing ``executor``, run inside a transaction (for example
-    ``with session.begin():``). To serialize concurrent refreshes for the
-    same project, run ``lock_operational_active_events(project_id=...)``
-    first in that same transaction.
+    Run after ``lock_operational_active_events`` and
+    ``delete_project_active_events`` in the same transaction.
 
     Args:
         project_id: Operational project UUID.
         name_short: Tenant schema name (validated before use in SQL).
 
     Returns:
-        ``DbQuery`` wrapping a single write-CTE refresh statement.
+        ``DbQuery`` wrapping ``INSERT … SELECT`` for open tenant events.
     """
     tenant_schema = _validated_tenant_schema(name_short=name_short)
     active_table = cast(Table, models.ActiveEvent.__table__)
@@ -190,29 +204,12 @@ def refresh_project_active_events(
         value=project_id,
         type_=sa.Uuid(as_uuid=True),
     )
-
-    cleared_cte = (
-        delete(active_table)
-        .where(active_table.c.project_id == project_id_param)
-        .returning(active_table.c.event_id)
-        .cte("cleared")
-    )
     open_events = _build_open_events_select(
         project_id=project_id_param,
         tenant_schema=tenant_schema,
     )
-    # Reference ``cleared`` so PostgreSQL runs DELETE before INSERT. The
-    # condition is always true (empty or non-empty delete both allow insert).
-    refresh_select = open_events.where(
-        or_(
-            exists(select(1).select_from(cleared_cte)),
-            not_(exists(select(1).select_from(cleared_cte))),
-        ),
-    )
-    refresh_stmt = insert(active_table).from_select(
+    insert_stmt = insert(active_table).from_select(
         list(_ACTIVE_EVENT_COLUMNS),
-        refresh_select,
+        open_events,
     )
-    refresh_stmt = refresh_stmt.add_cte(cleared_cte)
-
-    return DbQuery(query=refresh_stmt, is_scalar=False)
+    return DbQuery(query=insert_stmt, is_scalar=False)
