@@ -11,12 +11,12 @@ from typing import TypedDict
 import app.integrations.providers.tenaska as tenaska
 import httpx
 from app.logger import get_logger
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 logger = get_logger(name=__name__)
 
 _AUTH_SERVICE_UNAVAILABLE_DETAIL = (
-    "TPS authentication service is temporarily unavailable"
+    "We weren't able to authenticate with Tenaska due to an issue on Tenaska's end"
 )
 
 
@@ -85,14 +85,14 @@ class TokenManager:
                     upstream_status_code,
                 )
                 raise HTTPException(
-                    status_code=503,
+                    status_code=status.HTTP_424_FAILED_DEPENDENCY,
                     detail=_AUTH_SERVICE_UNAVAILABLE_DETAIL,
                 ) from exc
             raise
         except httpx.RequestError as exc:
             logger.warning("Token request failed due to network error")
             raise HTTPException(
-                status_code=503,
+                status_code=status.HTTP_424_FAILED_DEPENDENCY,
                 detail=_AUTH_SERVICE_UNAVAILABLE_DETAIL,
             ) from exc
         self._token = resp["access_token"]

@@ -248,7 +248,7 @@ def _load_uploaded_documents(*, output_type: OutputType) -> Any:
     return DbQuery(query=stmt).get(schema="operational", output_type=output_type)
 
 
-def main(argv: list[str] | None = None) -> int:
+def main_uploaded_documents(argv: list[str] | None = None) -> int:
     """Load documents from the database and write a browsable HTML report.
 
     Args:
@@ -286,4 +286,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main_uploaded_documents())

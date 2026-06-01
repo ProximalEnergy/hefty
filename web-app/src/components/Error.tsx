@@ -1,6 +1,25 @@
 import { Center, Stack, Text } from '@mantine/core'
 import { IconAlertTriangle, IconChartBarOff } from '@tabler/icons-react'
-import { DefaultError } from '@tanstack/react-query'
+import type { DefaultError } from '@tanstack/react-query'
+
+export const getPageErrorMessage = (error?: DefaultError | null) => {
+  if (!error) {
+    return undefined
+  }
+
+  const detail: unknown = error.response?.data?.detail
+  if (typeof detail === 'string') {
+    return detail
+  }
+  if (Array.isArray(detail) && detail.length > 0) {
+    const firstDetail = detail[0] as { msg?: unknown }
+    if (typeof firstDetail.msg === 'string') {
+      return firstDetail.msg
+    }
+  }
+
+  return error.message || 'An error occurred'
+}
 
 export const PageError = ({
   error,
@@ -9,27 +28,7 @@ export const PageError = ({
   error?: DefaultError
   text?: string
 }) => {
-  let message
-  if (error !== undefined) {
-    if (error.response) {
-      message = error.response.data.detail
-    } else {
-      message = error.message
-    }
-  }
-
-  if (text !== undefined) {
-    message = text
-  }
-
-  // If message is not undefined and is not a string, set it to a default message
-  if (
-    message !== undefined &&
-    typeof message !== 'string' &&
-    text !== undefined
-  ) {
-    message = 'An error occurred'
-  }
+  const message = text ?? getPageErrorMessage(error)
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>

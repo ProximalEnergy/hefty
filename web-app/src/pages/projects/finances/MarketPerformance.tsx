@@ -27,7 +27,11 @@ const MarketPerformance = () => {
   })
 
   // Get QSE provider and node name from realtime price endpoint
-  const { data: priceData, isLoading: priceLoading } = useGetRealtimePrice({
+  const {
+    data: priceData,
+    error: priceError,
+    isLoading: priceLoading,
+  } = useGetRealtimePrice({
     pathParams: { projectId: projectId! },
     queryOptions: {
       enabled: !!projectId && hasQSEAccess,
@@ -41,13 +45,22 @@ const MarketPerformance = () => {
   if (project.isLoading) {
     return <PageLoader />
   }
+  if (project.error) {
+    return <PageError error={project.error} />
+  }
   if (qseAccess.isLoading) {
     return <PageLoader />
+  }
+  if (qseAccess.error) {
+    return <PageError error={qseAccess.error} />
   }
   if (!hasQSEAccess) {
     return (
       <PageError text="Your company's QSE integration is not set up for this project" />
     )
+  }
+  if (priceError) {
+    return <PageError error={priceError} />
   }
 
   return (

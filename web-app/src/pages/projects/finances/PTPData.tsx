@@ -5,7 +5,7 @@ import {
   useGetPTPEndpointsAvailability,
 } from '@/api/v1/protected/web-application/projects/financial/ptp_data'
 import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
-import { PageError } from '@/components/Error'
+import { PageError, getPageErrorMessage } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
@@ -288,7 +288,7 @@ const DataViewer = ({
   if (error) {
     return (
       <Card withBorder p="md">
-        <Text c="red">Error loading data: {String(error)}</Text>
+        <Text c="red">Error loading data: {getPageErrorMessage(error)}</Text>
         <Button mt="md" onClick={onClose}>
           Close
         </Button>
@@ -459,30 +459,36 @@ const PTPDataPage = () => {
     return [yesterday.toDate(), now.toDate()]
   })
 
-  const { data: endpointsData, isLoading: endpointsLoading } =
-    useGetPTPEndpoints({
-      pathParams: { projectId: projectId || '-1' },
-      queryOptions: {
-        enabled: !!projectId && !!project.data && hasQSEAccess,
-      },
-    })
+  const {
+    data: endpointsData,
+    error: endpointsError,
+    isLoading: endpointsLoading,
+  } = useGetPTPEndpoints({
+    pathParams: { projectId: projectId || '-1' },
+    queryOptions: {
+      enabled: !!projectId && !!project.data && hasQSEAccess,
+    },
+  })
 
   // Check availability for the active tab when it's first accessed
-  const { data: availabilityData, isLoading: availabilityLoading } =
-    useGetPTPEndpointsAvailability({
-      pathParams: { projectId: projectId || '-1' },
-      queryParams: {
-        category: activeTab,
-      },
-      queryOptions: {
-        enabled:
-          !!projectId &&
-          !!project.data &&
-          hasQSEAccess &&
-          !!endpointsData &&
-          !availabilityCache[activeTab],
-      },
-    })
+  const {
+    data: availabilityData,
+    error: availabilityError,
+    isLoading: availabilityLoading,
+  } = useGetPTPEndpointsAvailability({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      category: activeTab,
+    },
+    queryOptions: {
+      enabled:
+        !!projectId &&
+        !!project.data &&
+        hasQSEAccess &&
+        !!endpointsData &&
+        !availabilityCache[activeTab],
+    },
+  })
 
   // Cache availability data when it's received
   // This is a valid use case: caching async query results to avoid re-fetching
@@ -523,13 +529,25 @@ const PTPDataPage = () => {
   if (project.isLoading) {
     return <PageLoader />
   }
+  if (project.error) {
+    return <PageError error={project.error} />
+  }
   if (qseAccess.isLoading) {
     return <PageLoader />
+  }
+  if (qseAccess.error) {
+    return <PageError error={qseAccess.error} />
   }
   if (!hasQSEAccess) {
     return (
       <PageError text="Your company's QSE integration is not set up for this project" />
     )
+  }
+  if (endpointsError) {
+    return <PageError error={endpointsError} />
+  }
+  if (availabilityError) {
+    return <PageError error={availabilityError} />
   }
 
   if (selectedEndpoint && selectedCategory) {
