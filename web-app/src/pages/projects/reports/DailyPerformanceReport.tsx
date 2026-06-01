@@ -35,6 +35,11 @@ import { useProjectFilter } from '@/hooks/custom'
 import type { EventSummary } from '@/hooks/types'
 import { EventTable } from '@/components/EventTable'
 import { PerformanceReportMapCard } from '@/pages/projects/reports/PerformanceReportMapCard'
+import {
+  buildHourlyBudgetedAverages,
+  computeCumulativePerformanceSummary,
+} from '@/pages/projects/reports/performance-report-shared'
+import { openFeedbackForm } from '@/utils/feedback'
 import { QUERY_TIME } from '@/utils/queryTiming'
 import {
   ActionIcon,
@@ -63,6 +68,7 @@ import {
   IconCurrencyDollar,
   IconExclamationCircle,
   IconFileTypePdf,
+  IconMessageChatbot,
   IconSun,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
@@ -152,68 +158,26 @@ const DailyEnergyComparison = ({
     [theme],
   )
 
-  // Calculate average hourly budgeted output from ±15 days or Day of
   const averageBudgetedHourly = useMemo(() => {
     if (
-      !budgetedDataQuery.data ||
-      budgetedDataQuery.data.length === 0 ||
+      !budgetedDataQuery.data?.length ||
       !project.data?.time_zone ||
       !selectedDate
     ) {
       return null
     }
-
-    // Filter data based on comparison mode
-    let filteredData = budgetedDataQuery.data
-    if (comparisonMode === 'dayof') {
-      // Only use data from the selected date (ignoring year)
-      const selectedMonthDay = selectedDate.format('MM-DD')
-      filteredData = budgetedDataQuery.data.filter((dataPoint) => {
-        const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
-        return timestamp.format('MM-DD') === selectedMonthDay
-      })
-    }
-
-    if (filteredData.length === 0) {
-      return null
-    }
-
-    // Group by hour of day (0-23) and calculate average for each hour
-    const hourlyAverages: Record<number, number[]> = {}
-
-    filteredData.forEach((dataPoint) => {
-      const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
-      const hour = timestamp.hour()
-
-      if (!hourlyAverages[hour]) {
-        hourlyAverages[hour] = []
-      }
-
-      // Apply degradation if COD is available
-      // Degradation should be calculated from COD to the selected date, not the budgeted data timestamp
-      let degradedPower = dataPoint.poi_ac_power
-      if (project.data?.cod && selectedDate) {
-        const codDate = dayjs(project.data.cod)
-        const yearsSinceCOD = selectedDate.diff(codDate, 'year', true) // true for decimal years
-        const degradationFactor = 1 - (degradationRate / 100) * yearsSinceCOD
-        degradedPower = dataPoint.poi_ac_power * Math.max(0, degradationFactor) // Ensure non-negative
-      }
-
-      hourlyAverages[hour].push(degradedPower)
-    })
-
-    // Calculate average for each hour
-    const result: Record<number, number> = {}
-    Object.keys(hourlyAverages).forEach((hour) => {
-      const hourNum = parseInt(hour)
-      const values = hourlyAverages[hourNum]
-      result[hourNum] =
-        values.reduce((sum, val) => sum + val, 0) / values.length
-    })
-    return result
+    return buildHourlyBudgetedAverages(
+      selectedDate,
+      comparisonMode,
+      budgetedDataQuery.data,
+      project.data.time_zone,
+      project.data.cod,
+      degradationRate,
+    )
   }, [
     budgetedDataQuery.data,
-    project.data,
+    project.data?.time_zone,
+    project.data?.cod,
     degradationRate,
     comparisonMode,
     selectedDate,
@@ -1719,55 +1683,10 @@ const Page: React.FC = () => {
     theme.colors.green,
   ])
 
-  // Calculate performance summary for the trailing period
-  const performanceSummary = useMemo(() => {
-    if (!energyChartData.length || energyView !== 'cumulative') {
-      return null
-    }
-
-    // Find the actual and budgeted traces
-    const actualTrace = energyChartData.find(
-      (trace: Partial<Plotly.Data>) => trace.name === 'Actual',
-    )
-    const budgetedTrace = energyChartData.find(
-      (trace: Partial<Plotly.Data>) => trace.name === 'Budgeted',
-    )
-
-    if (!actualTrace || !budgetedTrace) {
-      return null
-    }
-
-    const actualY = (actualTrace as { y?: unknown[] }).y
-    const budgetedY = (budgetedTrace as { y?: unknown[] }).y
-
-    if (
-      !Array.isArray(actualY) ||
-      !Array.isArray(budgetedY) ||
-      actualY.length === 0 ||
-      budgetedY.length === 0
-    ) {
-      return null
-    }
-
-    // Get the final values (last point in the cumulative data)
-    const actualFinal = actualY[actualY.length - 1] as number
-    const budgetedFinal = budgetedY[budgetedY.length - 1] as number
-
-    if (!actualFinal || !budgetedFinal || budgetedFinal === 0) {
-      return null
-    }
-
-    const performancePercent =
-      ((actualFinal - budgetedFinal) / budgetedFinal) * 100
-    const isExceeded = performancePercent > 0
-
-    return {
-      actual: actualFinal,
-      budgeted: budgetedFinal,
-      percent: Math.abs(performancePercent),
-      isExceeded,
-    }
-  }, [energyChartData, energyView])
+  const performanceSummary = useMemo(
+    () => computeCumulativePerformanceSummary(energyChartData, energyView),
+    [energyChartData, energyView],
+  )
 
   const dailyTrailingEnergyChartLayout = useMemo(() => {
     const yAxisTitle =
@@ -2053,6 +1972,20 @@ const Page: React.FC = () => {
       { value: '365', label: '1 year' },
     ]
   }, [])
+
+  const handleContactProximalForEnergyKpi = () => {
+    const projectName = project.data?.name_short ?? projectId ?? 'this project'
+    const comment =
+      `Daily performance trailing ${trailingPeriod}-day energy chart is ` +
+      `empty. Please backfill daily project energy KPI data (KPI 6) for ` +
+      `${projectName}, ${trailingStart} to ${selectedDateStr}.`
+
+    openFeedbackForm({
+      subject: 'Missing daily project energy KPI data',
+      url: window.location.pathname + window.location.search,
+      comment,
+    })
+  }
 
   if (project.isLoading) {
     return <PageLoader />
@@ -2539,9 +2472,19 @@ const Page: React.FC = () => {
             {energyChartData.length === 0 &&
             !trailingKpiData.isLoading &&
             !dailyBudgetedDataQuery.isLoading ? (
-              <Text c="dimmed" ta="center" py="xl">
-                No energy data available for the selected period
-              </Text>
+              <Stack align="center" gap="sm" py="xl">
+                <Text c="dimmed" ta="center">
+                  No daily project energy KPI data is available for the selected
+                  period.
+                </Text>
+                <Button
+                  leftSection={<IconMessageChatbot size={16} />}
+                  variant="light"
+                  onClick={handleContactProximalForEnergyKpi}
+                >
+                  Contact Proximal
+                </Button>
+              </Stack>
             ) : (
               <PlotlyPlot
                 data={energyChartData}

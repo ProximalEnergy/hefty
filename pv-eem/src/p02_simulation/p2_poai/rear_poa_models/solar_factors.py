@@ -149,9 +149,7 @@ def _expand_engine_results(
     engine_inputs: pd.DataFrame,
     df_report: pd.DataFrame,
 ) -> pd.Series:
-    engine_outputs = engine_inputs.assign(
-        qinc_back=df_report["qinc_back"].to_numpy()
-    )
+    engine_outputs = engine_inputs.assign(qinc_back=df_report["qinc_back"].to_numpy())
     expanded_outputs = group_df.loc[:, list(engine_inputs)].merge(
         right=engine_outputs,
         on=list(engine_inputs),

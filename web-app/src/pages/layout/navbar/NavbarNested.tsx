@@ -22,6 +22,10 @@ import { LinksGroup } from '@/pages/layout/navbar/NavbarLinksGroup'
 import ProjectPicture from '@/pages/layout/navbar/ProjectPicture'
 import * as links from '@/pages/layout/navbar/links'
 import { getCompanyLogoUrl } from '@/utils/cdn'
+import {
+  OPEN_FEEDBACK_FORM_EVENT,
+  type FeedbackFormDefaults,
+} from '@/utils/feedback'
 import { useUser } from '@clerk/react'
 import {
   ActionIcon,
@@ -45,7 +49,7 @@ import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone'
 import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconArrowBackUp, IconMessageChatbot, IconX } from '@tabler/icons-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router'
 
 // Mapping from device_type_id to equipment-analysis tab value
@@ -243,6 +247,8 @@ export function NavbarNested({
   onExpandNavbar?: () => void
 }) {
   const [modalOpened, { open, close }] = useDisclosure(false)
+  const [feedbackDefaults, setFeedbackDefaults] =
+    useState<FeedbackFormDefaults>({})
   const location = useLocation()
   const { projectId } = useParams<{ projectId: string }>()
   const { user, isLoaded } = useUser()
@@ -258,6 +264,32 @@ export function NavbarNested({
   const { data: dronePermissions } = useGetDronePermissions()
   const self = useGetUserSelf({})
   const deviceTypes = useGetDeviceTypes({})
+
+  useEffect(() => {
+    const handleOpenFeedbackForm: EventListener = (event) => {
+      const customEvent = event as CustomEvent<FeedbackFormDefaults>
+      setFeedbackDefaults(customEvent.detail ?? {})
+      open()
+    }
+
+    window.addEventListener(OPEN_FEEDBACK_FORM_EVENT, handleOpenFeedbackForm)
+    return () => {
+      window.removeEventListener(
+        OPEN_FEEDBACK_FORM_EVENT,
+        handleOpenFeedbackForm,
+      )
+    }
+  }, [open])
+
+  const handleOpenFeedbackClick = () => {
+    setFeedbackDefaults({})
+    open()
+  }
+
+  const handleCloseFeedback = () => {
+    setFeedbackDefaults({})
+    close()
+  }
 
   const hasDroneIntegration = useMemo(() => {
     if (!project.data || !dronePermissions || !self.data || !integrations) {
@@ -559,7 +591,7 @@ export function NavbarNested({
                   variant="filled"
                   aria-label="Settings"
                   size={30}
-                  onClick={open}
+                  onClick={handleOpenFeedbackClick}
                 >
                   <IconMessageChatbot
                     style={{ width: rem(18), height: rem(18) }}
@@ -569,12 +601,30 @@ export function NavbarNested({
               </Center>
             </Tooltip>
           ) : (
-            <Button mx="md" mt="md" variant="filled" onClick={open}>
+            <Button
+              mx="md"
+              mt="md"
+              variant="filled"
+              onClick={handleOpenFeedbackClick}
+            >
               Feedback
             </Button>
           )}
-          <Modal opened={modalOpened} onClose={close} title="Feedback" centered>
-            <FeedbackForm userId={user.id} close={close} />
+          <Modal
+            opened={modalOpened}
+            onClose={handleCloseFeedback}
+            title="Feedback"
+            centered
+          >
+            <FeedbackForm
+              key={[
+                feedbackDefaults.subject ?? '',
+                feedbackDefaults.url ?? '',
+              ].join('-')}
+              userId={user.id}
+              close={handleCloseFeedback}
+              initialValues={feedbackDefaults}
+            />
           </Modal>
           <PoweredBy collapsed={collapsed} />
         </Stack>
@@ -618,9 +668,11 @@ const PoweredBy = ({ collapsed }: { collapsed: boolean }) => {
 const FeedbackForm = ({
   userId,
   close,
+  initialValues = {},
 }: {
   userId: string
   close: () => void
+  initialValues?: FeedbackFormDefaults
 }) => {
   const [file, setFile] = useState<FileWithPath | null>(null)
   const location = useLocation()
@@ -631,9 +683,9 @@ const FeedbackForm = ({
   const form = useForm<FeedbackFormData>({
     validateInputOnChange: true,
     initialValues: {
-      subject: '',
-      url: location.pathname + location.search,
-      comment: '',
+      subject: initialValues.subject ?? '',
+      url: initialValues.url ?? location.pathname + location.search,
+      comment: initialValues.comment ?? '',
     },
     validate: {
       subject: (value) =>

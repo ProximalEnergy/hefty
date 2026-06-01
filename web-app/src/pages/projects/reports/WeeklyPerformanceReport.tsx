@@ -41,6 +41,10 @@ import { useProjectFilter } from '@/hooks/custom'
 import type { DataTimeSeries, EventSummary } from '@/hooks/types'
 import { EventTable } from '@/components/EventTable'
 import { PerformanceReportMapCard } from '@/pages/projects/reports/PerformanceReportMapCard'
+import {
+  buildHourlyBudgetedAverages,
+  computeCumulativePerformanceSummary,
+} from '@/pages/projects/reports/performance-report-shared'
 import { alignLossSeries } from '@/utils/alignLossSeries'
 import { calculateMovingAverage } from '@/utils/movingAverage'
 import { QUERY_TIME } from '@/utils/queryTiming'
@@ -91,58 +95,6 @@ dayjs.extend(timezone)
 // Waterfall API bar names (must match backend project_waterfall.py)
 const WATERFALL_NAME_PV_ENERGY_OUTPUT = 'PV Energy Output'
 const WATERFALL_NAME_PV_EXPECTED = 'PV Expected'
-
-type BudgetedRow = NonNullable<
-  ReturnType<typeof useGetPVBudgetedDataBySeries>['data']
->[number]
-
-/** Hour-of-day (0–23) → average budgeted MW for overlay traces. */
-function buildHourlyBudgetedAverages(
-  anchorDay: dayjs.Dayjs,
-  comparisonMode: '15days' | 'dayof',
-  budgetRows: BudgetedRow[],
-  timeZone: string,
-  cod: string | null | undefined,
-  degradationRate: number,
-): Record<number, number> | null {
-  if (!budgetRows.length) {
-    return null
-  }
-  let filteredData = budgetRows
-  if (comparisonMode === 'dayof') {
-    const selectedMonthDay = anchorDay.format('MM-DD')
-    filteredData = budgetRows.filter((dataPoint) => {
-      const timestamp = dayjs.utc(dataPoint.time).tz(timeZone)
-      return timestamp.format('MM-DD') === selectedMonthDay
-    })
-  }
-  if (filteredData.length === 0) {
-    return null
-  }
-  const hourlyAverages: Record<number, number[]> = {}
-  filteredData.forEach((dataPoint) => {
-    const timestamp = dayjs.utc(dataPoint.time).tz(timeZone)
-    const hour = timestamp.hour()
-    if (!hourlyAverages[hour]) {
-      hourlyAverages[hour] = []
-    }
-    let degradedPower = dataPoint.poi_ac_power
-    if (cod) {
-      const codDate = dayjs(cod)
-      const yearsSinceCOD = anchorDay.diff(codDate, 'year', true)
-      const degradationFactor = 1 - (degradationRate / 100) * yearsSinceCOD
-      degradedPower = dataPoint.poi_ac_power * Math.max(0, degradationFactor)
-    }
-    hourlyAverages[hour].push(degradedPower)
-  })
-  const result: Record<number, number> = {}
-  Object.keys(hourlyAverages).forEach((hour) => {
-    const hourNum = parseInt(hour, 10)
-    const values = hourlyAverages[hourNum]
-    result[hourNum] = values.reduce((sum, val) => sum + val, 0) / values.length
-  })
-  return result
-}
 
 const isEventLossGroup = (
   entry: EventLosses5Min,
@@ -2180,55 +2132,10 @@ const Page: React.FC = () => {
     [rangeStartStr, rangeEndStr],
   )
 
-  // Calculate performance summary for the trailing period
-  const performanceSummary = useMemo(() => {
-    if (!energyChartData.length || energyView !== 'cumulative') {
-      return null
-    }
-
-    // Find the actual and budgeted traces
-    const actualTrace = energyChartData.find(
-      (trace: Partial<Plotly.Data>) => trace.name === 'Actual',
-    )
-    const budgetedTrace = energyChartData.find(
-      (trace: Partial<Plotly.Data>) => trace.name === 'Budgeted',
-    )
-
-    if (!actualTrace || !budgetedTrace) {
-      return null
-    }
-
-    const actualY = (actualTrace as { y?: unknown[] }).y
-    const budgetedY = (budgetedTrace as { y?: unknown[] }).y
-
-    if (
-      !Array.isArray(actualY) ||
-      !Array.isArray(budgetedY) ||
-      actualY.length === 0 ||
-      budgetedY.length === 0
-    ) {
-      return null
-    }
-
-    // Get the final values (last point in the cumulative data)
-    const actualFinal = actualY[actualY.length - 1] as number
-    const budgetedFinal = budgetedY[budgetedY.length - 1] as number
-
-    if (!actualFinal || !budgetedFinal || budgetedFinal === 0) {
-      return null
-    }
-
-    const performancePercent =
-      ((actualFinal - budgetedFinal) / budgetedFinal) * 100
-    const isExceeded = performancePercent > 0
-
-    return {
-      actual: actualFinal,
-      budgeted: budgetedFinal,
-      percent: Math.abs(performancePercent),
-      isExceeded,
-    }
-  }, [energyChartData, energyView])
+  const performanceSummary = useMemo(
+    () => computeCumulativePerformanceSummary(energyChartData, energyView),
+    [energyChartData, energyView],
+  )
 
   const weeklyTrailingEnergyChartLayout = useMemo(() => {
     const legendBg =
