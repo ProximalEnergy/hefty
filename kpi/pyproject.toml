@@ -52,7 +52,7 @@ dev = [
     "netcdf4~=1.7.0",
     "notebook~=7.5.0",
     "pandas-stubs",
-    "plotly~=6.6.0",
+    "plotly~=6.7.0",
     "pytest~=9.0",
     "types-psycopg2",
     "types-requests",
