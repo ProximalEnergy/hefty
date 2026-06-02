@@ -179,4 +179,4 @@ if update_devices:
             conn.commit()
 
 
-run_roll_up_capacities(project_ids=[ProjectID[project_name_short.upper()]])
+run_roll_up_capacities(project_id=ProjectID[project_name_short.upper()])
