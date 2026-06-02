@@ -5,14 +5,14 @@ description = "PV Expected Energy Model for Proximal Energy"
 readme = "_README.md"
 requires-python = ">=3.12.8,<3.13"
 dependencies = [
-    "boto3~=1.41", # for reading pyproject.toml version
+    "boto3", # for reading pyproject.toml version
     "core",
     "pandas",
     "polars", # for database read interactions (faster than pandas)
-    "psycopg2-binary~=2.9.10", # used under the hood by sqlalchemy
+    "psycopg2-binary", # used under the hood by sqlalchemy
     "pvlib~=0.15", # main performance modeling library
-    "pyarrow~=23.0", # needed for polars database connection
-    "python-dotenv~=1.2", # environment variables
+    "pyarrow", # needed for polars database connection
+    "python-dotenv", # environment variables
     "s3fs~=2026.2", # needed for s3 connection
     "sentry-sdk~=2.58",
     "solarfactors~=1.6",
@@ -35,7 +35,7 @@ dev = [ # for debugging
     "pymupdf~=1.26", # for verification plots
     "pytest~=9.0", # for testing
     "pytest-xdist>=3.8,<4", # for parallel testing
-    "types-psycopg2>=2.9.21.20260408,<3",
+    "types-psycopg2",
     "types-pytz>=2026.1.1.20260408,<2027",
 ]
 

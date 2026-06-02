@@ -8,6 +8,8 @@ on:
       - "**/pyproject.toml"
       - "uv.lock"
       - "_scripts/check_pyproject_dependencies.py"
+      - "_scripts/check_workspace_dependency_versions.py"
+      - ".mise.toml"
       - ".github/actions/setup-uv-python-from-pyproject/**"
       - ".github/workflows/root-pr-checks.yml"
 
@@ -17,8 +19,34 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  pyproject-changes:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.changed.outputs.changed }}
+    steps:
+      - uses: actions/github-script@v9
+        id: changed
+        with:
+          script: |
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                per_page: 100,
+              },
+            );
+            const changed = files.some(({ filename }) =>
+              filename === "pyproject.toml" ||
+              filename.endsWith("/pyproject.toml"),
+            );
+            core.setOutput("changed", String(changed));
+
   uv-lock:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
@@ -35,8 +63,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v8.1.0
+      - name: Set up mise
+        uses: jdx/mise-action@v4
         with:
-          enable-cache: true
+          install_args: uv ripgrep
       - name: Run pyproject dependency check
-        run: uv run python _scripts/check_pyproject_dependencies.py
+        run: mise run root:pyproject_deps
+
+  workspace-deps:
+    needs: pyproject-changes
+    if: |
+      github.event.pull_request.draft == false &&
+      needs.pyproject-changes.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          install_args: uv ripgrep
+      - name: Run workspace dependency check
+        run: mise run root:workspace_deps

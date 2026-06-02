@@ -1375,6 +1375,7 @@ RUN_PVEEM=false
 RUN_ROOT=false
 CORE_CHANGED=false
 ROOT_PYPROJECT_CHANGED=false
+PYPROJECT_CHANGED=false
 PACKAGE_JSON_CHANGED=false
 
 RUN_CORE_WARNINGS=false
@@ -1408,6 +1409,9 @@ if [ "${RUN_ALL}" = "false" ]; then
     fi
     if diff_has '^pv-eem/'; then
         RUN_PVEEM=true
+    fi
+    if diff_has '(^|/)pyproject\.toml$'; then
+        PYPROJECT_CHANGED=true
     fi
     if diff_has '^pyproject\.toml$'; then
         ROOT_PYPROJECT_CHANGED=true
@@ -1529,7 +1533,12 @@ if [ "${RUN_ROOT}" = "true" ]; then
         "error" \
         "false"
     add_check "Root: Pyproject Dependency Check" \
-        "mise run root:pyproject_dependencies"
+        "mise run root:pyproject_deps"
+    if [ "${REQUESTED_DIFF_ONLY}" = "false" ] \
+        || [ "${PYPROJECT_CHANGED}" = "true" ]; then
+        add_check "Root: Workspace Dependency Check" \
+            "mise run root:workspace_deps"
+    fi
     add_check "Root: DbQuery Enforcement" \
         "mise run root:dbquery_enforcement"
     add_db_check "Root: Codegen" "mise run root:codegen"

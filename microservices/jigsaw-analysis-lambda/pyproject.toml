@@ -8,14 +8,14 @@ dependencies = [
     "boto3",
     "core",
     "geopandas>=1.0,<2",
-    "httpx>=0.28,<1",
-    "numpy>=1.24,<3",
-    "pandas~=3.0",
-    "psycopg2-binary>=2.9,<3",
+    "httpx",
+    "numpy",
+    "pandas",
+    "psycopg2-binary",
     "pydantic>=2,<3",
     "scipy>=1.11,<2",
     "sentry-sdk>=2,<3",
-    "shapely>=2,<3",
+    "shapely",
 ]
 
 [build-system]

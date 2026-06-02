@@ -409,10 +409,15 @@ echo "✅ pnpm versions match ($MISE_PNPM_VERSION)"
 
 
 
-[tasks."root:pyproject_dependencies"]
+[tasks."root:pyproject_deps"]
 description = "Check for undeclared or mismatched dependencies in pyproject.toml"
 dir = "."
-run = "uv run --no-sync python _scripts/check_pyproject_dependencies.py"
+run = "uv run --no-sync _scripts/check_pyproject_dependencies.py"
+
+[tasks."root:workspace_deps"]
+description = "Check workspace members do not version root-managed dependencies"
+dir = "."
+run = "uv run --no-sync _scripts/check_workspace_dependency_versions.py"
 
 [tasks."root:uv_lock_check"]
 description = "Check that workspace uv.lock matches pyproject.toml"

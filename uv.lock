@@ -223,44 +223,44 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.13.3,<4" },
-    { name = "boto3", specifier = ">=1.38,<2" },
-    { name = "botocore", specifier = "~=1.42" },
-    { name = "clerk-backend-api", specifier = "~=5.0" },
+    { name = "boto3" },
+    { name = "botocore" },
+    { name = "clerk-backend-api" },
     { name = "core", editable = "core" },
     { name = "fastapi", specifier = "~=0.135" },
     { name = "fastapi-mcp", specifier = "==0.4.0" },
-    { name = "geoalchemy2", specifier = ">=0.18,<0.19" },
+    { name = "geoalchemy2" },
     { name = "google-api-python-client", specifier = ">=2.166.0,<3" },
     { name = "googleapis-common-protos", specifier = ">=1.69.2,<2" },
     { name = "gql", extras = ["aiohttp"], specifier = ">=4.0.0,<5" },
-    { name = "greenlet", specifier = "~=3.3" },
-    { name = "httpx", specifier = ">=0.28,<0.29" },
-    { name = "jinja2", specifier = ">=3.1.6,<4" },
+    { name = "greenlet" },
+    { name = "httpx" },
+    { name = "jinja2" },
     { name = "kaleido", specifier = ">=1.2.0,<2" },
     { name = "natsort", specifier = ">=8.4.0,<9" },
-    { name = "numpy", specifier = "~=2.4" },
+    { name = "numpy" },
     { name = "openai", specifier = "~=2.16" },
     { name = "openpyxl", specifier = ">=3.1.5,<4" },
     { name = "orjson", specifier = "~=3.11.3" },
     { name = "pandas" },
     { name = "plotly", specifier = ">=6.3.1,<7" },
     { name = "polars" },
-    { name = "psycopg2-binary", specifier = "==2.9.11" },
+    { name = "psycopg2-binary" },
     { name = "pvlib", specifier = "~=0.14" },
-    { name = "pyarrow", specifier = "~=23.0" },
+    { name = "pyarrow" },
     { name = "pydantic", specifier = "~=2.13.0" },
     { name = "pydantic-core", specifier = "~=2.46.0" },
     { name = "pyjwt", specifier = ">=2.9.0,<3" },
     { name = "pyproj", specifier = ">=3.7.2,<4" },
-    { name = "python-dotenv", specifier = ">=1.0.1,<2" },
+    { name = "python-dotenv" },
     { name = "pytz", specifier = "~=2025.2" },
     { name = "reportlab", specifier = ">=4.4.6,<5" },
     { name = "requests", specifier = ">=2.32.4,<3" },
     { name = "s3fs", specifier = "~=2026.2" },
     { name = "scipy", specifier = "~=1.17" },
     { name = "sentry-sdk", specifier = "~=2.58" },
-    { name = "shapely", specifier = ">=2.1.1,<3" },
-    { name = "sqlalchemy", specifier = ">=2.0.44,<3" },
+    { name = "shapely" },
+    { name = "sqlalchemy" },
     { name = "starlette", specifier = "~=0.51" },
     { name = "timezonefinder", specifier = "~=8.2" },
     { name = "uvicorn", specifier = "~=0.40" },
@@ -269,8 +269,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "boto3-stubs", specifier = ">=1.37.36,<2" },
-    { name = "botocore-stubs", specifier = ">=1.37.36,<2" },
+    { name = "boto3-stubs" },
+    { name = "botocore-stubs" },
     { name = "deptry", specifier = ">=0.23.1,<1" },
     { name = "ipykernel", specifier = ">=7.1,<8" },
     { name = "pandas-stubs" },
@@ -281,9 +281,9 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.1.0,<2" },
     { name = "pytest-mock", specifier = ">=3.14.0,<4" },
     { name = "tomli", specifier = ">=2.0.2,<3" },
-    { name = "types-psycopg2", specifier = ">=2.9.21.20250318,<3" },
+    { name = "types-psycopg2" },
     { name = "types-pytz", specifier = ">=2026.1.1.20260408,<2027" },
-    { name = "types-requests", specifier = ">=2.31.0.6,<3" },
+    { name = "types-requests" },
 ]
 
 [[package]]
@@ -1033,10 +1033,10 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "boto3", specifier = ">=1.38,<2" },
-    { name = "botocore", specifier = "~=1.42" },
+    { name = "boto3" },
+    { name = "botocore" },
     { name = "core", editable = "core" },
-    { name = "python-dotenv", specifier = "~=1.2.1" },
+    { name = "python-dotenv" },
 ]
 
 [[package]]
@@ -1856,13 +1856,13 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "boto3", specifier = ">=1.38,<2" },
-    { name = "botocore", specifier = "~=1.42" },
+    { name = "boto3" },
+    { name = "botocore" },
     { name = "core", editable = "core" },
-    { name = "geoalchemy2", specifier = ">=0.18,<0.19" },
-    { name = "psycopg2-binary", specifier = ">=2.9.11,<3" },
+    { name = "geoalchemy2" },
+    { name = "psycopg2-binary" },
     { name = "pvlib", specifier = "~=0.14" },
-    { name = "sqlalchemy", specifier = ">=2.0.45,<3" },
+    { name = "sqlalchemy" },
 ]
 
 [[package]]
@@ -1900,14 +1900,14 @@ requires-dist = [
     { name = "boto3" },
     { name = "core", editable = "core" },
     { name = "geopandas", specifier = ">=1.0,<2" },
-    { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "numpy", specifier = ">=1.24,<3" },
-    { name = "pandas", specifier = "~=3.0" },
-    { name = "psycopg2-binary", specifier = ">=2.9,<3" },
+    { name = "httpx" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "psycopg2-binary" },
     { name = "pydantic", specifier = ">=2,<3" },
     { name = "scipy", specifier = ">=1.11,<2" },
     { name = "sentry-sdk", specifier = ">=2,<3" },
-    { name = "shapely", specifier = ">=2,<3" },
+    { name = "shapely" },
 ]
 
 [[package]]
@@ -2373,15 +2373,15 @@ dev = [
     { name = "mkdocs-awesome-nav", specifier = ">=3.0,<4" },
     { name = "mkdocs-material", specifier = ">=9.7.6,<10" },
     { name = "mkdocstrings", specifier = ">=1.0.4,<2" },
-    { name = "mypy", specifier = "~=1.20.0" },
+    { name = "mypy" },
     { name = "netcdf4", specifier = "~=1.7.0" },
     { name = "notebook", specifier = "~=7.5.0" },
-    { name = "pandas-stubs", specifier = "~=3.0" },
+    { name = "pandas-stubs" },
     { name = "plotly", specifier = "~=6.6.0" },
     { name = "pytest", specifier = "~=9.0" },
-    { name = "types-psycopg2", specifier = ">=2.9.21.20260408,<3" },
-    { name = "types-requests", specifier = ">=2.33.0.20260408" },
-    { name = "vulture", specifier = ">=2.16,<3" },
+    { name = "types-psycopg2" },
+    { name = "types-requests" },
+    { name = "vulture" },
 ]
 
 [[package]]
@@ -3550,14 +3550,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "boto3", specifier = "~=1.41" },
+    { name = "boto3" },
     { name = "core", editable = "core" },
     { name = "pandas" },
     { name = "polars" },
-    { name = "psycopg2-binary", specifier = "~=2.9.10" },
+    { name = "psycopg2-binary" },
     { name = "pvlib", specifier = "~=0.15" },
-    { name = "pyarrow", specifier = "~=23.0" },
-    { name = "python-dotenv", specifier = "~=1.2" },
+    { name = "pyarrow" },
+    { name = "python-dotenv" },
     { name = "s3fs", specifier = "~=2026.2" },
     { name = "sentry-sdk", specifier = "~=2.58" },
     { name = "solarfactors", specifier = "~=1.6" },
@@ -3580,7 +3580,7 @@ dev = [
     { name = "pymupdf", specifier = "~=1.26" },
     { name = "pytest", specifier = "~=9.0" },
     { name = "pytest-xdist", specifier = ">=3.8,<4" },
-    { name = "types-psycopg2", specifier = ">=2.9.21.20260408,<3" },
+    { name = "types-psycopg2" },
     { name = "types-pytz", specifier = ">=2026.1.1.20260408,<2027" },
 ]
 

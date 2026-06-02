@@ -48,15 +48,15 @@ dev = [
     "mkdocs-awesome-nav>=3.0,<4",
     "mkdocs-material>=9.7.6,<10",
     "mkdocstrings>=1.0.4,<2",
-    "mypy~=1.20.0",
+    "mypy",
     "netcdf4~=1.7.0",
     "notebook~=7.5.0",
-    "pandas-stubs~=3.0",
+    "pandas-stubs",
     "plotly~=6.6.0",
     "pytest~=9.0",
-    "types-psycopg2>=2.9.21.20260408,<3",
-    "types-requests>=2.33.0.20260408",
-    "vulture>=2.16,<3",
+    "types-psycopg2",
+    "types-requests",
+    "vulture",
 ]
 
 [tool.uv.sources]
