@@ -1071,6 +1071,7 @@ class NotificationTypeEnum(BaseDatabaseEnum[int], IntEnum):
 class NotificationChannelEnum(StrEnum):
     EMAIL = "email"
     IN_APP = "in_app"
+    SMS = "sms"
 
 
 class NotificationStateEnum(StrEnum):

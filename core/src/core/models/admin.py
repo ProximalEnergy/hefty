@@ -258,6 +258,7 @@ class NotificationType(Base):
     name_long: Mapped[str]
     in_app_enabled_default: Mapped[bool]
     email_enabled_default: Mapped[bool]
+    sms_enabled_default: Mapped[bool] = mapped_column(server_default="false")
     in_app_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
         mapped_column(notification_severity_enum)
     )
@@ -268,6 +269,12 @@ class NotificationType(Base):
         mapped_column(notification_severity_enum)
     )
     email_severity_id_default: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
+    )
+    sms_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
+        mapped_column(notification_severity_enum)
+    )
+    sms_severity_id_default: Mapped[int | None] = mapped_column(
         sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
     )
 
@@ -289,6 +296,7 @@ class NotificationPreference(Base):
     )
     in_app_enabled: Mapped[bool]
     email_enabled: Mapped[bool]
+    sms_enabled: Mapped[bool] = mapped_column(server_default="false")
     email_min_severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
         notification_severity_enum
     )
@@ -299,6 +307,13 @@ class NotificationPreference(Base):
         notification_severity_enum
     )
     in_app_min_severity_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
+    )
+    sms_min_severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
+        notification_severity_enum,
+        server_default="CRITICAL",
+    )
+    sms_min_severity_id: Mapped[int | None] = mapped_column(
         sa.ForeignKey(NotificationSeverityLookup.notification_severity_id),
     )
 

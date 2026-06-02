@@ -458,6 +458,7 @@ export const KPITypeEnum = {
 export const NotificationChannelEnum = {
   EMAIL: "email",
   IN_APP: "in_app",
+  SMS: "sms",
 } as const;
 
 export const NotificationSeverityEnum = {
