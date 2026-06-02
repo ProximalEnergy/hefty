@@ -140,10 +140,11 @@ def _settlement_point_name_from_resource(resource_id: str) -> str | None:
     if not resource_id or "_" not in resource_id:
         return None
     parts = resource_id.split("_")
-    if len(parts) >= 2:
-        prefix = f"{parts[0]}_{parts[1]}"
-        return prefix
-    return None
+    while parts and any("ESR" in p for p in parts):
+        parts.pop()
+    if not parts:
+        return None
+    return "_".join(parts) + "_"
 
 
 async def _get_settlement_point_id(
@@ -182,7 +183,12 @@ async def _get_settlement_point_id(
         prefix_upper = prefix.upper()
         for c in candidates:
             if prefix_upper in (c.get("element") or "").upper():
+                print(c)
                 return c.get("identifier")
+
+    print("================================================")
+    print("WARNING: Exact match not found for settlement point ID.")
+    print("================================================")
 
     for c in candidates[:5]:
         ident = c.get("identifier")
