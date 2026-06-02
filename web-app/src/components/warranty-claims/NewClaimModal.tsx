@@ -1032,9 +1032,10 @@ export default function NewClaimModal({
   const matchedContract = useMemo(() => {
     if (!selectedConfig || !contracts) return null
     const counterId = selectedConfig.counterparty_company_id
-    return contracts.find((c) =>
-      c.company_id_counter === counterId &&
-      (c.category_name_short ?? '').endsWith('warranty_claim_form'),
+    return contracts.find(
+      (c) =>
+        c.company_id_counter === counterId &&
+        (c.category_name_short ?? '').endsWith('warranty_claim_form'),
     )
   }, [selectedConfig, contracts])
   const hasMatchedClaimFormPdf = !!matchedContract?.document_url

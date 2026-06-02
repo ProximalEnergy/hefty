@@ -82,8 +82,8 @@ rule:
     - not:
         pattern: 'async def $FUNC(self, $$$ARGS) -> $RET: $$$BODY'
     - not:
-        pattern: 'def lambda_handler($EVENT, $CONTEXT): $$$BODY'
+        pattern: 'def lambda_handler($$$ARGS): $$$BODY'
     - not:
-        pattern: 'def lambda_handler($EVENT, $CONTEXT) -> $RET: $$$BODY'
+        pattern: 'def lambda_handler($$$ARGS) -> $RET: $$$BODY'
     - not:
         regex: '(?s).*#\s*no-star-syntax.*'
