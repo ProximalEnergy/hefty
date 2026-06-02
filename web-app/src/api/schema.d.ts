@@ -1817,6 +1817,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/bess-strings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bess Strings Route
+         * @description Get BESS string equipment specifications.
+         *
+         *     Args:
+         *         bess_string_ids: Optional BESS string IDs to filter by.
+         *         device_model_ids: Optional device model IDs to filter by.
+         */
+        get: operations["get_bess_strings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/cec-pv-modules": {
         parameters: {
             query?: never;
@@ -8437,6 +8461,127 @@ export interface components {
             actual?: number | null;
             /** Expected */
             expected?: number | null;
+        };
+        /**
+         * BESSStringInterface
+         * @description BESS string equipment specification.
+         */
+        BESSStringInterface: {
+            /** Bess String Id */
+            bess_string_id: number;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Device Model Id */
+            device_model_id: number;
+            /** Configuration */
+            configuration?: string | null;
+            /** Chemistry */
+            chemistry?: string | null;
+            /** Cells In Series */
+            cells_in_series?: number | null;
+            /** Strings In Parallel */
+            strings_in_parallel?: number | null;
+            /** Module Count */
+            module_count?: number | null;
+            /** Nominal Energy Kwh */
+            nominal_energy_kwh?: number | null;
+            /** Nominal Power Kw */
+            nominal_power_kw?: number | null;
+            /** Charge Power Max Kw */
+            charge_power_max_kw?: number | null;
+            /** Discharge Power Max Kw */
+            discharge_power_max_kw?: number | null;
+            /** Operating Voltage Min V */
+            operating_voltage_min_v?: number | null;
+            /** Operating Voltage Max V */
+            operating_voltage_max_v?: number | null;
+            /** Dimensions Width Mm */
+            dimensions_width_mm?: number | null;
+            /** Dimensions Depth Mm */
+            dimensions_depth_mm?: number | null;
+            /** Dimensions Height Mm */
+            dimensions_height_mm?: number | null;
+            /** Weight Kg */
+            weight_kg?: number | null;
+            /** Bms Supply Voltage Vdc */
+            bms_supply_voltage_vdc?: number | null;
+            /** Bms Cell Voltage Accuracy Mv */
+            bms_cell_voltage_accuracy_mv?: {
+                [key: string]: unknown;
+            } | null;
+            /** Bms Total Voltage Accuracy Pct */
+            bms_total_voltage_accuracy_pct?: number | null;
+            /** Bms Total Voltage Detection Min V */
+            bms_total_voltage_detection_min_v?: number | null;
+            /** Bms Total Voltage Detection Max V */
+            bms_total_voltage_detection_max_v?: number | null;
+            /** Bms Current Accuracy Pct */
+            bms_current_accuracy_pct?: number | null;
+            /** Bms Current Min A */
+            bms_current_min_a?: number | null;
+            /** Bms Current Max A */
+            bms_current_max_a?: number | null;
+            /** Bms Temperature Accuracy C */
+            bms_temperature_accuracy_c?: {
+                [key: string]: unknown;
+            } | null;
+            /** Bms Soc Accuracy Pct */
+            bms_soc_accuracy_pct?: number | null;
+            /** Bms Soc Accuracy Notes */
+            bms_soc_accuracy_notes?: string | null;
+            /** Enclosure Rating Battery */
+            enclosure_rating_battery?: string | null;
+            /** Enclosure Rating Electrical */
+            enclosure_rating_electrical?: string | null;
+            /** Anti Corrosion Rating */
+            anti_corrosion_rating?: string | null;
+            /** Operating Temp Min C */
+            operating_temp_min_c?: number | null;
+            /** Operating Temp Max C */
+            operating_temp_max_c?: number | null;
+            /** Storage Temp Min C */
+            storage_temp_min_c?: number | null;
+            /** Storage Temp Max C */
+            storage_temp_max_c?: number | null;
+            /** Relative Humidity Min Pct */
+            relative_humidity_min_pct?: number | null;
+            /** Relative Humidity Max Pct */
+            relative_humidity_max_pct?: number | null;
+            /** Altitude Max M */
+            altitude_max_m?: number | null;
+            /** Thermal Management Method */
+            thermal_management_method?: string | null;
+            /** Auxiliary Power Phase */
+            auxiliary_power_phase?: string | null;
+            /** Auxiliary Power Ac Min V */
+            auxiliary_power_ac_min_v?: number | null;
+            /** Auxiliary Power Ac Max V */
+            auxiliary_power_ac_max_v?: number | null;
+            /** Auxiliary Power Frequency Hz */
+            auxiliary_power_frequency_hz?: number[] | {
+                [key: string]: unknown;
+            } | null;
+            /** Charge Power Limit Map */
+            charge_power_limit_map?: {
+                [key: string]: unknown;
+            } | null;
+            /** Discharge Power Limit Map */
+            discharge_power_limit_map?: {
+                [key: string]: unknown;
+            } | null;
+            /** Standards */
+            standards?: string[] | {
+                [key: string]: unknown;
+            } | null;
+            /** Source Filename */
+            source_filename?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /**
          * BackfillRequest
@@ -16351,6 +16496,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bess_strings: {
+        parameters: {
+            query?: {
+                bess_string_ids?: number[];
+                device_model_ids?: number[];
+            };
+            header?: {
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BESSStringInterface"][];
                 };
             };
             /** @description Validation Error */

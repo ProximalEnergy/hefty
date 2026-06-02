@@ -213,6 +213,7 @@ const CustomCard = ({
           inheritPadding
           py={5}
           style={{
+            flexShrink: 0,
             cursor: allowMinimize ? 'pointer' : 'default',
           }}
           onClick={allowMinimize ? () => setMinimized(!minimized) : undefined}
@@ -235,7 +236,16 @@ const CustomCard = ({
         </Card.Section>
       )}
       {!isBodyHidden && (
-        <Card.Section p={padding} style={{ height: '100%', ...bodyStyle }}>
+        <Card.Section
+          p={padding}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            ...bodyStyle,
+          }}
+        >
           {children}
         </Card.Section>
       )}

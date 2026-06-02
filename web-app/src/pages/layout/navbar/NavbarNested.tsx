@@ -60,7 +60,7 @@ const DEVICE_TYPE_TO_TAB_MAP: Record<number, string> = {
   [DeviceTypeEnum.TRACKER_ROW]: 'tracker',
   [DeviceTypeEnum.MET_STATION]: 'met-station',
   [DeviceTypeEnum.BESS_PCS]: 'bess-pcs',
-  [DeviceTypeEnum.BESS_STRING]: 'bess',
+  [DeviceTypeEnum.BESS_STRING]: 'bess-string',
   [DeviceTypeEnum.BESS_BLOCK]: 'bess', // BESS Block also maps to bess tab
   [DeviceTypeEnum.PV_FEEDER]: 'circuit',
 }
@@ -113,6 +113,9 @@ const generatePerformanceLinks = (
   const availableDeviceTypeIds = usedDeviceTypeIds.filter(
     (id) => DEVICE_TYPE_TO_TAB_MAP[id] !== undefined,
   )
+  const hideBESSBlockLink = availableDeviceTypeIds.includes(
+    DeviceTypeEnum.BESS_STRING,
+  )
 
   // Group device types by tab value, keeping only the highest priority one for each tab
   const tabToDeviceType = new Map<
@@ -121,6 +124,10 @@ const generatePerformanceLinks = (
   >()
 
   availableDeviceTypeIds.forEach((deviceTypeId) => {
+    if (hideBESSBlockLink && deviceTypeId === DeviceTypeEnum.BESS_BLOCK) {
+      return
+    }
+
     const tabValue = DEVICE_TYPE_TO_TAB_MAP[deviceTypeId]
     const deviceType = deviceTypeMap.get(deviceTypeId)
     if (!tabValue || !deviceType) return

@@ -29,3 +29,28 @@ export interface Device {
   pv_module_id?: number
   device_id_path?: string
 }
+
+const DEVICE_ANCESTOR_MAX_HOPS = 64
+
+/**
+ * Walk from `startDeviceId` upward (including that device) using `deviceById`
+ * until `device_type_id === targetTypeId`. Returns that device's id, or null.
+ *
+ * To match “parents only” (exclude the start node), pass
+ * `parent_device_id` of the start device as `startDeviceId`.
+ */
+export function findAncestorDeviceIdByType(
+  startDeviceId: number,
+  targetTypeId: number,
+  deviceById: Map<number, Device>,
+): number | null {
+  let cur: Device | undefined = deviceById.get(startDeviceId)
+  for (let h = 0; h < DEVICE_ANCESTOR_MAX_HOPS; h++) {
+    if (!cur) return null
+    if (cur.device_type_id === targetTypeId) return cur.device_id
+    const pid = cur.parent_device_id
+    if (pid == null) return null
+    cur = deviceById.get(pid)
+  }
+  return null
+}

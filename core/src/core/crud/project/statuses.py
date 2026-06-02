@@ -746,16 +746,18 @@ def _interpret_binary_statuses(
     # nominal_state might be bool/0/1; coerce to boolean where present.
     nominal = merged["nominal_state"]
     nominal_bool = nominal.astype("boolean")
-    merged["bit_alert"] = nominal_bool.notna() & (merged["bit_truth"] != nominal_bool)
+    merged["bit_alert"] = (
+        nominal_bool.notna() & (merged["bit_truth"] != nominal_bool)
+    ).fillna(False)
+    merged["bit_alert"] = merged["bit_alert"].astype(bool)
 
     # Include only active/deviating statuses in payload:
     # - if nominal is defined, include bits deviating from nominal
     # - otherwise include only bits that are true
-    merged["include_status"] = np.where(
-        nominal_bool.notna(),
-        merged["bit_alert"],
-        merged["bit_truth"],
-    )
+    merged["include_status"] = (
+        merged["bit_alert"] | (nominal_bool.isna() & merged["bit_truth"])
+    ).fillna(False)
+    merged["include_status"] = merged["include_status"].astype(bool)
 
     status_only = merged.loc[merged["include_status"]].copy()
 
@@ -774,9 +776,10 @@ def _interpret_binary_statuses(
     binary_df = binary_df.merge(
         alert_agg, how="left", left_on="_row_id", right_index=True
     )
-    binary_df["status"] = binary_df["status"].apply(
-        lambda x: x if isinstance(x, list) else []
-    )
+    binary_df["status"] = [
+        x if isinstance(x, list) else list(x) if isinstance(x, np.ndarray) else []
+        for x in binary_df["status"].to_numpy(dtype=object)
+    ]
     binary_df["alert"] = binary_df["alert"].fillna(False).astype(bool)
 
     # Cleanup helper columns

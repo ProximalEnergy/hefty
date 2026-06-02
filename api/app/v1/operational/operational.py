@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from app._dependencies.authentication import get_user
 from app.v1.operational import (
     aws,
+    bess_strings,
     cec_pv_modules,
     contract_categories,
     device_models,
@@ -35,6 +36,7 @@ router = APIRouter(
     dependencies=[Depends(get_user)],
 )
 router.include_router(aws.router)
+router.include_router(bess_strings.router)
 router.include_router(cec_pv_modules.router)
 router.include_router(contract_categories.router)
 router.include_router(device_models.router)

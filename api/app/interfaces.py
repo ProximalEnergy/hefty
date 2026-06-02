@@ -1464,6 +1464,72 @@ class InverterInterface(BaseModel):
     night_tare: float
 
 
+class BESSStringInterface(BaseModel):
+    """BESS string equipment specification."""
+
+    bess_string_id: int
+    company_id: uuid.UUID
+    device_model_id: int
+
+    configuration: str | None = None
+    chemistry: str | None = None
+    cells_in_series: int | None = None
+    strings_in_parallel: int | None = None
+    module_count: int | None = None
+
+    nominal_energy_kwh: float | None = None
+    nominal_power_kw: float | None = None
+    charge_power_max_kw: float | None = None
+    discharge_power_max_kw: float | None = None
+    operating_voltage_min_v: float | None = None
+    operating_voltage_max_v: float | None = None
+
+    dimensions_width_mm: float | None = None
+    dimensions_depth_mm: float | None = None
+    dimensions_height_mm: float | None = None
+    weight_kg: float | None = None
+
+    bms_supply_voltage_vdc: float | None = None
+    bms_cell_voltage_accuracy_mv: dict[str, Any] | None = None
+    bms_total_voltage_accuracy_pct: float | None = None
+    bms_total_voltage_detection_min_v: float | None = None
+    bms_total_voltage_detection_max_v: float | None = None
+    bms_current_accuracy_pct: float | None = None
+    bms_current_min_a: float | None = None
+    bms_current_max_a: float | None = None
+    bms_temperature_accuracy_c: dict[str, Any] | None = None
+    bms_soc_accuracy_pct: float | None = None
+    bms_soc_accuracy_notes: str | None = None
+
+    enclosure_rating_battery: str | None = None
+    enclosure_rating_electrical: str | None = None
+    anti_corrosion_rating: str | None = None
+
+    operating_temp_min_c: float | None = None
+    operating_temp_max_c: float | None = None
+    storage_temp_min_c: float | None = None
+    storage_temp_max_c: float | None = None
+    relative_humidity_min_pct: float | None = None
+    relative_humidity_max_pct: float | None = None
+    altitude_max_m: float | None = None
+
+    thermal_management_method: str | None = None
+    auxiliary_power_phase: str | None = None
+    auxiliary_power_ac_min_v: float | None = None
+    auxiliary_power_ac_max_v: float | None = None
+    auxiliary_power_frequency_hz: list[float] | dict[str, Any] | None = None
+
+    charge_power_limit_map: dict[str, Any] | None = None
+    discharge_power_limit_map: dict[str, Any] | None = None
+    standards: list[str] | dict[str, Any] | None = None
+
+    source_filename: str | None = None
+    created_at: datetime.datetime | None = None
+    updated_at: datetime.datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TransformerInterface(BaseModel):
     """Transformer model."""
 

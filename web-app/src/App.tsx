@@ -153,7 +153,28 @@ import {
 } from 'react-router'
 import { DcAmperageReportRoute } from '@/features/projects/reports/dc-amperage-report/routes/DcAmperageReportRoute'
 
-// import CustomDashPage from '@/pages/projects/custom_dash/CustomDash'
+// Development
+// Profile
+// Portfolio
+// Battery Health
+// Project Admin
+// In Development
+// Project Home
+// Reports
+// Project Settings
+// Calendar
+// CMMS
+// KPIs
+// Data Browsing
+// Device Details
+// DroneInspections
+// Current Day
+import EquipmentAnalysisBESSString from '@/pages/projects/equipment_analysis/bess_string/page'
+// Events
+// GIS
+// Utility
+
+// import CustomDash from './pages/projects/custom_dash/CustomDash'
 
 const URL_SIGN_IN = '/sign-in'
 const MFA_EXEMPT_EMAILS = new Set(['bot@proximal.energy'])
@@ -392,6 +413,10 @@ const ClerkProviderWithRoutes = () => {
                 <Route
                   path="bess-pcs"
                   element={<EquipmentAnalysisBESSPCSPage />}
+                />
+                <Route
+                  path="bess-string"
+                  element={<EquipmentAnalysisBESSString />}
                 />
                 <Route
                   path="met-station"

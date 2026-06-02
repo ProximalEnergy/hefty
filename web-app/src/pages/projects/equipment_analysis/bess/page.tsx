@@ -16,12 +16,11 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import { useResizePlotlyCharts } from '@/hooks/useResizePlotlyCharts'
-import RealTime from '@/pages/projects/device_details/RealTime'
 import { useEquipmentAnalysisTab } from '@/pages/projects/equipment_analysis/useEquipmentAnalysisTab'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useRef } from 'react'
-import { useParams } from 'react-router'
+import { Navigate, useParams } from 'react-router'
 
 const MAX_DAYS = 7
 
@@ -95,20 +94,11 @@ const EquipmentAnalysisBESSPage = () => {
           {isSuperadmin && <Tabs.Tab value="long-term">Long Term</Tabs.Tab>}
         </Tabs.List>
 
-        <Tabs.Panel
-          value="realtime"
-          pt="md"
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
-            width: '100%',
-          }}
-        >
-          <RealTime
-            initialDeviceTypeId={DeviceTypeEnum.BESS_STRING}
-            restrictToDeviceTypeId={DeviceTypeEnum.BESS_STRING}
+        <Tabs.Panel value="realtime" pt="md">
+          {/* Real-time strings live on the dedicated page (model header, stats, charts). */}
+          <Navigate
+            replace
+            to={`/projects/${projectId}/equipment-analysis/bess-string?tab=realtime`}
           />
         </Tabs.Panel>
 
