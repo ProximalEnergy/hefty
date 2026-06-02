@@ -45,6 +45,7 @@ class InspectUIApp:
 
         # Load config
         self.config_manager.load()
+        self._sync_local_project_state()
 
         # Start with main menu
         self.current_screen = MainMenuScreen(self)
@@ -87,6 +88,26 @@ class InspectUIApp:
 
         self.stdscr.refresh()
         self.stdscr.getch()
+
+    def _sync_local_project_state(self) -> None:
+        """Prune stale active projects and reset outdated disk cache."""
+        if not self.data_fetcher or not self.cache_manager:
+            return
+
+        inspectable = {
+            project.name_short
+            for project in self.data_fetcher.fetch_all_projects()
+        }
+        ignored = set(self.get_ignored_project_names())
+        allowed = inspectable - ignored
+
+        names = self.get_active_project_names()
+        pruned = [name for name in names if name in allowed]
+        if pruned != names:
+            self.set_active_project_names(names=pruned)
+
+        self.cache_manager.clear_projects_list_cache()
+        self.cache_manager.prune_project_payload_caches(keep_names=inspectable)
 
     def get_active_project_names(self) -> list[str]:
         """Return active project names from config."""

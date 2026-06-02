@@ -4,7 +4,7 @@ import curses
 from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
-from inspectui.core.models import TestResult, TestRunSummary, TestStatus
+from inspectui.core.models import ProjectInfo, TestResult, TestRunSummary, TestStatus
 from inspectui.tui.colors import (
     PAIR_ERROR,
     PAIR_HEADER,
@@ -200,7 +200,10 @@ class TestResultsScreen(BaseScreen):
             self.stdscr.attroff(curses.color_pair(PAIR_ERROR))
 
         view_desc = self._view_description()
-        filter_line = f"View: {view_desc}  (f: cycle filter, m: toggle condition rows)"
+        filter_line = (
+            f"View: {view_desc}  "
+            "(f: cycle filter, m: toggle condition rows, d: refresh failing)"
+        )
         self.stdscr.addstr(summary_y + 1, 0, filter_line[: width - 1])
 
         visible = self._visible_results()
@@ -266,7 +269,7 @@ class TestResultsScreen(BaseScreen):
         det = "on" if self._show_conditions else "off"
         status = (
             f"f: filter ({self._result_filter.value}) | m: details {det} | "
-            "arrows/jk: scroll | q: menu"
+            "d: refresh failing | arrows/jk: scroll | q: menu"
         )
         self.draw_status_bar(status[: width - 1])
         self.refresh()
@@ -292,6 +295,9 @@ class TestResultsScreen(BaseScreen):
             self._show_conditions = not self._show_conditions
             self._clamp_scroll()
 
+        elif key == ord("d"):
+            self._refresh_failing_projects_from_database()
+
         elif key == curses.KEY_UP or key == ord("k"):
             if self.scroll_offset > 0:
                 self.scroll_offset -= 1
@@ -313,6 +319,100 @@ class TestResultsScreen(BaseScreen):
         from inspectui.tui.screens.main_menu import MainMenuScreen  # noqa: PLC0415
 
         self.app.switch_screen(MainMenuScreen(self.app))
+
+    def _refresh_failing_projects_from_database(self) -> None:
+        """Fetch latest device/tag data for projects with failing tests."""
+        if not self.app.data_fetcher or not self.app.cache_manager:
+            self._show_message(message="Data fetcher is not available.")
+            return
+
+        name_shorts = self.summary.failing_project_names
+        if not name_shorts:
+            self._show_message(message="No failing projects to refresh.")
+            return
+
+        projects, missing = self._resolve_projects(name_shorts=name_shorts)
+        errors: list[str] = []
+        total = len(projects)
+        for idx, project in enumerate(projects, start=1):
+            self._show_progress(
+                project_name=project.name_short,
+                idx=idx,
+                total=total,
+            )
+            try:
+                devices = self.app.data_fetcher.fetch_devices(project.name_short)
+                tags = self.app.data_fetcher.fetch_tags(project.name_short)
+                self.app.cache_manager.set_project(project, devices, tags)
+            except Exception as e:
+                errors.append(f"{project.name_short}: {e}")
+
+        if missing:
+            errors.append(f"Missing projects: {', '.join(missing)}")
+
+        if errors:
+            self._show_message(
+                message="Refresh completed with errors.",
+                details=errors,
+            )
+            return
+
+        names = ", ".join(name_shorts)
+        self._show_message(
+            message=f"Refreshed {len(projects)} failing project(s) from database.",
+            details=[names] if names else None,
+        )
+
+    def _resolve_projects(
+        self,
+        *,
+        name_shorts: list[str],
+    ) -> tuple[list[ProjectInfo], list[str]]:
+        """Map name_shorts to ProjectInfo rows from operational.projects."""
+        if not self.app.data_fetcher:
+            return [], list(name_shorts)
+
+        all_projects = self.app.data_fetcher.fetch_all_projects()
+        by_name = {project.name_short: project for project in all_projects}
+        active = [by_name[name] for name in name_shorts if name in by_name]
+        missing = [name for name in name_shorts if name not in by_name]
+        return active, missing
+
+    def _show_progress(
+        self,
+        *,
+        project_name: str,
+        idx: int,
+        total: int,
+    ) -> None:
+        """Show progress while refreshing project data."""
+        self.clear()
+        height, width = self.get_dimensions()
+        msg = f"Refreshing {project_name} ({idx}/{total})..."
+        self.stdscr.addstr(height // 2, max(0, (width - len(msg)) // 2), msg)
+        self.refresh()
+
+    def _show_message(
+        self,
+        *,
+        message: str,
+        details: list[str] | None = None,
+    ) -> None:
+        """Show a message and wait for a key press."""
+        self.clear()
+        height, width = self.get_dimensions()
+        self.stdscr.attron(curses.color_pair(PAIR_HEADER))
+        self.stdscr.addstr(height // 2 - 1, 2, message[: width - 4])
+        self.stdscr.attroff(curses.color_pair(PAIR_HEADER))
+        if details:
+            y = height // 2 + 1
+            for line in details[: max(0, height - y - 2)]:
+                self.stdscr.addstr(y, 2, line[: width - 4])
+                y += 1
+        self.stdscr.addstr(height - 2, 2, "Press any key to continue...")
+        self.refresh()
+        if self.stdscr:
+            self.stdscr.getch()
 
     def _format_params(self, params: dict[str, object]) -> str:
         """Format params for display."""

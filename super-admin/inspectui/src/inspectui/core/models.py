@@ -113,3 +113,14 @@ class TestRunSummary:
     def all_passed(self) -> bool:
         """Return True if all tests passed."""
         return self.failed == 0 and self.errors == 0
+
+    @property
+    def failing_project_names(self) -> list[str]:
+        """Project name_shorts with at least one failed or errored test."""
+        names: set[str] = set()
+        for result in self.results:
+            if result.project_name is None:
+                continue
+            if result.status in (TestStatus.FAILED, TestStatus.ERROR):
+                names.add(result.project_name)
+        return sorted(names)

@@ -346,6 +346,39 @@ class CacheManager:
             return True
         return False
 
+    def clear_projects_list_cache(self) -> bool:
+        """Delete cached operational.projects list (``projects.json``).
+
+        Returns:
+            True if a file was removed.
+        """
+        cache_path = self._get_projects_cache_path()
+        if not cache_path.exists():
+            return False
+        cache_path.unlink()
+        return True
+
+    def prune_project_payload_caches(self, *, keep_names: set[str]) -> int:
+        """Delete per-project device/tag JSON not in ``keep_names``.
+
+        Args:
+            keep_names: ``name_short`` values to retain on disk.
+
+        Returns:
+            Number of cache files deleted.
+        """
+        if not self.cache_dir.exists():
+            return 0
+
+        count = 0
+        for cache_file in self.cache_dir.glob("*.json"):
+            if cache_file.name in ("projects.json", "last_test_run.json"):
+                continue
+            if cache_file.stem not in keep_names:
+                cache_file.unlink()
+                count += 1
+        return count
+
     def invalidate_all_cache(self) -> int:
         """Delete all cached project data.
 

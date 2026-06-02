@@ -97,6 +97,11 @@ TEST_PARAMS: dict[str, dict[str, Any]] = {
     "required_device_models": {
         "device_type_ids": [
             DeviceTypeEnum.PV_INVERTER,
+            DeviceTypeEnum.BESS_CELL,
+            DeviceTypeEnum.BESS_MODULE,
+            DeviceTypeEnum.BESS_STRING,
+            DeviceTypeEnum.BESS_DC_SKID,
+            DeviceTypeEnum.BESS_PCS,
         ],
     },
     "required_device_types": {

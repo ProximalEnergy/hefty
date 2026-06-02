@@ -93,6 +93,10 @@ class ProjectSelectScreen(BaseScreen):
 
             if cached:
                 raw = cached
+                if self.app.data_fetcher:
+                    raw = self.app.data_fetcher.filter_projects_with_device_tag_tables(
+                        projects=raw,
+                    )
             elif self.app.data_fetcher:
                 raw = self.app.data_fetcher.fetch_all_projects()
                 if self.app.cache_manager:
