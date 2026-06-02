@@ -1,8 +1,9 @@
-import { AggregationMethodEnum, SensorTypeEnum } from '@/api/enumerations'
+import { AggregationMethodEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
 import { Tag } from '@/hooks/projectTags'
 import { Device } from '@/hooks/devices'
 import { LineConfig as LineConfigType } from '@/pages/projects/custom_dash/CustomDash'
+import { isCustomDashChartSensorType } from '@/pages/projects/custom_dash/custom-dash-chart-sensor-types'
 import {
   ActionIcon,
   Box,
@@ -134,9 +135,8 @@ const LineConfig = ({
   }
   const sensorTypesData = sensorTypes.data
     ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
-    .filter(
-      (sensorType) =>
-        sensorType.sensor_type_id !== SensorTypeEnum.GHOST_UNKNOWN,
+    .filter((sensorType) =>
+      isCustomDashChartSensorType(sensorType.sensor_type_id),
     )
   return (
     <Stack>

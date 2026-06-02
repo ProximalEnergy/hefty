@@ -1,6 +1,6 @@
-import { SensorTypeEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
 import { ScatterConfig as ScatterConfigType } from '@/pages/projects/custom_dash/CustomDash'
+import { isCustomDashChartSensorType } from '@/pages/projects/custom_dash/custom-dash-chart-sensor-types'
 import {
   Button,
   Group,
@@ -49,9 +49,8 @@ const ScatterConfig = ({
   }
   const sensorTypesData = sensorTypes.data
     ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
-    .filter(
-      (sensorType) =>
-        sensorType.sensor_type_id !== SensorTypeEnum.GHOST_UNKNOWN,
+    .filter((sensorType) =>
+      isCustomDashChartSensorType(sensorType.sensor_type_id),
     )
   const allowCreate = !!xAxisSensorTypeId && !!yAxisSensorTypeId
   return (
