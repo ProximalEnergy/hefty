@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.12.8, <3.13"
 resolution-markers = [
     "platform_machine == 'ARM64' and sys_platform == 'win32'",
@@ -17,6 +17,7 @@ members = [
     "data-connection-outage-notifications-lambda",
     "forecast",
     "issues",
+    "jigsaw-analysis-lambda",
     "kpi",
     "mono",
     "pv-expected-energy",
@@ -1874,6 +1875,39 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/72/3a/79a912fbd4d8dd6fbb02bf69afd3bb72cf0c729bb3063c6f4498603db17a/jedi-0.19.2.tar.gz", hash = "sha256:4770dc3de41bde3966b02eb84fbcf557fb33cce26ad23da12c742fb50ecb11f0", size = 1231287, upload-time = "2024-11-11T01:41:42.873Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c0/5a/9cac0c82afec3d09ccd97c8b6502d48f165f9124db81b4bcb90b4af974ee/jedi-0.19.2-py2.py3-none-any.whl", hash = "sha256:a8ef22bde8490f57fe5c7681a3c83cb58874daf72b4784de3cce5b6ef6edb5b9", size = 1572278, upload-time = "2024-11-11T01:41:40.175Z" },
+]
+
+[[package]]
+name = "jigsaw-analysis-lambda"
+version = "0.1.0"
+source = { editable = "microservices/jigsaw-analysis-lambda" }
+dependencies = [
+    { name = "boto3" },
+    { name = "core" },
+    { name = "geopandas" },
+    { name = "httpx" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "psycopg2-binary" },
+    { name = "pydantic" },
+    { name = "scipy" },
+    { name = "sentry-sdk" },
+    { name = "shapely" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3" },
+    { name = "core", editable = "core" },
+    { name = "geopandas", specifier = ">=1.0,<2" },
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "numpy", specifier = ">=1.24,<3" },
+    { name = "pandas", specifier = "~=3.0" },
+    { name = "psycopg2-binary", specifier = ">=2.9,<3" },
+    { name = "pydantic", specifier = ">=2,<3" },
+    { name = "scipy", specifier = ">=1.11,<2" },
+    { name = "sentry-sdk", specifier = ">=2,<3" },
+    { name = "shapely", specifier = ">=2,<3" },
 ]
 
 [[package]]

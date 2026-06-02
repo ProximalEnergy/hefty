@@ -1,0 +1,29 @@
+[project]
+name = "jigsaw-analysis-lambda"
+version = "0.1.0"
+description = "Detect PV DC combiner GIS/SCADA tag mismatches via correlation analysis"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "boto3",
+    "core",
+    "geopandas>=1.0,<2",
+    "httpx>=0.28,<1",
+    "numpy>=1.24,<3",
+    "pandas~=3.0",
+    "psycopg2-binary>=2.9,<3",
+    "pydantic>=2,<3",
+    "scipy>=1.11,<2",
+    "sentry-sdk>=2,<3",
+    "shapely>=2,<3",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["config", "jigsaw", "lambda_function", "proximal_api"]
+
+[tool.uv.sources]
+core = { workspace = true }

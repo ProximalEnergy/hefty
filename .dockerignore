@@ -106,6 +106,9 @@ microservices/microservice_1/**/*
 !microservices/cmms-ticket-download/_scripts/
 !microservices/cmms-ticket-download/_scripts/**
 !microservices/cmms-ticket-download/src/**
+!microservices/jigsaw-analysis-lambda/pyproject.toml
+!microservices/jigsaw-analysis-lambda/_scripts/
+!microservices/jigsaw-analysis-lambda/_scripts/**
 !issues/pyproject.toml
 !issues/README.md
 !kpi/pyproject.toml
