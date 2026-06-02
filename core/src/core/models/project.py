@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core import enumerations
 from core.database import Base
+from core.models.admin import ReactionType
 from core.models.common import LTree, claim_status_enum, claim_update_type_enum
 
 
@@ -46,6 +47,7 @@ class Device(Base):
     capacity_ac: Mapped[float | None] = mapped_column(sa.REAL)
     capacity_energy_dc: Mapped[float | None] = mapped_column(sa.REAL)
     capacity_power_ac_kw: Mapped[float | None] = mapped_column(sa.REAL)
+    capacity_power_ac_kva: Mapped[float | None] = mapped_column(sa.REAL)
     capacity_power_dc_kw: Mapped[float | None] = mapped_column(sa.REAL)
     capacity_energy_dc_kwh: Mapped[float | None] = mapped_column(sa.REAL)
     point: Mapped[Geography | None] = mapped_column(
@@ -620,6 +622,9 @@ class EventMessageReaction(Base):
     user_id: Mapped[str] = mapped_column(sa.ForeignKey("admin.users.user_id"))
     reaction_type: Mapped[enumerations.ReactionTypeEnum] = mapped_column(
         Enum(enumerations.ReactionTypeEnum, name="reactiontype")
+    )
+    reaction_type_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey(ReactionType.reaction_type_id),
     )
     created_at: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
 
