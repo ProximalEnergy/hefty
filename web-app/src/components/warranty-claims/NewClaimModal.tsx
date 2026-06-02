@@ -1032,12 +1032,10 @@ export default function NewClaimModal({
   const matchedContract = useMemo(() => {
     if (!selectedConfig || !contracts) return null
     const counterId = selectedConfig.counterparty_company_id
-    const sameOem = contracts.filter((c) => c.company_id_counter === counterId)
-    if (sameOem.length === 0) return null
-    const claimFormContract = sameOem.find((c) =>
+    return contracts.find((c) =>
+      c.company_id_counter === counterId &&
       (c.category_name_short ?? '').endsWith('warranty_claim_form'),
     )
-    return claimFormContract ?? sameOem[0]
   }, [selectedConfig, contracts])
   const hasMatchedClaimFormPdf = !!matchedContract?.document_url
 
@@ -2587,8 +2585,8 @@ export default function NewClaimModal({
                 </>
               ) : (
                 <Alert variant="light" color="yellow">
-                  No matching warranty contract found for the selected OEM. You
-                  can still proceed and upload documents manually.
+                  No Warranty Claim Form contract found for the selected OEM.
+                  Upload the PDF and add it as a contract to enable autofill.
                 </Alert>
               )}
             </Stack>
