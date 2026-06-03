@@ -29,7 +29,7 @@ const ProjectPicture = ({
   const [opened, { open, close }] = useDisclosure(false)
 
   const description = project ? projectDescription(project) : ''
-  const descriptionLines = description.split(' | ')
+  const descriptionLines = description.split(' - ')
 
   return (
     <BackgroundImage

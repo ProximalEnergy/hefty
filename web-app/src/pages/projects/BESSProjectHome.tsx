@@ -1931,22 +1931,24 @@ const BESSProjectHome = () => {
 
   return (
     <Stack p="md" h="100%" ref={stackRef}>
-      <Group align="start">
-        <Group gap="xs" flex={1}>
+      <Group align="center">
+        <Group gap="xs" flex={1} align="baseline">
           <Title order={1} lh={1}>
             {project.data?.name_long}
           </Title>
-          <Title order={1} fw="normal" lh={1}>
-            {projectDescription(project.data)}
-          </Title>
-          <ActionIcon
-            variant="subtle"
-            size="sm"
-            onClick={() => setProjectInfoModalOpen(true)}
-            title="Project Information"
-          >
-            <IconInfoCircle size={16} />
-          </ActionIcon>
+          <Group gap={3}>
+            <Text size="lg" lh={1}>
+              {projectDescription(project.data)}
+            </Text>
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              onClick={() => setProjectInfoModalOpen(true)}
+              title="Project Information"
+            >
+              <IconInfoCircle />
+            </ActionIcon>
+          </Group>
         </Group>
         <Group gap="xs">
           <ProjectLabels projectId={projectId!} />
