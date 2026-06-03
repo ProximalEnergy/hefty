@@ -57,6 +57,17 @@ Expected energy calculations for PV systems in Proximal
 - AWS_S3_BUCKET_NAME: string
 
 
+## Required Proximal Tags
+- `met_station_poa`
+- `met_station_poa_tilt`
+- `met_station_ghi`
+- `met_station_ghi_tilt`
+- `met_station_ambient_temperature`
+- `met_station_wind_speed`
+- `met_station_relative_humidity`
+- `met_station_soil_percent`
+
+
 ## CAVEATS
 - Pandas will silently fail if you perform an operations that takes up too much memory.  This is unfortunate because you don't get an error message.
 
