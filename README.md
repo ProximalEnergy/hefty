@@ -18,7 +18,7 @@ The solar, wind, and datetime helper functions use these model names in the
 compatible model cycles. In general, `run_length + lead_time_to_start` must
 fit inside the listed span for the selected cycle. Use
 `adjust_forecast_datetimes()` to select an initialization time and lead-time
-combination that satisfies cycle-specific limits.
+combination that satisfies cycle-specific limits. Note that these forecast model schedules/features can change over time, and the `get_fcast_definition` function in `hefty.utilities` is intended to record these changes.
 
 | Model | Forecast type | Function support | Cycles | Available forecast span | Forecast-hour steps |
 | --- | --- | --- | --- | --- | --- |
