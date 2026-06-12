@@ -151,6 +151,16 @@ with this output (note that pressure is on the secondary y-axis):
 
 <img src="images/output_wind.png" width="500"/>
 
+## Troubleshooting
+
+GRIB files can occasionally download with negative artifacts. If forecasts
+contain unexpected negative values, try deleting cached GRIB files from your
+Herbie cache. See the Herbie cache configuration docs:
+https://herbie.readthedocs.io/en/stable/user_guide/configure.html.
+
+If deleting the cache does not resolve the issue, try downloading the same
+forecast from a different Herbie source, such as Azure, Google, or AWS.
+
 ## Installation
 
 A virtual environment is strongly recommended. You can install from PyPi with:
