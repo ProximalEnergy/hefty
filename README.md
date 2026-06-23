@@ -153,13 +153,23 @@ with this output (note that pressure is on the secondary y-axis):
 
 ## Troubleshooting
 
-GRIB files can occasionally download with negative artifacts. If forecasts
-contain unexpected negative values, try deleting cached GRIB files from your
+GRIB files can occasionally download with missing/incomplete artifacts. If forecasts
+contain unexpected missing/incomplete values, try deleting cached GRIB files from your
 Herbie cache. See the Herbie cache configuration docs:
 https://herbie.readthedocs.io/en/stable/user_guide/configure.html.
 
 If deleting the cache does not resolve the issue, try downloading the same
 forecast from a different Herbie source, such as Azure, Google, or AWS.
+
+## Attribution
+### ECMWF
+Please see the [ECMWF license terms](https://apps.ecmwf.int/datasets/licences/general/) here.  
+
+An Example Attribution
+
+> This document/data/output/Results is/are based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF), licensed under CC BY 4.0. © 2025 European Centre for Medium-Range Weather Forecasts (ECMWF), www.ecmwf.int. This data is published under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). To view a copy of this licence, visit https://creativecommons.org/licenses/by-nc-sa/4.0/. ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability, or for any loss or damage arising from their use.
+
+ECMWF Data have been modified using the functions included in the hefty Python package (e.g., interpolation to hourly values).
 
 ## Installation
 
@@ -197,4 +207,4 @@ This project uses several Python packages, including pvlib, an open-source solar
 
 [5] https://github.com/williamhobbs/pv-system-model
 
-[6] Hobbs, W., Anderson, K., Mikofski, M., and Ghiz, M. "An approach to modeling linear and non-linear self-shading losses with pvlib." 2024 PV Performance Modeling Collaborative (PVPMC). https://github.com/williamhobbs/2024_pvpmc_self_shade 
+[6] Hobbs, W., Anderson, K., Mikofski, M., and Ghiz, M. "An approach to modeling linear and non-linear self-shading losses with pvlib." 2024 PV Performance Modeling Collaborative (PVPMC). https://github.com/williamhobbs/2024_pvpmc_self_shade
