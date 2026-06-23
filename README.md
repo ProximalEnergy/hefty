@@ -165,7 +165,7 @@ forecast from a different Herbie source, such as Azure, Google, or AWS.
 ### ECMWF
 If you use models from ECMWF, you may need to include attribution language with the results. Please see the [ECMWF license terms](https://apps.ecmwf.int/datasets/licences/general/).
 
-A possible example attribution:
+A possible example attribution for IFS and AIFS:
 
 > This document/data/output/Results is/are based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF). © 2026 European Centre for Medium-Range Weather Forecasts (ECMWF), www.ecmwf.int. This data is published under a Creative Commons Attribution 4.0 International (CC BY 4.0). https://creativecommons.org/licenses/by/4.0/.  ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability, or for any loss or damage arising from their use.
 >
