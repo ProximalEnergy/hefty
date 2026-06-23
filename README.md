@@ -163,7 +163,9 @@ forecast from a different Herbie source, such as Azure, Google, or AWS.
 
 ## Attribution
 ### ECMWF
-If you use models from ECMWF, you may need to include attribution language with the results. Please see the [ECMWF license terms](https://apps.ecmwf.int/datasets/licences/general/).
+If you use models from ECMWF, you may need to include attribution language with the results. 
+
+For IFS and AIFS open data (`model='ifs'` or `model='aifs'`), please see the [ECMWF license terms](https://apps.ecmwf.int/datasets/licences/general/). For the CAMS version of IFS (`model='cams'`), please see the *References* and *License* sections of the [CAMS global atmospheric composition forecasts](https://ads.atmosphere.copernicus.eu/datasets/cams-global-atmospheric-composition-forecasts?tab=overview) page. 
 
 A possible example attribution for IFS and AIFS:
 
