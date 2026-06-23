@@ -163,13 +163,13 @@ forecast from a different Herbie source, such as Azure, Google, or AWS.
 
 ## Attribution
 ### ECMWF
-Please see the [ECMWF license terms](https://apps.ecmwf.int/datasets/licences/general/) here.  
+If you use models from ECMWF, you may need to include attribution language with the results. Please see the [ECMWF license terms](https://apps.ecmwf.int/datasets/licences/general/).
 
-An Example Attribution
+A possible example attribution:
 
-> This document/data/output/Results is/are based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF), licensed under CC BY 4.0. © 2025 European Centre for Medium-Range Weather Forecasts (ECMWF), www.ecmwf.int. This data is published under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). To view a copy of this licence, visit https://creativecommons.org/licenses/by-nc-sa/4.0/. ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability, or for any loss or damage arising from their use.
-
-ECMWF Data have been modified using the functions included in the hefty Python package (e.g., interpolation to hourly values).
+> This document/data/output/Results is/are based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF). © 2026 European Centre for Medium-Range Weather Forecasts (ECMWF), www.ecmwf.int. This data is published under a Creative Commons Attribution 4.0 International (CC BY 4.0). https://creativecommons.org/licenses/by/4.0/.  ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability, or for any loss or damage arising from their use.
+>
+>ECMWF Data have been modified using the functions included in the hefty Python package (e.g., interpolation to hourly values).
 
 ## Installation
 
