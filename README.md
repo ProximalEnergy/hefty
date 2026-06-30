@@ -173,6 +173,11 @@ A possible example attribution for IFS and AIFS:
 >
 >ECMWF Data have been modified using the functions included in the hefty Python package (e.g., interpolation to hourly values).
 
+A possible example attribution and citation for the CAMS version of IFS:
+
+> Contains modified Copernicus Atmosphere Monitoring Service information [2026]. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains.  © 2026 European Centre for Medium-Range Weather Forecasts (ECMWF), www.ecmwf.int. This data is published under a Creative Commons Attribution 4.0 International (CC BY 4.0). https://creativecommons.org/licenses/by/4.0/.
+>
+> Copernicus Atmosphere Monitoring Service (2021): CAMS global atmospheric composition forecasts. Copernicus Atmosphere Monitoring Service (CAMS) Atmosphere Data Store, DOI: 10.24381/04a0b097 (Accessed on DD-MMM-YYYY).
 ## Installation
 
 A virtual environment is strongly recommended. You can install from PyPi with:
